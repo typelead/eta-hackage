@@ -21,6 +21,7 @@ This the list of packages that can be installed with CabalVM without modificatio
 - [gdiff-1.1](https://hackage.haskell.org/package/gdiff-1.1)
 - [patch-combinators-0.2.2](https://hackage.haskell.org/package/patch-combinators-0.2.2)
 - [microlens-0.4.7.0](https://hackage.haskell.org/package/microlens-0.4.7.0)
+- [transformers-compat-0.5.1.4](http://hackage.haskell.org/package/transformers-compat-0.5.1.4)
 
 ### Patched Packages
 These packages needed to be patched (and hence should have a patch file uploaded in this repository).
