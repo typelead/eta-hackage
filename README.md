@@ -20,6 +20,7 @@ This the list of packages that can be installed with CabalVM without modificatio
 - [mtl-2.2.1](https://hackage.haskell.org/package/mtl-2.2.1)
 - [gdiff-1.1](https://hackage.haskell.org/package/gdiff-1.1)
 - [patch-combinators-0.2.2](https://hackage.haskell.org/package/patch-combinators-0.2.2)
+- [microlens-0.4.7.0](https://hackage.haskell.org/package/microlens-0.4.7.0)
 
 ### Patched Packages
 These packages needed to be patched (and hence should have a patch file uploaded in this repository).
