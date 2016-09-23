@@ -19,6 +19,7 @@ This the list of packages that can be installed with CabalVM without modificatio
 - [transformers-0.5.2.0](https://hackage.haskell.org/package/transformers-0.5.2.0)
 - [mtl-2.2.1](https://hackage.haskell.org/package/mtl-2.2.1)
 - [gdiff-1.1](https://hackage.haskell.org/package/gdiff-1.1)
+- [patch-combinators-0.2.2](https://hackage.haskell.org/package/patch-combinators-0.2.2)
 
 ### Patched Packages
 These packages needed to be patched (and hence should have a patch file uploaded in this repository).
