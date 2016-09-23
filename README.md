@@ -23,6 +23,10 @@ This the list of packages that can be installed with CabalVM without modificatio
 - [microlens-0.4.7.0](https://hackage.haskell.org/package/microlens-0.4.7.0)
 - [transformers-compat-0.5.1.4](http://hackage.haskell.org/package/transformers-compat-0.5.1.4)
 - [microlens-mtl-0.1.10.0](http://hackage.haskell.org/package/microlens-mtl-0.1.10.0)
+- [list-extras-0.4.1.4](https://hackage.haskell.org/package/list-extras-0.4.1.4)
+- [gray-code-0.3.1](https://hackage.haskell.org/package/gray-code-0.3.1)
+- [heaps-0.3.3](https://hackage.haskell.org/package/heaps-0.3.3)
+- [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
 
 ### Patched Packages
 These packages needed to be patched (and hence should have a patch file uploaded in this repository).
