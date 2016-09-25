@@ -9,7 +9,7 @@ This repository contains a set of patches for particular packages from Hackage t
   - [Unsupported Packages](#unsupported-packages)
   - [Built-in Packages](#built-in-packages)
 - [Contributing](#contributing)
-  - [Patching a Library](#patching-a-library)  
+  - [Patching a Library](#patching-a-library)
     - [Prerequisites](#prerequisites)
     - [Patching](#patching)
   - [Viewing a Patch](#viewing-a-patch)
@@ -28,18 +28,20 @@ If you would like to have a given package/version made compatible with GHCVM, yo
 ### Supported Packages
 These packages are supported by GHCVM.
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
+- [array-0.5.1.1](https://hackage.haskell.org/package/array-0.5.1.1)
 - [containers-0.5.8.1](https://hackage.haskell.org/package/containers-0.5.8.1)
 - [gdiff-1.1](https://hackage.haskell.org/package/gdiff-1.1)
 - [gray-code-0.3.1](https://hackage.haskell.org/package/gray-code-0.3.1)
 - [heaps-0.3.3](https://hackage.haskell.org/package/heaps-0.3.3)
 - [deepseq-1.4.2.0](https://hackage.haskell.org/package/deepseq-1.4.2.0)
-- [transformers-0.5.2.0](https://hackage.haskell.org/package/transformers-0.5.2.0)
-- [transformers-compat-0.5.1.4](http://hackage.haskell.org/package/transformers-compat-0.5.1.4)
 - [list-extras-0.4.1.4](https://hackage.haskell.org/package/list-extras-0.4.1.4)
 - [microlens-0.4.7.0](https://hackage.haskell.org/package/microlens-0.4.7.0)
 - [microlens-mtl-0.1.10.0](http://hackage.haskell.org/package/microlens-mtl-0.1.10.0)
 - [mtl-2.2.1](https://hackage.haskell.org/package/mtl-2.2.1)
 - [patch-combinators-0.2.2](https://hackage.haskell.org/package/patch-combinators-0.2.2)
+- [split-0.2.3.1](https://hackage.haskell.org/package/split-0.2.3.1)
+- [transformers-0.5.2.0](https://hackage.haskell.org/package/transformers-0.5.2.0)
+- [transformers-compat-0.5.1.4](http://hackage.haskell.org/package/transformers-compat-0.5.1.4)
 
 ### Unsupported Packages
 These packages are heavy on FFI dependencies and don't make sense in the context of the JVM, hence no effort will be made to port them.
@@ -124,7 +126,7 @@ If you have already forked this repository, the skip to step 3.
 
 ### Viewing a Patch
 
-When you want to see how a library (say `somepackage-0.1.2.3`) looks with the patches applied: 
+When you want to see how a library (say `somepackage-0.1.2.3`) looks with the patches applied:
 
 1. Download the source distribution of that package from Hacakage and extract it.
 
@@ -133,5 +135,5 @@ When you want to see how a library (say `somepackage-0.1.2.3`) looks with the pa
   $ git init
   $ git apply somepackage-0.1.2.3.patch
   ```
-  
+
 You may wish to modify an existing patch. If so, apply the steps above after Step 2 in [Patching a Library/Patching](#patching).

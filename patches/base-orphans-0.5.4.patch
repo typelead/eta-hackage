@@ -1,0 +1,24 @@
+From fd8d87655cb3781f2ef0c32c480928879b36e16e Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 26 Sep 2016 00:34:20 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Data/Orphans.hs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Data/Orphans.hs b/src/Data/Orphans.hs
+index 494532d..d132ca3 100644
+--- a/src/Data/Orphans.hs
++++ b/src/Data/Orphans.hs
+@@ -69,7 +69,7 @@ import           GHC.ConsoleHandler as Console
+ import           Data.Orphans.Prelude
+ #endif
+
+-#include "HsBaseConfig.h"
++#define HTYPE_DEV_T 1
+
+ -------------------------------------------------------------------------------
+
+--
+2.7.4 (Apple Git-66)
