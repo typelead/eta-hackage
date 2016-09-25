@@ -12,6 +12,7 @@ This repository contains a set of patches for particular packages from Hackage t
   - [Patching a Library](#patching-a-library)  
     - [Prerequisites](#prerequisites)
     - [Patching](#patching)
+  - [Viewing a Patch](#viewing-a-patch)
 
 ## Package Categorization
 
@@ -21,13 +22,13 @@ We have categorized the packages from Hackage below in relation to GHCVM support
 
 If you would like to have a given package/version made compatible with GHCVM, you can:
 
-- Submit an [issue](https://github.com/rahulmutt/ghcvm-hackage/issues)
+- Submit an [issue](https://github.com/rahulmutt/ghcvm-hackage/issues/new)
 - Ask us on [Gitter](https://gitter.im/rahulmutt/ghcvm)
 
 ### Supported Packages
 These packages are supported by GHCVM.
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
-- [containers--0.5.8.1](https://hackage.haskell.org/package/containers-0.5.8.1)
+- [containers-0.5.8.1](https://hackage.haskell.org/package/containers-0.5.8.1)
 - [gdiff-1.1](https://hackage.haskell.org/package/gdiff-1.1)
 - [gray-code-0.3.1](https://hackage.haskell.org/package/gray-code-0.3.1)
 - [heaps-0.3.3](https://hackage.haskell.org/package/heaps-0.3.3)
@@ -120,3 +121,17 @@ If you have already forked this repository, the skip to step 3.
    $ git push origin
    ```
 10. Submit a pull request to this repository for review.
+
+### Viewing a Patch
+
+When you want to see how a library (say `somepackage-0.1.2.3`) looks with the patches applied: 
+
+1. Download the source distribution of that package from Hacakage and extract it.
+
+2. Initialize a git repository in it and apply the patch (after copying it to the directory).
+  ```
+  $ git init
+  $ git apply somepackage-0.1.2.3.patch
+  ```
+  
+You may wish to modify an existing patch. If so, apply the steps above after Step 2 in [Patching a Library/Patching](#patching).
