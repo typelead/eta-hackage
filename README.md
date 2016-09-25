@@ -29,9 +29,12 @@ If you would like to have a given package/version made compatible with GHCVM, yo
 These packages are supported by GHCVM.
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
 - [array-0.5.1.1](https://hackage.haskell.org/package/array-0.5.1.1)
+- [base-orphans-0.5.4](https://hackage.haskell.org/package/base-orphans-0.5.4)
 - [containers-0.5.8.1](https://hackage.haskell.org/package/containers-0.5.8.1)
+- [GenericPretty-1.2.1](https://hackage.haskell.org/package/GenericPretty-1.2.1)
 - [gdiff-1.1](https://hackage.haskell.org/package/gdiff-1.1)
 - [gray-code-0.3.1](https://hackage.haskell.org/package/gray-code-0.3.1)
+- [ghc-boot-th-8.0.1](https://hackage.haskell.org/package/ghc-boot-th-8.0.1)
 - [heaps-0.3.3](https://hackage.haskell.org/package/heaps-0.3.3)
 - [deepseq-1.4.2.0](https://hackage.haskell.org/package/deepseq-1.4.2.0)
 - [list-extras-0.4.1.4](https://hackage.haskell.org/package/list-extras-0.4.1.4)
@@ -39,7 +42,10 @@ These packages are supported by GHCVM.
 - [microlens-mtl-0.1.10.0](http://hackage.haskell.org/package/microlens-mtl-0.1.10.0)
 - [mtl-2.2.1](https://hackage.haskell.org/package/mtl-2.2.1)
 - [patch-combinators-0.2.2](https://hackage.haskell.org/package/patch-combinators-0.2.2)
+- [pretty-1.1.3.4](https://hackage.haskell.org/package/pretty-1.1.3.4)
 - [split-0.2.3.1](https://hackage.haskell.org/package/split-0.2.3.1)
+- [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
+- [template-haskell-2.11.0.0](https://hackage.haskell.org/package/template-haskell-2.11.0.0)
 - [transformers-0.5.2.0](https://hackage.haskell.org/package/transformers-0.5.2.0)
 - [transformers-compat-0.5.1.4](http://hackage.haskell.org/package/transformers-compat-0.5.1.4)
 
