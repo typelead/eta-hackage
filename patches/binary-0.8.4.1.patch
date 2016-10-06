@@ -1,0 +1,25 @@
+From aefbe23aad7da0397934a6779affd2d3521f08c0 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 7 Oct 2016 01:12:18 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Data/Binary/Get.hs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Data/Binary/Get.hs b/src/Data/Binary/Get.hs
+index 6220759..f079461 100644
+--- a/src/Data/Binary/Get.hs
++++ b/src/Data/Binary/Get.hs
+@@ -2,7 +2,7 @@
+ {-# LANGUAGE Trustworthy #-}
+ 
+ #if defined(__GLASGOW_HASKELL__) && !defined(__HADDOCK__)
+-#include "MachDeps.h"
++#define WORD_SIZE_IN_BITS 32
+ #endif
+ 
+ -----------------------------------------------------------------------------
+-- 
+2.7.4 (Apple Git-66)
+
