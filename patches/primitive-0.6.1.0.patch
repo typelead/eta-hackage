@@ -1,0 +1,4 @@
+git: 'format-path' is not a git command. See 'git --help'.
+
+Did you mean this?
+	format-patch
