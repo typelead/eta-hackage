@@ -1,6 +1,6 @@
-From bee7291d68287588549ada81d75c1a2443fcb386 Mon Sep 17 00:00:00 2001
+From 2d4d6a7768cb4d0c867e871cfb8ef955c5fdad4b Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sun, 9 Oct 2016 12:07:57 +0530
+Date: Sun, 9 Oct 2016 22:40:23 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -8,11 +8,9 @@ Subject: [PATCH] Patched
  Data/Primitive/Internal/Operations.hs |  66 +++++++++++-----------
  Data/Primitive/MachDeps.hs            |  72 +++++++++++++++++++++++-
  Data/Primitive/Types.hs               |   6 +-
- java/Utils.class                      | Bin 0 -> 2502 bytes
  java/Utils.java                       | 101 ++++++++++++++++++++++++++++++++++
- primitive.cabal                       |  11 ++--
- 7 files changed, 216 insertions(+), 42 deletions(-)
- create mode 100644 java/Utils.class
+ primitive.cabal                       |  18 +++---
+ 6 files changed, 220 insertions(+), 45 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/Data/Primitive/ByteArray.hs b/Data/Primitive/ByteArray.hs
@@ -238,37 +236,6 @@ index d865a2c..0cdf42c 100644
 +-- derivePrim(Addr, Addr, sIZEOF_PTR, aLIGNMENT_PTR,
 +--            indexAddrArray#, readAddrArray#, writeAddrArray#, setAddrArray#,
 +--            indexAddrOffAddr#, readAddrOffAddr#, writeAddrOffAddr#, setAddrOffAddr#)
-diff --git a/java/Utils.class b/java/Utils.class
-new file mode 100644
-index 0000000000000000000000000000000000000000..794b841f8e1ba018888a97db59ca22c3de8f1691
-GIT binary patch
-literal 2502
-zcma)7NmCnV5Pc)GGa#8I2n!jLKrAL0ImGb-ju#+cVPTvItT<j^Bt~K!EtD2gzUL35
-za>*&zoKxjes2ox`=jSB%IIm|$AXFf%Lx1|d>DRB{*WELJ|M$nA0Is7DL<Bd2xQSb0
-zZi|^0vmoY<m@mZK6?4yr`vC;;Aczqxidhn~EapowD`Hl~^`V%gm^Cqv#H4&!_u;Vu
-z?;W#j*6%9liBCUO;9jci8VW)wvur$Wl(I&3Q_mK8;w>4ano(B}ji+Ag2YRAxRuYSE
-z>c(OtpEs%t$z)RSed)TM`)*y|cVMaw+pg_Zsssm}ty$)#*Vz;+<wBRZYZA8=Cts}S
-z-I7?bl5hg=RvK3BXQsR?-T}uut1Fm{rwV(ygHoc}DA&!Bk*L)RiFCcNRIJn*RimXc
-z<UlM{+XC!!PAJUU_d9#hW*wX#+0xmHZ0USYprtwN5ZapG6KU!95m~Anu*Qq$sXy;>
-z<T``tN~4-HR!r%d;8xu%)@G$)RE*-H4;w0;;42khBduZ+TPmI+qv9JpQ}HdHt9XHz
-zDqdk*LF{BH*l(<awA_PgRez&m2Mij+B^8&&Oo;gqAE}tcl!}jWMMYM^=4`%Q6^8KT
-zv87<xj=f(sOJ?0XFcMax3c^-z7xi)>v5|dk<k)M2r?k5Q|9+)LWTmWND4v{dn+ba!
-zI8gfyq9gIe_J_v<!;z{Q-<#!KGQ`_mT6jP4X?tuU@pQY#i6Hb!$}~kzX3_5Bqfg2j
-zvPgXGtUyAyVoz5jzH*jVfL_baSViK?XSwxc8+l%G+pV<c<JXJDN=~n{K|Dn%fP$IR
-z-zsOtcjt@dKGC_Np;uY?5xzO)*AGS7j5f+$jH|-cqx}x$H~vvDM(ec>eF#YN@V~gG
-z;ewlMOp7+*%8dPjuonBViJr_4u6Mt_`$ucSoskeOE5t<x0RwpX1`eVZ7oakSem)Cf
-zoKM_vdBc3p#&ig_&|?vdYo6%dF~v_!c)C#xz>h%&AEF(mv=Ii3v?%;S!M1lOHXVvf
-zn(v4rq{W)>+6@1mDk4gTF*3w3V8y=7e-lRxAu@2L+C+FLZ(Ixe+bAZQ@O7h@WRNNJ
-zaU=(Eg(9X&q_rplLcxjcDq^Y$e>aA!6fsK?35vMJ3!0;d&sq$AVc_eayNKx~0^KNX
-zFvv}cxJ41SDPn;l?zAW@5pfE$yGdiIrJMS-zYu(j-so8D5bALU2H8fyJx06Fs9JYi
-zUng#fxMku#>5l8~#H|wdkhmFKJ<8JqspoN?6Nd<O;vNx~B5sz~dzQYbLxekV8^k>!
-z?ixNl!gcaZAL2qME=}AfadRx8&G$1q+s`~Vo%@{k%-9z@?;Um@Vqo4k>apgQ%dmT=
-ziNVY$kD3_b+Qe{X)XOn&agi+#y)w??@PRed_IqKD4FrCP0(izYdd?cZ-~hj5eO@t_
-aZB~AVHPf-m&&oQ#DrxL8zw5-f@cI95Kn6Ad
-
-literal 0
-HcmV?d00001
-
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
 index 0000000..80b0f1e
@@ -377,15 +344,26 @@ index 0000000..80b0f1e
 +    }
 +}
 diff --git a/primitive.cabal b/primitive.cabal
-index 232dccc..6bcdf71 100644
+index 232dccc..e0a0dd0 100644
 --- a/primitive.cabal
 +++ b/primitive.cabal
-@@ -38,14 +38,15 @@ Library
+@@ -1,5 +1,6 @@
+ Name:           primitive
+ Version:        0.6.1.0
++x-revision: 1
+ License:        BSD3
+ License-File:   LICENSE
  
-   Build-Depends: base >= 4.3 && < 4.9
-                , ghc-prim >= 0.2 && < 0.5
+@@ -36,16 +37,17 @@ Library
+         Data.Primitive.Internal.Compat
+         Data.Primitive.Internal.Operations
+ 
+-  Build-Depends: base >= 4.3 && < 4.9
+-               , ghc-prim >= 0.2 && < 0.5
 -               , transformers >= 0.2 && < 0.5
-+               , transformers >= 0.2 && < 0.5.3
++  Build-Depends: base >= 4.3 && < 4.10
++               , ghc-prim >= 0.2 && < 0.6
++               , transformers >= 0.2 && < 0.6
  
    Ghc-Options: -O2 -Wall
  
@@ -401,6 +379,13 @@ index 232dccc..6bcdf71 100644
    cc-options: -O3 -fomit-frame-pointer -Wall
    if !os(solaris)
        cc-options: -ftree-vectorize
+@@ -64,4 +66,4 @@ test-suite test
+ 
+ source-repository head
+   type:     git
+-  location: https://github.com/haskell/primitive
++  location: https://github.com/haskell/primitive
+\ No newline at end of file
 -- 
 2.7.4 (Apple Git-66)
 
