@@ -1,4 +1,406 @@
-git: 'format-path' is not a git command. See 'git --help'.
+From bee7291d68287588549ada81d75c1a2443fcb386 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 9 Oct 2016 12:07:57 +0530
+Subject: [PATCH] Patched
 
-Did you mean this?
-	format-patch
+---
+ Data/Primitive/ByteArray.hs           |   2 +-
+ Data/Primitive/Internal/Operations.hs |  66 +++++++++++-----------
+ Data/Primitive/MachDeps.hs            |  72 +++++++++++++++++++++++-
+ Data/Primitive/Types.hs               |   6 +-
+ java/Utils.class                      | Bin 0 -> 2502 bytes
+ java/Utils.java                       | 101 ++++++++++++++++++++++++++++++++++
+ primitive.cabal                       |  11 ++--
+ 7 files changed, 216 insertions(+), 42 deletions(-)
+ create mode 100644 java/Utils.class
+ create mode 100644 java/Utils.java
+
+diff --git a/Data/Primitive/ByteArray.hs b/Data/Primitive/ByteArray.hs
+index 2cce7ae..56ba04f 100644
+--- a/Data/Primitive/ByteArray.hs
++++ b/Data/Primitive/ByteArray.hs
+@@ -248,7 +248,7 @@ foreign import ccall unsafe "primitive-memops.h hsprimitive_memcpy"
+             -> CSize -> IO ()
+ #endif
+ 
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memmove"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memmove"
+   memmove_mba :: MutableByteArray# s -> CInt
+               -> MutableByteArray# s -> CInt
+               -> CSize -> IO ()
+diff --git a/Data/Primitive/Internal/Operations.hs b/Data/Primitive/Internal/Operations.hs
+index 091e11f..ab82547 100644
+--- a/Data/Primitive/Internal/Operations.hs
++++ b/Data/Primitive/Internal/Operations.hs
+@@ -17,74 +17,76 @@ module Data.Primitive.Internal.Operations (
+   setWord64Array#, setWordArray#,
+   setInt8Array#, setInt16Array#, setInt32Array#,
+   setInt64Array#, setIntArray#,
+-  setAddrArray#, setFloatArray#, setDoubleArray#, setWideCharArray#,
++  -- setAddrArray#,
++  setFloatArray#, setDoubleArray#, setWideCharArray#,
+ 
+   setWord8OffAddr#, setWord16OffAddr#, setWord32OffAddr#,
+   setWord64OffAddr#, setWordOffAddr#,
+   setInt8OffAddr#, setInt16OffAddr#, setInt32OffAddr#,
+   setInt64OffAddr#, setIntOffAddr#,
+-  setAddrOffAddr#, setFloatOffAddr#, setDoubleOffAddr#, setWideCharOffAddr#
++  -- setAddrOffAddr#,
++  setFloatOffAddr#, setDoubleOffAddr#, setWideCharOffAddr#
+ ) where
+ 
+ import Data.Primitive.MachDeps (Word64_#, Int64_#)
+ import Foreign.C.Types
+ import GHC.Prim
+ 
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word8"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_ba"
+   setWord8Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Word# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word16"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_short_ba"
+   setWord16Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Word# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word32"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int_ba"
+   setWord32Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Word# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word64"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_long_ba"
+   setWord64Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Word64_# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int_ba"
+   setWordArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Word# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word8"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_ba"
+   setInt8Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Int# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word16"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_short_ba"
+   setInt16Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Int# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word32"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int_ba"
+   setInt32Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Int# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word64"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_long_ba"
+   setInt64Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Int64_# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int_ba"
+   setIntArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Int# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Ptr"
+-  setAddrArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Addr# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Float"
++-- foreign import java unsafe "@static ghcvm.primitive.Utils.memset_Ptr_ba"
++--   setAddrArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Addr# -> IO ()
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_float_ba"
+   setFloatArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Float# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Double"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_double_ba"
+   setDoubleArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Double# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Char"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int_ba"
+   setWideCharArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Char# -> IO ()
+ 
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word8"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset"
+   setWord8OffAddr# :: Addr# -> CPtrdiff -> CSize -> Word# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word16"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_short"
+   setWord16OffAddr# :: Addr# -> CPtrdiff -> CSize -> Word# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word32"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int"
+   setWord32OffAddr# :: Addr# -> CPtrdiff -> CSize -> Word# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word64"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_long"
+   setWord64OffAddr# :: Addr# -> CPtrdiff -> CSize -> Word64_# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int"
+   setWordOffAddr# :: Addr# -> CPtrdiff -> CSize -> Word# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word8"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset"
+   setInt8OffAddr# :: Addr# -> CPtrdiff -> CSize -> Int# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word16"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_short"
+   setInt16OffAddr# :: Addr# -> CPtrdiff -> CSize -> Int# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word32"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int"
+   setInt32OffAddr# :: Addr# -> CPtrdiff -> CSize -> Int# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word64"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_long"
+   setInt64OffAddr# :: Addr# -> CPtrdiff -> CSize -> Int64_# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int"
+   setIntOffAddr# :: Addr# -> CPtrdiff -> CSize -> Int# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Ptr"
+-  setAddrOffAddr# :: Addr# -> CPtrdiff -> CSize -> Addr# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Float"
++-- foreign import java unsafe "@static ghcvm.primitive.Utils.memset_Ptr"
++--   setAddrOffAddr# :: Addr# -> CPtrdiff -> CSize -> Addr# -> IO ()
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_float"
+   setFloatOffAddr# :: Addr# -> CPtrdiff -> CSize -> Float# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Double"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_double"
+   setDoubleOffAddr# :: Addr# -> CPtrdiff -> CSize -> Double# -> IO ()
+-foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Char"
++foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int"
+   setWideCharOffAddr# :: Addr# -> CPtrdiff -> CSize -> Char# -> IO ()
+ 
+diff --git a/Data/Primitive/MachDeps.hs b/Data/Primitive/MachDeps.hs
+index d36c252..94fcbbf 100644
+--- a/Data/Primitive/MachDeps.hs
++++ b/Data/Primitive/MachDeps.hs
+@@ -12,7 +12,77 @@
+ 
+ module Data.Primitive.MachDeps where
+ 
+-#include "MachDeps.h"
++#define WORD_SIZE_IN_BITS 32
++
++#define ALIGNMENT_CHAR 1
++#define ALIGNMENT_DOUBLE 8
++#define ALIGNMENT_FLOAT 4
++#define ALIGNMENT_INT 4
++#define ALIGNMENT_LONG 8
++#define ALIGNMENT_SHORT 2
++#define ALIGNMENT_UNSIGNED_CHAR 1
++#define ALIGNMENT_UNSIGNED_INT 4
++#define ALIGNMENT_UNSIGNED_LONG 8
++#define ALIGNMENT_UNSIGNED_SHORT 2
++#define ALIGNMENT_VOID_P 4
++#define SIZEOF_CHAR 1
++#define SIZEOF_DOUBLE 8
++#define SIZEOF_FLOAT 4
++#define SIZEOF_INT 4
++#define SIZEOF_LONG 8
++#define SIZEOF_SHORT 2
++#define SIZEOF_UNSIGNED_CHAR 1
++#define SIZEOF_UNSIGNED_INT 4
++#define SIZEOF_UNSIGNED_LONG 8
++#define SIZEOF_UNSIGNED_SHORT 2
++#define SIZEOF_VOID_P 8
++
++#define SIZEOF_HSCHAR           SIZEOF_WORD32
++#define ALIGNMENT_HSCHAR        ALIGNMENT_WORD32
++
++#define SIZEOF_HSINT            SIZEOF_VOID_P
++#define ALIGNMENT_HSINT         ALIGNMENT_VOID_P
++
++#define SIZEOF_HSWORD           SIZEOF_VOID_P
++#define ALIGNMENT_HSWORD        ALIGNMENT_VOID_P
++
++#define SIZEOF_HSDOUBLE         SIZEOF_DOUBLE
++#define ALIGNMENT_HSDOUBLE      ALIGNMENT_DOUBLE
++
++#define SIZEOF_HSFLOAT          SIZEOF_FLOAT
++#define ALIGNMENT_HSFLOAT       ALIGNMENT_FLOAT
++
++#define SIZEOF_HSPTR            SIZEOF_VOID_P
++#define ALIGNMENT_HSPTR         ALIGNMENT_VOID_P
++
++#define SIZEOF_HSFUNPTR         SIZEOF_VOID_P
++#define ALIGNMENT_HSFUNPTR      ALIGNMENT_VOID_P
++
++#define SIZEOF_HSSTABLEPTR      SIZEOF_VOID_P
++#define ALIGNMENT_HSSTABLEPTR   ALIGNMENT_VOID_P
++
++#define SIZEOF_INT8             SIZEOF_CHAR
++#define ALIGNMENT_INT8          ALIGNMENT_CHAR
++
++#define SIZEOF_WORD8            SIZEOF_UNSIGNED_CHAR
++#define ALIGNMENT_WORD8         ALIGNMENT_UNSIGNED_CHAR
++
++#define SIZEOF_INT16            SIZEOF_SHORT
++#define ALIGNMENT_INT16         ALIGNMENT_SHORT
++
++#define SIZEOF_WORD16           SIZEOF_UNSIGNED_SHORT
++#define ALIGNMENT_WORD16        ALIGNMENT_UNSIGNED_SHORT
++
++#define SIZEOF_INT32            SIZEOF_INT
++#define ALIGNMENT_INT32         ALIGNMENT_INT
++
++#define SIZEOF_WORD32           SIZEOF_UNSIGNED_INT
++#define ALIGNMENT_WORD32        ALIGNMENT_UNSIGNED_INT
++
++#define SIZEOF_INT64            SIZEOF_LONG
++#define ALIGNMENT_INT64         ALIGNMENT_LONG
++#define SIZEOF_WORD64           SIZEOF_UNSIGNED_LONG
++#define ALIGNMENT_WORD64        ALIGNMENT_UNSIGNED_LONG
+ 
+ import GHC.Prim
+ 
+diff --git a/Data/Primitive/Types.hs b/Data/Primitive/Types.hs
+index d865a2c..0cdf42c 100644
+--- a/Data/Primitive/Types.hs
++++ b/Data/Primitive/Types.hs
+@@ -183,6 +183,6 @@ derivePrim(Double, D#, sIZEOF_DOUBLE, aLIGNMENT_DOUBLE,
+ derivePrim(Char, C#, sIZEOF_CHAR, aLIGNMENT_CHAR,
+            indexWideCharArray#, readWideCharArray#, writeWideCharArray#, setWideCharArray#,
+            indexWideCharOffAddr#, readWideCharOffAddr#, writeWideCharOffAddr#, setWideCharOffAddr#)
+-derivePrim(Addr, Addr, sIZEOF_PTR, aLIGNMENT_PTR,
+-           indexAddrArray#, readAddrArray#, writeAddrArray#, setAddrArray#,
+-           indexAddrOffAddr#, readAddrOffAddr#, writeAddrOffAddr#, setAddrOffAddr#)
++-- derivePrim(Addr, Addr, sIZEOF_PTR, aLIGNMENT_PTR,
++--            indexAddrArray#, readAddrArray#, writeAddrArray#, setAddrArray#,
++--            indexAddrOffAddr#, readAddrOffAddr#, writeAddrOffAddr#, setAddrOffAddr#)
+diff --git a/java/Utils.class b/java/Utils.class
+new file mode 100644
+index 0000000000000000000000000000000000000000..794b841f8e1ba018888a97db59ca22c3de8f1691
+GIT binary patch
+literal 2502
+zcma)7NmCnV5Pc)GGa#8I2n!jLKrAL0ImGb-ju#+cVPTvItT<j^Bt~K!EtD2gzUL35
+za>*&zoKxjes2ox`=jSB%IIm|$AXFf%Lx1|d>DRB{*WELJ|M$nA0Is7DL<Bd2xQSb0
+zZi|^0vmoY<m@mZK6?4yr`vC;;Aczqxidhn~EapowD`Hl~^`V%gm^Cqv#H4&!_u;Vu
+z?;W#j*6%9liBCUO;9jci8VW)wvur$Wl(I&3Q_mK8;w>4ano(B}ji+Ag2YRAxRuYSE
+z>c(OtpEs%t$z)RSed)TM`)*y|cVMaw+pg_Zsssm}ty$)#*Vz;+<wBRZYZA8=Cts}S
+z-I7?bl5hg=RvK3BXQsR?-T}uut1Fm{rwV(ygHoc}DA&!Bk*L)RiFCcNRIJn*RimXc
+z<UlM{+XC!!PAJUU_d9#hW*wX#+0xmHZ0USYprtwN5ZapG6KU!95m~Anu*Qq$sXy;>
+z<T``tN~4-HR!r%d;8xu%)@G$)RE*-H4;w0;;42khBduZ+TPmI+qv9JpQ}HdHt9XHz
+zDqdk*LF{BH*l(<awA_PgRez&m2Mij+B^8&&Oo;gqAE}tcl!}jWMMYM^=4`%Q6^8KT
+zv87<xj=f(sOJ?0XFcMax3c^-z7xi)>v5|dk<k)M2r?k5Q|9+)LWTmWND4v{dn+ba!
+zI8gfyq9gIe_J_v<!;z{Q-<#!KGQ`_mT6jP4X?tuU@pQY#i6Hb!$}~kzX3_5Bqfg2j
+zvPgXGtUyAyVoz5jzH*jVfL_baSViK?XSwxc8+l%G+pV<c<JXJDN=~n{K|Dn%fP$IR
+z-zsOtcjt@dKGC_Np;uY?5xzO)*AGS7j5f+$jH|-cqx}x$H~vvDM(ec>eF#YN@V~gG
+z;ewlMOp7+*%8dPjuonBViJr_4u6Mt_`$ucSoskeOE5t<x0RwpX1`eVZ7oakSem)Cf
+zoKM_vdBc3p#&ig_&|?vdYo6%dF~v_!c)C#xz>h%&AEF(mv=Ii3v?%;S!M1lOHXVvf
+zn(v4rq{W)>+6@1mDk4gTF*3w3V8y=7e-lRxAu@2L+C+FLZ(Ixe+bAZQ@O7h@WRNNJ
+zaU=(Eg(9X&q_rplLcxjcDq^Y$e>aA!6fsK?35vMJ3!0;d&sq$AVc_eayNKx~0^KNX
+zFvv}cxJ41SDPn;l?zAW@5pfE$yGdiIrJMS-zYu(j-so8D5bALU2H8fyJx06Fs9JYi
+zUng#fxMku#>5l8~#H|wdkhmFKJ<8JqspoN?6Nd<O;vNx~B5sz~dzQYbLxekV8^k>!
+z?ixNl!gcaZAL2qME=}AfadRx8&G$1q+s`~Vo%@{k%-9z@?;Um@Vqo4k>apgQ%dmT=
+ziNVY$kD3_b+Qe{X)XOn&agi+#y)w??@PRed_IqKD4FrCP0(izYdd?cZ-~hj5eO@t_
+aZB~AVHPf-m&&oQ#DrxL8zw5-f@cI95Kn6Ad
+
+literal 0
+HcmV?d00001
+
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..80b0f1e
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,101 @@
++package ghcvm.primitive;
++
++import java.nio.ByteBuffer;
++import ghcvm.runtime.stg.StgClosure;
++import ghcvm.runtime.io.StgByteArray;
++
++public class Utils {
++    public static void memset(ByteBuffer buf, int offset, int n, int val) {
++        buf.position(offset);
++        while (n > 0) {
++            buf.put((byte) val);
++            --n;
++        }
++        buf.rewind();
++    }
++
++    public static void memset_short(ByteBuffer buf, int offset, int n, int val) {
++        buf.position(2 * offset);
++        while (n > 0) {
++            buf.putShort((short) val);
++            --n;
++        }
++        buf.rewind();
++    }
++
++    public static void memset_int(ByteBuffer buf, int offset, int n, int val) {
++        buf.position(4 * offset);
++        while (n > 0) {
++            buf.putInt(val);
++            --n;
++        }
++        buf.rewind();
++    }
++
++    public static void memset_long(ByteBuffer buf, int offset, int n, long val) {
++        buf.position(8 * offset);
++        while (n > 0) {
++            buf.putLong(val);
++            --n;
++        }
++        buf.rewind();
++    }
++
++    public static void memset_float(ByteBuffer buf, int offset, int n, float val) {
++        buf.position(4 * offset);
++        while (n > 0) {
++            buf.putFloat(val);
++            --n;
++        }
++        buf.rewind();
++    }
++
++    public static void memset_double(ByteBuffer buf, int offset, int n, double val) {
++        buf.position(8 * offset);
++        while (n > 0) {
++            buf.putDouble(val);
++            --n;
++        }
++        buf.rewind();
++    }
++
++    public static void memset_ba(StgClosure closure, int offset, int n, int val) {
++        memset(((StgByteArray) closure).buf, offset, n, val);
++    }
++
++    public static void memset_short_ba(StgClosure closure, int offset, int n, int val) {
++        memset_short(((StgByteArray) closure).buf, offset, n, val);
++    }
++
++    public static void memset_int_ba(StgClosure closure, int offset, int n, int val) {
++        memset_int(((StgByteArray) closure).buf, offset, n, val);
++    }
++
++    public static void memset_long_ba(StgClosure closure, int offset, int n, long val) {
++        memset_long(((StgByteArray) closure).buf, offset, n, val);
++    }
++
++    public static void memset_float_ba(StgClosure closure, int offset, int n, float val) {
++        memset_float(((StgByteArray) closure).buf, offset, n, val);
++    }
++
++    public static void memset_double_ba(StgClosure closure, int offset, int n, double val) {
++        memset_double(((StgByteArray) closure).buf, offset, n, val);
++    }
++
++    public static void memmove( StgClosure srcArray, int srcOffset
++                              , StgClosure destArray, int destOffset, int n) {
++        ByteBuffer src = (ByteBuffer) ((StgByteArray) srcArray).buf;
++        ByteBuffer dest = (ByteBuffer) ((StgByteArray) destArray).buf;
++        // TODO: Should we use allocateDirect instead?
++        ByteBuffer copy = ByteBuffer.allocate(n);
++        src.position(srcOffset);
++        src.limit(srcOffset + n);
++        copy.put(src);
++        copy.flip();
++        dest.position(destOffset);
++        dest.put(copy);
++        dest.rewind();
++        src.clear();
++    }
++}
+diff --git a/primitive.cabal b/primitive.cabal
+index 232dccc..6bcdf71 100644
+--- a/primitive.cabal
++++ b/primitive.cabal
+@@ -38,14 +38,15 @@ Library
+ 
+   Build-Depends: base >= 4.3 && < 4.9
+                , ghc-prim >= 0.2 && < 0.5
+-               , transformers >= 0.2 && < 0.5
++               , transformers >= 0.2 && < 0.5.3
+ 
+   Ghc-Options: -O2 -Wall
+ 
+-  Include-Dirs: cbits
+-  Install-Includes: primitive-memops.h
+-  includes: primitive-memops.h
+-  c-sources: cbits/primitive-memops.c
++  -- Include-Dirs: cbits
++  -- Install-Includes: primitive-memops.h
++  -- includes: primitive-memops.h
++  -- c-sources: cbits/primitive-memops.c
++  java-sources: java/Utils.java
+   cc-options: -O3 -fomit-frame-pointer -Wall
+   if !os(solaris)
+       cc-options: -ftree-vectorize
+-- 
+2.7.4 (Apple Git-66)
+
