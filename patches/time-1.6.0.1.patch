@@ -1,6 +1,6 @@
-From 19c8971a763676900507bc1cf1ff6640346f8d0f Mon Sep 17 00:00:00 2001
+From 83ae443e5965f819cb554ac2d1f226ce59b56330 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Thu, 6 Oct 2016 05:17:23 +0530
+Date: Sun, 9 Oct 2016 23:00:41 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -9,8 +9,8 @@ Subject: [PATCH] Patched
  lib/Data/Time/Clock/CTimeval.hs     |  9 ++++-----
  lib/Data/Time/LocalTime/TimeZone.hs | 22 ++++++++++------------
  lib/include/HsTimeConfig.h          |  2 +-
- time.cabal                          | 11 ++++++-----
- 6 files changed, 40 insertions(+), 28 deletions(-)
+ time.cabal                          | 19 ++++++++++---------
+ 6 files changed, 44 insertions(+), 32 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/Setup.hs b/Setup.hs
@@ -56,10 +56,10 @@ index 8c2d550..1242dde 100644
 @@ -24,13 +24,12 @@ instance Storable CTimeval where
          pokeElemOff (castPtr p) 0 s
          pokeElemOff (castPtr p) 1 mus
-
+ 
 -foreign import ccall unsafe "time.h gettimeofday" gettimeofday :: Ptr CTimeval -> Ptr () -> IO CInt
 +foreign import java unsafe "java.lang.System.getCurrentTimeMillis" gettimeofday :: IO CLong
-
+ 
  -- | Get the current POSIX time from the system clock.
  getCTimeval :: IO CTimeval
 -getCTimeval = with (MkCTimeval 0 0) (\ptval -> do
@@ -69,7 +69,7 @@ index 8c2d550..1242dde 100644
 +getCTimeval = do
 +  t <- gettimeofday
 +  return $ MkCTimeval (t `div` 1000) ((t `mod` 1000) * 1000)
-
+ 
  #endif
 diff --git a/lib/Data/Time/LocalTime/TimeZone.hs b/lib/Data/Time/LocalTime/TimeZone.hs
 index 9381075..90109e8 100644
@@ -78,7 +78,7 @@ index 9381075..90109e8 100644
 @@ -17,6 +17,7 @@ import Data.Time.Calendar.Private
  import Data.Time.Clock.POSIX
  import Data.Time.Clock.UTC
-
+ 
 +import GHC.Pack
  #if __GLASGOW_HASKELL__ >= 709 || __GLASGOW_HASKELL__ < 702
  import Foreign
@@ -86,16 +86,16 @@ index 9381075..90109e8 100644
 @@ -76,24 +77,21 @@ instance Show TimeZone where
  utc :: TimeZone
  utc = TimeZone 0 False "UTC"
-
+ 
 -{-# CFILES cbits/HsTime.c #-}
 -foreign import ccall unsafe "HsTime.h get_current_timezone_seconds" get_current_timezone_seconds :: CTime -> Ptr CInt -> Ptr CString -> IO CLong
 +foreign import java unsafe "@static ghcvm.time.Utils.getTZOffset" getTZOffsetSeconds :: CTime -> IO Int
 +foreign import java unsafe "@static ghcvm.time.Utils.isDST" isDST :: CTime -> IO Bool
 +foreign import java unsafe "@static ghcvm.time.Utils.getTZ" getTZ :: IO JString
-
+ 
  posixToCTime :: POSIXTime -> CTime
  posixToCTime  = fromInteger . floor
-
+ 
  -- | Get the local time-zone for a given time (varying as per summertime adjustments)
  getTimeZone :: UTCTime -> IO TimeZone
 -getTimeZone time = with 0 (\pdst -> with nullPtr (\pcname -> do
@@ -114,7 +114,7 @@ index 9381075..90109e8 100644
 +  dst <- isDST ctime
 +  cname <- getTZ
 +  return $ TimeZone (secs `div` 60) dst (unpackCString cname)
-
+ 
  -- | Get the current time-zone
  getCurrentTimeZone :: IO TimeZone
 diff --git a/lib/include/HsTimeConfig.h b/lib/include/HsTimeConfig.h
@@ -123,18 +123,18 @@ index 03ea9b3..1a66ccb 100644
 +++ b/lib/include/HsTimeConfig.h
 @@ -2,7 +2,7 @@
  /* lib/include/HsTimeConfig.h.in.  Generated from configure.ac by autoheader.  */
-
+ 
  /* Define to 1 if you have the `clock_gettime' function. */
 -#define HAVE_CLOCK_GETTIME 1
 +#define HAVE_CLOCK_GETTIME 0
-
+ 
  /* Define to 1 if you have the declaration of `altzone', and to 0 if you
     don't. */
 diff --git a/time.cabal b/time.cabal
-index 4a6eb02..fbd40e1 100644
+index 4a6eb02..1ed8130 100644
 --- a/time.cabal
 +++ b/time.cabal
-@@ -10,16 +10,16 @@ bug-reports:    https://github.com/haskell/time/issues
+@@ -10,25 +10,25 @@ bug-reports:    https://github.com/haskell/time/issues
  synopsis:       A time library
  description:    A time library
  category:       System
@@ -143,7 +143,7 @@ index 4a6eb02..fbd40e1 100644
  cabal-version:  >=1.10
  tested-with:    GHC == 8.0.1, GHC == 7.10.3, GHC == 7.8.4
  x-follows-version-policy:
-
+ 
  extra-source-files:
      changelog.md
 -    aclocal.m4
@@ -155,15 +155,35 @@ index 4a6eb02..fbd40e1 100644
      lib/include/HsConfigure.h
      lib/include/HsTime.h
      lib/include/HsTimeConfig.h.in
+     test/Test/*.c
+     test/Test/*.h
+ extra-tmp-files:
+-    config.log
+-    config.status
+-    autom4te.cache
++    -- config.log
++    -- config.status
++    -- autom4te.cache
+     lib/include/HsTimeConfig.h
+ 
+ source-repository head
 @@ -68,7 +68,8 @@ library
          Data.Time.Format,
          Data.Time
      default-extensions:    CPP
 -    c-sources: lib/cbits/HsTime.c
-+    --c-sources: lib/cbits/HsTime.c
++    -- c-sources: lib/cbits/HsTime.c
 +    java-sources: java/Utils.java
      other-modules:
          Data.Time.Calendar.Private,
          Data.Time.Calendar.Days,
---
+@@ -152,4 +153,4 @@ test-suite tests
+         Test.ClipDatesRef
+         Test.AddDays
+         Test.AddDaysRef
+-        Test.TestUtil
++        Test.TestUtil
+\ No newline at end of file
+-- 
 2.7.4 (Apple Git-66)
+

@@ -26,9 +26,9 @@ extra-source-files:
     test/Test/*.c
     test/Test/*.h
 extra-tmp-files:
-    config.log
-    config.status
-    autom4te.cache
+    -- config.log
+    -- config.status
+    -- autom4te.cache
     lib/include/HsTimeConfig.h
 
 source-repository head
@@ -68,7 +68,7 @@ library
         Data.Time.Format,
         Data.Time
     default-extensions:    CPP
-    --c-sources: lib/cbits/HsTime.c
+    -- c-sources: lib/cbits/HsTime.c
     java-sources: java/Utils.java
     other-modules:
         Data.Time.Calendar.Private,
