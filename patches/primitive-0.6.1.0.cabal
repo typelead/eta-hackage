@@ -1,5 +1,6 @@
 Name:           primitive
 Version:        0.6.1.0
+x-revision: 1
 License:        BSD3
 License-File:   LICENSE
 
@@ -36,9 +37,9 @@ Library
         Data.Primitive.Internal.Compat
         Data.Primitive.Internal.Operations
 
-  Build-Depends: base >= 4.3 && < 4.9
-               , ghc-prim >= 0.2 && < 0.5
-               , transformers >= 0.2 && < 0.5.3
+  Build-Depends: base >= 4.3 && < 4.10
+               , ghc-prim >= 0.2 && < 0.6
+               , transformers >= 0.2 && < 0.6
 
   Ghc-Options: -O2 -Wall
 
