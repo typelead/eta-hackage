@@ -200,6 +200,9 @@ If you have already forked this repository, the skip to step 3.
    $ git commit -m "Patched somepackage-0.1.2.3"
    $ git push origin
    ```
+
+   Also add the name of the package to the `packages.json` file.
+    
 10. Submit a pull request to this repository for review.
 
 ### Viewing a Patch
