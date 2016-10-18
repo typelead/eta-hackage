@@ -1,6 +1,6 @@
-From df1582707bd5b0785b7bf290cb4a12934875bb50 Mon Sep 17 00:00:00 2001
+From 4252e09e36d42d10ba6c5b8ee1cbf968e49d7f85 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sun, 9 Oct 2016 23:05:06 +0530
+Date: Tue, 18 Oct 2016 11:00:29 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -4757,7 +4757,7 @@ index 0000000..7e0f6dc
 +    }
 +}
 diff --git a/lib/Data/Time/Clock/CTimeval.hs b/lib/Data/Time/Clock/CTimeval.hs
-index 8c2d550..1242dde 100644
+index 8c2d550..fbd7094 100644
 --- a/lib/Data/Time/Clock/CTimeval.hs
 +++ b/lib/Data/Time/Clock/CTimeval.hs
 @@ -24,13 +24,12 @@ instance Storable CTimeval where
@@ -4765,7 +4765,7 @@ index 8c2d550..1242dde 100644
          pokeElemOff (castPtr p) 1 mus
  
 -foreign import ccall unsafe "time.h gettimeofday" gettimeofday :: Ptr CTimeval -> Ptr () -> IO CInt
-+foreign import java unsafe "java.lang.System.getCurrentTimeMillis" gettimeofday :: IO CLong
++foreign import java unsafe "@static java.lang.System.getCurrentTimeMillis" gettimeofday :: IO CLong
  
  -- | Get the current POSIX time from the system clock.
  getCTimeval :: IO CTimeval
