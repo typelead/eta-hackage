@@ -87,7 +87,7 @@ These packages are supported by GHCVM.
 - [microlens-0.4.7.0](https://hackage.haskell.org/package/microlens-0.4.7.0)
 - [microlens-mtl-0.1.10.0](http://hackage.haskell.org/package/microlens-mtl-0.1.10.0)
 - [mmorph-1.0.6](https://hackage.haskell.org/package/mmorph-1.0.6)
-- [monad-absorbing-0.1.0.4](https://hackage.haskell.org/package/monad-absorbing-0.1.0.4)
+- [monoid-absorbing-0.1.0.4](https://hackage.haskell.org/package/monoid-absorbing-0.1.0.4)
 - [monad-control-1.0.1.0](https://hackage.haskell.org/package/monad-control-1.0.1.0)
 - [monads-tf-0.1.0.3](https://hackage.haskell.org/package/monads-tf-0.1.0.3)
 - [mtl-2.2.1](https://hackage.haskell.org/package/mtl-2.2.1)
