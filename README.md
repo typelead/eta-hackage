@@ -1,6 +1,16 @@
 # GHCVM Hackage
 
-This repository contains a set of patches for particular packages from Hackage that cannot be built out-of-the-box with GHCVM/CabalVM.
+This repository contains a set of patches for particular packages from
+Hackage that cannot be built out-of-the-box with GHCVM/CabalVM. To
+install the listed packages here, you have to use `cabalvm`
+executable. To install a package, you have to do:
+
+``` haskell
+cabalvm install <package-name>
+```
+
+`cabalvm` will take care of downloading the tar file, patching it
+additionally (if required) and installing (duh!) it.
 
 **Table of Contents**
 
