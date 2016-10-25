@@ -1,5 +1,7 @@
 # ETA Hackage
 
+[![Build Status](https://travis-ci.org/typelead/eta-hackage.svg?branch=master)](https://travis-ci.org/typelead/eta-hackage)
+
 This repository contains a set of patches for particular packages from
 Hackage that cannot be built out-of-the-box with ETA/EPM. To
 install the listed packages here, you have to use `epm`
