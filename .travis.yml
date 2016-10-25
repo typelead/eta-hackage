@@ -28,7 +28,6 @@ before_install:
 
 install:
 # Build dependencies
-- pwd
 - git clone --recursive https://github.com/typelead/eta
 - cd eta
 - stack --no-terminal --install-ghc test --only-dependencies
