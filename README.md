@@ -9,8 +9,7 @@ executable. To install a package, you have to do:
 epm install <package-name>
 ```
 
-`epm` will take care of downloading the tar file, patching it
-additionally (if required) and installing (duh!) it.
+`epm` will take care of downloading the tar file, optionally patching it, and installing it.
 
 **Table of Contents**
 
