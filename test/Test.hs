@@ -42,7 +42,7 @@ parsePackagesFile fname = do
   return packages
 
 packagesFilePath :: FilePath
-packagesFilePath = "../package.json"
+packagesFilePath = "../packages.json"
 
 buildPackage :: Text -> IO ()
 buildPackage pkg = do
