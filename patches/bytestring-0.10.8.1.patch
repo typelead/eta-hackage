@@ -25,12 +25,12 @@ index 62bd5be..83bc2f2 100644
 
 -foreign import ccall unsafe "static _hs_bytestring_int_dec" c_int_dec
 -    :: CInt -> Ptr Word8 -> IO (Ptr Word8)
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.int_dec"
++foreign import java unsafe "@static eta.bytestring.Utils.int_dec"
 +  c_int_dec :: CInt -> Ptr Word8 -> IO (Ptr Word8)
 
 -foreign import ccall unsafe "static _hs_bytestring_long_long_int_dec" c_long_long_int_dec
 -    :: CLLong -> Ptr Word8 -> IO (Ptr Word8)
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.long_long_int_dec"
++foreign import java unsafe "@static eta.bytestring.Utils.long_long_int_dec"
 +  c_long_long_int_dec :: CLLong -> Ptr Word8 -> IO (Ptr Word8)
 
  {-# INLINE encodeIntDecimal #-}
@@ -41,12 +41,12 @@ index 62bd5be..83bc2f2 100644
 
 -foreign import ccall unsafe "static _hs_bytestring_uint_dec" c_uint_dec
 -    :: CUInt -> Ptr Word8 -> IO (Ptr Word8)
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.uint_dec"
++foreign import java unsafe "@static eta.bytestring.Utils.uint_dec"
 +  c_uint_dec :: CUInt -> Ptr Word8 -> IO (Ptr Word8)
 
 -foreign import ccall unsafe "static _hs_bytestring_long_long_uint_dec" c_long_long_uint_dec
 -    :: CULLong -> Ptr Word8 -> IO (Ptr Word8)
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.long_long_uint_dec"
++foreign import java unsafe "@static eta.bytestring.Utils.long_long_uint_dec"
 +  c_long_long_uint_dec :: CULLong -> Ptr Word8 -> IO (Ptr Word8)
 
  {-# INLINE encodeWordDecimal #-}
@@ -57,12 +57,12 @@ index 62bd5be..83bc2f2 100644
 
 -foreign import ccall unsafe "static _hs_bytestring_uint_hex" c_uint_hex
 -    :: CUInt -> Ptr Word8 -> IO (Ptr Word8)
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.uint_hex"
++foreign import java unsafe "@static eta.bytestring.Utils.uint_hex"
 +  c_uint_hex :: CUInt -> Ptr Word8 -> IO (Ptr Word8)
 
 -foreign import ccall unsafe "static _hs_bytestring_long_long_uint_hex" c_long_long_uint_hex
 -    :: CULLong -> Ptr Word8 -> IO (Ptr Word8)
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.long_long_uint_hex"
++foreign import java unsafe "@static eta.bytestring.Utils.long_long_uint_hex"
 +  c_long_long_uint_hex :: CULLong -> Ptr Word8 -> IO (Ptr Word8)
 
  {-# INLINE encodeWordHex #-}
@@ -306,7 +306,7 @@ index 2565a49..b2817cb 100644
  --
 
 -foreign import ccall unsafe "string.h strlen" c_strlen
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.strlen" c_strlen
++foreign import java unsafe "@static eta.bytestring.Utils.strlen" c_strlen
      :: CString -> IO CSize
 
 -foreign import ccall unsafe "static stdlib.h &free" c_free_finalizer
@@ -315,21 +315,21 @@ index 2565a49..b2817cb 100644
 +--     :: FunPtr (Ptr Word8 -> IO ())
 
 -foreign import ccall unsafe "string.h memchr" c_memchr
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.memchr" c_memchr
++foreign import java unsafe "@static eta.bytestring.Utils.memchr" c_memchr
      :: Ptr Word8 -> CInt -> CSize -> IO (Ptr Word8)
 
  memchr :: Ptr Word8 -> Word8 -> CSize -> IO (Ptr Word8)
  memchr p w s = c_memchr p (fromIntegral w) s
 
 -foreign import ccall unsafe "string.h memcmp" c_memcmp
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.memcmp" c_memcmp
++foreign import java unsafe "@static eta.bytestring.Utils.memcmp" c_memcmp
      :: Ptr Word8 -> Ptr Word8 -> CSize -> IO CInt
 
  memcmp :: Ptr Word8 -> Ptr Word8 -> Int -> IO CInt
  memcmp p q s = c_memcmp p q (fromIntegral s)
 
 -foreign import ccall unsafe "string.h memcpy" c_memcpy
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.memcpy" c_memcpy
++foreign import java unsafe "@static eta.bytestring.Utils.memcpy" c_memcpy
      :: Ptr Word8 -> Ptr Word8 -> CSize -> IO (Ptr Word8)
 
  memcpy :: Ptr Word8 -> Ptr Word8 -> Int -> IO ()
@@ -337,7 +337,7 @@ index 2565a49..b2817cb 100644
 
  {-
 -foreign import ccall unsafe "string.h memmove" c_memmove
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.memmove" c_memmove
++foreign import java unsafe "@static eta.bytestring.Utils.memmove" c_memmove
      :: Ptr Word8 -> Ptr Word8 -> CSize -> IO (Ptr Word8)
 
  memmove :: Ptr Word8 -> Ptr Word8 -> CSize -> IO ()
@@ -346,7 +346,7 @@ index 2565a49..b2817cb 100644
  -}
 
 -foreign import ccall unsafe "string.h memset" c_memset
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.memset" c_memset
++foreign import java unsafe "@static eta.bytestring.Utils.memset" c_memset
      :: Ptr Word8 -> CInt -> CSize -> IO (Ptr Word8)
 
  memset :: Ptr Word8 -> Word8 -> CSize -> IO (Ptr Word8)
@@ -355,23 +355,23 @@ index 2565a49..b2817cb 100644
  --
 
 -foreign import ccall unsafe "static fpstring.h fps_reverse" c_reverse
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.fps_reverse" c_reverse
++foreign import java unsafe "@static eta.bytestring.Utils.fps_reverse" c_reverse
      :: Ptr Word8 -> Ptr Word8 -> CULong -> IO ()
 
 -foreign import ccall unsafe "static fpstring.h fps_intersperse" c_intersperse
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.fps_intersperse" c_intersperse
++foreign import java unsafe "@static eta.bytestring.Utils.fps_intersperse" c_intersperse
      :: Ptr Word8 -> Ptr Word8 -> CULong -> Word8 -> IO ()
 
 -foreign import ccall unsafe "static fpstring.h fps_maximum" c_maximum
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.fps_maximum" c_maximum
++foreign import java unsafe "@static eta.bytestring.Utils.fps_maximum" c_maximum
      :: Ptr Word8 -> CULong -> IO Word8
 
 -foreign import ccall unsafe "static fpstring.h fps_minimum" c_minimum
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.fps_minimum" c_minimum
++foreign import java unsafe "@static eta.bytestring.Utils.fps_minimum" c_minimum
      :: Ptr Word8 -> CULong -> IO Word8
 
 -foreign import ccall unsafe "static fpstring.h fps_count" c_count
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.fps_count" c_count
++foreign import java unsafe "@static eta.bytestring.Utils.fps_count" c_count
      :: Ptr Word8 -> CULong -> Word8 -> IO CULong
 diff --git a/Data/ByteString/Short/Internal.hs b/Data/ByteString/Short/Internal.hs
 index 15308d6..82905c1 100644
@@ -400,7 +400,7 @@ index 15308d6..82905c1 100644
    c_memcmp_ByteArray ba1# ba2# (fromIntegral len)
 
 -foreign import ccall unsafe "string.h memcmp"
-+foreign import java unsafe "@static ghcvm.bytestring.Utils.memcmp"
++foreign import java unsafe "@static eta.bytestring.Utils.memcmp"
    c_memcmp_ByteArray :: ByteArray# -> ByteArray# -> CSize -> IO CInt
 
 
@@ -459,13 +459,13 @@ index 0000000..b7c6b47
 --- /dev/null
 +++ b/java/Utils.java
 @@ -0,0 +1,290 @@
-+package ghcvm.bytestring;
++package eta.bytestring;
 +
 +import java.io.UnsupportedEncodingException;
 +import java.nio.ByteBuffer;
 +
-+import ghcvm.runtime.io.StgByteArray;
-+import ghcvm.runtime.stg.StgClosure;
++import eta.runtime.io.StgByteArray;
++import eta.runtime.stg.StgClosure;
 +
 +/* NOTE: Hard limit on ByteBuffer API: 2^32 - 1 because of reliance on
 +         signed integer type everywhere.
@@ -653,7 +653,7 @@ index 0000000..b7c6b47
 +        ByteBuffer ptr = buf.duplicate();
 +        do {
 +            long x_tmp = x;
-+            x = ghcvm.integer.Utils.divideUnsigned(x, 10);
++            x = eta.integer.Utils.divideUnsigned(x, 10);
 +            ptr.put(digits[(int)(x_tmp - x * 10)]);
 +        } while (x != 0);
 +        int nfree = ptr.position();
