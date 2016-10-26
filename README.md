@@ -1,11 +1,9 @@
-# ETA Hackage
+# Eta Hackage
 
 [![Build Status](https://travis-ci.org/typelead/eta-hackage.svg?branch=master)](https://travis-ci.org/typelead/eta-hackage)
 
 This repository contains a set of patches for particular packages from
-Hackage that cannot be built out-of-the-box with ETA/EPM. To
-install the listed packages here, you have to use `epm`
-executable. To install a package, you have to do:
+Hackage that cannot be built out-of-the-box with `epm`. To install a package, you have to run the following command:
 
 ``` haskell
 epm install <package-name>
@@ -29,15 +27,15 @@ epm install <package-name>
 
 ### Overview
 
-We have categorized the packages from Hackage below in relation to ETA support. If a package from Hackage has not been listed here, it means no one has tried to build it and categorize it.
+We have categorized the packages from Hackage below in relation to `epm` support. If a package from Hackage has not been listed here, it means no one has tried to build it and categorize it.
 
-If you would like to have a given package/version made compatible with ETA, you can:
+If you would like to have a given package/version made compatible with `epm`, you can:
 
 - Submit an [issue](https://github.com/typelead/eta-hackage/issues/new)
 - Ask us on [Gitter](https://gitter.im/typelead/eta)
 
 ### Supported Packages
-These packages are supported by ETA.
+These packages are supported by `epm`.
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
 - [agum-2.6](https://hackage.haskell.org/package/agum-2.6)
 - [array-0.5.1.1](https://hackage.haskell.org/package/array-0.5.1.1)
@@ -130,13 +128,13 @@ These packages are heavy on FFI dependencies and don't make sense in the context
 - None for now
 
 ### Built-in Packages
-These packages have special meaning in the ETA compiler and hence are provided upon installation.
+These packages have special meaning in the Eta compiler and hence are provided upon installation.
 - [base-4.8.2.0](https://hackage.haskell.org/package/base-4.8.2.0)
 - [integer-0.5.1.0](https://hackage.haskell.org/package/integer-gmp-0.5.1.0)
   - *NOTE*: Due to the drastic differences between the `Integer` implementations,
             the public API between the corresponding GHC package is slightly different.
 - [ghc-prim-0.4.0.0](https://hackage.haskell.org/package/ghc-prim-0.4.0.0)
-  - *NOTE*: Due to the introduction of new primitives for ETA,
+  - *NOTE*: Due to the introduction of new primitives for Eta,
             the public API between the corresponding GHC package is slightly different.
 
 ## Contributing
