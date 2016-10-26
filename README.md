@@ -204,7 +204,8 @@ If you have already forked this repository, the skip to step 3.
    $ git push origin
    ```
 
-   Also add the name of the package to the `packages.json` file.
+   Also add the name of the package to the `packages.json` file and
+   update this README.md with the package name (in alphabetical order).
     
 10. Submit a pull request to this repository for review.
 
