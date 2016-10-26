@@ -98,6 +98,7 @@ These packages are supported by ETA.
 - [newtype-0.2](https://hackage.haskell.org/package/newtype-0.2)
 - [newtype-generics-0.4.1](https://hackage.haskell.org/package/newtype-generics-0.4.1)
 - [old-locale-1.0.0.7](https://hackage.haskell.org/package/old-locale-1.0.0.7)
+- [old-time-1.1.0.3](https://hackage.haskell.org/package/old-time-1.1.0.3)
 - [patch-combinators-0.2.2](https://hackage.haskell.org/package/patch-combinators-0.2.2)
 - [pqueue-1.3.1.1](https://hackage.haskell.org/package/pqueue-1.3.1.1)
 - [PSQueue-1.1](https://hackage.haskell.org/package/PSQueue-1.1)
@@ -114,6 +115,7 @@ These packages are supported by ETA.
 - [stm-2.4.4.1](https://hackage.haskell.org/package/stm-2.4.4.1)
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
 - [template-haskell-2.11.0.0](https://hackage.haskell.org/package/template-haskell-2.11.0.0)
+- [time-locale-compat-0.1.1.3](https://hackage.haskell.org/package/time-locale-compat-0.1.1.3)
 - [transformers-0.5.2.0](https://hackage.haskell.org/package/transformers-0.5.2.0)
 - [transformers-base-0.4.4](http://hackage.haskell.org/package/transformers-base-0.4.4)
 - [transformers-compat-0.5.1.4](http://hackage.haskell.org/package/transformers-compat-0.5.1.4)
@@ -203,7 +205,8 @@ If you have already forked this repository, the skip to step 3.
    $ git push origin
    ```
 
-   Also add the name of the package to the `packages.json` file.
+   Also add the name of the package to the `packages.json` file and
+   update this README.md with the package name (in alphabetical order).
     
 10. Submit a pull request to this repository for review.
 

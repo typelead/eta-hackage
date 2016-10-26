@@ -1440,7 +1440,7 @@ index 0000000..c2af5a1
 +    
 +    public static Calendar getTimeInUTC(long millis) {
 +        Calendar cal = Calendar.getInstance();
-+        cal.setTimeInMillis(1477242123000L);
++        cal.setTimeInMillis(millis);
 +        cal.setTimeZone(TimeZone.getTimeZone("UTC"));
 +        return cal;
 +    }
