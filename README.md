@@ -113,6 +113,7 @@ These packages are supported by GHCVM.
 - [stm-2.4.4.1](https://hackage.haskell.org/package/stm-2.4.4.1)
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
 - [template-haskell-2.11.0.0](https://hackage.haskell.org/package/template-haskell-2.11.0.0)
+- [time-locale-compat-0.1.1.3](https://hackage.haskell.org/package/time-locale-compat-0.1.1.3)
 - [transformers-0.5.2.0](https://hackage.haskell.org/package/transformers-0.5.2.0)
 - [transformers-base-0.4.4](http://hackage.haskell.org/package/transformers-base-0.4.4)
 - [transformers-compat-0.5.1.4](http://hackage.haskell.org/package/transformers-compat-0.5.1.4)
