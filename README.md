@@ -97,6 +97,7 @@ These packages are supported by GHCVM.
 - [newtype-0.2](https://hackage.haskell.org/package/newtype-0.2)
 - [newtype-generics-0.4.1](https://hackage.haskell.org/package/newtype-generics-0.4.1)
 - [old-locale-1.0.0.7](https://hackage.haskell.org/package/old-locale-1.0.0.7)
+- [old-time-1.1.0.3](https://hackage.haskell.org/package/old-time-1.1.0.3)
 - [patch-combinators-0.2.2](https://hackage.haskell.org/package/patch-combinators-0.2.2)
 - [pqueue-1.3.1.1](https://hackage.haskell.org/package/pqueue-1.3.1.1)
 - [PSQueue-1.1](https://hackage.haskell.org/package/PSQueue-1.1)
