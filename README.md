@@ -1,16 +1,17 @@
-# GHCVM Hackage
+# ETA Hackage
+
+[![Build Status](https://travis-ci.org/typelead/eta-hackage.svg?branch=master)](https://travis-ci.org/typelead/eta-hackage)
 
 This repository contains a set of patches for particular packages from
-Hackage that cannot be built out-of-the-box with GHCVM/CabalVM. To
-install the listed packages here, you have to use `cabalvm`
+Hackage that cannot be built out-of-the-box with ETA/EPM. To
+install the listed packages here, you have to use `epm`
 executable. To install a package, you have to do:
 
 ``` haskell
-cabalvm install <package-name>
+epm install <package-name>
 ```
 
-`cabalvm` will take care of downloading the tar file, patching it
-additionally (if required) and installing (duh!) it.
+`epm` will take care of downloading the tar file, optionally patching it, and installing it.
 
 **Table of Contents**
 
@@ -28,15 +29,15 @@ additionally (if required) and installing (duh!) it.
 
 ### Overview
 
-We have categorized the packages from Hackage below in relation to GHCVM support. If a package from Hackage has not been listed here, it means no one has tried to build it and categorize it.
+We have categorized the packages from Hackage below in relation to ETA support. If a package from Hackage has not been listed here, it means no one has tried to build it and categorize it.
 
-If you would like to have a given package/version made compatible with GHCVM, you can:
+If you would like to have a given package/version made compatible with ETA, you can:
 
-- Submit an [issue](https://github.com/rahulmutt/ghcvm-hackage/issues/new)
-- Ask us on [Gitter](https://gitter.im/rahulmutt/ghcvm)
+- Submit an [issue](https://github.com/typelead/eta-hackage/issues/new)
+- Ask us on [Gitter](https://gitter.im/typelead/eta)
 
 ### Supported Packages
-These packages are supported by GHCVM.
+These packages are supported by ETA.
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
 - [agum-2.6](https://hackage.haskell.org/package/agum-2.6)
 - [array-0.5.1.1](https://hackage.haskell.org/package/array-0.5.1.1)
@@ -129,13 +130,13 @@ These packages are heavy on FFI dependencies and don't make sense in the context
 - None for now
 
 ### Built-in Packages
-These packages have special meaning in the GHCVM compiler and hence are provided upon installation.
+These packages have special meaning in the ETA compiler and hence are provided upon installation.
 - [base-4.8.2.0](https://hackage.haskell.org/package/base-4.8.2.0)
 - [integer-0.5.1.0](https://hackage.haskell.org/package/integer-gmp-0.5.1.0)
   - *NOTE*: Due to the drastic differences between the `Integer` implementations,
             the public API between the corresponding GHC package is slightly different.
 - [ghc-prim-0.4.0.0](https://hackage.haskell.org/package/ghc-prim-0.4.0.0)
-  - *NOTE*: Due to the introduction of new primitives for GHCVM,
+  - *NOTE*: Due to the introduction of new primitives for ETA,
             the public API between the corresponding GHC package is slightly different.
 
 ## Contributing
@@ -151,7 +152,7 @@ If you have already forked this repository, the skip to step 3.
 
 2. Clone the forked repository & update the `master` branch.
   ```
-  $ git clone http://github.org/your-name-here/ghcvm-hackage
+  $ git clone http://github.org/your-name-here/eta-hackage
   ```
 
 3. Checkout the `master` branch and pull any changes.
@@ -178,7 +179,7 @@ If you have already forked this repository, the skip to step 3.
 
 3. Build the package.
   ```
-  $ cabalvm build
+  $ epm build
   ```
 
 4. Apply the desired changes and go back to step 3 as long as the build fails.
@@ -196,9 +197,9 @@ If you have already forked this repository, the skip to step 3.
 
 7. If you have changed the `.cabal` file of the package in your patch , make a copy and rename it from `somepackage.cabal` to `somepackage-0.1.2.3.cabal`.
 
-8. Copy the patch file and the cabal file (if changed) to the `patches` directory in your local clone of your fork of the `ghcvm-hackage` repository.
+8. Copy the patch file and the cabal file (if changed) to the `patches` directory in your local clone of your fork of the `eta-hackage` repository.
 
-9. In your `ghcvm-hackage` repository,
+9. In your `eta-hackage` repository,
    ```
    $ git commit -m "Patched somepackage-0.1.2.3"
    $ git push origin

@@ -22,7 +22,7 @@ index 2cce7ae..56ba04f 100644
  #endif
  
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memmove"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memmove"
++foreign import java unsafe "@static eta.primitive.Utils.memmove"
    memmove_mba :: MutableByteArray# s -> CInt
                -> MutableByteArray# s -> CInt
                -> CSize -> IO ()
@@ -52,91 +52,91 @@ index 091e11f..ab82547 100644
  import GHC.Prim
  
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word8"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_ba"
++foreign import java unsafe "@static eta.primitive.Utils.memset_ba"
    setWord8Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Word# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word16"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_short_ba"
++foreign import java unsafe "@static eta.primitive.Utils.memset_short_ba"
    setWord16Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Word# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word32"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int_ba"
++foreign import java unsafe "@static eta.primitive.Utils.memset_int_ba"
    setWord32Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Word# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word64"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_long_ba"
++foreign import java unsafe "@static eta.primitive.Utils.memset_long_ba"
    setWord64Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Word64_# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int_ba"
++foreign import java unsafe "@static eta.primitive.Utils.memset_int_ba"
    setWordArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Word# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word8"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_ba"
++foreign import java unsafe "@static eta.primitive.Utils.memset_ba"
    setInt8Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Int# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word16"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_short_ba"
++foreign import java unsafe "@static eta.primitive.Utils.memset_short_ba"
    setInt16Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Int# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word32"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int_ba"
++foreign import java unsafe "@static eta.primitive.Utils.memset_int_ba"
    setInt32Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Int# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word64"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_long_ba"
++foreign import java unsafe "@static eta.primitive.Utils.memset_long_ba"
    setInt64Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Int64_# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int_ba"
++foreign import java unsafe "@static eta.primitive.Utils.memset_int_ba"
    setIntArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Int# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Ptr"
 -  setAddrArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Addr# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Float"
-+-- foreign import java unsafe "@static ghcvm.primitive.Utils.memset_Ptr_ba"
++-- foreign import java unsafe "@static eta.primitive.Utils.memset_Ptr_ba"
 +--   setAddrArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Addr# -> IO ()
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_float_ba"
++foreign import java unsafe "@static eta.primitive.Utils.memset_float_ba"
    setFloatArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Float# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Double"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_double_ba"
++foreign import java unsafe "@static eta.primitive.Utils.memset_double_ba"
    setDoubleArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Double# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Char"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int_ba"
++foreign import java unsafe "@static eta.primitive.Utils.memset_int_ba"
    setWideCharArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Char# -> IO ()
  
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word8"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset"
++foreign import java unsafe "@static eta.primitive.Utils.memset"
    setWord8OffAddr# :: Addr# -> CPtrdiff -> CSize -> Word# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word16"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_short"
++foreign import java unsafe "@static eta.primitive.Utils.memset_short"
    setWord16OffAddr# :: Addr# -> CPtrdiff -> CSize -> Word# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word32"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int"
++foreign import java unsafe "@static eta.primitive.Utils.memset_int"
    setWord32OffAddr# :: Addr# -> CPtrdiff -> CSize -> Word# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word64"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_long"
++foreign import java unsafe "@static eta.primitive.Utils.memset_long"
    setWord64OffAddr# :: Addr# -> CPtrdiff -> CSize -> Word64_# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int"
++foreign import java unsafe "@static eta.primitive.Utils.memset_int"
    setWordOffAddr# :: Addr# -> CPtrdiff -> CSize -> Word# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word8"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset"
++foreign import java unsafe "@static eta.primitive.Utils.memset"
    setInt8OffAddr# :: Addr# -> CPtrdiff -> CSize -> Int# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word16"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_short"
++foreign import java unsafe "@static eta.primitive.Utils.memset_short"
    setInt16OffAddr# :: Addr# -> CPtrdiff -> CSize -> Int# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word32"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int"
++foreign import java unsafe "@static eta.primitive.Utils.memset_int"
    setInt32OffAddr# :: Addr# -> CPtrdiff -> CSize -> Int# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word64"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_long"
++foreign import java unsafe "@static eta.primitive.Utils.memset_long"
    setInt64OffAddr# :: Addr# -> CPtrdiff -> CSize -> Int64_# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int"
++foreign import java unsafe "@static eta.primitive.Utils.memset_int"
    setIntOffAddr# :: Addr# -> CPtrdiff -> CSize -> Int# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Ptr"
 -  setAddrOffAddr# :: Addr# -> CPtrdiff -> CSize -> Addr# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Float"
-+-- foreign import java unsafe "@static ghcvm.primitive.Utils.memset_Ptr"
++-- foreign import java unsafe "@static eta.primitive.Utils.memset_Ptr"
 +--   setAddrOffAddr# :: Addr# -> CPtrdiff -> CSize -> Addr# -> IO ()
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_float"
++foreign import java unsafe "@static eta.primitive.Utils.memset_float"
    setFloatOffAddr# :: Addr# -> CPtrdiff -> CSize -> Float# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Double"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_double"
++foreign import java unsafe "@static eta.primitive.Utils.memset_double"
    setDoubleOffAddr# :: Addr# -> CPtrdiff -> CSize -> Double# -> IO ()
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Char"
-+foreign import java unsafe "@static ghcvm.primitive.Utils.memset_int"
++foreign import java unsafe "@static eta.primitive.Utils.memset_int"
    setWideCharOffAddr# :: Addr# -> CPtrdiff -> CSize -> Char# -> IO ()
  
 diff --git a/Data/Primitive/MachDeps.hs b/Data/Primitive/MachDeps.hs
@@ -242,11 +242,11 @@ index 0000000..80b0f1e
 --- /dev/null
 +++ b/java/Utils.java
 @@ -0,0 +1,101 @@
-+package ghcvm.primitive;
++package eta.primitive;
 +
 +import java.nio.ByteBuffer;
-+import ghcvm.runtime.stg.StgClosure;
-+import ghcvm.runtime.io.StgByteArray;
++import eta.runtime.stg.StgClosure;
++import eta.runtime.io.StgByteArray;
 +
 +public class Utils {
 +    public static void memset(ByteBuffer buf, int offset, int n, int val) {

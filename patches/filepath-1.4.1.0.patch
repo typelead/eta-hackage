@@ -83,7 +83,7 @@ index df4b39c..7951b14 100644
  -- | Is the operating system Windows like
 -isWindows :: Bool
 -isWindows = IS_WINDOWS
-+foreign import java unsafe "@static ghcvm.filepath.Utils.isWindows" isWindows :: Bool
++foreign import java unsafe "@static eta.filepath.Utils.isWindows" isWindows :: Bool
 
 
  ---------------------------------------------------------------------
@@ -131,7 +131,7 @@ index 0000000..c98ed7f
 --- /dev/null
 +++ b/java/Utils.java
 @@ -0,0 +1,8 @@
-+package ghcvm.filepath;
++package eta.filepath;
 +
 +public class Utils {
 +    public boolean isWindows() {

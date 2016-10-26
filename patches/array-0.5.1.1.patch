@@ -231,7 +231,7 @@ index 9908ad2..3546558 100644
      (# s4#, UArray l u n arr# #) }}}}}
 
 -foreign import ccall unsafe "memcpy"
-+foreign import java unsafe "@static ghcvm.array.Utils.memcpy"
++foreign import java unsafe "@static eta.array.Utils.memcpy"
      memcpy_freeze :: MutableByteArray# s -> MutableByteArray# s -> CSize
             -> IO (Ptr a)
 
@@ -240,7 +240,7 @@ index 9908ad2..3546558 100644
      (# s3#, STUArray l u n marr# #) }}}}
 
 -foreign import ccall unsafe "memcpy"
-+foreign import java unsafe "@static ghcvm.array.Utils.memcpy"
++foreign import java unsafe "@static eta.array.Utils.memcpy"
      memcpy_thaw :: MutableByteArray# s -> ByteArray# -> CSize
             -> IO (Ptr a)
 
@@ -253,7 +253,7 @@ index f0a8f89..f9ef002 100644
          return r
 
 -foreign import ccall unsafe "memcpy"
-+foreign import java unsafe "@static ghcvm.array.Utils.memcpy_ba_ptr"
++foreign import java unsafe "@static eta.array.Utils.memcpy_ba_ptr"
     memcpy_ba_ptr :: MutableByteArray# RealWorld -> Ptr a -> CSize -> IO (Ptr ())
 
  -- ---------------------------------------------------------------------------
@@ -262,7 +262,7 @@ index f0a8f89..f9ef002 100644
         hPutBuf handle p count
 
 -foreign import ccall unsafe "memcpy"
-+foreign import java unsafe "@static ghcvm.array.Utils.memcpy_ptr_ba"
++foreign import java unsafe "@static eta.array.Utils.memcpy_ptr_ba"
     memcpy_ptr_ba :: Ptr a -> MutableByteArray# RealWorld -> CSize -> IO (Ptr ())
 
  -- ---------------------------------------------------------------------------
@@ -374,11 +374,11 @@ index 0000000..0e72877
 --- /dev/null
 +++ b/java/Utils.java
 @@ -0,0 +1,34 @@
-+package ghcvm.array;
++package eta.array;
 +
 +import java.nio.ByteBuffer;
-+import ghcvm.runtime.io.StgByteArray;
-+import ghcvm.runtime.stg.StgClosure;
++import eta.runtime.io.StgByteArray;
++import eta.runtime.stg.StgClosure;
 +
 +public class Utils {
 +    private static ByteBuffer memcpy_buf(ByteBuffer destBuffer, ByteBuffer srcBuffer, int size) {
