@@ -4765,7 +4765,7 @@ index 8c2d550..fbd7094 100644
          pokeElemOff (castPtr p) 1 mus
  
 -foreign import ccall unsafe "time.h gettimeofday" gettimeofday :: Ptr CTimeval -> Ptr () -> IO CInt
-+foreign import java unsafe "@static java.lang.System.getCurrentTimeMillis" gettimeofday :: IO CLong
++foreign import java unsafe "@static java.lang.System.currentTimeMillis" gettimeofday :: IO CLong
  
  -- | Get the current POSIX time from the system clock.
  getCTimeval :: IO CTimeval
