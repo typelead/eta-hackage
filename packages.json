@@ -22,6 +22,7 @@
         "basic-lens-0.0.0",
         "binary-search-1.0.0.3",
         "Binpack-0.4.1",
+        "bytestring-builder-0.10.8.1.0",
         "containers-0.5.8.1",
         "data-default-class-0.1.2.0",
         "data-default-instances-containers-0.0.1",

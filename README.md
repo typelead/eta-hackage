@@ -45,6 +45,7 @@ These packages are supported by `epm`.
 - [basic-lens-0.0.0](https://hackage.haskell.org/package/basic-lens-0.0.0)
 - [binary-search-1.0.0.3](https://hackage.haskell.org/package/binary-search-1.0.0.3)
 - [Binpack-0.4.1](https://hackage.haskell.org/package/Binpack-0.4.1)
+- [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
 - [containers-0.5.8.1](https://hackage.haskell.org/package/containers-0.5.8.1)
 - [data-default-class-0.1.2.0](https://hackage.haskell.org/package/data-default-class-0.1.2.0)
 - [data-default-instances-containers-0.0.1](https://hackage.haskell.org/package/data-default-instances-containers-0.0.1)
