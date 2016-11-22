@@ -59,6 +59,7 @@ These packages are supported by `epm`.
 - [fingertree-0.1.1.0](https://hackage.haskell.org/package/fingertree-0.1.1.0)
 - [fingertree-psqueue-0.3](https://hackage.haskell.org/package/fingertree-psqueue-0.3)
 - [fingertree-tf-0.1.0.0](https://hackage.haskell.org/package/fingertree-tf-0.1.0.0)
+- [filepath 1.4.1.0 >= && <= 1.4.1.1](hackage.haskell.org/package/filepath)
 - [fgl-5.5.3.0](https://hackage.haskell.org/package/fgl-5.5.3.0)
   - NOTE: Gives `Ignoring ANN annotation, because this is a stage-1 compiler or doesn't support GHCi`
 - [fmlist-0.9](https://hackage.haskell.org/package/fmlist-0.9)
