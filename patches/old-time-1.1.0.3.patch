@@ -23,9 +23,9 @@ index 54f57d6..4367868 100644
 +module Main
 +  (main)
 +  where
- 
+
  import Distribution.Simple
- 
+
  main :: IO ()
 -main = defaultMainWithHooks autoconfUserHooks
 +main = defaultMain
@@ -145,17 +145,17 @@ index 0000000..b1a3088
 +
 +-- #ifdef __GLASGOW_HASKELL__
 +-- #include "HsTime.h"
-+-- #endif                          
++-- #endif
 +
 +import Prelude
-+import GHC.Pack
++import Java.String
 +
 +import Data.Ix
 +import System.Locale
 +import Foreign
 +import System.IO.Unsafe (unsafePerformIO)
 +import Foreign.C
-+
++import Java
 +
 +-- One way to partition and give name to chunks of a year and a week:
 +
@@ -374,7 +374,7 @@ index 0000000..b1a3088
 +
 +formatCalendarTime :: TimeLocale -> String -> CalendarTime -> String
 +formatCalendarTime l fmt cal@(CalendarTime year mon day hour minute sec _
-+                                       wday yday tzname' _ _) = 
++                                       wday yday tzname' _ _) =
 +        doFmt fmt
 +  where doFmt ('%':'-':cs) = doFmt ('%':cs) -- padding not implemented
 +        doFmt ('%':'_':cs) = doFmt ('%':cs) -- padding not implemented
@@ -522,12 +522,12 @@ index 0000000..b1a3088
 +clockTimeToMilliSeconds :: ClockTime -> Int64
 +clockTimeToMilliSeconds (TOD sa pa) = fromIntegral (sa * 1000) + (fromIntegral (pa `div` (10^(9 :: Integer))))
 +
-+data {-# CLASS "java.util.Calendar" #-} Calendar = Calendar (Object# Calendar) 
++data {-# CLASS "java.util.Calendar" #-} Calendar = Calendar (Object# Calendar)
 +
-+-- Calendar.YEAR/DAY_OF_MONTH is constant, so no need for monadic context 
++-- Calendar.YEAR/DAY_OF_MONTH is constant, so no need for monadic context
 +
-+foreign import java unsafe "@static @field java.util.Calendar.YEAR" yEAR :: Int 
-+foreign import java unsafe "@static @field java.util.Calendar.DAY_OF_MONTH" dAY_OF_MONTH :: Int 
++foreign import java unsafe "@static @field java.util.Calendar.YEAR" yEAR :: Int
++foreign import java unsafe "@static @field java.util.Calendar.DAY_OF_MONTH" dAY_OF_MONTH :: Int
 +foreign import java unsafe "@static @field java.util.Calendar.HOUR_OF_DAY" hOUR_OF_DAY :: Int
 +foreign import java unsafe "@static @field java.util.Calendar.MINUTE" mINUTE :: Int
 +foreign import java unsafe "@static @field java.util.Calendar.SECOND" sECOND :: Int
@@ -541,12 +541,12 @@ index 0000000..b1a3088
 +foreign import java unsafe "@static ghcvm.oldtime.Utils.getCtTz" getCtTz :: Calendar -> Int
 +foreign import java unsafe "@static ghcvm.oldtime.Utils.setTimeInMillis" setTimeInMillis :: Int64 -> Calendar
 +
-+-- Again, you can make this pure given that you don't mutate the calendar after -- creation. 
++-- Again, you can make this pure given that you don't mutate the calendar after -- creation.
 +
-+foreign import java unsafe "get" getField :: Calendar -> Int -> Int 
++foreign import java unsafe "get" getField :: Calendar -> Int -> Int
 +
-+getYear :: Calendar -> Int 
-+getYear = flip getField yEAR 
++getYear :: Calendar -> Int
++getYear = flip getField yEAR
 +
 +flipField :: Int -> Calendar -> Int
 +flipField = flip getField
@@ -559,29 +559,29 @@ index 0000000..b1a3088
 +
 +getMinute :: Calendar -> Int
 +getMinute = flipField mINUTE
-+            
++
 +getSecond :: Calendar -> Int
 +getSecond = flipField sECOND
 +
 +getDayOfYear :: Calendar -> Int
 +getDayOfYear = flipField dAY_OF_YEAR
 +
-+calToCalendarTime :: Calendar 
++calToCalendarTime :: Calendar
 +                  -> Integer -- Picosecond
 +                  -> CalendarTime
 +calToCalendarTime cal ps = CalendarTime  {
 +       ctYear  = getYear cal
-+     , ctMonth = read $ unpackCString $ getCMonth cal
++     , ctMonth = read $ fromJString $ getCMonth cal
 +     , ctDay = getDayOfMonth cal
 +     , ctHour = getHourOfDay cal
 +     , ctMin = getMinute cal
 +     , ctSec = getSecond cal
 +     , ctPicosec = ps
-+     , ctWDay = read $ unpackCString $ getCDayOfWeek cal
++     , ctWDay = read $ fromJString $ getCDayOfWeek cal
 +     , ctYDay = (getDayOfYear cal - 1) -- Not that in Haskell, the day
 +                                       -- starts from 0. In Java, It
 +                                       -- starts from 1.
-+     , ctTZName = unpackCString $ getTZ cal
++     , ctTZName = fromJString $ getTZ cal
 +     , ctTZ = (getCtTz cal `div` 1000)
 +     , ctIsDST = getIsDST cal
 + }
@@ -1398,11 +1398,11 @@ index 0000000..c2af5a1
 +    public static long getTimeInMillis(Calendar cal) {
 +        return cal.getTimeInMillis();
 +    }
-+    
++
 +    public static String getMonth(long millis) {
 +        return new SimpleDateFormat("MMMM").format(new Date(millis));
 +    }
-+    
++
 +    public static String getCMonth(Calendar cal) {
 +        long millis = cal.getTimeInMillis();
 +        return new SimpleDateFormat("MMMM").format(new Date(millis));
@@ -1416,28 +1416,28 @@ index 0000000..c2af5a1
 +        long millis = cal.getTimeInMillis();
 +        return new SimpleDateFormat("EEEE").format(new Date(millis));
 +    }
-+    
++
 +    public static boolean getIsDST(Calendar cal) {
 +        TimeZone tz = cal.getTimeZone();
-+        return TimeZone.getDefault().inDaylightTime( new Date() );    
++        return TimeZone.getDefault().inDaylightTime( new Date() );
 +    }
 +
 +    public static String getTZ(Calendar cal) {
 +        return cal.getTimeZone().getDisplayName();
 +    }
-+    
++
 +    public static int getCtTz(Calendar cal) {
 +        // Returns milliseconds - so you have to convert it to seconds
 +        TimeZone tz = cal.getTimeZone();
 +        return tz.getRawOffset();
 +    }
-+    
++
 +    public static Calendar setTimeInMillis(long millis) {
 +        Calendar cal = Calendar.getInstance();
 +        cal.setTimeInMillis(millis);
 +        return cal;
 +    }
-+    
++
 +    public static Calendar getTimeInUTC(long millis) {
 +        Calendar cal = Calendar.getInstance();
 +        cal.setTimeInMillis(millis);
@@ -1568,6 +1568,5 @@ index d322965..8603e4c 100644
 +        old-locale == 1.0.*
 +
 +    ghc-options: -Wall
--- 
+--
 2.7.4
-
