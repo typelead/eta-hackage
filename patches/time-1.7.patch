@@ -258,7 +258,7 @@ index 9381075..4e02725 100644
  import Data.Time.Calendar.Private
  import Data.Time.Clock.POSIX
  import Data.Time.Clock.UTC
-+import GHC.Pack
++import Java.String
  
  #if __GLASGOW_HASKELL__ >= 709 || __GLASGOW_HASKELL__ < 702
  import Foreign
@@ -292,7 +292,7 @@ index 9381075..4e02725 100644
 +  secs <- getTZOffsetSeconds ctime
 +  dst <- isDST ctime
 +  cname <- getTZ
-+  return $ TimeZone (secs `div` 60) dst (unpackCString cname)
++  return $ TimeZone (secs `div` 60) dst (fromJString cname)
  
  -- | Get the current time-zone
  getCurrentTimeZone :: IO TimeZone
