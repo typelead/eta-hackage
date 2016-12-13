@@ -45,6 +45,7 @@ These packages are supported by `epm`.
 - [base64-bytestring-1.0.0.1](https://hackage.haskell.org/package/base64-bytestring-1.0.0.1)
 - [basic-lens-0.0.0](https://hackage.haskell.org/package/basic-lens-0.0.0)
 - [binary-search-1.0.0.3](https://hackage.haskell.org/package/binary-search-1.0.0.3)
+- [bifunctors-5.4.1](https://hackage.haskell.org/package/bifunctors-5.4.1)
 - [Binpack-0.4.1](https://hackage.haskell.org/package/Binpack-0.4.1)
 - [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
 - [comonad-5](https://hackage.haskell.org/package/comonad-5)
@@ -121,6 +122,7 @@ These packages are supported by `epm`.
 - [pretty-1.1.3.4](https://hackage.haskell.org/package/pretty-1.1.3.4)
 - [prettyclass-1.0.0.0](https://hackage.haskell.org/package/prettyclass-1.0.0.0)
 - [primes-0.2.1.0](https://hackage.haskell.org/package/primes-0.2.1.0)
+- [profunctors-5.2](https://hackage.haskell.org/package/profunctors-5.2)
 - [queue-0.1.2](https://hackage.haskell.org/package/queue-0.1.2)
 - [relacion-0.1](https://hackage.haskell.org/package/relacion-0.1)
 - [resourcet-1.1.8.1](https://hackage.haskell.org/package/resourcet-1.1.8.1)
@@ -129,6 +131,9 @@ These packages are supported by `epm`.
 - [semigroups-0.18.2](https://hackage.haskell.org/package/semigroups-0.18.2)
   - `epm install semigroups -f -hashable -f -text`
     This restriction will be lifted once `text` and `hashable` are ported
+- [semigroupoids-5.1](https://hackage.haskell.org/package/semigroupoids-5.1)
+  - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
+          can be compiled with Eta.
 - [split-0.2.3.1](https://hackage.haskell.org/package/split-0.2.3.1)
 - [stable-marriage-0.1.1.0](https://hackage.haskell.org/package/stable-marriage-0.1.1.0)
 - [StateVar-1.1.0.4](https://hackage.haskell.org/package/StateVar-1.1.0.4)
