@@ -37,6 +37,7 @@ If you would like to have a given package/version made compatible with `epm`, yo
 ### Supported Packages
 These packages are supported by `epm`.
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
+- [adjunctions-4.3](https://hackage.haskell.org/package/adjunctions-4.3)
 - [agum-2.6](https://hackage.haskell.org/package/agum-2.6)
 - [array-0.5.1.1](https://hackage.haskell.org/package/array-0.5.1.1)
 - [array-utils-0.3](https://hackage.haskell.org/package/array-utils-0.3)
@@ -45,9 +46,12 @@ These packages are supported by `epm`.
 - [base64-bytestring-1.0.0.1](https://hackage.haskell.org/package/base64-bytestring-1.0.0.1)
 - [basic-lens-0.0.0](https://hackage.haskell.org/package/basic-lens-0.0.0)
 - [binary-search-1.0.0.3](https://hackage.haskell.org/package/binary-search-1.0.0.3)
+- [bindings-DSL-1.0.23](https://hackage.haskell.org/package/bindings-DSL-1.0.23)
 - [bifunctors-5.4.1](https://hackage.haskell.org/package/bifunctors-5.4.1)
 - [Binpack-0.4.1](https://hackage.haskell.org/package/Binpack-0.4.1)
 - [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
+- [cereal-0.5.4.0](https://hackage.haskell.org/package/cereal-0.5.4.0)
+- [conceit-0.4.0.0](https://hackage.haskell.org/package/conceit-0.4.0.0)
 - [comonad-5](https://hackage.haskell.org/package/comonad-5)
   - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
           can be compiled with Eta.
@@ -57,9 +61,11 @@ These packages are supported by `epm`.
   - `epm install contravariant -f-StateVar`
     Currently, the macro `MIN_VERSION_StateVar` is being used incorrectly, causing
     a compiler panic.
+- [data-default-0.7.1.1](https://hackage.haskell.org/package/data-default-0.7.1.1)
 - [data-default-class-0.1.2.0](https://hackage.haskell.org/package/data-default-class-0.1.2.0)
 - [data-default-instances-containers-0.0.1](https://hackage.haskell.org/package/data-default-instances-containers-0.0.1)
 - [data-default-instances-dlist-0.0.1](https://hackage.haskell.org/package/data-default-instances-dlist-0.0.1)
+- [data-default-instances-old-locale-0.0.1](https://hackage.haskell.org/package/data-default-instances-old-locale-0.0.1)
 - [deepseq-1.4.2.0](https://hackage.haskell.org/package/deepseq-1.4.2.0)
 - [disjoint-sets-st-0.1](https://hackage.haskell.org/package/disjoint-sets-st-0.1)
 - [distributive-0.5.0.2](https://hackage.haskell.org/package/distributive-0.5.0.2)
@@ -69,6 +75,7 @@ These packages are supported by `epm`.
 - [dom-lt-0.1.3](https://hackage.haskell.org/package/dom-lt-0.1.3)
 - [DecisionTree-0.0](https://hackage.haskell.org/package/DecisionTree-0.0)
 - [exceptions-0.8.3](https://hackage.haskell.org/package/exceptions-0.8.3)
+- [errors-2.1.3](https://hackage.haskell.org/package/errors-2.1.3)
 - [fibonacci-0.2.0.1](https://hackage.haskell.org/package/fibonacci-0.2.0.1)
 - [fingertree-0.1.1.0](https://hackage.haskell.org/package/fingertree-0.1.1.0)
 - [fingertree-psqueue-0.3](https://hackage.haskell.org/package/fingertree-psqueue-0.3)
@@ -77,6 +84,7 @@ These packages are supported by `epm`.
 - [fgl-5.5.3.0](https://hackage.haskell.org/package/fgl-5.5.3.0)
   - NOTE: Gives `Ignoring ANN annotation, because this is a stage-1 compiler or doesn't support GHCi`
 - [fmlist-0.9](https://hackage.haskell.org/package/fmlist-0.9)
+- [free-4.12.4](https://hackage.haskell.org/package/free-4.12.4)
 - [garsia-wachs-1.2](https://hackage.haskell.org/package/garsia-wachs-1.2)
 - [GenericPretty-1.2.1](https://hackage.haskell.org/package/GenericPretty-1.2.1)
 - [gdiff-1.1](https://hackage.haskell.org/package/gdiff-1.1)
@@ -91,8 +99,11 @@ These packages are supported by `epm`.
 - [hgal-2.0.0.2](https://hackage.haskell.org/package/hgal-2.0.0.2)
 - [HoleyMonoid-0.1.1](https://hackage.haskell.org/package/HoleyMonoid-0.1.1)
 - [interval-1.20160821](https://hackage.haskell.org/package/interval-1.20160821)
+- [kan-extensions-5.0.1](https://hackage.haskell.org/package/kan-extensions-5.0.1)
 - [lazy-io-0.1.0](https://hackage.haskell.org/package/lazy-io-0.1.0)
 - [labeled-tree-1.0.0.0](https://hackage.haskell.org/package/labeled-tree-1.0.0.0)
+- [lens-family-1.2.1](https://hackage.haskell.org/package/lens-family-1.2.1)
+- [lens-family-core-1.2.1](https://hackage.haskell.org/package/lens-family-core-1.2.1)
 - [lca-0.3](https://hackage.haskell.org/package/lca-0.3)
 - [lifted-base-0.2.3.8](https://hackage.haskell.org/package/lifted-base-0.2.3.8)
 - [list-extras-0.4.1.4](https://hackage.haskell.org/package/list-extras-0.4.1.4)
@@ -116,6 +127,12 @@ These packages are supported by `epm`.
 - [old-time-1.1.0.3](https://hackage.haskell.org/package/old-time-1.1.0.3)
 - [patch-combinators-0.2.2](https://hackage.haskell.org/package/patch-combinators-0.2.2)
 - [pipes-4.3.1](https://hackage.haskell.org/package/pipes-4.3.1)
+- [pipes-4.3.1](https://hackage.haskell.org/package/pipes-4.3.1)
+- [pipes-bytestring-2.1.4](https://hackage.haskell.org/package/pipes-bytestring-2.1.4)
+- [pipes-concurrency-2.0.7](https://hackage.haskell.org/package/pipes-concurrency-2.0.7)
+- [pipes-group-1.0.6](https://hackage.haskell.org/package/pipes-group-1.0.6)
+- [pipes-parse-3.0.8](https://hackage.haskell.org/package/pipes-parse-3.0.8)
+- [pipes-safe-2.2.5](https://hackage.haskell.org/package/pipes-safe-2.2.5)
 - [pqueue-1.3.1.1](https://hackage.haskell.org/package/pqueue-1.3.1.1)
 - [PSQueue-1.1](https://hackage.haskell.org/package/PSQueue-1.1)
 - [prelude-extras-0.4.0.3](https://hackage.haskell.org/package/prelude-extras-0.4.0.3)
@@ -147,6 +164,7 @@ These packages are supported by `epm`.
 - [transformers-compat-0.5.1.4](http://hackage.haskell.org/package/transformers-compat-0.5.1.4)
 - [tree-fun-0.8.1.0](https://hackage.haskell.org/package/tree-fun-0.8.1.0)
 - [type-level-sets-0.8.0.0](https://hackage.haskell.org/package/type-level-sets-0.8.0.0)
+- [unexceptionalio-0.3.0](https://hackage.haskell.org/package/unexceptionalio-0.3.0)
 - [unification-fd-0.10.0.1](https://hackage.haskell.org/package/unification-fd-0.10.0.1)
 - [union-find-0.2](https://hackage.haskell.org/package/union-find-0.2)
 - [union-find-array-0.1.0.2](https://hackage.haskell.org/package/union-find-array-0.1.0.2)
