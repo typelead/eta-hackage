@@ -55,6 +55,7 @@ These packages are supported by `epm`.
 - [dlist-0.8.0.2](https://hackage.haskell.org/package/dlist-0.8.0.2)
 - [dom-lt-0.1.3](https://hackage.haskell.org/package/dom-lt-0.1.3)
 - [DecisionTree-0.0](https://hackage.haskell.org/package/DecisionTree-0.0)
+- [exceptions-0.8.3](https://hackage.haskell.org/package/exceptions-0.8.3)
 - [fibonacci-0.2.0.1](https://hackage.haskell.org/package/fibonacci-0.2.0.1)
 - [fingertree-0.1.1.0](https://hackage.haskell.org/package/fingertree-0.1.1.0)
 - [fingertree-psqueue-0.3](https://hackage.haskell.org/package/fingertree-psqueue-0.3)
@@ -110,6 +111,9 @@ These packages are supported by `epm`.
 - [relacion-0.1](https://hackage.haskell.org/package/relacion-0.1)
 - [randproc-0.4](https://hackage.haskell.org/package/randproc-0.4)
 - [safe-0.3.9](https://hackage.haskell.org/package/safe-0.3.9)
+- [semigroups-0.18.2](https://hackage.haskell.org/package/semigroups-0.18.2)
+  - `epm install semigroups -f -hashable -f -text`
+  - This restriction will be lifted once `text` and `hashable` are ported
 - [split-0.2.3.1](https://hackage.haskell.org/package/split-0.2.3.1)
 - [stable-marriage-0.1.1.0](https://hackage.haskell.org/package/stable-marriage-0.1.1.0)
 - [stm-2.4.4.1](https://hackage.haskell.org/package/stm-2.4.4.1)
@@ -125,6 +129,9 @@ These packages are supported by `epm`.
 - [unification-fd-0.10.0.1](https://hackage.haskell.org/package/unification-fd-0.10.0.1)
 - [union-find-0.2](https://hackage.haskell.org/package/union-find-0.2)
 - [union-find-array-0.1.0.2](https://hackage.haskell.org/package/union-find-array-0.1.0.2)
+- [void-0.7.1](https://hackage.haskell.org/package/void-0.7.1)
+  - Note: The patch removes `Hashable` instance. Should be restored
+          when `hashable` is ported.
 
 ### Unsupported Packages
 These packages are heavy on FFI dependencies and don't make sense in the context of the JVM, hence no effort will be made to port them.
@@ -208,7 +215,7 @@ If you have already forked this repository, the skip to step 3.
 
    Also add the name of the package to the `packages.json` file and
    update this README.md with the package name (in alphabetical order).
-    
+
 10. Submit a pull request to this repository for review.
 
 ### Viewing a Patch
