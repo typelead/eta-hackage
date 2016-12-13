@@ -42,16 +42,25 @@ These packages are supported by `epm`.
 - [array-utils-0.3](https://hackage.haskell.org/package/array-utils-0.3)
 - [base-orphans-0.5.4](https://hackage.haskell.org/package/base-orphans-0.5.4)
 - [base-prelude-1.0.1.1](https://hackage.haskell.org/package/base-prelude-1.0.1.1)
+- [base64-bytestring-1.0.0.1](https://hackage.haskell.org/package/base64-bytestring-1.0.0.1)
 - [basic-lens-0.0.0](https://hackage.haskell.org/package/basic-lens-0.0.0)
 - [binary-search-1.0.0.3](https://hackage.haskell.org/package/binary-search-1.0.0.3)
 - [Binpack-0.4.1](https://hackage.haskell.org/package/Binpack-0.4.1)
 - [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
+- [conduit-1.2.8](https://hackage.haskell.org/package/conduit-1.2.8)
 - [containers-0.5.8.1](https://hackage.haskell.org/package/containers-0.5.8.1)
+- [contravariant-1.4](https://hackage.haskell.org/package/contravariant-1.4)
+  - `epm install contravariant -f-StateVar`
+    Currently, the macro `MIN_VERSION_StateVar` is being used incorrectly, causing
+    a compiler panic.
 - [data-default-class-0.1.2.0](https://hackage.haskell.org/package/data-default-class-0.1.2.0)
 - [data-default-instances-containers-0.0.1](https://hackage.haskell.org/package/data-default-instances-containers-0.0.1)
 - [data-default-instances-dlist-0.0.1](https://hackage.haskell.org/package/data-default-instances-dlist-0.0.1)
 - [deepseq-1.4.2.0](https://hackage.haskell.org/package/deepseq-1.4.2.0)
 - [disjoint-sets-st-0.1](https://hackage.haskell.org/package/disjoint-sets-st-0.1)
+- [distributive-0.5.0.2](https://hackage.haskell.org/package/distributive-0.5.0.2)
+  - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
+          can be compiled with Eta.
 - [dlist-0.8.0.2](https://hackage.haskell.org/package/dlist-0.8.0.2)
 - [dom-lt-0.1.3](https://hackage.haskell.org/package/dom-lt-0.1.3)
 - [DecisionTree-0.0](https://hackage.haskell.org/package/DecisionTree-0.0)
@@ -60,7 +69,7 @@ These packages are supported by `epm`.
 - [fingertree-0.1.1.0](https://hackage.haskell.org/package/fingertree-0.1.1.0)
 - [fingertree-psqueue-0.3](https://hackage.haskell.org/package/fingertree-psqueue-0.3)
 - [fingertree-tf-0.1.0.0](https://hackage.haskell.org/package/fingertree-tf-0.1.0.0)
-- [filepath 1.4.1.0 >= && <= 1.4.1.1](hackage.haskell.org/package/filepath)
+- [filepath >= 1.4.1.0 && <= 1.4.1.1](hackage.haskell.org/package/filepath)
 - [fgl-5.5.3.0](https://hackage.haskell.org/package/fgl-5.5.3.0)
   - NOTE: Gives `Ignoring ANN annotation, because this is a stage-1 compiler or doesn't support GHCi`
 - [fmlist-0.9](https://hackage.haskell.org/package/fmlist-0.9)
@@ -81,6 +90,7 @@ These packages are supported by `epm`.
 - [lazy-io-0.1.0](https://hackage.haskell.org/package/lazy-io-0.1.0)
 - [labeled-tree-1.0.0.0](https://hackage.haskell.org/package/labeled-tree-1.0.0.0)
 - [lca-0.3](https://hackage.haskell.org/package/lca-0.3)
+- [lifted-base-0.2.3.8](https://hackage.haskell.org/package/lifted-base-0.2.3.8)
 - [list-extras-0.4.1.4](https://hackage.haskell.org/package/list-extras-0.4.1.4)
 - [logict-0.6.0.2](https://hackage.haskell.org/package/logict-0.6.0.2)
 - [loop-0.3.0](https://hackage.haskell.org/package/loop-0.3.0)
@@ -88,7 +98,7 @@ These packages are supported by `epm`.
 - [meldable-heap-2.0.3](https://hackage.haskell.org/package/meldable-heap-2.0.3)
 - [microlens-0.4.7.0](https://hackage.haskell.org/package/microlens-0.4.7.0)
 - [microlens-mtl-0.1.10.0](http://hackage.haskell.org/package/microlens-mtl-0.1.10.0)
-- [mmorph-1.0.6](https://hackage.haskell.org/package/mmorph-1.0.6)
+- [mmorph >= 1.0.6 && <= 1.0.9](https://hackage.haskell.org/package/mmorph-1.0.9)
 - [monoid-absorbing-0.1.0.4](https://hackage.haskell.org/package/monoid-absorbing-0.1.0.4)
 - [monad-control-1.0.1.0](https://hackage.haskell.org/package/monad-control-1.0.1.0)
 - [monads-tf-0.1.0.3](https://hackage.haskell.org/package/monads-tf-0.1.0.3)
@@ -101,6 +111,7 @@ These packages are supported by `epm`.
 - [old-locale-1.0.0.7](https://hackage.haskell.org/package/old-locale-1.0.0.7)
 - [old-time-1.1.0.3](https://hackage.haskell.org/package/old-time-1.1.0.3)
 - [patch-combinators-0.2.2](https://hackage.haskell.org/package/patch-combinators-0.2.2)
+- [pipes-4.3.1](https://hackage.haskell.org/package/pipes-4.3.1)
 - [pqueue-1.3.1.1](https://hackage.haskell.org/package/pqueue-1.3.1.1)
 - [PSQueue-1.1](https://hackage.haskell.org/package/PSQueue-1.1)
 - [prelude-extras-0.4.0.3](https://hackage.haskell.org/package/prelude-extras-0.4.0.3)
@@ -109,13 +120,15 @@ These packages are supported by `epm`.
 - [primes-0.2.1.0](https://hackage.haskell.org/package/primes-0.2.1.0)
 - [queue-0.1.2](https://hackage.haskell.org/package/queue-0.1.2)
 - [relacion-0.1](https://hackage.haskell.org/package/relacion-0.1)
+- [resourcet-1.1.8.1](https://hackage.haskell.org/package/resourcet-1.1.8.1)
 - [randproc-0.4](https://hackage.haskell.org/package/randproc-0.4)
 - [safe-0.3.9](https://hackage.haskell.org/package/safe-0.3.9)
 - [semigroups-0.18.2](https://hackage.haskell.org/package/semigroups-0.18.2)
   - `epm install semigroups -f -hashable -f -text`
-  - This restriction will be lifted once `text` and `hashable` are ported
+    This restriction will be lifted once `text` and `hashable` are ported
 - [split-0.2.3.1](https://hackage.haskell.org/package/split-0.2.3.1)
 - [stable-marriage-0.1.1.0](https://hackage.haskell.org/package/stable-marriage-0.1.1.0)
+- [StateVar-1.1.0.4](https://hackage.haskell.org/package/StateVar-1.1.0.4)
 - [stm-2.4.4.1](https://hackage.haskell.org/package/stm-2.4.4.1)
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
 - [template-haskell-2.11.0.0](https://hackage.haskell.org/package/template-haskell-2.11.0.0)
