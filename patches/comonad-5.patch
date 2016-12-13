@@ -1,0 +1,33 @@
+From e42b6712bc5650afdf0dda69aa7e6ad23ab75ff7 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 14 Dec 2016 00:29:41 +0530
+Subject: [PATCH] Patched
+
+---
+ comonad.cabal | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/comonad.cabal b/comonad.cabal
+index a546d40..ea0f082 100644
+--- a/comonad.cabal
++++ b/comonad.cabal
+@@ -13,7 +13,7 @@ copyright:     Copyright (C) 2008-2014 Edward A. Kmett,
+                Copyright (C) 2004-2008 Dave Menendez
+ synopsis:      Comonads
+ description:   Comonads
+-build-type:    Custom
++build-type:    Simple
+ tested-with:   GHC==7.0.1, GHC == 7.0.4, GHC == 7.2.2, GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.2
+ extra-source-files:
+   .ghci
+@@ -85,7 +85,7 @@ library
+     build-depends: contravariant >= 0.2.0.1 && < 2
+
+   if flag(distributive)
+-    build-depends: distributive >= 0.2.2   && < 1
++    build-depends: distributive >= 0.2.2   && < 1
+
+   exposed-modules:
+     Control.Comonad
+--
+2.7.4 (Apple Git-66)

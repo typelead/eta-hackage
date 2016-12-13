@@ -47,6 +47,9 @@ These packages are supported by `epm`.
 - [binary-search-1.0.0.3](https://hackage.haskell.org/package/binary-search-1.0.0.3)
 - [Binpack-0.4.1](https://hackage.haskell.org/package/Binpack-0.4.1)
 - [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
+- [comonad-5](https://hackage.haskell.org/package/comonad-5)
+  - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
+          can be compiled with Eta.
 - [conduit-1.2.8](https://hackage.haskell.org/package/conduit-1.2.8)
 - [containers-0.5.8.1](https://hackage.haskell.org/package/containers-0.5.8.1)
 - [contravariant-1.4](https://hackage.haskell.org/package/contravariant-1.4)
