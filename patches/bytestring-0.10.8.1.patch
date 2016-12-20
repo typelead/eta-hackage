@@ -1,6 +1,6 @@
-From bc048eee063fa3c5fc277cf9f722ce06c3d813f6 Mon Sep 17 00:00:00 2001
+From ca8e7a69df59f097f74f44e232c47e2124a65ecc Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Thu, 6 Oct 2016 23:52:16 +0530
+Date: Tue, 20 Dec 2016 17:47:40 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -11,12 +11,12 @@ Subject: [PATCH] Patched
  Data/ByteString/Short/Internal.hs                  |   7 +-
  Data/ByteString/Unsafe.hs                          |   4 +-
  bytestring.cabal                                   |  11 +-
- java/Utils.java                                    | 290 +++++++++++++++++++++
- 8 files changed, 373 insertions(+), 125 deletions(-)
+ java/Utils.java                                    | 282 +++++++++++++++++++++
+ 8 files changed, 365 insertions(+), 125 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/Data/ByteString/Builder/Prim/ASCII.hs b/Data/ByteString/Builder/Prim/ASCII.hs
-index 62bd5be..83bc2f2 100644
+index 62bd5be..84be510 100644
 --- a/Data/ByteString/Builder/Prim/ASCII.hs
 +++ b/Data/ByteString/Builder/Prim/ASCII.hs
 @@ -104,11 +104,11 @@ char7 = (\c -> fromIntegral $ ord c .&. 0x7f) >$< word8
@@ -273,7 +273,7 @@ index 4cad1d6..88862b9 100644
 -
 -
 diff --git a/Data/ByteString/Internal.hs b/Data/ByteString/Internal.hs
-index 2565a49..b2817cb 100644
+index 2565a49..d0ad12b 100644
 --- a/Data/ByteString/Internal.hs
 +++ b/Data/ByteString/Internal.hs
 @@ -54,7 +54,8 @@ module Data.ByteString.Internal (
@@ -374,7 +374,7 @@ index 2565a49..b2817cb 100644
 +foreign import java unsafe "@static eta.bytestring.Utils.fps_count" c_count
      :: Ptr Word8 -> CULong -> Word8 -> IO CULong
 diff --git a/Data/ByteString/Short/Internal.hs b/Data/ByteString/Short/Internal.hs
-index 15308d6..82905c1 100644
+index 15308d6..be1a1e2 100644
 --- a/Data/ByteString/Short/Internal.hs
 +++ b/Data/ByteString/Short/Internal.hs
 @@ -15,7 +15,7 @@
@@ -455,10 +455,10 @@ index 5890959..931ba5d 100644
    if impl(ghc >= 6.11)
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..b7c6b47
+index 0000000..babb03d
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,290 @@
+@@ -0,0 +1,282 @@
 +package eta.bytestring;
 +
 +import java.io.UnsupportedEncodingException;
@@ -469,7 +469,6 @@ index 0000000..b7c6b47
 +
 +/* NOTE: Hard limit on ByteBuffer API: 2^32 - 1 because of reliance on
 +         signed integer type everywhere.
-+   TODO: Find the true limit on ByteBuffer size
 +*/
 +
 +public class Utils {
@@ -479,68 +478,63 @@ index 0000000..b7c6b47
 +    public static final long UNSIGNED_TEN = ((long) 10) & 0xFFFFFFFF;
 +
 +    public static int strlen(ByteBuffer b) {
++        b = b.duplicate();
 +        int n = 0;
 +        while (b.get() != 0) {
 +            n++;
 +        }
-+        b.rewind();
 +        return n;
 +    }
 +
++    /* TODO: Verify the c argument */
 +    public static ByteBuffer memchr(ByteBuffer b, int c, int n) {
 +        c = (int)((byte) c);
++        b = b.duplicate();
 +
-+        // TODO: Deal with size properly
 +        while (n-- != 0) {
 +            if (b.get() == c) {
-+                ByteBuffer res = (ByteBuffer) b.duplicate().position(b.position() - 1);
-+                b.rewind();
-+                return res;
++                return (ByteBuffer) b.position(b.position() - 1);
 +            }
 +        }
-+        b.rewind();
 +        return null;
 +    }
 +
-+    public static int memcmp(StgClosure b1, StgClosure b2, int n) {
-+        return memcmp(((StgByteArray) b1).buf, ((StgByteArray) b2).buf, n);
++    public static int memcmp(StgByteArray b1, StgByteArray b2, int n) {
++        return memcmp(b1.buf, b2.buf, n);
 +    }
 +
 +    public static int memcmp(ByteBuffer b1, ByteBuffer b2, int n) {
-+        // TODO: Deal with size properly
++        /* TODO: Is the & 0xFF required? */
 +        while (n-- != 0) {
 +            int a = b1.get() & 0xFF;
 +            int b = b2.get() & 0xFF;
 +            if (a != b) {
-+                b1.rewind();
-+                b2.rewind();
 +                return a - b;
 +            }
 +        }
-+        b1.rewind();
-+        b2.rewind();
 +        return 0;
 +    }
 +
 +    public static ByteBuffer memcpy(ByteBuffer dest, ByteBuffer src, int size) {
-+        // TODO: Deal with size properly
-+        while (size-- != 0) {
-+            dest.put(src.get());
-+        }
-+        src.rewind();
-+        return (ByteBuffer) dest.rewind();
++        src = src.duplicate();
++        ByteBuffer dest2 = dest.duplicate();
++        src.limit(src.position() + size);
++        dest2.put(src);
++        return dest;
 +    }
 +
++    /* TODO: Verify c_ argument */
 +    public static ByteBuffer memset(ByteBuffer b, int c_, int size) {
 +        byte c = (byte) c_;
-+        // TODO: Deal with size properly
++        ByteBuffer b2 = b.duplicate();
 +        while (size-- != 0) {
-+            b.put(c);
++            b2.put(c);
 +        }
-+        return (ByteBuffer) b.rewind();
++        return b;
 +    }
 +
 +    public static long fps_count(ByteBuffer bb, long len, int w) {
++        bb = bb.duplicate();
 +        long c = 0;
 +        len += LONG_MIN;
 +        while (len-- != ZERO_MIN) {
@@ -549,11 +543,11 @@ index 0000000..b7c6b47
 +                c++;
 +            }
 +        }
-+        bb.rewind();
 +        return c;
 +    }
 +
 +    public static int fps_minimum(ByteBuffer bb, long len) {
++        bb = bb.duplicate();
 +        int c = 257;
 +        len += LONG_MIN;
 +        while (len-- != ZERO_MIN) {
@@ -563,11 +557,11 @@ index 0000000..b7c6b47
 +                c = q;
 +            }
 +        }
-+        bb.rewind();
 +        return c;
 +    }
 +
 +    public static int fps_maximum(ByteBuffer bb, long len) {
++        bb = bb.duplicate();
 +        int c = -1;
 +        len += LONG_MIN;
 +        while (len-- != ZERO_MIN) {
@@ -577,11 +571,12 @@ index 0000000..b7c6b47
 +                c = q;
 +            }
 +        }
-+        bb.rewind();
 +        return c;
 +    }
 +
 +    public static void fps_intersperse(ByteBuffer q, ByteBuffer p, long n, int c_) {
++        p = p.duplicate();
++        q = q.duplicate();
 +        byte c = (byte) c_;
 +        n += LONG_MIN;
 +        while (n > ONE_MIN) {
@@ -592,18 +587,15 @@ index 0000000..b7c6b47
 +        if (n == ONE_MIN) {
 +            q.put(p.get());
 +        }
-+        p.rewind();
-+        q.rewind();
 +    }
 +
 +    public static void fps_reverse(ByteBuffer q, ByteBuffer p, long n_) {
-+        /* TODO: This is constrained by the ByteBuffer API */
++        p = p.duplicate();
++        q = q.duplicate();
 +        int n = (int) n_;
 +        while (n-- != 0) {
 +            q.put(p.get(n));
 +        }
-+        p.rewind();
-+        q.rewind();
 +    }
 +
 +    public static byte[] digits;

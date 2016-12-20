@@ -1,30 +1,20 @@
-From 0b2057cbd5a20f19bc14c34a98544ca6f6a3035c Mon Sep 17 00:00:00 2001
+From 8d73b19c725d2336b433fb5b539cd8c00960e910 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 24 Sep 2016 22:42:25 +0530
-Subject: [PATCH] Fixed build
+Date: Fri, 16 Dec 2016 13:04:20 +0530
+Subject: [PATCH] Patched
 
 ---
- Data/Array/Base.hs         | 161 +++++++++++++++++++++++----------------------
- Data/Array/IO.hs           |   4 +-
- Data/Array/IO/Internals.hs |  72 ++++++++++----------
- array.cabal                |   1 +
- java/Utils.java            |  34 ++++++++++
- 5 files changed, 154 insertions(+), 118 deletions(-)
+ Data/Array/Base.hs | 10 ++++++----
+ Data/Array/IO.hs   |  4 ++--
+ array.cabal        |  1 +
+ java/Utils.java    | 29 +++++++++++++++++++++++++++++
+ 4 files changed, 38 insertions(+), 6 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/Data/Array/Base.hs b/Data/Array/Base.hs
-index 9908ad2..3546558 100644
+index 9908ad2..52d625d 100644
 --- a/Data/Array/Base.hs
 +++ b/Data/Array/Base.hs
-@@ -34,7 +34,7 @@ import qualified GHC.Arr as ArrST
- import GHC.ST           ( ST(..), runST )
- import GHC.Base         ( IO(..) )
- import GHC.Exts
--import GHC.Ptr          ( nullPtr, nullFunPtr )
-+import GHC.Ptr          ( nullPtr ) --, nullFunPtr )
- import GHC.Stable       ( StablePtr(..) )
- #if !MIN_VERSION_base(4,6,0)
- import GHC.Exts         ( Word(..) )
 @@ -46,8 +46,6 @@ import GHC.IOArray      ( IOArray(..),
                            newIOArray, unsafeReadIOArray, unsafeWriteIOArray )
  import Data.Typeable
@@ -34,199 +24,18 @@ index 9908ad2..3546558 100644
  -----------------------------------------------------------------------------
  -- Class of immutable arrays
 
-@@ -226,6 +224,11 @@ listUArrayST (l,u) es = do
-
- type ListUArray e = forall i . Ix i => (i,i) -> [e] -> UArray i e
-
-+-- "listArray/UArray/Ptr"       listArray
-+--    = (\lu es -> runST (listUArrayST lu es >>= unsafeFreezeSTUArray)) :: ListUArray (Ptr a)
-+-- "listArray/UArray/FunPtr"    listArray
-+--    = (\lu es -> runST (listUArrayST lu es >>= unsafeFreezeSTUArray)) :: ListUArray (FunPtr a)
-+
- {-# RULES
- "listArray/UArray/Bool"      listArray
-    = (\lu es -> runST (listUArrayST lu es >>= unsafeFreezeSTUArray)) :: ListUArray Bool
-@@ -235,10 +238,6 @@ type ListUArray e = forall i . Ix i => (i,i) -> [e] -> UArray i e
-    = (\lu es -> runST (listUArrayST lu es >>= unsafeFreezeSTUArray)) :: ListUArray Int
- "listArray/UArray/Word"      listArray
-    = (\lu es -> runST (listUArrayST lu es >>= unsafeFreezeSTUArray)) :: ListUArray Word
--"listArray/UArray/Ptr"       listArray
--   = (\lu es -> runST (listUArrayST lu es >>= unsafeFreezeSTUArray)) :: ListUArray (Ptr a)
--"listArray/UArray/FunPtr"    listArray
--   = (\lu es -> runST (listUArrayST lu es >>= unsafeFreezeSTUArray)) :: ListUArray (FunPtr a)
- "listArray/UArray/Float"     listArray
-    = (\lu es -> runST (listUArrayST lu es >>= unsafeFreezeSTUArray)) :: ListUArray Float
- "listArray/UArray/Double"    listArray
-@@ -567,37 +566,37 @@ instance IArray UArray Word where
-     {-# INLINE unsafeAccumArray #-}
-     unsafeAccumArray f initialValue lu ies = runST (unsafeAccumArrayUArray f initialValue lu ies)
-
--instance IArray UArray (Ptr a) where
--    {-# INLINE bounds #-}
--    bounds (UArray l u _ _) = (l,u)
--    {-# INLINE numElements #-}
--    numElements (UArray _ _ n _) = n
--    {-# INLINE unsafeArray #-}
--    unsafeArray lu ies = runST (unsafeArrayUArray lu ies nullPtr)
--    {-# INLINE unsafeAt #-}
--    unsafeAt (UArray _ _ _ arr#) (I# i#) = Ptr (indexAddrArray# arr# i#)
--    {-# INLINE unsafeReplace #-}
--    unsafeReplace arr ies = runST (unsafeReplaceUArray arr ies)
--    {-# INLINE unsafeAccum #-}
--    unsafeAccum f arr ies = runST (unsafeAccumUArray f arr ies)
--    {-# INLINE unsafeAccumArray #-}
--    unsafeAccumArray f initialValue lu ies = runST (unsafeAccumArrayUArray f initialValue lu ies)
--
--instance IArray UArray (FunPtr a) where
--    {-# INLINE bounds #-}
--    bounds (UArray l u _ _) = (l,u)
--    {-# INLINE numElements #-}
--    numElements (UArray _ _ n _) = n
--    {-# INLINE unsafeArray #-}
--    unsafeArray lu ies = runST (unsafeArrayUArray lu ies nullFunPtr)
--    {-# INLINE unsafeAt #-}
--    unsafeAt (UArray _ _ _ arr#) (I# i#) = FunPtr (indexAddrArray# arr# i#)
--    {-# INLINE unsafeReplace #-}
--    unsafeReplace arr ies = runST (unsafeReplaceUArray arr ies)
--    {-# INLINE unsafeAccum #-}
--    unsafeAccum f arr ies = runST (unsafeAccumUArray f arr ies)
--    {-# INLINE unsafeAccumArray #-}
--    unsafeAccumArray f initialValue lu ies = runST (unsafeAccumArrayUArray f initialValue lu ies)
-+-- instance IArray UArray (Ptr a) where
-+--     {-# INLINE bounds #-}
-+--     bounds (UArray l u _ _) = (l,u)
-+--     {-# INLINE numElements #-}
-+--     numElements (UArray _ _ n _) = n
-+--     {-# INLINE unsafeArray #-}
-+--     unsafeArray lu ies = runST (unsafeArrayUArray lu ies nullPtr)
-+--     {-# INLINE unsafeAt #-}
-+--     unsafeAt (UArray _ _ _ arr#) (I# i#) = Ptr (indexAddrArray# arr# i#)
-+--     {-# INLINE unsafeReplace #-}
-+--     unsafeReplace arr ies = runST (unsafeReplaceUArray arr ies)
-+--     {-# INLINE unsafeAccum #-}
-+--     unsafeAccum f arr ies = runST (unsafeAccumUArray f arr ies)
-+--     {-# INLINE unsafeAccumArray #-}
-+--     unsafeAccumArray f initialValue lu ies = runST (unsafeAccumArrayUArray f initialValue lu ies)
-+
-+-- instance IArray UArray (FunPtr a) where
-+--     {-# INLINE bounds #-}
-+--     bounds (UArray l u _ _) = (l,u)
-+--     {-# INLINE numElements #-}
-+--     numElements (UArray _ _ n _) = n
-+--     {-# INLINE unsafeArray #-}
-+--     unsafeArray lu ies = runST (unsafeArrayUArray lu ies nullFunPtr)
-+--     {-# INLINE unsafeAt #-}
-+--     unsafeAt (UArray _ _ _ arr#) (I# i#) = FunPtr (indexAddrArray# arr# i#)
-+--     {-# INLINE unsafeReplace #-}
-+--     unsafeReplace arr ies = runST (unsafeReplaceUArray arr ies)
-+--     {-# INLINE unsafeAccum #-}
-+--     unsafeAccum f arr ies = runST (unsafeAccumUArray f arr ies)
-+--     {-# INLINE unsafeAccumArray #-}
-+--     unsafeAccumArray f initialValue lu ies = runST (unsafeAccumArrayUArray f initialValue lu ies)
-
- instance IArray UArray Float where
-     {-# INLINE bounds #-}
-@@ -1113,41 +1112,41 @@ instance MArray (STUArray s) Word (ST s) where
-         case writeWordArray# marr# i# e# s1# of { s2# ->
-         (# s2#, () #) }
-
--instance MArray (STUArray s) (Ptr a) (ST s) where
--    {-# INLINE getBounds #-}
--    getBounds (STUArray l u _ _) = return (l,u)
--    {-# INLINE getNumElements #-}
--    getNumElements (STUArray _ _ n _) = return n
--    {-# INLINE unsafeNewArray_ #-}
--    unsafeNewArray_ (l,u) = unsafeNewArraySTUArray_ (l,u) wORD_SCALE
--    {-# INLINE newArray_ #-}
--    newArray_ arrBounds = newArray arrBounds nullPtr
--    {-# INLINE unsafeRead #-}
--    unsafeRead (STUArray _ _ _ marr#) (I# i#) = ST $ \s1# ->
--        case readAddrArray# marr# i# s1# of { (# s2#, e# #) ->
--        (# s2#, Ptr e# #) }
--    {-# INLINE unsafeWrite #-}
--    unsafeWrite (STUArray _ _ _ marr#) (I# i#) (Ptr e#) = ST $ \s1# ->
--        case writeAddrArray# marr# i# e# s1# of { s2# ->
--        (# s2#, () #) }
--
--instance MArray (STUArray s) (FunPtr a) (ST s) where
--    {-# INLINE getBounds #-}
--    getBounds (STUArray l u _ _) = return (l,u)
--    {-# INLINE getNumElements #-}
--    getNumElements (STUArray _ _ n _) = return n
--    {-# INLINE unsafeNewArray_ #-}
--    unsafeNewArray_ (l,u) = unsafeNewArraySTUArray_ (l,u) wORD_SCALE
--    {-# INLINE newArray_ #-}
--    newArray_ arrBounds = newArray arrBounds nullFunPtr
--    {-# INLINE unsafeRead #-}
--    unsafeRead (STUArray _ _ _ marr#) (I# i#) = ST $ \s1# ->
--        case readAddrArray# marr# i# s1# of { (# s2#, e# #) ->
--        (# s2#, FunPtr e# #) }
--    {-# INLINE unsafeWrite #-}
--    unsafeWrite (STUArray _ _ _ marr#) (I# i#) (FunPtr e#) = ST $ \s1# ->
--        case writeAddrArray# marr# i# e# s1# of { s2# ->
--        (# s2#, () #) }
-+-- instance MArray (STUArray s) (Ptr a) (ST s) where
-+--     {-# INLINE getBounds #-}
-+--     getBounds (STUArray l u _ _) = return (l,u)
-+--     {-# INLINE getNumElements #-}
-+--     getNumElements (STUArray _ _ n _) = return n
-+--     {-# INLINE unsafeNewArray_ #-}
-+--     unsafeNewArray_ (l,u) = unsafeNewArraySTUArray_ (l,u) wORD_SCALE
-+--     {-# INLINE newArray_ #-}
-+--     newArray_ arrBounds = newArray arrBounds nullPtr
-+--     {-# INLINE unsafeRead #-}
-+--     unsafeRead (STUArray _ _ _ marr#) (I# i#) = ST $ \s1# ->
-+--         case readAddrArray# marr# i# s1# of { (# s2#, e# #) ->
-+--         (# s2#, Ptr e# #) }
-+--     {-# INLINE unsafeWrite #-}
-+--     unsafeWrite (STUArray _ _ _ marr#) (I# i#) (Ptr e#) = ST $ \s1# ->
-+--         case writeAddrArray# marr# i# e# s1# of { s2# ->
-+--         (# s2#, () #) }
-+
-+-- instance MArray (STUArray s) (FunPtr a) (ST s) where
-+--     {-# INLINE getBounds #-}
-+--     getBounds (STUArray l u _ _) = return (l,u)
-+--     {-# INLINE getNumElements #-}
-+--     getNumElements (STUArray _ _ n _) = return n
-+--     {-# INLINE unsafeNewArray_ #-}
-+--     unsafeNewArray_ (l,u) = unsafeNewArraySTUArray_ (l,u) wORD_SCALE
-+--     {-# INLINE newArray_ #-}
-+--     newArray_ arrBounds = newArray arrBounds nullFunPtr
-+--     {-# INLINE unsafeRead #-}
-+--     unsafeRead (STUArray _ _ _ marr#) (I# i#) = ST $ \s1# ->
-+--         case readAddrArray# marr# i# s1# of { (# s2#, e# #) ->
-+--         (# s2#, FunPtr e# #) }
-+--     {-# INLINE unsafeWrite #-}
-+--     unsafeWrite (STUArray _ _ _ marr#) (I# i#) (FunPtr e#) = ST $ \s1# ->
-+--         case writeAddrArray# marr# i# e# s1# of { s2# ->
-+--         (# s2#, () #) }
-
- instance MArray (STUArray s) Float (ST s) where
-     {-# INLINE getBounds #-}
-@@ -1350,15 +1349,17 @@ instance MArray (STUArray s) Word64 (ST s) where
+@@ -1350,6 +1348,10 @@ instance MArray (STUArray s) Word64 (ST s) where
  -----------------------------------------------------------------------------
  -- Translation between elements and bytes
 
 +#define SIZEOF_HSWORD 4
++#define SIZEOF_HSDOUBLE 8
++#define SIZEOF_HSFLOAT 4
 +
  bOOL_SCALE, bOOL_WORD_SCALE,
    wORD_SCALE, dOUBLE_SCALE, fLOAT_SCALE :: Int# -> Int#
  bOOL_SCALE n# = (n# +# last#) `uncheckedIShiftRA#` 3#
--  where !(I# last#) = SIZEOF_HSWORD * 8 - 1
-+  where !(I# last#) = 4 * 8 - 1
- bOOL_WORD_SCALE n# = bOOL_INDEX (n# +# last#)
--  where !(I# last#) = SIZEOF_HSWORD * 8 - 1
--wORD_SCALE   n# = scale# *# n# where !(I# scale#) = SIZEOF_HSWORD
--dOUBLE_SCALE n# = scale# *# n# where !(I# scale#) = SIZEOF_HSDOUBLE
--fLOAT_SCALE  n# = scale# *# n# where !(I# scale#) = SIZEOF_HSFLOAT
-+  where !(I# last#) = 4 * 8 - 1
-+wORD_SCALE   n# = scale# *# n# where !(I# scale#) = 4
-+dOUBLE_SCALE n# = scale# *# n# where !(I# scale#) = 8
-+fLOAT_SCALE  n# = scale# *# n# where !(I# scale#) = 4
-
- bOOL_INDEX :: Int# -> Int#
- #if SIZEOF_HSWORD == 4
-@@ -1402,7 +1403,7 @@ freezeSTUArray (STUArray l u n marr#) = ST $ \s1# ->
+@@ -1402,7 +1404,7 @@ freezeSTUArray (STUArray l u n marr#) = ST $ \s1# ->
      case unsafeFreezeByteArray# marr'# s3# of { (# s4#, arr# #) ->
      (# s4#, UArray l u n arr# #) }}}}}
 
@@ -235,7 +44,7 @@ index 9908ad2..3546558 100644
      memcpy_freeze :: MutableByteArray# s -> MutableByteArray# s -> CSize
             -> IO (Ptr a)
 
-@@ -1480,7 +1481,7 @@ thawSTUArray (UArray l u n arr#) = ST $ \s1# ->
+@@ -1480,7 +1482,7 @@ thawSTUArray (UArray l u n arr#) = ST $ \s1# ->
      case unsafeCoerce# m s2#            of { (# s3#, _ #) ->
      (# s3#, STUArray l u n marr# #) }}}}
 
@@ -245,7 +54,7 @@ index 9908ad2..3546558 100644
             -> IO (Ptr a)
 
 diff --git a/Data/Array/IO.hs b/Data/Array/IO.hs
-index f0a8f89..f9ef002 100644
+index f0a8f89..24f9dc6 100644
 --- a/Data/Array/IO.hs
 +++ b/Data/Array/IO.hs
 @@ -67,7 +67,7 @@ hGetArray handle (IOUArray (STUArray _l _u n ptr)) count
@@ -266,96 +75,6 @@ index f0a8f89..f9ef002 100644
     memcpy_ptr_ba :: Ptr a -> MutableByteArray# RealWorld -> CSize -> IO (Ptr ())
 
  -- ---------------------------------------------------------------------------
-diff --git a/Data/Array/IO/Internals.hs b/Data/Array/IO/Internals.hs
-index c934cc5..cf09640 100644
---- a/Data/Array/IO/Internals.hs
-+++ b/Data/Array/IO/Internals.hs
-@@ -31,7 +31,7 @@ import Data.Word
- import Data.Typeable
-
- import Control.Monad.ST         ( RealWorld, stToIO )
--import Foreign.Ptr              ( Ptr, FunPtr )
-+--import Foreign.Ptr              ( Ptr, FunPtr )
- import Foreign.StablePtr        ( StablePtr )
-
- #if __GLASGOW_HASKELL__ < 711
-@@ -134,41 +134,41 @@ instance MArray IOUArray Word IO where
-     {-# INLINE unsafeWrite #-}
-     unsafeWrite (IOUArray marr) i e = stToIO (unsafeWrite marr i e)
-
--instance MArray IOUArray (Ptr a) IO where
--    {-# INLINE getBounds #-}
--    getBounds (IOUArray arr) = stToIO $ getBounds arr
--    {-# INLINE getNumElements #-}
--    getNumElements (IOUArray arr) = stToIO $ getNumElements arr
--    {-# INLINE newArray #-}
--    newArray lu initialValue = stToIO $ do
--        marr <- newArray lu initialValue; return (IOUArray marr)
--    {-# INLINE unsafeNewArray_ #-}
--    unsafeNewArray_ lu = stToIO $ do
--        marr <- unsafeNewArray_ lu; return (IOUArray marr)
--    {-# INLINE newArray_ #-}
--    newArray_ = unsafeNewArray_
--    {-# INLINE unsafeRead #-}
--    unsafeRead (IOUArray marr) i = stToIO (unsafeRead marr i)
--    {-# INLINE unsafeWrite #-}
--    unsafeWrite (IOUArray marr) i e = stToIO (unsafeWrite marr i e)
--
--instance MArray IOUArray (FunPtr a) IO where
--    {-# INLINE getBounds #-}
--    getBounds (IOUArray arr) = stToIO $ getBounds arr
--    {-# INLINE getNumElements #-}
--    getNumElements (IOUArray arr) = stToIO $ getNumElements arr
--    {-# INLINE newArray #-}
--    newArray lu initialValue = stToIO $ do
--        marr <- newArray lu initialValue; return (IOUArray marr)
--    {-# INLINE unsafeNewArray_ #-}
--    unsafeNewArray_ lu = stToIO $ do
--        marr <- unsafeNewArray_ lu; return (IOUArray marr)
--    {-# INLINE newArray_ #-}
--    newArray_ = unsafeNewArray_
--    {-# INLINE unsafeRead #-}
--    unsafeRead (IOUArray marr) i = stToIO (unsafeRead marr i)
--    {-# INLINE unsafeWrite #-}
--    unsafeWrite (IOUArray marr) i e = stToIO (unsafeWrite marr i e)
-+-- instance MArray IOUArray (Ptr a) IO where
-+--     {-# INLINE getBounds #-}
-+--     getBounds (IOUArray arr) = stToIO $ getBounds arr
-+--     {-# INLINE getNumElements #-}
-+--     getNumElements (IOUArray arr) = stToIO $ getNumElements arr
-+--     {-# INLINE newArray #-}
-+--     newArray lu initialValue = stToIO $ do
-+--         marr <- newArray lu initialValue; return (IOUArray marr)
-+--     {-# INLINE unsafeNewArray_ #-}
-+--     unsafeNewArray_ lu = stToIO $ do
-+--         marr <- unsafeNewArray_ lu; return (IOUArray marr)
-+--     {-# INLINE newArray_ #-}
-+--     newArray_ = unsafeNewArray_
-+--     {-# INLINE unsafeRead #-}
-+--     unsafeRead (IOUArray marr) i = stToIO (unsafeRead marr i)
-+--     {-# INLINE unsafeWrite #-}
-+--     unsafeWrite (IOUArray marr) i e = stToIO (unsafeWrite marr i e)
-+
-+-- instance MArray IOUArray (FunPtr a) IO where
-+--     {-# INLINE getBounds #-}
-+--     getBounds (IOUArray arr) = stToIO $ getBounds arr
-+--     {-# INLINE getNumElements #-}
-+--     getNumElements (IOUArray arr) = stToIO $ getNumElements arr
-+--     {-# INLINE newArray #-}
-+--     newArray lu initialValue = stToIO $ do
-+--         marr <- newArray lu initialValue; return (IOUArray marr)
-+--     {-# INLINE unsafeNewArray_ #-}
-+--     unsafeNewArray_ lu = stToIO $ do
-+--         marr <- unsafeNewArray_ lu; return (IOUArray marr)
-+--     {-# INLINE newArray_ #-}
-+--     newArray_ = unsafeNewArray_
-+--     {-# INLINE unsafeRead #-}
-+--     unsafeRead (IOUArray marr) i = stToIO (unsafeRead marr i)
-+--     {-# INLINE unsafeWrite #-}
-+--     unsafeWrite (IOUArray marr) i e = stToIO (unsafeWrite marr i e)
-
- instance MArray IOUArray Float IO where
-     {-# INLINE getBounds #-}
 diff --git a/array.cabal b/array.cabal
 index d5dd036..72c4192 100644
 --- a/array.cabal
@@ -370,10 +89,10 @@ index d5dd036..72c4192 100644
        Data.Array.Base
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..0e72877
+index 0000000..c07395b
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,29 @@
 +package eta.array;
 +
 +import java.nio.ByteBuffer;
@@ -382,30 +101,25 @@ index 0000000..0e72877
 +
 +public class Utils {
 +    private static ByteBuffer memcpy_buf(ByteBuffer destBuffer, ByteBuffer srcBuffer, int size) {
-+        // TODO: Verify this - potential for off by one error
-+        srcBuffer.limit(size);
-+        destBuffer.put(srcBuffer);
-+        destBuffer.rewind();
-+        return destBuffer;
++        ByteBuffer dest = destBuffer.duplicate();
++        ByteBuffer src = srcBuffer.duplicate();
++        int srcOffset = src.position();
++        src.limit(srcOffset + size);
++        dest.put(srcBuffer);
++        return dest;
 +    }
 +
-+    public static ByteBuffer memcpy(StgClosure destArray, StgClosure srcArray, int size) {
-+        ByteBuffer destBuffer = ((StgByteArray) destArray).buf;
-+        ByteBuffer srcBuffer = ((StgByteArray) srcArray).buf.duplicate();
-+        return memcpy_buf(destBuffer, srcBuffer, size);
++    public static ByteBuffer memcpy(StgByteArray destArray, StgByteArray srcArray, int size) {
++        return memcpy_buf(destArray.buf, srcArray.buf, size);
 +    }
 +
-+    public static ByteBuffer memcpy_ba_ptr(StgClosure destArray, ByteBuffer srcBuffer, int size) {
++    public static ByteBuffer memcpy_ba_ptr(StgByteArray destArray, ByteBuffer srcBuffer, int size) {
 +
-+        return memcpy_buf( ((StgByteArray) destArray).buf
-+                         , srcBuffer.duplicate()
-+                         , size);
++        return memcpy_buf(destArray.buf, srcBuffer, size);
 +    }
 +
-+    public static ByteBuffer memcpy_ptr_ba(ByteBuffer destBuffer, StgClosure srcArray, int size) {
-+        return memcpy_buf( destBuffer
-+                         , ((StgByteArray) srcArray).buf.duplicate()
-+                         , size);
++    public static ByteBuffer memcpy_ptr_ba(ByteBuffer destBuffer, StgByteArray srcArray, int size) {
++        return memcpy_buf(destBuffer, srcArray.buf, size);
 +    }
 +}
 --
