@@ -1,0 +1,363 @@
+From 72df47be65faed0ec2905b8423f1cd1cadfc0cb3 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 21 Dec 2016 13:36:39 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Text/Array.hs            |   8 +-
+ Data/Text/Encoding.hs         |   8 +-
+ Data/Text/Internal.hs         |   2 +-
+ Data/Text/Lazy.hs             |   5 +-
+ Data/Text/Lazy/Builder/Int.hs |   2 +-
+ Data/Text/Show.hs             |   3 +-
+ java/Utils.java               | 178 ++++++++++++++++++++++++++++++++++++++++++
+ text.cabal                    |   7 +-
+ 8 files changed, 197 insertions(+), 16 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Data/Text/Array.hs b/Data/Text/Array.hs
+index 8900958..8735a37 100644
+--- a/Data/Text/Array.hs
++++ b/Data/Text/Array.hs
+@@ -54,8 +54,6 @@ if (_k_) < 0 || (_k_) >= (_len_) then error ("Data.Text.Array." ++ (_func_) ++ "
+ # define CHECK_BOUNDS(_func_,_len_,_k_)
+ #endif
+
+-#include "MachDeps.h"
+-
+ #if defined(ASSERTS)
+ import Control.Exception (assert)
+ #endif
+@@ -235,12 +233,12 @@ equal arrA offA arrB offB count = inlinePerformIO $ do
+   return $! i == 0
+ {-# INLINE equal #-}
+
+-foreign import ccall unsafe "_hs_text_memcpy" memcpyI
++foreign import java unsafe "@static ghcvm.text.Utils.memcpy" memcpyI
+     :: MutableByteArray# s -> CSize -> ByteArray# -> CSize -> CSize -> IO ()
+
+-foreign import ccall unsafe "_hs_text_memcmp" memcmp
++foreign import java unsafe "@static ghcvm.text.Utils.memcmp" memcmp
+     :: ByteArray# -> CSize -> ByteArray# -> CSize -> CSize -> IO CInt
+
+-foreign import ccall unsafe "_hs_text_memcpy" memcpyM
++foreign import java unsafe "@static ghcvm.text.Utils.memcpy" memcpyM
+     :: MutableByteArray# s -> CSize -> MutableByteArray# s -> CSize -> CSize
+     -> IO ()
+diff --git a/Data/Text/Encoding.hs b/Data/Text/Encoding.hs
+index 7289256..a55875f 100644
+--- a/Data/Text/Encoding.hs
++++ b/Data/Text/Encoding.hs
+@@ -474,17 +474,17 @@ encodeUtf32BE :: Text -> ByteString
+ encodeUtf32BE txt = E.unstream (E.restreamUtf32BE (F.stream txt))
+ {-# INLINE encodeUtf32BE #-}
+
+-foreign import ccall unsafe "_hs_text_decode_utf8" c_decode_utf8
++foreign import java unsafe "@static ghcvm.text.Utils.decode_utf8" c_decode_utf8
+     :: MutableByteArray# s -> Ptr CSize
+     -> Ptr Word8 -> Ptr Word8 -> IO (Ptr Word8)
+
+-foreign import ccall unsafe "_hs_text_decode_utf8_state" c_decode_utf8_with_state
++foreign import java unsafe "@static ghcvm.text.Utils.decode_utf8_state" c_decode_utf8_with_state
+     :: MutableByteArray# s -> Ptr CSize
+     -> Ptr (Ptr Word8) -> Ptr Word8
+     -> Ptr CodePoint -> Ptr DecoderState -> IO (Ptr Word8)
+
+-foreign import ccall unsafe "_hs_text_decode_latin1" c_decode_latin1
++foreign import java unsafe "@static ghcvm.text.Utils.decode_latin1" c_decode_latin1
+     :: MutableByteArray# s -> Ptr Word8 -> Ptr Word8 -> IO ()
+
+-foreign import ccall unsafe "_hs_text_encode_utf8" c_encode_utf8
++foreign import java unsafe "@static ghcvm.text.Utils.encode_utf8" c_encode_utf8
+     :: Ptr (Ptr Word8) -> ByteArray# -> CSize -> CSize -> IO ()
+diff --git a/Data/Text/Internal.hs b/Data/Text/Internal.hs
+index 81f918a..ed82dc5 100644
+--- a/Data/Text/Internal.hs
++++ b/Data/Text/Internal.hs
+@@ -21,7 +21,7 @@
+ -- preserve data invariants.  You have been warned!
+
+ #if defined(__GLASGOW_HASKELL__) && !defined(__HADDOCK__)
+-#include "MachDeps.h"
++#define WORD_SIZE_IN_BITS 32
+ #endif
+
+ module Data.Text.Internal
+diff --git a/Data/Text/Lazy.hs b/Data/Text/Lazy.hs
+index 1d1b3f1..2a406bf 100644
+--- a/Data/Text/Lazy.hs
++++ b/Data/Text/Lazy.hs
+@@ -421,10 +421,12 @@ unpack t = S.unstreamList (stream t)
+ {-# INLINE [1] unpack #-}
+
+ -- | /O(n)/ Convert a literal string into a Text.
++-- TODO: Convert Addr# related functions to Object# JString
+ unpackCString# :: Addr# -> Text
+-unpackCString# addr# = unstream (S.streamCString# addr#)
++unpackCString# addr# = P.undefined --unstream (S.streamCString# addr#)
+ {-# NOINLINE unpackCString# #-}
+
++{-
+ {-# RULES "TEXT literal" forall a.
+     unstream (S.streamList (L.map safe (GHC.unpackCString# a)))
+       = unpackCString# a #-}
+@@ -432,6 +434,7 @@ unpackCString# addr# = unstream (S.streamCString# addr#)
+ {-# RULES "TEXT literal UTF8" forall a.
+     unstream (S.streamList (L.map safe (GHC.unpackCStringUtf8# a)))
+       = unpackCString# a #-}
++-}
+
+ {-# RULES "LAZY TEXT empty literal"
+     unstream (S.streamList (L.map safe []))
+diff --git a/Data/Text/Lazy/Builder/Int.hs b/Data/Text/Lazy/Builder/Int.hs
+index 1cb0651..8e68d92 100644
+--- a/Data/Text/Lazy/Builder/Int.hs
++++ b/Data/Text/Lazy/Builder/Int.hs
+@@ -35,7 +35,7 @@ import Control.Monad.ST
+
+ #ifdef  __GLASGOW_HASKELL__
+ # if defined(INTEGER_GMP)
+-import GHC.Integer.GMP.Internals (Integer(S#))
++import GHC.Integer.BigInteger.Internals (Integer(S#))
+ # elif defined(INTEGER_SIMPLE)
+ import GHC.Integer
+ # else
+diff --git a/Data/Text/Show.hs b/Data/Text/Show.hs
+index 9238eb9..f5e8724 100644
+--- a/Data/Text/Show.hs
++++ b/Data/Text/Show.hs
+@@ -49,7 +49,7 @@ unpack = S.unstreamList . stream
+ unpackCString# :: Addr# -> Text
+ unpackCString# addr# = unstream (S.streamCString# addr#)
+ {-# NOINLINE unpackCString# #-}
+-
++{- TODO: Override streamCString# for Object# JString
+ {-# RULES "TEXT literal" [1] forall a.
+     unstream (S.map safe (S.streamList (GHC.unpackCString# a)))
+       = unpackCString# a #-}
+@@ -57,6 +57,7 @@ unpackCString# addr# = unstream (S.streamCString# addr#)
+ {-# RULES "TEXT literal UTF8" [1] forall a.
+     unstream (S.map safe (S.streamList (GHC.unpackCStringUtf8# a)))
+       = unpackCString# a #-}
++-}
+
+ {-# RULES "TEXT empty literal" [1]
+     unstream (S.map safe (S.streamList []))
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..4bf83b5
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,178 @@
++package eta.text;
++
++import java.nio.ByteBuffer;
++import eta.runtime.stg.StgClosure;
++import eta.runtime.io.StgByteArray;
++import static eta.runtime.io.MemoryManager.*;
++
++public class Utils {
++    public static void memcpy( StgByteArray destArray, int destOffset
++                             , StgByteArray srcArray,  int srcOffset, int n) {
++        ByteBuffer src = srcArray.buf.duplicate();
++        ByteBuffer dest = destArray.buf.duplicate();
++        destOffset <<= 1;
++        srcOffset <<= 1;
++        n <<= 1;
++        dest.position(destOffset);
++        src.position(srcOffset);
++        src.limit(srcOffset + n);
++        dest.put(src);
++    }
++
++    public static int memcmp( StgByteArray aArray, int aOffset
++                            , StgByteArray bArray, int bOffset, int n) {
++        ByteBuffer a = aArray.buf.duplicate();
++        ByteBuffer b = bArray.buf.duplicate();
++        aOffset <<= 1;
++        bOffset <<= 1;
++        n <<= 1;
++        a.position(aOffset);
++        b.position(bOffset);
++        while (n-- != 0) {
++            int c = a.get() & 0xFF;
++            int d = b.get() & 0xFF;
++            if (c != d) {
++                return c - d;
++            }
++        }
++        return 0;
++    }
++
++    public static void decode_latin1(ByteBuffer dest, ByteBuffer src, ByteBuffer srcend) {
++        dest = dest.duplicate();
++        ByteBuffer p = src.duplicate();
++        // while (getAddress(p) != getAddress(srcend)) {
++        while (p.position() != srcend.position()) {
++            dest.putShort((short)(p.get() & 0xFF));
++        }
++    }
++
++    public static final int UTF8_ACCEPT = 0;
++    public static final int UTF8_REJECT = 12;
++
++    public static final int[] utf8d = {
++        /*
++        * The first part of the table maps bytes to character classes that
++        * to reduce the size of the transition table and create bitmasks.
++        */
++        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
++        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
++        8,8,2,2,2,2,2,2,2,2,2,2,2,2,2,2,  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
++        10,3,3,3,3,3,3,3,3,3,3,3,3,4,3,3, 11,6,6,6,5,8,8,8,8,8,8,8,8,8,8,8,
++
++        /*
++        * The second part is a transition table that maps a combination of
++        * a state of the automaton and a character class to a state.
++        */
++        0,12,24,36,60,96,84,12,12,12,48,72, 12,12,12,12,12,12,12,12,12,12,12,12,
++        12, 0,12,12,12,12,12, 0,12, 0,12,12, 12,24,12,12,12,12,12,24,12,24,12,12,
++        12,12,12,12,12,12,12,24,12,12,12,12, 12,24,12,12,12,12,12,12,12,24,12,12,
++        12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
++        12,36,12,12,12,12,12,12,12,12,12,12,
++    };
++
++    public static ByteBuffer decode_utf8( ByteBuffer dest, ByteBuffer destOffset
++                                        , ByteBuffer src,  ByteBuffer srcend) {
++        /* TODO: This part of the text implementation can be optimized.
++                 Unnecessary byte buffers are being created. Instead,
++                 we can change the implementation at the Eta level
++                 itself. */
++        ByteBuffer state0 = allocateAnonymousBuffer(4, false);
++        bufPutInt(state0, 0, UTF8_ACCEPT);
++        ByteBuffer codepoint0 = allocateAnonymousBuffer(4, false);
++        ByteBuffer src0 = allocateAnonymousBuffer(4, false);
++        bufPutInt(src0, 0, getAddress(src));
++        ByteBuffer ret = decode_utf8_int(dest, destOffset, src0, srcend,
++                                         codepoint0, state0);
++        if (bufGetInt(state0, 0) != UTF8_ACCEPT) {
++            bufSetOffset(ret, -1);
++        }
++        return ret;
++    }
++
++    public static ByteBuffer decode_utf8_state
++        (ByteBuffer dest, ByteBuffer destOffset, ByteBuffer src0,
++         ByteBuffer srcend, ByteBuffer codepoint0, ByteBuffer state0)
++    {
++        ByteBuffer ret = decode_utf8_int(dest, destOffset, src0, srcend,
++                                         codepoint0, state0);
++        if (bufGetInt(state0, 0) != UTF8_ACCEPT) {
++            bufSetOffset(ret, -1);
++        }
++        return ret;
++    }
++
++    public static ByteBuffer decode_utf8_int( ByteBuffer dest, ByteBuffer destOffset
++                                            , ByteBuffer src0, ByteBuffer srcend
++                                            , ByteBuffer codepoint0, ByteBuffer state0) {
++        ByteBuffer d = bufSetOffset(dest.duplicate(), bufGetInt(destOffset, 0));
++        ByteBuffer s = getBuffer(bufGetInt(src0, 0));
++        ByteBuffer last = s.duplicate();
++        int state = bufGetInt(state0, 0);
++        int codepoint = bufGetInt(codepoint0, 0);
++
++        /* Verify srcend condition */
++        //while (getAddress(s) < getAddress(srcend)) {
++        while (s.position() < srcend.position()) {
++            /* Start of inlined decode() */
++            int byte_ = s.get() & 0xFF;
++            int type = utf8d[byte_];
++            codepoint = (state != UTF8_ACCEPT) ?
++                (byte_ & 0x3F) | (codepoint << 6):
++                (0xFF >>> type) & (byte_);
++            state = utf8d[256 + state + type];
++            /* End of inlined decode() */
++            if (state != UTF8_ACCEPT) {
++                if (state != UTF8_REJECT) continue;
++                break;
++            }
++            if (codepoint <= 0xFFFF) {
++                d.putShort((short) codepoint);
++            } else {
++                d.putShort((short) (0xD7C0 + (codepoint >>> 10)));
++                d.putShort((short) (0xDC00 + (codepoint & 0x3FF)));
++            }
++            last.get();
++        }
++        bufPutInt(destOffset, 0, d.position() - dest.position());
++        bufPutInt(codepoint0, 0, codepoint);
++        bufPutInt(state0, 0, state);
++        bufPutInt(src0, 0, getAddress(last));
++        return s;
++    }
++
++
++    public static void encode_utf8(ByteBuffer destp, ByteBuffer src,
++                                         int srcoff, int srclen) {
++        ByteBuffer dest = getBuffer(bufGetInt(destp, 0));
++        src = bufSetOffset(src.duplicate(), srcoff);
++        ByteBuffer srcend = bufSetOffset(src.duplicate(), srclen);
++
++        while (src.position() < srcend.position()) {
++            int w = src.getShort() & 0xFFFF;
++            if (w <= 0x7F) {
++                dest.put((byte) w);
++            } else if (w <= 0x7FF) {
++                dest.put((byte)((w >>> 6) | 0xC0));
++                dest.put((byte)((w & 0x3F) | 0x80));
++            } else if (w < 0xD800 || w > 0xDBFF) {
++                dest.put((byte)((w >>> 12) | 0xE0));
++                dest.put((byte)(((w >>> 6) & 0x3F) | 0x80));
++                dest.put((byte)((w & 0x3F) | 0x80));
++            } else {
++                int c = ((w - 0xD800) << 10)
++                      + ((src.getShort() & 0xFFFF) - 0xDC00)
++                      + 0x10000;
++                dest.put((byte)((c >>> 18) | 0xF0));
++                dest.put((byte)(((c >>> 12) & 0x3F) | 0x80));
++                dest.put((byte)(((c >>> 6) & 0x3F) | 0x80));
++                dest.put((byte)((c & 0x3F) | 0x80));
++            }
++        }
++        bufPutInt(destp, 0, getAddress(dest));
++    }
++}
+diff --git a/text.cabal b/text.cabal
+index a0f2d3b..0a3ae1c 100644
+--- a/text.cabal
++++ b/text.cabal
+@@ -75,7 +75,8 @@ flag integer-simple
+   manual: False
+
+ library
+-  c-sources:    cbits/cbits.c
++  -- c-sources:    cbits/cbits.c
++  java-sources:    java/Utils.java
+   include-dirs: include
+
+   exposed-modules:
+@@ -150,7 +151,7 @@ library
+     build-depends: integer-simple >= 0.1 && < 0.5
+   else
+     cpp-options: -DINTEGER_GMP
+-    build-depends: integer-gmp >= 0.2
++    build-depends: integer >= 0.2
+
+ test-suite tests
+   type:           exitcode-stdio-1.0
+@@ -186,7 +187,7 @@ test-suite tests
+     build-depends: integer-simple >= 0.1 && < 0.5
+   else
+     cpp-options: -DINTEGER_GMP
+-    build-depends: integer-gmp >= 0.2
++    build-depends: integer >= 0.2
+
+ source-repository head
+   type:     git
+--
+2.7.4 (Apple Git-66)

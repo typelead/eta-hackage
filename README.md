@@ -157,6 +157,7 @@ These packages are supported by `epm`.
 - [stm-2.4.4.1](https://hackage.haskell.org/package/stm-2.4.4.1)
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
 - [template-haskell-2.11.0.0](https://hackage.haskell.org/package/template-haskell-2.11.0.0)
+- [text-1.2.2.1](https://hackage.haskell.org/package/text-1.2.2.1)
 - [time >= 1.6.0.1 <= 1.7](https://hackage.haskell.org/package/time)
 - [time-locale-compat-0.1.1.3](https://hackage.haskell.org/package/time-locale-compat-0.1.1.3)
 - [transformers-0.5.2.0](https://hackage.haskell.org/package/transformers-0.5.2.0)
@@ -168,6 +169,7 @@ These packages are supported by `epm`.
 - [unification-fd-0.10.0.1](https://hackage.haskell.org/package/unification-fd-0.10.0.1)
 - [union-find-0.2](https://hackage.haskell.org/package/union-find-0.2)
 - [union-find-array-0.1.0.2](https://hackage.haskell.org/package/union-find-array-0.1.0.2)
+- [vector-0.11.0.0](https://hackage.haskell.org/package/vector-0.11.0.0)
 - [void-0.7.1](https://hackage.haskell.org/package/void-0.7.1)
   - Note: The patch removes `Hashable` instance. Should be restored
           when `hashable` is ported.
