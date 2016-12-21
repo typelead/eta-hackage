@@ -49,6 +49,10 @@ These packages are supported by `epm`.
 - [bindings-DSL-1.0.23](https://hackage.haskell.org/package/bindings-DSL-1.0.23)
 - [bifunctors-5.4.1](https://hackage.haskell.org/package/bifunctors-5.4.1)
 - [Binpack-0.4.1](https://hackage.haskell.org/package/Binpack-0.4.1)
+- [blaze-builder-0.4.0.2](https://hackage.haskell.org/package/blaze-builder-0.4.0.2)
+- [blaze-html-0.8.1.3](https://hackage.haskell.org/package/blaze-html-0.8.1.3)
+- [blaze-html-truncate-0.3.0.0](https://hackage.haskell.org/package/blaze-html-truncate-0.3.0.0)
+- [blaze-markup-0.7.1.1](https://hackage.haskell.org/package/blaze-markup-0.7.1.1)
 - [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
 - [cereal-0.5.4.0](https://hackage.haskell.org/package/cereal-0.5.4.0)
 - [conceit-0.4.0.0](https://hackage.haskell.org/package/conceit-0.4.0.0)
@@ -99,6 +103,7 @@ These packages are supported by `epm`.
 - [hetero-map-0.21](https://hackage.haskell.org/package/hetero-map-0.21)
 - [hgal-2.0.0.2](https://hackage.haskell.org/package/hgal-2.0.0.2)
 - [HoleyMonoid-0.1.1](https://hackage.haskell.org/package/HoleyMonoid-0.1.1)
+- [html-truncate-0.3.0.0](https://hackage.haskell.org/package/html-truncate-0.3.0.0)
 - [interval-1.20160821](https://hackage.haskell.org/package/interval-1.20160821)
 - [kan-extensions-5.0.1](https://hackage.haskell.org/package/kan-extensions-5.0.1)
 - [lazy-io-0.1.0](https://hackage.haskell.org/package/lazy-io-0.1.0)
@@ -140,6 +145,7 @@ These packages are supported by `epm`.
 - [pretty-1.1.3.4](https://hackage.haskell.org/package/pretty-1.1.3.4)
 - [prettyclass-1.0.0.0](https://hackage.haskell.org/package/prettyclass-1.0.0.0)
 - [primes-0.2.1.0](https://hackage.haskell.org/package/primes-0.2.1.0)
+- [primitive-0.6.2.0](https://hackage.haskell.org/package/primitive-0.6.2.0)
 - [profunctors-5.2](https://hackage.haskell.org/package/profunctors-5.2)
 - [queue-0.1.2](https://hackage.haskell.org/package/queue-0.1.2)
 - [relacion-0.1](https://hackage.haskell.org/package/relacion-0.1)
@@ -147,8 +153,6 @@ These packages are supported by `epm`.
 - [randproc-0.4](https://hackage.haskell.org/package/randproc-0.4)
 - [safe-0.3.9](https://hackage.haskell.org/package/safe-0.3.9)
 - [semigroups-0.18.2](https://hackage.haskell.org/package/semigroups-0.18.2)
-  - `epm install semigroups -f -hashable -f -text`
-    This restriction will be lifted once `text` and `hashable` are ported
 - [semigroupoids-5.1](https://hackage.haskell.org/package/semigroupoids-5.1)
   - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
           can be compiled with Eta.
@@ -157,6 +161,7 @@ These packages are supported by `epm`.
 - [StateVar-1.1.0.4](https://hackage.haskell.org/package/StateVar-1.1.0.4)
 - [stm-2.4.4.1](https://hackage.haskell.org/package/stm-2.4.4.1)
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
+- [tagsoup-0.14](https://hackage.haskell.org/package/tagsoup-0.14)
 - [template-haskell-2.11.0.0](https://hackage.haskell.org/package/template-haskell-2.11.0.0)
 - [text-1.2.2.1](https://hackage.haskell.org/package/text-1.2.2.1)
 - [time >= 1.6.0.1 <= 1.7](https://hackage.haskell.org/package/time)
@@ -170,10 +175,9 @@ These packages are supported by `epm`.
 - [unification-fd-0.10.0.1](https://hackage.haskell.org/package/unification-fd-0.10.0.1)
 - [union-find-0.2](https://hackage.haskell.org/package/union-find-0.2)
 - [union-find-array-0.1.0.2](https://hackage.haskell.org/package/union-find-array-0.1.0.2)
+- [unordered-containers-0.2.7.1](https://hackage.haskell.org/package/unordered-containers-0.2.7.1)
 - [vector-0.11.0.0](https://hackage.haskell.org/package/vector-0.11.0.0)
 - [void-0.7.1](https://hackage.haskell.org/package/void-0.7.1)
-  - Note: The patch removes `Hashable` instance. Should be restored
-          when `hashable` is ported.
 
 ### Unsupported Packages
 These packages are heavy on FFI dependencies and don't make sense in the context of the JVM, hence no effort will be made to port them.
