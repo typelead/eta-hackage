@@ -93,6 +93,7 @@ These packages are supported by `epm`.
 - [graph-matchings-0.1.0.0](https://hackage.haskell.org/package/graph-matchings-0.1.0.0)
 - [graph-wrapper-0.2.5.1](https://hackage.haskell.org/package/graph-wrapper-0.2.5.1)
 - [groups-0.4.0.0](https://hackage.haskell.org/package/groups-0.4.0.0)
+- [hashable-1.2.4.0](https://hackage.haskell.org/package/hashable-1.2.4.0)
 - [heap-1.0.3](https://hackage.haskell.org/package/heap-1.0.3)
 - [heaps-0.3.3](https://hackage.haskell.org/package/heaps-0.3.3)
 - [hetero-map-0.21](https://hackage.haskell.org/package/hetero-map-0.21)
