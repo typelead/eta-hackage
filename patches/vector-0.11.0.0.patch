@@ -1,0 +1,64 @@
+From d8fc00648ee0be7d08b2ca64248a2847730f2fd0 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 21 Dec 2016 08:37:02 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Vector/Fusion/Bundle/Monadic.hs | 5 +----
+ Data/Vector/Fusion/Stream/Monadic.hs | 3 +--
+ vector.cabal                         | 2 +-
+ 3 files changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/Data/Vector/Fusion/Bundle/Monadic.hs b/Data/Vector/Fusion/Bundle/Monadic.hs
+index 66789d9..94239e8 100644
+--- a/Data/Vector/Fusion/Bundle/Monadic.hs
++++ b/Data/Vector/Fusion/Bundle/Monadic.hs
+@@ -105,7 +105,7 @@ import Data.Int  ( Int8, Int16, Int32, Int64 )
+ import Data.Word ( Word8, Word16, Word32, Word, Word64 )
+
+ #include "vector.h"
+-#include "MachDeps.h"
++#define WORD_SIZE_IN_BITS 32
+
+ data Chunk v a = Chunk Int (forall m. (PrimMonad m, Vector v a) => Mutable v (PrimState m) a -> m ())
+
+@@ -1093,6 +1093,3 @@ reVector Bundle{sElems = s, sSize = n} = fromStream s n
+
+ "reVector/reVector [Vector]" forall s.
+   reVector (reVector s) = s   #-}
+-
+-
+-
+diff --git a/Data/Vector/Fusion/Stream/Monadic.hs b/Data/Vector/Fusion/Stream/Monadic.hs
+index a0c13e4..51c0a89 100644
+--- a/Data/Vector/Fusion/Stream/Monadic.hs
++++ b/Data/Vector/Fusion/Stream/Monadic.hs
+@@ -99,7 +99,7 @@ import GHC.Exts ( SpecConstrAnnotation(..) )
+ #endif
+
+ #include "vector.h"
+-#include "MachDeps.h"
++#define WORD_SIZE_IN_BITS 32
+
+ #if __GLASGOW_HASKELL__ < 708
+ data SPEC = SPEC | SPEC2
+@@ -1595,4 +1595,3 @@ reVector (Stream step s, sSize = n} = Stream step s n
+
+
+ -}
+-
+diff --git a/vector.cabal b/vector.cabal
+index ffc5099..47dbdd7 100644
+--- a/vector.cabal
++++ b/vector.cabal
+@@ -142,7 +142,7 @@ Library
+                , ghc-prim >= 0.2 && < 0.5
+                , deepseq >= 1.1 && < 1.5
+
+-  Ghc-Options: -O2 -Wall -fno-warn-orphans
++  Ghc-Options: -O2 -Wall -fno-warn-orphans -optP--text
+
+   if flag(BoundsChecks)
+     cpp-options: -DVECTOR_BOUNDS_CHECKS
+--
+2.7.4 (Apple Git-66)
