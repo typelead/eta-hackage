@@ -1,0 +1,55 @@
+From bb44499e2f289867a5e610ca4445a269dcb7a71c Mon Sep 17 00:00:00 2001
+From: Sibi Prabakaran <sibi@psibi.in>
+Date: Fri, 23 Dec 2016 04:27:00 +0530
+Subject: [PATCH] Port for Eta
+
+---
+ Data/IntSet/Internal.hs | 7 ++++---
+ include/containers.h    | 2 +-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/Data/IntSet/Internal.hs b/Data/IntSet/Internal.hs
+index 8b7f796..efd3275 100644
+--- a/Data/IntSet/Internal.hs
++++ b/Data/IntSet/Internal.hs
+@@ -204,11 +204,11 @@ import Text.Read
+ #endif
+ 
+ #if __GLASGOW_HASKELL__
+-import GHC.Exts (Int(..), build)
++import GHC.Exts (Int(..), build, getBytesUtf8#)
+ #if __GLASGOW_HASKELL__ >= 708
+ import qualified GHC.Exts as GHCExts
+ #endif
+-import GHC.Prim (indexInt8OffAddr#)
++import GHC.Prim (indexJByteArray#)
+ #endif
+ 
+ 
+@@ -1325,8 +1325,9 @@ foldr'Bits :: Int -> (Int -> a -> a) -> a -> Nat -> a
+ indexOfTheOnlyBit :: Nat -> Int
+ {-# INLINE indexOfTheOnlyBit #-}
+ indexOfTheOnlyBit bitmask =
+-  I# (lsbArray `indexInt8OffAddr#` unboxInt (intFromNat ((bitmask * magic) `shiftRL` offset)))
++    I# (GHCExts.byte2Int# (bytes `indexJByteArray#` unboxInt (intFromNat ((bitmask * magic) `shiftRL` offset))))
+   where unboxInt (I# i) = i
++        !bytes = getBytesUtf8# lsbArray
+ #if WORD_SIZE_IN_BITS==32
+         magic = 0x077CB531
+         offset = 27
+diff --git a/include/containers.h b/include/containers.h
+index 83cea82..6aeb3ba 100644
+--- a/include/containers.h
++++ b/include/containers.h
+@@ -9,7 +9,7 @@
+  * On GHC, include MachDeps.h to get WORD_SIZE_IN_BITS macro.
+  */
+ #ifdef __GLASGOW_HASKELL__
+-#include "MachDeps.h"
++#define WORD_SIZE_IN_BITS 32
+ #endif
+ 
+ /*
+-- 
+2.7.4
+
