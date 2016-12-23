@@ -154,6 +154,7 @@ These packages are supported by `epm`.
 - [resourcet-1.1.8.1](https://hackage.haskell.org/package/resourcet-1.1.8.1)
 - [randproc-0.4](https://hackage.haskell.org/package/randproc-0.4)
 - [safe-0.3.9](https://hackage.haskell.org/package/safe-0.3.9)
+- [scientific-0.3.4.9](https://hackage.haskell.org/package/scientific-0.3.4.9)
 - [semigroups-0.18.2](https://hackage.haskell.org/package/semigroups-0.18.2)
 - [semigroupoids-5.1](https://hackage.haskell.org/package/semigroupoids-5.1)
   - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
