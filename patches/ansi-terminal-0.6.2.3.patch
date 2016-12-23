@@ -1,0 +1,109 @@
+From bd066a4b0edacee0bc1e399b88c84f6ea382481c Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sat, 24 Dec 2016 01:03:52 +0530
+Subject: [PATCH] Patched
+
+---
+ ansi-terminal.cabal | 74 ++++++++++++++++++++++++++---------------------------
+ 1 file changed, 37 insertions(+), 37 deletions(-)
+
+diff --git a/ansi-terminal.cabal b/ansi-terminal.cabal
+index e6b56a6..b4111a9 100644
+--- a/ansi-terminal.cabal
++++ b/ansi-terminal.cabal
+@@ -28,56 +28,56 @@ Flag Example
+
+ Library
+         Exposed-Modules:        System.Console.ANSI
+-
++
+         Other-Modules:          System.Console.ANSI.Common
+-
++
+         Include-Dirs:           includes
+-
++
+         Build-Depends:          base >= 4 && < 5
+-        if os(windows)
+-                Build-Depends:          Win32 >= 2.0
+-                Cpp-Options:            -DWINDOWS
+-                Extra-Libraries:        "kernel32"
+-                Other-Modules:          System.Console.ANSI.Windows
+-                                        System.Console.ANSI.Windows.Foreign
+-                                        System.Console.ANSI.Windows.Emulator
+-                                        -- NB: used for fallback by the emulator
+-                                        System.Console.ANSI.Unix
+-        else
+-                -- We assume any non-Windows platform is Unix
+-                Build-Depends:          unix >= 2.3.0.0
+-                Cpp-Options:            -DUNIX
+-                Other-Modules:          System.Console.ANSI.Unix
+-
++        -- if os(windows)
++        --         Build-Depends:          Win32 >= 2.0
++        --         Cpp-Options:            -DWINDOWS
++        --         Extra-Libraries:        "kernel32"
++        --         Other-Modules:          System.Console.ANSI.Windows
++        --                                 System.Console.ANSI.Windows.Foreign
++        --                                 System.Console.ANSI.Windows.Emulator
++        --                                 -- NB: used for fallback by the emulator
++        --                                 System.Console.ANSI.Unix
++        -- else
++        --         -- We assume any non-Windows platform is Unix
++        --         Build-Depends:          unix >= 2.3.0.0
++        Cpp-Options:            -DUNIX
++        Other-Modules:          System.Console.ANSI.Unix
++
+         Extensions:             CPP
+                                 ForeignFunctionInterface
+-
++
+         Ghc-Options:                    -Wall
+
+ Executable ansi-terminal-example
+         Main-Is:                System/Console/ANSI/Example.hs
+-
++
+         Include-Dirs:           includes
+-
+-        if os(windows)
+-                Build-Depends:          Win32 >= 2.0
+-                Cpp-Options:            -DWINDOWS
+-                Extra-Libraries:        "kernel32"
+-                Other-Modules:          System.Console.ANSI.Windows
+-                                        System.Console.ANSI.Windows.Foreign
+-                                        System.Console.ANSI.Windows.Emulator
+-        else
+-                -- We assume any non-Windows platform is Unix
+-                Build-Depends:          unix >= 2.3.0.0
+-                Cpp-Options:            -DUNIX
+-                Other-Modules:          System.Console.ANSI.Unix
+-
+-
++
++        -- if os(windows)
++        --         Build-Depends:          Win32 >= 2.0
++        --         Cpp-Options:            -DWINDOWS
++        --         Extra-Libraries:        "kernel32"
++        --         Other-Modules:          System.Console.ANSI.Windows
++        --                                 System.Console.ANSI.Windows.Foreign
++        --                                 System.Console.ANSI.Windows.Emulator
++        -- else
++        --         -- We assume any non-Windows platform is Unix
++        --         Build-Depends:          unix >= 2.3.0.0
++        Cpp-Options:            -DUNIX
++        Other-Modules:          System.Console.ANSI.Unix
++
++
+         Build-Depends:          base >= 4 && < 5
+         Extensions:             CPP
+                                 ForeignFunctionInterface
+-
++
+         Ghc-Options:            -Wall
+-
++
+         if !flag(example)
+                 Buildable:              False
+--
+2.7.4 (Apple Git-66)

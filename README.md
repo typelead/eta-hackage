@@ -39,6 +39,8 @@ These packages are supported by `epm`.
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
 - [adjunctions-4.3](https://hackage.haskell.org/package/adjunctions-4.3)
 - [agum-2.6](https://hackage.haskell.org/package/agum-2.6)
+- [ansi-terminal-0.6.2.3](https://hackage.haskell.org/package/ansi-terminal-0.6.2.3)
+  - NOTE: Windows support disabled.
 - [array-0.5.1.1](https://hackage.haskell.org/package/array-0.5.1.1)
 - [array-utils-0.3](https://hackage.haskell.org/package/array-utils-0.3)
 - [base-orphans-0.5.4](https://hackage.haskell.org/package/base-orphans-0.5.4)
