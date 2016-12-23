@@ -60,7 +60,7 @@ These packages are supported by `epm`.
   - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
           can be compiled with Eta.
 - [conduit-1.2.8](https://hackage.haskell.org/package/conduit-1.2.8)
-- [containers-0.5.8.1](https://hackage.haskell.org/package/containers-0.5.8.1)
+- [containers >= 0.5.8.1 && <= 0.5.9.1 ](https://hackage.haskell.org/package/containers-0.5.9.1)
 - [contravariant-1.4](https://hackage.haskell.org/package/contravariant-1.4)
   - `epm install contravariant -f-StateVar`
     Currently, the macro `MIN_VERSION_StateVar` is being used incorrectly, causing
