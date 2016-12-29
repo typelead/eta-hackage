@@ -116,6 +116,7 @@ These packages are supported by `epm`.
 - [kan-extensions-5.0.1](https://hackage.haskell.org/package/kan-extensions-5.0.1)
 - [lazy-io-0.1.0](https://hackage.haskell.org/package/lazy-io-0.1.0)
 - [labeled-tree-1.0.0.0](https://hackage.haskell.org/package/labeled-tree-1.0.0.0)
+- [lens-4.15.1](https://hackage.haskell.org/package/lens-4.15.1)
 - [lens-family-1.2.1](https://hackage.haskell.org/package/lens-family-1.2.1)
 - [lens-family-core-1.2.1](https://hackage.haskell.org/package/lens-family-core-1.2.1)
 - [lca-0.3](https://hackage.haskell.org/package/lca-0.3)
