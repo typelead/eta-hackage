@@ -1,4 +1,4 @@
-cabal-version:  >= 1.18
+cabal-version:  >= 1.10
 name:           filepath
 version:        1.4.1.1
 -- NOTE: Don't forget to update ./changelog.md
@@ -24,8 +24,6 @@ description:
     .
     All three modules provide the same API, and the same documentation (calling out differences in the different variants).
 
-extra-source-files:
-    System/FilePath/Internal.hs
 extra-doc-files:
     README.md
     changelog.md
@@ -48,9 +46,11 @@ library
         System.FilePath
         System.FilePath.Posix
         System.FilePath.Windows
+    other-modules:
+        System.FilePath.Internal
 
     build-depends:
-        base >= 4 && < 4.11
+        base >= 4 && < 4.10
 
     ghc-options: -Wall
 

@@ -1,18 +1,16 @@
-From 4674640ce9a615fb56285f60b43e45c391596ab1 Mon Sep 17 00:00:00 2001
-From: Sibi Prabakaran <sibi@psibi.in>
-Date: Tue, 22 Nov 2016 20:07:40 +0530
-Subject: [PATCH] Port filepath-1.4.1.1 for Eta
+From fd4316d74e80b80fb5177b446e6e6f8cfa41072a Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 30 Dec 2016 02:05:57 +0530
+Subject: [PATCH] Patched
 
 ---
- System/FilePath.hs          |  16 +++++-----------
- System/FilePath/Internal.hs |  11 ++++-------
- System/FilePath/Posix.hs    |   6 ++----
- System/FilePath/Windows.hs  |   6 ++----
- filepath.cabal              |   2 ++
- java/Utils.class            | Bin 0 -> 452 bytes
- java/Utils.java             |   8 ++++++++
- 7 files changed, 23 insertions(+), 26 deletions(-)
- create mode 100644 java/Utils.class
+ System/FilePath.hs          | 16 +++++-----------
+ System/FilePath/Internal.hs | 11 ++++-------
+ System/FilePath/Posix.hs    |  6 ++----
+ System/FilePath/Windows.hs  |  6 ++----
+ filepath.cabal              |  6 ++++--
+ java/Utils.java             |  8 ++++++++
+ 6 files changed, 25 insertions(+), 28 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/System/FilePath.hs b/System/FilePath.hs
@@ -35,7 +33,7 @@ index 331ae81..98e9796 100644
 +module System.FilePath
 +  ( module System.FilePath.Internal
 +  ) where
- 
+
 -
 -#if defined(mingw32_HOST_OS) || defined(__MINGW32__)
 -module System.FilePath(module System.FilePath.Windows) where
@@ -55,11 +53,11 @@ index 4a376b3..4b75760 100644
 -#endif
 +{-# LANGUAGE CPP, ForeignFunctionInterface #-}
  {-# LANGUAGE PatternGuards #-}
- 
+
  -- This template expects CPP definitions for:
 @@ -8,7 +6,7 @@
  --     IS_WINDOWS  = False | True
- 
+
  -- |
 --- Module      :  System.FilePath.MODULE_NAME
 +-- Module      :  System.FilePath.Internal
@@ -77,13 +75,13 @@ index 4a376b3..4b75760 100644
      FilePath,
 @@ -125,8 +123,7 @@ isPosix :: Bool
  isPosix = not isWindows
- 
+
  -- | Is the operating system Windows like
 -isWindows :: Bool
 -isWindows = IS_WINDOWS
 +foreign import java unsafe "@static eta.filepath.Utils.isWindows" isWindows :: Bool
- 
- 
+
+
  ---------------------------------------------------------------------
 diff --git a/System/FilePath/Posix.hs b/System/FilePath/Posix.hs
 index 3fbd0ff..8c4159c 100644
@@ -108,11 +106,20 @@ index 3e3e9d6..89b6df9 100644
 +module System.FilePath.Windows(module System.FilePath.Internal) where
 +import System.FilePath.Internal
 diff --git a/filepath.cabal b/filepath.cabal
-index 61723ad..56fde5c 100644
+index abaa97c..335f798 100644
 --- a/filepath.cabal
 +++ b/filepath.cabal
-@@ -36,9 +36,11 @@ source-repository head
- 
+@@ -24,8 +24,6 @@ description:
+     .
+     All three modules provide the same API, and the same documentation (calling out differences in the different variants).
+
+-extra-source-files:
+-    System/FilePath/Internal.hs
+ extra-doc-files:
+     README.md
+     changelog.md
+@@ -36,9 +34,11 @@ source-repository head
+
  library
      default-language: Haskell2010
 +    java-sources: java/Utils.java
@@ -122,23 +129,16 @@ index 61723ad..56fde5c 100644
 +        ForeignFunctionInterface
      if impl(GHC >= 7.2)
          other-extensions: Safe
- 
-diff --git a/java/Utils.class b/java/Utils.class
-new file mode 100644
-index 0000000000000000000000000000000000000000..d2b2f55f4900e049183ace301f6e676c6cf460cc
-GIT binary patch
-literal 452
-zcmZut%T5A85UgGv3*#cVif<%d3~0h$ylK3ccp_?okA&L*BMgCEvO8$_Cof*qc<=-K
-zC}Z!&Xo$|CdZxOn(mfxaZ|?vOQ5CRJ%3(>s#c~cS0%fe)ShKNC$R2B7n-fB+R=**n
-zPlKK!6r0*t=hJaVg;%mOVkWPnTkZFPhbWP@38EED!>&5haa&v)J&GDbc`qI0kSEwd
-z)bQn4+1PNfi7jTn18i(Ns9=ZSDkHr+4wy(Y@RA5ZDGu>Q((ij0ouTTQIjS{_j2aUb
-z`pR5}!9;~-M%b%0e_bsTYQKL}|4Yp$B{Cj8GBPy0of#0y{{^+Ni!6U)d@NABAEV$`
-zg)4E*?7x7X_`-uRW)m{S=%BzDOY3a4xE5UN6{+Tdn|?;-@y8;PW`?b?d69Vw#V<mf
-BUfcix
 
-literal 0
-HcmV?d00001
+@@ -46,6 +46,8 @@ library
+         System.FilePath
+         System.FilePath.Posix
+         System.FilePath.Windows
++    other-modules:
++        System.FilePath.Internal
 
+     build-depends:
+         base >= 4 && < 4.10
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
 index 0000000..400e939
@@ -153,6 +153,5 @@ index 0000000..400e939
 +        return osName.startsWith("Windows");
 +    }
 +}
--- 
-2.7.4
-
+--
+2.7.4 (Apple Git-66)
