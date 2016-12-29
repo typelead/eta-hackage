@@ -1,0 +1,24 @@
+From c02f871c734f2c7e95819a196237a5b1267121da Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 29 Dec 2016 23:10:41 +0530
+Subject: [PATCH] Patched
+
+---
+ machines.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/machines.cabal b/machines.cabal
+index 6c6dd4d..e15a7db 100644
+--- a/machines.cabal
++++ b/machines.cabal
+@@ -16,7 +16,7 @@ description:
+   .
+   Rúnar Bjarnason's talk on machines can be downloaded from:
+   <https://dl.dropbox.com/u/4588997/Machines.pdf>
+-build-type:    Custom
++build-type:    Simple
+ tested-with:   GHC == 7.4.1, GHC == 7.8.3
+ extra-source-files:
+   .travis.yml
+--
+2.7.4 (Apple Git-66)
