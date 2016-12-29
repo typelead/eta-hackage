@@ -69,9 +69,6 @@ These packages are supported by `epm`.
 - [conduit-1.2.8](https://hackage.haskell.org/package/conduit-1.2.8)
 - [containers >= 0.5.8.1 && <= 0.5.9.1 ](https://hackage.haskell.org/package/containers-0.5.9.1)
 - [contravariant-1.4](https://hackage.haskell.org/package/contravariant-1.4)
-  - `epm install contravariant -f-StateVar`
-    Currently, the macro `MIN_VERSION_StateVar` is being used incorrectly, causing
-    a compiler panic.
 - [data-default-0.7.1.1](https://hackage.haskell.org/package/data-default-0.7.1.1)
 - [data-default-class-0.1.2.0](https://hackage.haskell.org/package/data-default-class-0.1.2.0)
 - [data-default-instances-containers-0.0.1](https://hackage.haskell.org/package/data-default-instances-containers-0.0.1)
