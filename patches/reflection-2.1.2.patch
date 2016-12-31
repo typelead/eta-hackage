@@ -1,0 +1,26 @@
+From c1f95e59877fddfb28c3a3f87d364ed5a4208b2b Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 30 Dec 2016 00:49:42 +0530
+Subject: [PATCH] Patched
+
+---
+ reflection.cabal | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/reflection.cabal b/reflection.cabal
+index 4d42881..9f717c6 100644
+--- a/reflection.cabal
++++ b/reflection.cabal
+@@ -50,8 +50,8 @@ flag template-haskell
+     You can disable the use of the `template-haskell` package using `-f-template-haskell`.
+     .
+     Disabling this is an unsupported configuration, but it may be useful for accelerating builds in sandboxes for expert users.
+-  default: True
+-  manual: True
++  default: False
++  manual: False
+
+ source-repository head
+   type: git
+--
+2.7.4 (Apple Git-66)

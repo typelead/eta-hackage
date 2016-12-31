@@ -1,0 +1,24 @@
+From c8d26d26d1f89fb509804a3062cee7e4ecf7b06a Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sat, 24 Dec 2016 01:20:55 +0530
+Subject: [PATCH] Patched
+
+---
+ scientific.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scientific.cabal b/scientific.cabal
+index 54f97e0..6ae1a66 100644
+--- a/scientific.cabal
++++ b/scientific.cabal
+@@ -87,7 +87,7 @@ library
+       build-depends: integer-simple
+       CPP-options: -DINTEGER_SIMPLE
+   else
+-      build-depends: integer-gmp
++      build-depends: integer
+
+   hs-source-dirs:      src
+   default-language:    Haskell2010
+--
+2.7.4 (Apple Git-66)
