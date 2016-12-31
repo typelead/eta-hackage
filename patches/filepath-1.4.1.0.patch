@@ -148,11 +148,11 @@ new file mode 100644
 index 0000000..400e939
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,8 @@
+@@ -0,1 +1,8 @@
 +package eta.filepath;
 +
 +public class Utils {
-+    public boolean isWindows() {
++    public static boolean isWindows() {
 +        String osName = System.getProperty("os.name");
 +        return osName.startsWith("Windows");
 +    }

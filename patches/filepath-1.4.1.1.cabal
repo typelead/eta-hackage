@@ -1,4 +1,4 @@
-cabal-version:  >= 1.10
+cabal-version:  >= 1.18
 name:           filepath
 version:        1.4.1.1
 -- NOTE: Don't forget to update ./changelog.md
@@ -46,11 +46,12 @@ library
         System.FilePath
         System.FilePath.Posix
         System.FilePath.Windows
+
     other-modules:
         System.FilePath.Internal
 
     build-depends:
-        base >= 4 && < 4.10
+        base >= 4 && < 4.11
 
     ghc-options: -Wall
 
