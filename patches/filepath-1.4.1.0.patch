@@ -1,6 +1,6 @@
-From 47c3ef2d96cc7c5d67b3ca6bee3c32c446adb220 Mon Sep 17 00:00:00 2001
+From fe8610cdc1a263cf79c3f5467062c83f715372d6 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Fri, 30 Dec 2016 02:01:07 +0530
+Date: Sun, 1 Jan 2017 13:04:53 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -145,10 +145,10 @@ index 5d4e771..acf7065 100644
          base >= 4 && < 4.10
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..400e939
+index 0000000..1bb3f22
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,1 +1,8 @@
+@@ -0,0 +1,8 @@
 +package eta.filepath;
 +
 +public class Utils {
