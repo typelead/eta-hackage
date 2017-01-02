@@ -41,6 +41,7 @@ These packages are supported by `epm`.
 - [agum-2.6](https://hackage.haskell.org/package/agum-2.6)
 - [ansi-terminal-0.6.2.3](https://hackage.haskell.org/package/ansi-terminal-0.6.2.3)
   - NOTE: Windows support disabled.
+- [ansi-wl-pprint-0.6.7.3](https://hackage.haskell.org/package/ansi-wl-pprint-0.6.7.3)
 - [array-0.5.1.1](https://hackage.haskell.org/package/array-0.5.1.1)
 - [array-utils-0.3](https://hackage.haskell.org/package/array-utils-0.3)
 - [async-2.1.1](https://hackage.haskell.org/package/async-2.1.1)
@@ -117,6 +118,7 @@ These packages are supported by `epm`.
 - [hex-0.1.2](https://hackage.haskell.org/package/hex-0.1.2)
 - [hgal-2.0.0.2](https://hackage.haskell.org/package/hgal-2.0.0.2)
 - [HoleyMonoid-0.1.1](https://hackage.haskell.org/package/HoleyMonoid-0.1.1)
+- [hostname-1.0](https://hackage.haskell.org/package/hostname-1.0)
 - [html-truncate-0.3.0.0](https://hackage.haskell.org/package/html-truncate-0.3.0.0)
 - [HUnit-1.5.0.0](https://hackage.haskell.org/package/HUnit-1.5.0.0)
 - [interval-1.20160821](https://hackage.haskell.org/package/interval-1.20160821)

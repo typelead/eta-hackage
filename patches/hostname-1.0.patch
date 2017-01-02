@@ -1,0 +1,108 @@
+From 267c134391ccf1c4ef0bf9992652d3ef20570391 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 2 Jan 2017 21:22:34 +0530
+Subject: [PATCH] Patched
+
+---
+ Network/HostName.hs | 47 ++++-------------------------------------------
+ hostname.cabal      | 12 +++++++-----
+ java/Utils.java     | 10 ++++++++++
+ 3 files changed, 21 insertions(+), 48 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Network/HostName.hs b/Network/HostName.hs
+index e86c0d5..333723d 100644
+--- a/Network/HostName.hs
++++ b/Network/HostName.hs
+@@ -2,47 +2,8 @@ module Network.HostName (
+     HostName, getHostName
+   ) where
+ 
+-import Foreign.C.Error
+-import Foreign.C.String
+-import Foreign.C.Types
+-import Foreign.Marshal.Array
+-
+-#ifdef WINDOWS
+-
+-import Foreign.Marshal.Utils
+-import Foreign.Ptr
+-import Foreign.Storable
+-
+-import System.Win32.Types
+-
+-foreign import stdcall unsafe "windows.h GetComputerNameExW" getComputerNameEx :: COMPUTER_NAME_FORMAT -> LPTSTR -> LPDWORD -> IO BOOL
+-
+-type COMPUTER_NAME_FORMAT = CInt
+-
+-computerNamePhysicalDnsHostname :: COMPUTER_NAME_FORMAT
+-computerNamePhysicalDnsHostname = 5
+-
+-getHostName :: IO HostName
+-getHostName = with 0 $ \p_charcount -> do
+-    -- On the first run, determine the character count and ignore any error we get
+-    _ <- getComputerNameEx computerNamePhysicalDnsHostname nullPtr p_charcount
+-    charcount <- peek p_charcount
+-    
+-    -- The second time around, use the correct character count to retrieve the data
+-    withTString (replicate (fromIntegral charcount) ' ') $ \name -> do
+-        failIfFalse_ "GetComputerNameExW" $ getComputerNameEx computerNamePhysicalDnsHostname name p_charcount
+-        peekTString name
+-
+-#else
+-
+-foreign import ccall unsafe "gethostname" gethostname :: CString -> CSize -> IO CInt
+-
+-getHostName :: IO HostName
+-getHostName = allocaArray0 size $ \cstr -> do
+-        throwErrnoIfMinus1_ "getHostName" $ gethostname cstr (fromIntegral size)
+-        peekCString cstr
+-    where size = 256
+-
+-#endif
+-
+ type HostName = String
++
++-- TODO: Find a more portable solution
++foreign import java unsafe "@static eta.hostname.Utils.getHostName"
++  getHostName :: IO HostName
+diff --git a/hostname.cabal b/hostname.cabal
+index 5c567a4..8dc0eaf 100644
+--- a/hostname.cabal
++++ b/hostname.cabal
+@@ -14,9 +14,11 @@ Library
+                          
+         Build-Depends:   base >= 3 && < 5
+                          
+-        Extensions:      CPP, ForeignFunctionInterface
++        Extensions:      ForeignFunctionInterface
++
++        Java-Sources: java/Utils.java
+         
+-        if os(windows)
+-                         Build-Depends:   Win32 >= 2.0
+-                         Cpp-Options:     -DWINDOWS
+-                         Extra-Libraries: "kernel32"
++        -- if os(windows)
++        --                  Build-Depends:   Win32 >= 2.0
++        --                  Cpp-Options:     -DWINDOWS
++        --                  Extra-Libraries: "kernel32"
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..e831c73
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,10 @@
++package eta.hostname;
++
++import java.net.InetAddress;
++import java.net.UnknownHostException;
++
++public class Utils {
++    public static String getHostName() throws UnknownHostException {
++        return InetAddress.getLocalHost().getHostName();
++    }
++}
+-- 
+2.7.4 (Apple Git-66)
+
