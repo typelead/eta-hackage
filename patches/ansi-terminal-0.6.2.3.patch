@@ -1,28 +1,19 @@
-From 54f0b0f9f05fd70c4d584d8f307328ca8b3c94fb Mon Sep 17 00:00:00 2001
+From b95868461d1fc04ea2caa85b5e32c9c662a1bb6a Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 2 Jan 2017 20:54:40 +0530
+Date: Mon, 2 Jan 2017 21:02:57 +0530
 Subject: [PATCH] Patched
 
 ---
- ansi-terminal.cabal | 74 ++++++++++++++++++++++++++---------------------------
- 1 file changed, 37 insertions(+), 37 deletions(-)
+ ansi-terminal.cabal | 52 ++++++++++++++++++++++++++--------------------------
+ 1 file changed, 26 insertions(+), 26 deletions(-)
 
 diff --git a/ansi-terminal.cabal b/ansi-terminal.cabal
-index e6b56a6..b4111a9 100644
+index e6b56a6..b45fb47 100644
 --- a/ansi-terminal.cabal
 +++ b/ansi-terminal.cabal
-@@ -28,56 +28,56 @@ Flag Example
-
- Library
-         Exposed-Modules:        System.Console.ANSI
--
-+
-         Other-Modules:          System.Console.ANSI.Common
--
-+
+@@ -34,20 +34,20 @@ Library
          Include-Dirs:           includes
--
-+
+         
          Build-Depends:          base >= 4 && < 5
 -        if os(windows)
 -                Build-Depends:          Win32 >= 2.0
@@ -38,7 +29,6 @@ index e6b56a6..b4111a9 100644
 -                Build-Depends:          unix >= 2.3.0.0
 -                Cpp-Options:            -DUNIX
 -                Other-Modules:          System.Console.ANSI.Unix
--
 +        -- if os(windows)
 +        --         Build-Depends:          Win32 >= 2.0
 +        --         Cpp-Options:            -DWINDOWS
@@ -53,19 +43,13 @@ index e6b56a6..b4111a9 100644
 +        --         Build-Depends:          unix >= 2.3.0.0
 +        Cpp-Options:            -DUNIX
 +        Other-Modules:          System.Console.ANSI.Unix
-+
+         
          Extensions:             CPP
                                  ForeignFunctionInterface
--
-+
-         Ghc-Options:                    -Wall
-
- Executable ansi-terminal-example
-         Main-Is:                System/Console/ANSI/Example.hs
--
-+
+@@ -59,18 +59,18 @@ Executable ansi-terminal-example
+         
          Include-Dirs:           includes
--
+         
 -        if os(windows)
 -                Build-Depends:          Win32 >= 2.0
 -                Cpp-Options:            -DWINDOWS
@@ -78,9 +62,6 @@ index e6b56a6..b4111a9 100644
 -                Build-Depends:          unix >= 2.3.0.0
 -                Cpp-Options:            -DUNIX
 -                Other-Modules:          System.Console.ANSI.Unix
--
--
-+
 +        -- if os(windows)
 +        --         Build-Depends:          Win32 >= 2.0
 +        --         Cpp-Options:            -DWINDOWS
@@ -93,17 +74,9 @@ index e6b56a6..b4111a9 100644
 +        --         Build-Depends:          unix >= 2.3.0.0
 +        Cpp-Options:            -DUNIX
 +        Other-Modules:          System.Console.ANSI.Unix
-+
-+
+         
+         
          Build-Depends:          base >= 4 && < 5
-         Extensions:             CPP
-                                 ForeignFunctionInterface
--
-+
-         Ghc-Options:            -Wall
--
-+
-         if !flag(example)
-                 Buildable:              False
---
+-- 
 2.7.4 (Apple Git-66)
+

@@ -28,11 +28,11 @@ Flag Example
 
 Library
         Exposed-Modules:        System.Console.ANSI
-
+        
         Other-Modules:          System.Console.ANSI.Common
-
+        
         Include-Dirs:           includes
-
+        
         Build-Depends:          base >= 4 && < 5
         -- if os(windows)
         --         Build-Depends:          Win32 >= 2.0
@@ -48,17 +48,17 @@ Library
         --         Build-Depends:          unix >= 2.3.0.0
         Cpp-Options:            -DUNIX
         Other-Modules:          System.Console.ANSI.Unix
-
+        
         Extensions:             CPP
                                 ForeignFunctionInterface
-
+        
         Ghc-Options:                    -Wall
 
 Executable ansi-terminal-example
         Main-Is:                System/Console/ANSI/Example.hs
-
+        
         Include-Dirs:           includes
-
+        
         -- if os(windows)
         --         Build-Depends:          Win32 >= 2.0
         --         Cpp-Options:            -DWINDOWS
@@ -71,13 +71,13 @@ Executable ansi-terminal-example
         --         Build-Depends:          unix >= 2.3.0.0
         Cpp-Options:            -DUNIX
         Other-Modules:          System.Console.ANSI.Unix
-
-
+        
+        
         Build-Depends:          base >= 4 && < 5
         Extensions:             CPP
                                 ForeignFunctionInterface
-
+        
         Ghc-Options:            -Wall
-
+        
         if !flag(example)
                 Buildable:              False
