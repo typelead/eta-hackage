@@ -1,0 +1,104 @@
+From 7c3922ab985c6eaba5b9ca854b1de417dafcdbbe Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 2 Jan 2017 20:38:31 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Hashable/Class.hs | 14 +++++++-------
+ hashable.cabal         |  5 +++--
+ java/Utils.java        | 18 ++++++++++++++++++
+ 3 files changed, 28 insertions(+), 9 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Data/Hashable/Class.hs b/Data/Hashable/Class.hs
+index 8d62626..e3d02df 100644
+--- a/Data/Hashable/Class.hs
++++ b/Data/Hashable/Class.hs
+@@ -169,7 +169,9 @@ import qualified Data.Functor.Sum as FS
+
+ import Data.String (IsString(..))
+
+-#include "MachDeps.h"
++#define WORD_SIZE_IN_BITS 32
++#define SIZEOF_HSWORD      4
++
+
+ infixl 0 `hashWithSalt`
+
+@@ -620,8 +622,8 @@ instance Hashable TL.Text where
+ hashThreadId :: ThreadId -> Int
+ hashThreadId (ThreadId t) = hash (fromIntegral (getThreadId t) :: Int)
+
+-foreign import ccall unsafe "rts_getThreadId" getThreadId
+-    :: ThreadId# -> CInt
++foreign import java unsafe "@static eta.runtime.stg.StgTSO.getThreadId"
++  getThreadId :: ThreadId# -> CInt
+
+ instance Hashable ThreadId where
+     hash = hashThreadId
+@@ -686,7 +688,7 @@ hashPtrWithSalt p len salt =
+     fromIntegral `fmap` c_hashCString (castPtr p) (fromIntegral len)
+     (fromIntegral salt)
+
+-foreign import ccall unsafe "hashable_fnv_hash" c_hashCString
++foreign import java unsafe "@static eta.hashable.Utils.fnv_hash" c_hashCString
+     :: CString -> CLong -> CLong -> IO CLong
+
+ -- | Compute a hash value for the content of this 'ByteArray#',
+@@ -714,7 +716,7 @@ hashByteArrayWithSalt ba !off !len !h =
+     fromIntegral $ c_hashByteArray ba (fromIntegral off) (fromIntegral len)
+     (fromIntegral h)
+
+-foreign import ccall unsafe "hashable_fnv_hash_offset" c_hashByteArray
++foreign import java unsafe "@static eta.hashable.Utils.fnv_hash_offset" c_hashByteArray
+     :: ByteArray# -> CLong -> CLong -> CLong -> CLong
+
+ -- | Combine two given hash values.  'combine' has zero as a left
+@@ -875,5 +877,3 @@ instance Ord1 Hashed where
+ instance Show1 Hashed where
+   liftShowsPrec sp _ d (Hashed a _) = showsUnaryWith sp "hashed" d a
+ #endif
+-
+-
+diff --git a/hashable.cabal b/hashable.cabal
+index 01bca0f..003e4a8 100644
+--- a/hashable.cabal
++++ b/hashable.cabal
+@@ -58,8 +58,9 @@ Library
+     CPP-Options:     -DGENERICS
+     Other-modules:   Data.Hashable.Generic
+
+-  C-sources:
+-                     cbits/fnv.c
++  Java-sources: java/Utils.java
++  -- C-sources:
++  --                    cbits/fnv.c
+
+   Ghc-options:       -Wall
+   if impl(ghc >= 6.8)
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..32a758d
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,18 @@
++package eta.hashable;
++import java.nio.ByteBuffer;
++
++import static eta.runtime.io.MemoryManager.bufSetOffset;
++
++public class Utils {
++    public static long fnv_hash(ByteBuffer str, long len, long hash) {
++        str = str.duplicate();
++        while (len-- > 0) {
++            hash = (hash * 16777619) ^ (str.get() & 0xFF);
++        }
++        return hash;
++    }
++
++    public static long fnv_hash_offset(ByteBuffer str, long offset, long len, long hash) {
++        return fnv_hash(bufSetOffset(str.duplicate(), (int) offset), len, hash);
++    }
++}
+--
+2.7.4 (Apple Git-66)
