@@ -36,6 +36,8 @@ If you would like to have a given package/version made compatible with `epm`, yo
 
 ### Supported Packages
 These packages are supported by `epm`.
+- [abstract-deque-0.3](https://hackage.haskell.org/package/abstract-deque-0.3)
+- [abstract-par-0.3.3](https://hackage.haskell.org/package/abstract-par-0.3.3)
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
 - [adjunctions-4.3](https://hackage.haskell.org/package/adjunctions-4.3)
 - [agum-2.6](https://hackage.haskell.org/package/agum-2.6)
@@ -63,6 +65,7 @@ These packages are supported by `epm`.
 - [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
 - [call-stack-0.1.0](https://hackage.haskell.org/package/call-stack-0.1.0)
 - [case-insensitive-1.2.0.7](https://hackage.haskell.org/package/case-insensitive-1.2.0.7)
+- [cassava-0.4.5.1](https://hackage.haskell.org/package/cassava-0.4.5.1)
 - [cereal-0.5.4.0](https://hackage.haskell.org/package/cereal-0.5.4.0)
 - [chunked-data-0.3.0](https://hackage.haskell.org/package/chunked-data-0.3.0)
 - [conceit-0.4.0.0](https://hackage.haskell.org/package/conceit-0.4.0.0)
@@ -83,7 +86,7 @@ These packages are supported by `epm`.
 - [directory-1.3.0.0](https://hackage.haskell.org/package/directory-1.3.0.0)
 - [directory-tree-0.12.1](https://hackage.haskell.org/package/directory-tree-0.12.1)
 - [disjoint-sets-st-0.1](https://hackage.haskell.org/package/disjoint-sets-st-0.1)
-- [distributive-0.5.0.2](https://hackage.haskell.org/package/distributive-0.5.0.2)
+- [distributive >= 0.5.0.2 && <= 0.5.1](https://hackage.haskell.org/package/distributive-0.5.0.2)
   - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
           can be compiled with Eta.
 - [dlist-0.8.0.2](https://hackage.haskell.org/package/dlist-0.8.0.2)
@@ -108,6 +111,7 @@ These packages are supported by `epm`.
 - [gdiff-1.1](https://hackage.haskell.org/package/gdiff-1.1)
 - [gray-code-0.3.1](https://hackage.haskell.org/package/gray-code-0.3.1)
 - [ghc-boot-th-8.0.1](https://hackage.haskell.org/package/ghc-boot-th-8.0.1)
+- [Glob-0.7.14](https://hackage.haskell.org/package/Glob-0.7.14)
 - [graph-matchings-0.1.0.0](https://hackage.haskell.org/package/graph-matchings-0.1.0.0)
 - [graph-wrapper-0.2.5.1](https://hackage.haskell.org/package/graph-wrapper-0.2.5.1)
 - [groups-0.4.0.0](https://hackage.haskell.org/package/groups-0.4.0.0)
@@ -122,6 +126,8 @@ These packages are supported by `epm`.
 - [html-truncate-0.3.0.0](https://hackage.haskell.org/package/html-truncate-0.3.0.0)
 - [HUnit-1.5.0.0](https://hackage.haskell.org/package/HUnit-1.5.0.0)
 - [interval-1.20160821](https://hackage.haskell.org/package/interval-1.20160821)
+- [js-flot-0.8.3](https://hackage.haskell.org/package/js-flot-0.8.3)
+- [js-jquery-3.1.1](https://hackage.haskell.org/package/js-jquery-3.1.1)
 - [kan-extensions-5.0.1](https://hackage.haskell.org/package/kan-extensions-5.0.1)
 - [lazy-io-0.1.0](https://hackage.haskell.org/package/lazy-io-0.1.0)
 - [labeled-tree-1.0.0.0](https://hackage.haskell.org/package/labeled-tree-1.0.0.0)
@@ -142,6 +148,8 @@ These packages are supported by `epm`.
 - [microlens-0.4.7.0](https://hackage.haskell.org/package/microlens-0.4.7.0)
 - [microlens-mtl-0.1.10.0](http://hackage.haskell.org/package/microlens-mtl-0.1.10.0)
 - [mmorph >= 1.0.6 && <= 1.0.9](https://hackage.haskell.org/package/mmorph-1.0.9)
+- [monad-par-0.3.4.8](https://hackage.haskell.org/package/monad-par-0.3.4.8)
+- [monad-par-extras-0.3.3](https://hackage.haskell.org/package/monad-par-extras-0.3.3)
 - [monoid-absorbing-0.1.0.4](https://hackage.haskell.org/package/monoid-absorbing-0.1.0.4)
 - [monad-control-1.0.1.0](https://hackage.haskell.org/package/monad-control-1.0.1.0)
 - [MonadRandom-0.4.2.3](https://hackage.haskell.org/package/MonadRandom-0.4.2.3)
@@ -197,6 +205,7 @@ These packages are supported by `epm`.
 - [stable-marriage-0.1.1.0](https://hackage.haskell.org/package/stable-marriage-0.1.1.0)
 - [StateVar-1.1.0.4](https://hackage.haskell.org/package/StateVar-1.1.0.4)
 - [stm-2.4.4.1](https://hackage.haskell.org/package/stm-2.4.4.1)
+- [syb-0.6](https://hackage.haskell.org/package/syb-0.6)
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
 - [tagsoup-0.14](https://hackage.haskell.org/package/tagsoup-0.14)
 - [template-haskell-2.11.0.0](https://hackage.haskell.org/package/template-haskell-2.11.0.0)
@@ -218,6 +227,7 @@ These packages are supported by `epm`.
 - [vault-0.3.0.6](https://hackage.haskell.org/package/vault-0.3.0.6)
 - [vector-0.11.0.0](https://hackage.haskell.org/package/vector-0.11.0.0)
 - [vector-algorithms-0.7.0.1](https://hackage.haskell.org/package/vector-algorithms-0.7.0.1)
+- [vector-binary-instances-0.2.3.3](https://hackage.haskell.org/package/vector-binary-instances-0.2.3.3)
 - [vinyl-0.5.1.1](https://hackage.haskell.org/package/vinyl-0.5.1.1)
 - [void-0.7.1](https://hackage.haskell.org/package/void-0.7.1)
 - [word8-0.1.2](https://hackage.haskell.org/package/word8-0.1.2)
