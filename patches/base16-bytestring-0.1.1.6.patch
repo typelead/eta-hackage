@@ -1,0 +1,125 @@
+From b6ef7d09673e20deeeb65b3d76566d458d7cd6f2 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 10 Jan 2017 00:20:33 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/ByteString/Base16.hs | 34 +++++++++++-----------------------
+ base16-bytestring.cabal   |  1 +
+ java/Utils.java           | 22 ++++++++++++++++++++++
+ 3 files changed, 34 insertions(+), 23 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Data/ByteString/Base16.hs b/Data/ByteString/Base16.hs
+index bdcd935..dbbf8a0 100644
+--- a/Data/ByteString/Base16.hs
++++ b/Data/ByteString/Base16.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE BangPatterns, MagicHash #-}
++{-# LANGUAGE BangPatterns, MagicHash, ForeignFunctionInterface #-}
+ 
+ -- |
+ -- Module      : Data.ByteString.Base16
+@@ -25,6 +25,7 @@ import Foreign.Ptr (Ptr, minusPtr, plusPtr)
+ import Foreign.Storable (peek, poke)
+ import System.IO.Unsafe (unsafePerformIO)
+ import GHC.Prim
++import GHC.CString
+ import GHC.Types
+ import GHC.Word
+ 
+@@ -50,9 +51,9 @@ encode (PS sfp soff slen)
+       poke d (tlookup tableHi x)
+       poke (d `plusPtr` 1) (tlookup tableLo x)
+       go (s `plusPtr` 1) (d `plusPtr` 2)
+-    tlookup :: Addr# -> Int -> Word8
+-    tlookup table (I# index) = W8# (indexWord8OffAddr# table index)
+-    !tableLo =
++    tlookup :: JByteArray# -> Int -> Word8
++    tlookup table (I# index) = W8# (int2Word# (ord# (indexStrChar# table index)))
++    !tableLo = getBytesUtf8#
+       "\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x61\x62\x63\x64\x65\x66\
+       \\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x61\x62\x63\x64\x65\x66\
+       \\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x61\x62\x63\x64\x65\x66\
+@@ -69,7 +70,7 @@ encode (PS sfp soff slen)
+       \\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x61\x62\x63\x64\x65\x66\
+       \\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x61\x62\x63\x64\x65\x66\
+       \\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x61\x62\x63\x64\x65\x66"#
+-    !tableHi =
++    !tableHi = getBytesUtf8#
+       "\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\
+       \\x31\x31\x31\x31\x31\x31\x31\x31\x31\x31\x31\x31\x31\x31\x31\x31\
+       \\x32\x32\x32\x32\x32\x32\x32\x32\x32\x32\x32\x32\x32\x32\x32\x32\
+@@ -116,24 +117,11 @@ decode (PS sfp soff slen) =
+           poke d . fromIntegral $ lo + (hi `shiftL` 4)
+           go (s `plusPtr` 2) (d `plusPtr` 1)
+ 
+-    hex (I# index) = W8# (indexWord8OffAddr# table index)
+-    !table =
+-        "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\xff\xff\xff\xff\xff\xff\
+-        \\xff\x0a\x0b\x0c\x0d\x0e\x0f\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\xff\x0a\x0b\x0c\x0d\x0e\x0f\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\
+-        \\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"#
++    hex (I# index) = W8# (int2Word# (ord# (indexStrChar# table index)))
++    !(JByteArray table) = hexTable
++
++foreign import java unsafe "@static @field eta.base16bytestring.Utils.hexTable"
++  hexTable :: JByteArray
+ 
+ peek8 :: Ptr Word8 -> IO Int
+ peek8 p = fromIntegral `fmap` peek p
+diff --git a/base16-bytestring.cabal b/base16-bytestring.cabal
+index 364b4a1..968c2ce 100644
+--- a/base16-bytestring.cabal
++++ b/base16-bytestring.cabal
+@@ -28,6 +28,7 @@ library
+ 
+   ghc-options: -Wall -funbox-strict-fields
+   ghc-prof-options: -auto-all
++  java-sources: java/Utils.java
+ 
+ source-repository head
+   type:     git
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..9420da7
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,22 @@
++package eta.base16bytestring;
++
++public class Utils {
++    public static final byte[] hexTable = new byte[] {
++        (byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,
++        (byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xff
++    };
++}
+-- 
+2.7.4 (Apple Git-66)
+
