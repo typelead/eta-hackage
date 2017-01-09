@@ -1,0 +1,25 @@
+From 9e052af0419ea53efdcd30c52d60c716f417a4c0 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 9 Jan 2017 14:06:56 +0530
+Subject: [PATCH] Patched
+
+---
+ stm-chans.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/stm-chans.cabal b/stm-chans.cabal
+index 423c76e..4b50151 100644
+--- a/stm-chans.cabal
++++ b/stm-chans.cabal
+@@ -6,7 +6,7 @@
+ -- and source-repository:.
+ Cabal-Version:  >= 1.6
+ -- We need a custom build in order to define __HADDOCK__
+-Build-Type:     Custom
++Build-Type:     Simple
+ 
+ Name:           stm-chans
+ Version:        3.0.0.4
+-- 
+2.7.4 (Apple Git-66)
+

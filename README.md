@@ -201,10 +201,14 @@ These packages are supported by `epm`.
 - [semigroupoids-5.1](https://hackage.haskell.org/package/semigroupoids-5.1)
   - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
           can be compiled with Eta.
+- [silently-1.2.5](https://hackage.haskell.org/package/silently-1.2.5)
 - [split-0.2.3.1](https://hackage.haskell.org/package/split-0.2.3.1)
 - [stable-marriage-0.1.1.0](https://hackage.haskell.org/package/stable-marriage-0.1.1.0)
 - [StateVar-1.1.0.4](https://hackage.haskell.org/package/StateVar-1.1.0.4)
 - [stm-2.4.4.1](https://hackage.haskell.org/package/stm-2.4.4.1)
+- [stm-chans-3.0.0.4](https://hackage.haskell.org/package/stm-chans-3.0.0.4)
+  - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
+          can be compiled with Eta.
 - [syb-0.6](https://hackage.haskell.org/package/syb-0.6)
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
 - [tagsoup-0.14](https://hackage.haskell.org/package/tagsoup-0.14)
