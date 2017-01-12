@@ -33,15 +33,15 @@ index 8900958..8735a37 100644
  {-# INLINE equal #-}
 
 -foreign import ccall unsafe "_hs_text_memcpy" memcpyI
-+foreign import java unsafe "@static ghcvm.text.Utils.memcpy" memcpyI
++foreign import java unsafe "@static eta.text.Utils.memcpy" memcpyI
      :: MutableByteArray# s -> CSize -> ByteArray# -> CSize -> CSize -> IO ()
 
 -foreign import ccall unsafe "_hs_text_memcmp" memcmp
-+foreign import java unsafe "@static ghcvm.text.Utils.memcmp" memcmp
++foreign import java unsafe "@static eta.text.Utils.memcmp" memcmp
      :: ByteArray# -> CSize -> ByteArray# -> CSize -> CSize -> IO CInt
 
 -foreign import ccall unsafe "_hs_text_memcpy" memcpyM
-+foreign import java unsafe "@static ghcvm.text.Utils.memcpy" memcpyM
++foreign import java unsafe "@static eta.text.Utils.memcpy" memcpyM
      :: MutableByteArray# s -> CSize -> MutableByteArray# s -> CSize -> CSize
      -> IO ()
 diff --git a/Data/Text/Encoding.hs b/Data/Text/Encoding.hs
@@ -53,22 +53,22 @@ index 7289256..a55875f 100644
  {-# INLINE encodeUtf32BE #-}
 
 -foreign import ccall unsafe "_hs_text_decode_utf8" c_decode_utf8
-+foreign import java unsafe "@static ghcvm.text.Utils.decode_utf8" c_decode_utf8
++foreign import java unsafe "@static eta.text.Utils.decode_utf8" c_decode_utf8
      :: MutableByteArray# s -> Ptr CSize
      -> Ptr Word8 -> Ptr Word8 -> IO (Ptr Word8)
 
 -foreign import ccall unsafe "_hs_text_decode_utf8_state" c_decode_utf8_with_state
-+foreign import java unsafe "@static ghcvm.text.Utils.decode_utf8_state" c_decode_utf8_with_state
++foreign import java unsafe "@static eta.text.Utils.decode_utf8_state" c_decode_utf8_with_state
      :: MutableByteArray# s -> Ptr CSize
      -> Ptr (Ptr Word8) -> Ptr Word8
      -> Ptr CodePoint -> Ptr DecoderState -> IO (Ptr Word8)
 
 -foreign import ccall unsafe "_hs_text_decode_latin1" c_decode_latin1
-+foreign import java unsafe "@static ghcvm.text.Utils.decode_latin1" c_decode_latin1
++foreign import java unsafe "@static eta.text.Utils.decode_latin1" c_decode_latin1
      :: MutableByteArray# s -> Ptr Word8 -> Ptr Word8 -> IO ()
 
 -foreign import ccall unsafe "_hs_text_encode_utf8" c_encode_utf8
-+foreign import java unsafe "@static ghcvm.text.Utils.encode_utf8" c_encode_utf8
++foreign import java unsafe "@static eta.text.Utils.encode_utf8" c_encode_utf8
      :: Ptr (Ptr Word8) -> ByteArray# -> CSize -> CSize -> IO ()
 diff --git a/Data/Text/Internal.hs b/Data/Text/Internal.hs
 index 81f918a..ed82dc5 100644
