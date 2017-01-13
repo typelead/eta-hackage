@@ -217,6 +217,7 @@ These packages are supported by `epm`.
   - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
           can be compiled with Eta.
 - [syb-0.6](https://hackage.haskell.org/package/syb-0.6)
+- [system-filepath-0.4.13.4](https://hackage.haskell.org/package/system-filepath-0.4.13.4)
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
 - [tagsoup-0.14](https://hackage.haskell.org/package/tagsoup-0.14)
 - [template-haskell-2.11.0.0](https://hackage.haskell.org/package/template-haskell-2.11.0.0)
