@@ -54,6 +54,7 @@ These packages are supported by `epm`.
 - [base16-bytestring-0.1.1.6](https://hackage.haskell.org/package/base16-bytestring-0.1.1.6)
 - [base64-bytestring-1.0.0.1](https://hackage.haskell.org/package/base64-bytestring-1.0.0.1)
 - [basic-lens-0.0.0](https://hackage.haskell.org/package/basic-lens-0.0.0)
+- [basic-prelude-0.6.1](https://hackage.haskell.org/package/basic-prelude-0.6.1)
 - [binary-conduit-1.2.4.1](https://hackage.haskell.org/package/binary-conduit-1.2.4.1)
 - [binary-search-1.0.0.3](https://hackage.haskell.org/package/binary-search-1.0.0.3)
 - [bindings-DSL-1.0.23](https://hackage.haskell.org/package/bindings-DSL-1.0.23)
@@ -194,6 +195,7 @@ These packages are supported by `epm`.
 - [primitive-0.6.2.0](https://hackage.haskell.org/package/primitive-0.6.2.0)
 - [profunctors-5.2](https://hackage.haskell.org/package/profunctors-5.2)
 - [queue-0.1.2](https://hackage.haskell.org/package/queue-0.1.2)
+- [ReadArgs-1.2.3](https://hackage.haskell.org/package/ReadArgs-1.2.3)
 - [readable-0.3.1](https://hackage.haskell.org/package/readable-0.3.1)
 - [reflection-2.1.2](https://hackage.haskell.org/package/reflection-2.1.2)
   - template-haskell flag was disabled by default. Enable once TemplateHaskell
