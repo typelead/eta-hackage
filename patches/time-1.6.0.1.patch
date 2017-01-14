@@ -1,6 +1,6 @@
-From 4252e09e36d42d10ba6c5b8ee1cbf968e49d7f85 Mon Sep 17 00:00:00 2001
+From 8b77cb911869c622cbb8595e53a38803a39b2505 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 18 Oct 2016 11:00:29 +0530
+Date: Sat, 14 Jan 2017 23:00:37 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -12,8 +12,8 @@ Subject: [PATCH] Patched
  lib/Data/Time/Clock/CTimeval.hs     |    9 +-
  lib/Data/Time/LocalTime/TimeZone.hs |   22 +-
  lib/include/HsTimeConfig.h          |    2 +-
- time.cabal                          |   19 +-
- 9 files changed, 44 insertions(+), 4715 deletions(-)
+ time.cabal                          |   21 +-
+ 9 files changed, 45 insertions(+), 4716 deletions(-)
  delete mode 100644 aclocal.m4
  delete mode 100755 configure
  delete mode 100644 configure.ac
@@ -4757,7 +4757,7 @@ index 0000000..7e0f6dc
 +    }
 +}
 diff --git a/lib/Data/Time/Clock/CTimeval.hs b/lib/Data/Time/Clock/CTimeval.hs
-index 8c2d550..fbd7094 100644
+index 8c2d550..79bcec1 100644
 --- a/lib/Data/Time/Clock/CTimeval.hs
 +++ b/lib/Data/Time/Clock/CTimeval.hs
 @@ -24,13 +24,12 @@ instance Storable CTimeval where
@@ -4779,7 +4779,7 @@ index 8c2d550..fbd7094 100644
  
  #endif
 diff --git a/lib/Data/Time/LocalTime/TimeZone.hs b/lib/Data/Time/LocalTime/TimeZone.hs
-index 9381075..90109e8 100644
+index 9381075..62d8214 100644
 --- a/lib/Data/Time/LocalTime/TimeZone.hs
 +++ b/lib/Data/Time/LocalTime/TimeZone.hs
 @@ -17,6 +17,7 @@ import Data.Time.Calendar.Private
@@ -4838,7 +4838,7 @@ index 03ea9b3..1a66ccb 100644
  /* Define to 1 if you have the declaration of `altzone', and to 0 if you
     don't. */
 diff --git a/time.cabal b/time.cabal
-index 4a6eb02..1ed8130 100644
+index 4a6eb02..36d50bd 100644
 --- a/time.cabal
 +++ b/time.cabal
 @@ -10,25 +10,25 @@ bug-reports:    https://github.com/haskell/time/issues
@@ -4884,6 +4884,15 @@ index 4a6eb02..1ed8130 100644
      other-modules:
          Data.Time.Calendar.Private,
          Data.Time.Calendar.Days,
+@@ -77,7 +78,7 @@ library
+         Data.Time.Clock.Scale,
+         Data.Time.Clock.UTC,
+         Data.Time.Clock.CTimeval,
+-        Data.Time.Clock.CTimespec,
++        -- Data.Time.Clock.CTimespec,
+         Data.Time.Clock.UTCDiff,
+         Data.Time.LocalTime.TimeZone,
+         Data.Time.LocalTime.TimeOfDay,
 @@ -152,4 +153,4 @@ test-suite tests
          Test.ClipDatesRef
          Test.AddDays
