@@ -31,7 +31,7 @@ index 8b7f796..efd3275 100644
  {-# INLINE indexOfTheOnlyBit #-}
  indexOfTheOnlyBit bitmask =
 -  I# (lsbArray `indexInt8OffAddr#` unboxInt (intFromNat ((bitmask * magic) `shiftRL` offset)))
-+    I# (GHCExts.jbyte2Int# (bytes `indexJByteArray#` unboxInt (intFromNat ((bitmask * magic) `shiftRL` offset))))
++    I# (GHCExts.jbyte2int# (bytes `indexJByteArray#` unboxInt (intFromNat ((bitmask * magic) `shiftRL` offset))))
    where unboxInt (I# i) = i
 +        !bytes = getBytesUtf8# lsbArray
  #if WORD_SIZE_IN_BITS==32
