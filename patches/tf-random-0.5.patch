@@ -1,0 +1,118 @@
+From 918ec01d4017d188936594a422fa7f7ae8dac1b8 Mon Sep 17 00:00:00 2001
+From: Sibi Prabakaran <sibi@psibi.in>
+Date: Thu, 26 Jan 2017 10:37:41 +0530
+Subject: [PATCH] Port tf-random-0.5 for Eta
+
+---
+ java/Utils.java             | 15 +++++++++++++++
+ src/System/Random/TF/Gen.hs | 34 ++++++++++++++++++++++++++--------
+ tf-random.cabal             |  6 ++++--
+ 3 files changed, 45 insertions(+), 10 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..6c15e56
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,15 @@
++package eta.tfrandom;
++
++import org.bouncycastle.crypto.engines.ThreefishEngine;
++
++public class Utils {
++    
++    public static long[] threeFishProcessBlock(long[] blk, long[] keys) {
++        ThreefishEngine tfe = new ThreefishEngine(256);
++        tfe.init(false, keys, null);
++        long[] output = new long[4];
++        tfe.processBlock(blk, output);
++        return output;
++    }
++
++}
+diff --git a/src/System/Random/TF/Gen.hs b/src/System/Random/TF/Gen.hs
+index 3713e47..acc1cea 100644
+--- a/src/System/Random/TF/Gen.hs
++++ b/src/System/Random/TF/Gen.hs
+@@ -1,4 +1,4 @@
+-{-# Language CPP, BangPatterns, MagicHash, ForeignFunctionInterface, UnliftedFFITypes #-}
++{-# Language CPP, BangPatterns, MagicHash, ForeignFunctionInterface, UnliftedFFITypes, ScopedTypeVariables #-}
+ -- |
+ -- Module    : System.Random.TF.Gen
+ -- Copyright : (c) 2012-2013 Michał Pałka
+@@ -25,17 +25,34 @@ import Data.Maybe (isJust, fromJust)
+ import Data.Int
+ import Data.Word
+ import Data.Primitive.ByteArray
+-
+ import Numeric
++import Java
+ 
+ #if !MIN_VERSION_base(4,4,0)
+ unsafeDupablePerformIO :: IO a -> a
+ unsafeDupablePerformIO = unsafePerformIO
+ #endif
+ 
+-foreign import ccall unsafe "skein.h Threefish_256_Process_Block"
+-  threefish256EncryptBlock ::
+-    ByteArray# -> ByteArray# -> MutableByteArray# s -> Int -> IO ()
++-- foreign import ccall unsafe "skein.h Threefish_256_Process_Block"
++--   threefish256EncryptBlock ::
++--     ByteArray# -> ByteArray# -> MutableByteArray# s -> Int -> IO ()
++
++foreign import java unsafe "@static eta.tfrandom.Utils.threeFishProcessBlock" threeFishProcessBlock :: JLongArray -> JLongArray -> IO JLongArray
++
++threefish256EncryptBlock :: ByteArray -> ByteArray -> IO [Word64]
++threefish256EncryptBlock key blk =
++  java $
++  do (blk :: JLongArray) <- arrayFromList $ map toInt64 $ [blk1, blk2, blk3, blk4]
++     key <- arrayFromList $ map toInt64 $ [k1, k2, k3, k4]
++     val <- io $ threeFishProcessBlock blk key
++     (val' :: [Int64]) <- val <.> arrayToList
++     let x = map fromIntegral val'
++     return x
++  where
++    (k1, k2, k3, k4) = readBlock256 key
++    (blk1, blk2, blk3, blk4) = readBlock256 blk
++    toInt64 :: Word64 -> Int64
++    toInt64 = fromIntegral
+ 
+ createBlock256 :: Word64 -> Word64 -> Word64 -> Word64 -> IO ByteArray
+ createBlock256 !a !b !c !d = do
+@@ -119,11 +136,12 @@ mash k' i b m o32 =
+   -- of locking in unsafePerformIO is much higher
+   -- than any gains it could bring.
+   unsafeDupablePerformIO $ do
+-      (ByteArray c') <- createBlock256 b i m 0
++      c <- createBlock256 b i m 0
+       -- Allocate array for cipher result
+       o@(MutableByteArray o') <- newByteArray 32
+-      threefish256EncryptBlock k' c' o' o32
+-      unsafeFreezeByteArray o
++      (a:b:c:d:_) <- threefish256EncryptBlock (ByteArray k') c
++      blk <- createBlock256 a b c d
++      return blk
+ 
+ mash' :: TFGen -> Word64 -> Int -> ByteArray
+ mash' (TFGen (ByteArray k') i b _ _ _) m o32 =
+diff --git a/tf-random.cabal b/tf-random.cabal
+index 60982fc..09eac25 100644
+--- a/tf-random.cabal
++++ b/tf-random.cabal
+@@ -74,8 +74,10 @@ source-repository head
+ 
+ library
+   Hs-Source-Dirs: src
+-  C-Sources:
+-    cbits/threefish_block.c
++  -- C-Sources:
++  --   cbits/threefish_block.c
++  maven-depends: org.bouncycastle:bcprov-jdk15on:1.56
++  java-sources: java/Utils.java  
+ 
+   --GHC-options: -O
+ 
+-- 
+2.7.4
+
