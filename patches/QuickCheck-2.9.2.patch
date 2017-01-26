@@ -1,0 +1,25 @@
+From 1bd7614209ea9f4f09b7962faf65802d8253c7b9 Mon Sep 17 00:00:00 2001
+From: Sibi Prabakaran <sibi@psibi.in>
+Date: Thu, 26 Jan 2017 11:34:03 +0530
+Subject: [PATCH] Patch it for eta
+
+---
+ QuickCheck.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/QuickCheck.cabal b/QuickCheck.cabal
+index c419283..0a4b163 100644
+--- a/QuickCheck.cabal
++++ b/QuickCheck.cabal
+@@ -41,7 +41,7 @@ source-repository this
+ 
+ flag templateHaskell
+   Description: Build Test.QuickCheck.All, which uses Template Haskell.
+-  Default: True
++  Default: False
+ 
+ library
+   Build-depends: base >=4.3 && <5, random, containers
+-- 
+2.7.4
+

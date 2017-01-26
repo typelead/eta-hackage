@@ -12,6 +12,7 @@
         "time-1.6.0.1",
         "time-1.7",
         "old-time-1.1.0.3",
+        "QuickCheck-2.9.2",
         "tf-random-0.5"
     ],
     "vanilla": [
