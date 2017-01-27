@@ -1,0 +1,25 @@
+From 0958eee9391d2833560c314c52a7d963851402ba Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sat, 28 Jan 2017 03:56:27 +0530
+Subject: [PATCH] Patched
+
+---
+ http-api-data.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/http-api-data.cabal b/http-api-data.cabal
+index b7f1781..c17a250 100644
+--- a/http-api-data.cabal
++++ b/http-api-data.cabal
+@@ -10,7 +10,7 @@ homepage:        http://github.com/fizruk/http-api-data
+ category:        Web
+ stability:       unstable
+ cabal-version:   >= 1.10
+-build-type:      Custom
++build-type:      Simple
+ extra-source-files:
+   include/overlapping-compat.h
+   test/*.hs
+-- 
+2.7.4 (Apple Git-66)
+
