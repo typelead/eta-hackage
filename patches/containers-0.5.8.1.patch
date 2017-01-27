@@ -1,54 +1,86 @@
-From ae17796b38e78299ceed8c830a2cffa96daf1fe1 Mon Sep 17 00:00:00 2001
+From c4ca5e3d62bfa29e9d4ce12d68bd3a4798def626 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sun, 25 Sep 2016 11:36:09 +0530
+Date: Sat, 28 Jan 2017 03:01:54 +0530
 Subject: [PATCH] Patched
 
 ---
- Data/IntSet/Base.hs  | 7 ++++---
- include/containers.h | 2 +-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ Data/IntSet/Base.hs | 11 ++++++++---
+ containers.cabal    |  1 +
+ java/Utils.java     | 10 ++++++++++
+ 3 files changed, 19 insertions(+), 3 deletions(-)
+ create mode 100644 java/Utils.java
 
 diff --git a/Data/IntSet/Base.hs b/Data/IntSet/Base.hs
-index 71016f6..55e7576 100644
+index 71016f6..41fb3a8 100644
 --- a/Data/IntSet/Base.hs
 +++ b/Data/IntSet/Base.hs
-@@ -205,11 +205,11 @@ import Text.Read
- #endif
-
+@@ -1,4 +1,5 @@
+ {-# LANGUAGE CPP #-}
++{-# LANGUAGE ForeignFunctionInterface #-}
+ {-# LANGUAGE BangPatterns #-}
  #if __GLASGOW_HASKELL__
--import GHC.Exts (Int(..), build)
-+import GHC.Exts (Int(..), build, getBytesUtf8#)
+ {-# LANGUAGE MagicHash, DeriveDataTypeable, StandaloneDeriving #-}
+@@ -209,9 +210,9 @@ import GHC.Exts (Int(..), build)
  #if __GLASGOW_HASKELL__ >= 708
  import qualified GHC.Exts as GHCExts
  #endif
 -import GHC.Prim (indexInt8OffAddr#)
 +import GHC.Prim (indexJByteArray#)
  #endif
-
-
-@@ -1326,8 +1326,9 @@ foldr'Bits :: Int -> (Int -> a -> a) -> a -> Nat -> a
+-
++import Java.Array (JByteArray(..))
+ 
+ infixl 9 \\{-This comment teaches CPP correct behaviour -}
+ 
+@@ -1326,8 +1327,9 @@ foldr'Bits :: Int -> (Int -> a -> a) -> a -> Nat -> a
  indexOfTheOnlyBit :: Nat -> Int
  {-# INLINE indexOfTheOnlyBit #-}
  indexOfTheOnlyBit bitmask =
 -  I# (lsbArray `indexInt8OffAddr#` unboxInt (intFromNat ((bitmask * magic) `shiftRL` offset)))
 +  I# (GHCExts.jbyte2int# (bytes `indexJByteArray#` unboxInt (intFromNat ((bitmask * magic) `shiftRL` offset))))
    where unboxInt (I# i) = i
-+        !bytes = getBytesUtf8# lsbArray
++        !(JByteArray bytes) = lsbArray'
  #if WORD_SIZE_IN_BITS==32
          magic = 0x077CB531
          offset = 27
-diff --git a/include/containers.h b/include/containers.h
-index 273c1b2..69eecc9 100644
---- a/include/containers.h
-+++ b/include/containers.h
-@@ -9,7 +9,7 @@
-  * On GHC, include MachDeps.h to get WORD_SIZE_IN_BITS macro.
-  */
- #ifdef __GLASGOW_HASKELL__
--#include "MachDeps.h"
-+#define WORD_SIZE_IN_BITS 32
- #endif
-
- /*
---
+@@ -1344,6 +1346,9 @@ indexOfTheOnlyBit bitmask =
+ -- is 48B on 32-bit and 56B on 64-bit architectures -- so the 32B and 64B array
+ -- is actually improvement on 32-bit and only a 8B size increase on 64-bit.
+ 
++foreign import java unsafe "@static @field eta.containers.Utils.lsbArray"
++  lsbArray' :: JByteArray
++
+ lowestBitMask :: Nat -> Nat
+ lowestBitMask x = x .&. negate x
+ {-# INLINE lowestBitMask #-}
+diff --git a/containers.cabal b/containers.cabal
+index 46b4556..34c44e1 100644
+--- a/containers.cabal
++++ b/containers.cabal
+@@ -37,6 +37,7 @@ Library
+         build-depends: ghc-prim
+ 
+     ghc-options: -O2 -Wall
++    java-sources: java/Utils.java
+ 
+     other-extensions: CPP, BangPatterns
+ 
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..37bfe5b
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,10 @@
++package eta.containers;
++
++public class Utils {
++    public static final byte[] lsbArray = new byte[] {
++        (byte)0, (byte)1, (byte)28, (byte)2, (byte)29, (byte)14, (byte)24, (byte)3,
++        (byte)30, (byte)22, (byte)20, (byte)15, (byte)25, (byte)17, (byte)4, (byte)8,
++        (byte)31, (byte)27, (byte)13, (byte)23, (byte)21, (byte)19, (byte)16,
++        (byte)7, (byte)26, (byte)12, (byte)18, (byte)6, (byte)11, (byte)5, (byte)10, (byte)9
++    };
++}
+-- 
 2.7.4 (Apple Git-66)
+
