@@ -1,0 +1,284 @@
+From a884f6c4f4b20eb513921375f1e2c5711188ba14 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sat, 28 Jan 2017 03:43:47 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Aeson/Parser/Unescape.hs |  46 ++++++++++---------
+ Data/Aeson/Types/Internal.hs  |  44 +++++++++---------
+ aeson.cabal                   |   4 +-
+ java/Utils.java               | 102 ++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 152 insertions(+), 44 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Data/Aeson/Parser/Unescape.hs b/Data/Aeson/Parser/Unescape.hs
+index d3682fd..3c4908c 100644
+--- a/Data/Aeson/Parser/Unescape.hs
++++ b/Data/Aeson/Parser/Unescape.hs
+@@ -9,8 +9,10 @@ module Data.Aeson.Parser.Unescape (
+ import           Control.Exception          (evaluate, throw, try)
+ import           Control.Monad.ST.Unsafe    (unsafeIOToST, unsafeSTToIO)
+ import           Data.ByteString            as B
++import           Data.ByteString.Char8      as BC
+ import           Data.ByteString.Internal   as B hiding (c2w)
+ import qualified Data.Text.Array            as A
++import qualified Data.Text                  as T
+ import           Data.Text.Encoding.Error   (UnicodeException (..))
+ import           Data.Text.Internal         (Text (..))
+ import           Data.Text.Internal.Private (runText)
+@@ -23,29 +25,33 @@ import           Foreign.Ptr                (Ptr, plusPtr)
+ import           Foreign.Storable           (peek)
+ import           GHC.Base                   (MutableByteArray#)
+ 
+-foreign import ccall unsafe "_js_decode_string" c_js_decode
+-    :: MutableByteArray# s -> Ptr CSize
+-    -> Ptr Word8 -> Ptr Word8 -> IO CInt
++-- foreign import ccall unsafe "_js_decode_string" c_js_decode
++--     :: MutableByteArray# s -> Ptr CSize
++--     -> Ptr Word8 -> Ptr Word8 -> IO CInt
++
++foreign import java unsafe "@static eta.aeson.Utils.unescapeJavaScript" unescapeJavaScript :: String -> String
+ 
+ unescapeText' :: ByteString -> Text
+-unescapeText' (PS fp off len) = runText $ \done -> do
+-  let go dest = withForeignPtr fp $ \ptr ->
+-        with (0::CSize) $ \destOffPtr -> do
+-          let end = ptr `plusPtr` (off + len)
+-              loop curPtr = do
+-                res <- c_js_decode (A.maBA dest) destOffPtr curPtr end
+-                case res of
+-                  0 -> do
+-                    n <- peek destOffPtr
+-                    unsafeSTToIO (done dest (fromIntegral n))
+-                  _ ->
+-                    throw (DecodeError desc Nothing)
+-          loop (ptr `plusPtr` off)
+-  (unsafeIOToST . go) =<< A.new len
+- where
+-  desc = "Data.Text.Internal.Encoding.decodeUtf8: Invalid UTF-8 stream"
++unescapeText' bs = T.pack $ unescapeJavaScript (BC.unpack bs)
++-- unescapeText' (PS fp off len) = runText $ \done -> do
++--   let go dest = withForeignPtr fp $ \ptr ->
++--         with (0::CSize) $ \destOffPtr -> do
++--           let end = ptr `plusPtr` (off + len)
++--               loop curPtr = do
++--                 res <- c_js_decode (A.maBA dest) destOffPtr curPtr end
++--                 case res of
++--                   0 -> do
++--                     n <- peek destOffPtr
++--                     unsafeSTToIO (done dest (fromIntegral n))
++--                   _ ->
++--                     throw (DecodeError desc Nothing)
++--           loop (ptr `plusPtr` off)
++--   (unsafeIOToST . go) =<< A.new len
++--  where
++--   desc = "Data.Text.Internal.Encoding.decodeUtf8: Invalid UTF-8 stream"
+ {-# INLINE unescapeText' #-}
+ 
+ unescapeText :: ByteString -> Either UnicodeException Text
+-unescapeText = unsafeDupablePerformIO . try . evaluate . unescapeText'
++unescapeText bs = Right $ unescapeText' bs
++-- unescapeText = unsafeDupablePerformIO . try . evaluate . unescapeText'
+ {-# INLINE unescapeText #-}
+diff --git a/Data/Aeson/Types/Internal.hs b/Data/Aeson/Types/Internal.hs
+index 0bb1478..ca08d8f 100644
+--- a/Data/Aeson/Types/Internal.hs
++++ b/Data/Aeson/Types/Internal.hs
+@@ -3,14 +3,14 @@
+ {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+ {-# LANGUAGE Rank2Types #-}
+ {-# LANGUAGE RecordWildCards #-}
+-#if __GLASGOW_HASKELL__ >= 800
+--- a) THQ works on cross-compilers and unregisterised GHCs
+--- b) may make compilation faster as no dynamic loading is ever needed (not sure about this)
+--- c) removes one hindrance to have code inferred as SafeHaskell safe
+-{-# LANGUAGE TemplateHaskellQuotes #-}
+-#else
+-{-# LANGUAGE TemplateHaskell #-}
+-#endif
++-- #if __GLASGOW_HASKELL__ >= 800
++-- -- a) THQ works on cross-compilers and unregisterised GHCs
++-- -- b) may make compilation faster as no dynamic loading is ever needed (not sure about this)
++-- -- c) removes one hindrance to have code inferred as SafeHaskell safe
++-- {-# LANGUAGE TemplateHaskellQuotes #-}
++-- #else
++-- {-# LANGUAGE TemplateHaskell #-}
++-- #endif
+ 
+ -- |
+ -- Module:      Data.Aeson.Types.Internal
+@@ -87,7 +87,7 @@ import qualified Control.Monad.Fail as Fail
+ import qualified Data.HashMap.Strict as H
+ import qualified Data.Scientific as S
+ import qualified Data.Vector as V
+-import qualified Language.Haskell.TH.Syntax as TH
++-- import qualified Language.Haskell.TH.Syntax as TH
+ 
+ #if !MIN_VERSION_unordered_containers(0,2,6)
+ import Data.List (sort)
+@@ -380,19 +380,19 @@ instance Hashable Value where
+     hashWithSalt = hashValue
+ 
+ -- @since 0.11.0.0
+-instance TH.Lift Value where
+-    lift Null = [| Null |]
+-    lift (Bool b) = [| Bool b |]
+-    lift (Number n) = [| Number (S.scientific c e) |]
+-      where
+-        c = S.coefficient n
+-        e = S.base10Exponent n
+-    lift (String t) = [| String (pack s) |]
+-      where s = unpack t
+-    lift (Array a) = [| Array (V.fromList a') |]
+-      where a' = V.toList a
+-    lift (Object o) = [| Object (H.fromList . map (first pack) $ o') |]
+-      where o' = map (first unpack) . H.toList $ o
++-- instance TH.Lift Value where
++--     lift Null = [| Null |]
++--     lift (Bool b) = [| Bool b |]
++--     lift (Number n) = [| Number (S.scientific c e) |]
++--       where
++--         c = S.coefficient n
++--         e = S.base10Exponent n
++--     lift (String t) = [| String (pack s) |]
++--       where s = unpack t
++--     lift (Array a) = [| Array (V.fromList a') |]
++--       where a' = V.toList a
++--     lift (Object o) = [| Object (H.fromList . map (first pack) $ o') |]
++--       where o' = map (first unpack) . H.toList $ o
+ 
+ -- | The empty array.
+ emptyArray :: Value
+diff --git a/aeson.cabal b/aeson.cabal
+index 27bcc75..4093ddb 100644
+--- a/aeson.cabal
++++ b/aeson.cabal
+@@ -79,7 +79,7 @@ library
+     Data.Aeson.Parser
+     Data.Aeson.Text
+     Data.Aeson.Types
+-    Data.Aeson.TH
++    -- Data.Aeson.TH
+ 
+     Data.Aeson.Encoding.Internal
+     Data.Aeson.Internal
+@@ -150,7 +150,7 @@ library
+     ghc-options: -O2
+ 
+   include-dirs: include
+-  c-sources:  cbits/unescape_string.c
++  java-sources: java/Utils.java
+ 
+ test-suite tests
+   default-language: Haskell2010
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..515d41c
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,102 @@
++package eta.aeson;
++
++import java.io.IOException;
++import java.io.StringWriter;
++import java.io.Writer;
++
++public class Utils {
++
++    public static String unescapeJavaScript(String str) {
++        if (str == null) {
++            return null;
++        }
++        try {
++            StringWriter writer = new StringWriter(str.length());
++            if (writer == null) {
++                throw new ArithmeticException("The Writer must not be null");
++            }
++            int sz = str.length();
++            StringBuffer unicode = new StringBuffer(4);
++            boolean hadSlash = false;
++            boolean inUnicode = false;
++            for (int i = 0; i < sz; i++) {
++                char ch = str.charAt(i);
++                if (inUnicode) {
++                    // if in unicode, then we're reading unicode
++                    // values in somehow
++                    unicode.append(ch);
++                    if (unicode.length() == 4) {
++                        // unicode now contains the four hex digits
++                        // which represents our unicode character
++                        try {
++                            int value = Integer.parseInt(unicode.toString(), 16);
++                            writer.write((char) value);
++                            unicode.setLength(0);
++                            inUnicode = false;
++                            hadSlash = false;
++                        } catch (NumberFormatException nfe) {
++                            // throw new ArithmeticException("Unable to parse unicode value: " + unicode, nfe);
++                            // throw IOException;
++                        }
++                    }
++                    continue;
++                }
++                if (hadSlash) {
++                    // handle an escaped value
++                    hadSlash = false;
++                    switch (ch) {
++                    case '\\':
++                        writer.write('\\');
++                        break;
++                    case '\'':
++                        writer.write('\'');
++                        break;
++                    case '\"':
++                        writer.write('"');
++                        break;
++                    case 'r':
++                        writer.write('\r');
++                        break;
++                    case 'f':
++                        writer.write('\f');
++                        break;
++                    case 't':
++                        writer.write('\t');
++                        break;
++                    case 'n':
++                        writer.write('\n');
++                        break;
++                    case 'b':
++                        writer.write('\b');
++                        break;
++                    case 'u':
++                        {
++                            // uh-oh, we're in unicode country....
++                            inUnicode = true;
++                            break;
++                        }
++                    default :
++                        writer.write(ch);
++                        break;
++                    }
++                    continue;
++                } else if (ch == '\\') {
++                    hadSlash = true;
++                    continue;
++                }
++                writer.write(ch);
++            }
++            if (hadSlash) {
++                // then we're in the weird case of a \ at the end of the
++                // string, let's writerput it anyway.
++                writer.write('\\');
++            }
++            return writer.toString();
++        } catch (Exception ioe) {
++            // this should never ever happen while writing to a StringWriter
++            ioe.printStackTrace();
++            return null;
++        }
++    }
++
++}
+-- 
+2.7.4 (Apple Git-66)
+
