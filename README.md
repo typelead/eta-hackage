@@ -130,6 +130,8 @@ These packages are supported by `epm`.
 - [hostname-1.0](https://hackage.haskell.org/package/hostname-1.0)
 - [html-truncate-0.3.0.0](https://hackage.haskell.org/package/html-truncate-0.3.0.0)
 - [http-api-data-0.3.5](https://hackage.haskell.org/package/http-api-data-0.3.5)
+  - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
+          can be compiled with Eta.
 - [http-media-0.6.4](https://hackage.haskell.org/package/http-media-0.6.4)
 - [http-types-0.9.1](https://hackage.haskell.org/package/http-types-0.9.1)
 - [HUnit-1.5.0.0](https://hackage.haskell.org/package/HUnit-1.5.0.0)
@@ -209,6 +211,7 @@ These packages are supported by `epm`.
 - [resourcet >= 1.1.8.1 && <= 1.1.9](https://hackage.haskell.org/package/resourcet-1.1.9)
 - [randproc-0.4](https://hackage.haskell.org/package/randproc-0.4)
 - [safe-0.3.9](https://hackage.haskell.org/package/safe-0.3.9)
+- [servant-0.9.1.1](https://hackage.haskell.org/package/servant-0.9.1.1)
 - [scientific-0.3.4.9](https://hackage.haskell.org/package/scientific-0.3.4.9)
 - [semigroups-0.18.2](https://hackage.haskell.org/package/semigroups-0.18.2)
 - [semigroupoids-5.1](https://hackage.haskell.org/package/semigroupoids-5.1)
