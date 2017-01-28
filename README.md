@@ -66,6 +66,7 @@ These packages are supported by `epm`.
 - [blaze-html-0.8.1.3](https://hackage.haskell.org/package/blaze-html-0.8.1.3)
 - [blaze-html-truncate-0.3.0.0](https://hackage.haskell.org/package/blaze-html-truncate-0.3.0.0)
 - [blaze-markup-0.7.1.1](https://hackage.haskell.org/package/blaze-markup-0.7.1.1)
+- [byteable-0.1.1](https://hackage.haskell.org/package/byteable-0.1.1)
 - [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
 - [call-stack-0.1.0](https://hackage.haskell.org/package/call-stack-0.1.0)
 - [case-insensitive-1.2.0.7](https://hackage.haskell.org/package/case-insensitive-1.2.0.7)
@@ -136,6 +137,7 @@ These packages are supported by `epm`.
 - [http-types-0.9.1](https://hackage.haskell.org/package/http-types-0.9.1)
 - [HUnit-1.5.0.0](https://hackage.haskell.org/package/HUnit-1.5.0.0)
 - [interval-1.20160821](https://hackage.haskell.org/package/interval-1.20160821)
+- [iproute-1.7.1](https://hackage.haskell.org/package/iproute-1.7.1)
 - [js-flot-0.8.3](https://hackage.haskell.org/package/js-flot-0.8.3)
 - [js-jquery-3.1.1](https://hackage.haskell.org/package/js-jquery-3.1.1)
 - [kan-extensions-5.0.1](https://hackage.haskell.org/package/kan-extensions-5.0.1)
@@ -226,6 +228,7 @@ These packages are supported by `epm`.
   - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
           can be compiled with Eta.
 - [string-conversions-0.4.0.1](https://hackage.haskell.org/package/string-conversions-0.4.0.1)
+- [stringsearch-0.3.6.6](https://hackage.haskell.org/package/stringsearch-0.3.6.6)
 - [syb-0.6](https://hackage.haskell.org/package/syb-0.6)
 - [system-filepath-0.4.13.4](https://hackage.haskell.org/package/system-filepath-0.4.13.4)
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
@@ -255,6 +258,7 @@ These packages are supported by `epm`.
 - [vector-binary-instances-0.2.3.3](https://hackage.haskell.org/package/vector-binary-instances-0.2.3.3)
 - [vinyl-0.5.1.1](https://hackage.haskell.org/package/vinyl-0.5.1.1)
 - [void-0.7.1](https://hackage.haskell.org/package/void-0.7.1)
+- [wai-3.2.1.1](https://hackage.haskell.org/package/wai-3.2.1.1)
 - [word8-0.1.2](https://hackage.haskell.org/package/word8-0.1.2)
 - [xhtml-3000.2.1](https://hackage.haskell.org/package/xhtml-3000.2.1)
 - [xml-types-0.3.6](https://hackage.haskell.org/package/xml-types-0.3.6)
