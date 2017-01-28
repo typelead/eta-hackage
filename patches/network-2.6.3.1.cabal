@@ -78,6 +78,7 @@ library
   -- includes: HsNet.h
   -- install-includes: HsNet.h HsNetworkConfig.h
   -- c-sources: cbits/HsNet.c
+  java-sources: java/Utils.java
   ghc-options: -Wall -fwarn-tabs
 
 test-suite simple

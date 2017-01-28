@@ -1,26 +1,28 @@
-From 05ec2ab3f27d42465d1a4e1fc5c01a8054f69ab5 Mon Sep 17 00:00:00 2001
+From d2c74f7ad32eff3de12757d0cbeba3b8cc6c0c31 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 28 Jan 2017 13:55:15 +0530
-Subject: [PATCH] Temporary changes
+Date: Sat, 28 Jan 2017 14:23:41 +0530
+Subject: [PATCH] Patched
 
 ---
- Network/Socket.hs        | 1661 ++++++++++++++++++++++++++++++++++++++++++++++
+ Network/Socket.hs        | 1664 ++++++++++++++++++++++++++++++++++++++++++++++
  Network/Socket.hsc       | 1660 ---------------------------------------------
  Network/Socket/Types.hs  | 1104 ++++++++++++++++++++++++++++++
  Network/Socket/Types.hsc | 1103 ------------------------------
- network.cabal            |   44 +-
- 5 files changed, 2787 insertions(+), 2785 deletions(-)
+ java/Utils.java          |   15 +
+ network.cabal            |   45 +-
+ 6 files changed, 2806 insertions(+), 2785 deletions(-)
  create mode 100644 Network/Socket.hs
  delete mode 100644 Network/Socket.hsc
  create mode 100644 Network/Socket/Types.hs
  delete mode 100644 Network/Socket/Types.hsc
+ create mode 100644 java/Utils.java
 
 diff --git a/Network/Socket.hs b/Network/Socket.hs
 new file mode 100644
-index 0000000..9f4a2f7
+index 0000000..930edc0
 --- /dev/null
 +++ b/Network/Socket.hs
-@@ -0,0 +1,1661 @@
+@@ -0,0 +1,1664 @@
 +{-# LANGUAGE CPP, ScopedTypeVariables #-}
 +{-# OPTIONS_GHC -fno-warn-orphans #-}
 +-----------------------------------------------------------------------------
@@ -308,14 +310,14 @@ index 0000000..9f4a2f7
 +-----------------------------------------------------------------------------
 +-- SockAddr
 +
-+-- instance Show SockAddr where
++instance Show SockAddr where
 +-- #if defined(DOMAIN_SOCKET_SUPPORT)
-+--   showsPrec _ (SockAddrUnix str) = showString str
++  showsPrec _ (SockAddrUnix str) = showString str
 +-- #endif
-+--   showsPrec _ (SockAddrInet port ha)
-+--    = showString (unsafePerformIO (inet_ntoa ha))
-+--    . showString ":"
-+--    . shows port
++  showsPrec _ (SockAddrInet port ha)
++   = showString (inet_ntoa ha)
++   . showString ":"
++   . shows port
 +-- #if defined(IPV6_SOCKET_SUPPORT)
 +--   showsPrec _ addr@(SockAddrInet6 port _ _ _)
 +--    = showChar '['
@@ -326,8 +328,11 @@ index 0000000..9f4a2f7
 +--    . shows port
 +-- #endif
 +-- #if defined(CAN_SOCKET_SUPPORT)
-+--   showsPrec _ (SockAddrCan ifidx) = shows ifidx
++  showsPrec _ (SockAddrCan ifidx) = shows ifidx
 +-- #endif
++
++foreign import java unsafe "@static eta.network.Utils.inet_ntoa" inet_ntoa ::
++  HostAddress -> String
 +
 +-----------------------------------------------------------------------------
 +-- Connection Functions
@@ -3350,7 +3355,7 @@ index 8b2e6fe..0000000
 -sIsWritable = isWritable
 diff --git a/Network/Socket/Types.hs b/Network/Socket/Types.hs
 new file mode 100644
-index 0000000..8e2931d
+index 0000000..1918a0a
 --- /dev/null
 +++ b/Network/Socket/Types.hs
 @@ -0,0 +1,1104 @@
@@ -3417,18 +3422,18 @@ index 0000000..8e2931d
 +
 +-- import Control.Concurrent.MVar
 +-- import Control.Exception (throwIO)
-+-- import Control.Monad
++import Control.Monad
 +-- import Data.Bits
 +-- import Data.Maybe
-+-- import Data.Ratio
++import Data.Ratio
 +import Data.Typeable
 +import Data.Word
 +import Data.Int
 +-- import Foreign.C
 +-- import Foreign.Marshal.Alloc
 +-- import Foreign.Marshal.Array
-+-- import Foreign.Ptr
-+-- import Foreign.Storable
++import Foreign.Ptr
++import Foreign.Storable
 +
 +-- | Represents a socket.  The fields are, respectively:
 +--
@@ -4103,50 +4108,50 @@ index 0000000..8e2931d
 +
 +-- {-# DEPRECATED PortNum "Do not use the PortNum constructor. Use the Num instance. PortNum will be removed in the next release." #-}
 +
-+-- instance Show PortNumber where
-+--   showsPrec p pn = showsPrec p (portNumberToInt pn)
++instance Show PortNumber where
++  showsPrec p pn = showsPrec p (portNumberToInt pn)
 +
-+-- instance Read PortNumber where
-+--   readsPrec n = map (\(x,y) -> (intToPortNumber x, y)) . readsPrec n
++instance Read PortNumber where
++  readsPrec n = map (\(x,y) -> (intToPortNumber x, y)) . readsPrec n
 +
-+-- intToPortNumber :: Int -> PortNumber
-+-- intToPortNumber v = PortNum (htons (fromIntegral v))
++intToPortNumber :: Int -> PortNumber
++intToPortNumber v = PortNum (fromIntegral v)
 +
-+-- portNumberToInt :: PortNumber -> Int
-+-- portNumberToInt (PortNum po) = fromIntegral (ntohs po)
++portNumberToInt :: PortNumber -> Int
++portNumberToInt (PortNum po) = fromIntegral po
 +
 +-- foreign import CALLCONV unsafe "ntohs" ntohs :: Word16 -> Word16
 +-- foreign import CALLCONV unsafe "htons" htons :: Word16 -> Word16
 +-- foreign import CALLCONV unsafe "ntohl" ntohl :: Word32 -> Word32
 +-- foreign import CALLCONV unsafe "htonl" htonl :: Word32 -> Word32
 +
-+-- instance Enum PortNumber where
-+--     toEnum   = intToPortNumber
-+--     fromEnum = portNumberToInt
++instance Enum PortNumber where
++    toEnum   = intToPortNumber
++    fromEnum = portNumberToInt
 +
-+-- instance Num PortNumber where
-+--    fromInteger i = intToPortNumber (fromInteger i)
-+--     -- for completeness.
-+--    (+) x y   = intToPortNumber (portNumberToInt x + portNumberToInt y)
-+--    (-) x y   = intToPortNumber (portNumberToInt x - portNumberToInt y)
-+--    negate x  = intToPortNumber (-portNumberToInt x)
-+--    (*) x y   = intToPortNumber (portNumberToInt x * portNumberToInt y)
-+--    abs n     = intToPortNumber (abs (portNumberToInt n))
-+--    signum n  = intToPortNumber (signum (portNumberToInt n))
++instance Num PortNumber where
++   fromInteger i = intToPortNumber (fromInteger i)
++    -- for completeness.
++   (+) x y   = intToPortNumber (portNumberToInt x + portNumberToInt y)
++   (-) x y   = intToPortNumber (portNumberToInt x - portNumberToInt y)
++   negate x  = intToPortNumber (-portNumberToInt x)
++   (*) x y   = intToPortNumber (portNumberToInt x * portNumberToInt y)
++   abs n     = intToPortNumber (abs (portNumberToInt n))
++   signum n  = intToPortNumber (signum (portNumberToInt n))
 +
-+-- instance Real PortNumber where
-+--     toRational x = toInteger x % 1
++instance Real PortNumber where
++    toRational x = toInteger x % 1
 +
-+-- instance Integral PortNumber where
-+--     quotRem a b = let (c,d) = quotRem (portNumberToInt a) (portNumberToInt b) in
-+--                   (intToPortNumber c, intToPortNumber d)
-+--     toInteger a = toInteger (portNumberToInt a)
++instance Integral PortNumber where
++    quotRem a b = let (c,d) = quotRem (portNumberToInt a) (portNumberToInt b) in
++                  (intToPortNumber c, intToPortNumber d)
++    toInteger a = toInteger (portNumberToInt a)
 +
-+-- instance Storable PortNumber where
-+--    sizeOf    _ = sizeOf    (undefined :: Word16)
-+--    alignment _ = alignment (undefined :: Word16)
-+--    poke p (PortNum po) = poke (castPtr p) po
-+--    peek p = PortNum `liftM` peek (castPtr p)
++instance Storable PortNumber where
++   sizeOf    _ = sizeOf    (undefined :: Word16)
++   alignment _ = alignment (undefined :: Word16)
++   poke p (PortNum po) = poke (castPtr p) po
++   peek p = PortNum `liftM` peek (castPtr p)
 +
 +------------------------------------------------------------------------
 +-- Socket addresses
@@ -5567,8 +5572,29 @@ index b42c98d..0000000
 --- | Zero a structure.
 -zeroMemory :: Ptr a -> CSize -> IO ()
 -zeroMemory dest nbytes = memset dest 0 (fromIntegral nbytes)
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..6dd9f0e
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,15 @@
++package eta.network;
++
++import java.net.InetAddress;
++import java.net.UnknownHostException;
++
++public class Utils {
++    public static String inet_ntoa(int bytes) throws UnknownHostException {
++        return InetAddress.getByAddress(new byte[]{
++                (byte)(bytes >>> 24),
++                (byte)(bytes >>> 16),
++                (byte)(bytes >>> 8),
++                (byte)bytes
++            }).toString().substring(1);
++    }
++}
 diff --git a/network.cabal b/network.cabal
-index c90c9b1..5eb0ffa 100644
+index c90c9b1..0b0a9c4 100644
 --- a/network.cabal
 +++ b/network.cabal
 @@ -26,7 +26,7 @@ description:
@@ -5580,7 +5606,7 @@ index c90c9b1..5eb0ffa 100644
  cabal-version:  >=1.8
  extra-tmp-files:
    config.log config.status autom4te.cache network.buildinfo
-@@ -45,39 +45,39 @@ tested-with:   GHC == 7.0.4, GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.
+@@ -45,39 +45,40 @@ tested-with:   GHC == 7.0.4, GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.
  
  library
    exposed-modules:
@@ -5638,6 +5664,7 @@ index c90c9b1..5eb0ffa 100644
 +  -- includes: HsNet.h
 +  -- install-includes: HsNet.h HsNetworkConfig.h
 +  -- c-sources: cbits/HsNet.c
++  java-sources: java/Utils.java
    ghc-options: -Wall -fwarn-tabs
  
  test-suite simple
