@@ -13,7 +13,6 @@ Subject: [PATCH] Patched
  lib/Data/Time/Clock/CTimeval.hs     | 10 ++++-----
  lib/Data/Time/Clock/POSIX.hs        |  2 +-
  lib/Data/Time/LocalTime/TimeZone.hs | 22 +++++++++-----------
- time.cabal                          | 33 ++++++++++++++---------------
  10 files changed, 77 insertions(+), 124 deletions(-)
  delete mode 100644 aclocal.m4
  delete mode 100644 configure.ac
@@ -274,75 +273,5 @@ index 9381075..e6f60c1 100644
 
  -- | Get the current time-zone
  getCurrentTimeZone :: IO TimeZone
-diff --git a/time.cabal b/time.cabal
-index f85af97..c39cd00 100644
---- a/time.cabal
-+++ b/time.cabal
-@@ -10,26 +10,26 @@ bug-reports:    https://github.com/haskell/time/issues
- synopsis:       A time library
- description:    A time library
- category:       System
--build-type:     Configure
-+build-type:     Simple
- cabal-version:  >=1.10
- tested-with:    GHC == 8.0.1, GHC == 7.10.3, GHC == 7.8.4
- x-follows-version-policy:
-
- extra-source-files:
-     changelog.md
--    aclocal.m4
--    configure.ac
--    configure
-+    -- aclocal.m4
-+    -- configure.ac
-+    -- configure
-     lib/include/HsConfigure.h
-     lib/include/HsTime.h
-     lib/include/HsTimeConfig.h.in
-     test/Test/*.c
-     test/Test/*.h
- extra-tmp-files:
--    config.log
--    config.status
--    autom4te.cache
--    lib/include/HsTimeConfig.h
-+    -- config.log
-+    -- config.status
-+    -- autom4te.cache
-+    -- lib/include/HsTimeConfig.h
-
- source-repository head
-     type:     git
-@@ -68,7 +68,8 @@ library
-         Data.Time.Format,
-         Data.Time
-     default-extensions:    CPP
--    c-sources: lib/cbits/HsTime.c
-+    -- c-sources: lib/cbits/HsTime.c
-+    java-sources: java/Utils.java
-     other-modules:
-         Data.Time.Calendar.Private,
-         Data.Time.Calendar.Days,
-@@ -85,13 +86,13 @@ library
-         Data.Time.Format.Parse
-         Data.Time.Format.Locale
-     include-dirs: lib/include
--    if os(windows)
--        install-includes:
--            HsTime.h
--    else
--        install-includes:
--            HsTime.h
--            HsTimeConfig.h
-+    -- if os(windows)
-+    --     install-includes:
-+    --         HsTime.h
-+    -- else
-+    --     install-includes:
-+    --         HsTime.h
-+    --         HsTimeConfig.h
-
- test-suite ShowDefaultTZAbbreviations
-     type: exitcode-stdio-1.0
 --
 2.7.4 (Apple Git-66)
