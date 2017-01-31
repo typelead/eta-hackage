@@ -45,10 +45,12 @@ These packages are supported by `epm`.
 - [ansi-terminal-0.6.2.3](https://hackage.haskell.org/package/ansi-terminal-0.6.2.3)
   - NOTE: Windows support disabled.
 - [ansi-wl-pprint-0.6.7.3](https://hackage.haskell.org/package/ansi-wl-pprint-0.6.7.3)
+- [appar-0.1.4](https://hackage.haskell.org/package/appar-0.1.4)
 - [array-0.5.1.1](https://hackage.haskell.org/package/array-0.5.1.1)
 - [array-utils-0.3](https://hackage.haskell.org/package/array-utils-0.3)
 - [async-2.1.1](https://hackage.haskell.org/package/async-2.1.1)
 - [attoparsec-0.13.1.0](https://hackage.haskell.org/package/attoparsec-0.13.1.0)
+- [auto-update-0.1.4](https://hackage.haskell.org/package/auto-update-0.1.4)
 - [base-compat-0.9.1](https://hackage.haskell.org/package/base-compat-0.9.1)
 - [base-orphans-0.5.4](https://hackage.haskell.org/package/base-orphans-0.5.4)
 - [base-prelude-1.0.1.1](https://hackage.haskell.org/package/base-prelude-1.0.1.1)
@@ -133,6 +135,7 @@ These packages are supported by `epm`.
 - [http-api-data-0.3.5](https://hackage.haskell.org/package/http-api-data-0.3.5)
   - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
           can be compiled with Eta.
+- [http-date-0.0.6.1](https://hackage.haskell.org/package/http-date-0.0.6.1)
 - [http-media-0.6.4](https://hackage.haskell.org/package/http-media-0.6.4)
 - [http-types-0.9.1](https://hackage.haskell.org/package/http-types-0.9.1)
 - [HUnit-1.5.0.0](https://hackage.haskell.org/package/HUnit-1.5.0.0)
@@ -212,8 +215,10 @@ These packages are supported by `epm`.
 - [relacion-0.1](https://hackage.haskell.org/package/relacion-0.1)
 - [resourcet >= 1.1.8.1 && <= 1.1.9](https://hackage.haskell.org/package/resourcet-1.1.9)
 - [randproc-0.4](https://hackage.haskell.org/package/randproc-0.4)
-- [safe-0.3.9](https://hackage.haskell.org/package/safe-0.3.9)
+- [safe >= 0.3.9 && <= 0.3.11](https://hackage.haskell.org/package/safe-0.3.11)
 - [servant-0.9.1.1](https://hackage.haskell.org/package/servant-0.9.1.1)
+- [servant-server-0.9.1.1](https://hackage.haskell.org/package/servant-server-0.9.1.1)
+  - NOTE: Servant.Utils.StaticFiles is disabled.
 - [scientific-0.3.4.9](https://hackage.haskell.org/package/scientific-0.3.4.9)
 - [semigroups-0.18.2](https://hackage.haskell.org/package/semigroups-0.18.2)
 - [semigroupoids-5.1](https://hackage.haskell.org/package/semigroupoids-5.1)
