@@ -1,7 +1,7 @@
-From 918ec01d4017d188936594a422fa7f7ae8dac1b8 Mon Sep 17 00:00:00 2001
-From: Sibi Prabakaran <sibi@psibi.in>
-Date: Thu, 26 Jan 2017 10:37:41 +0530
-Subject: [PATCH] Port tf-random-0.5 for Eta
+From 87f3acce13ae284dd9b9cacfb15d65c4c634076d Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 31 Jan 2017 20:02:19 +0530
+Subject: [PATCH] Patched
 
 ---
  java/Utils.java             | 15 +++++++++++++++
@@ -32,7 +32,7 @@ index 0000000..6c15e56
 +
 +}
 diff --git a/src/System/Random/TF/Gen.hs b/src/System/Random/TF/Gen.hs
-index 3713e47..acc1cea 100644
+index 3713e47..3edab3f 100644
 --- a/src/System/Random/TF/Gen.hs
 +++ b/src/System/Random/TF/Gen.hs
 @@ -1,4 +1,4 @@
@@ -66,10 +66,10 @@ index 3713e47..acc1cea 100644
 +threefish256EncryptBlock :: ByteArray -> ByteArray -> IO [Word64]
 +threefish256EncryptBlock key blk =
 +  java $
-+  do (blk :: JLongArray) <- arrayFromList $ map toInt64 $ [blk1, blk2, blk3, blk4]
-+     key <- arrayFromList $ map toInt64 $ [k1, k2, k3, k4]
++  do let blk = toJava $ map toInt64 $ [blk1, blk2, blk3, blk4]
++         key = toJava $ map toInt64 $ [k1, k2, k3, k4]
 +     val <- io $ threeFishProcessBlock blk key
-+     (val' :: [Int64]) <- val <.> arrayToList
++     let (val' :: [Int64]) = fromJava val
 +     let x = map fromIntegral val'
 +     return x
 +  where
@@ -114,5 +114,5 @@ index 60982fc..09eac25 100644
    --GHC-options: -O
  
 -- 
-2.7.4
+2.7.4 (Apple Git-66)
 
