@@ -94,7 +94,7 @@ These packages are supported by `epm`.
 - [directory-1.3.0.0](https://hackage.haskell.org/package/directory-1.3.0.0)
 - [directory-tree-0.12.1](https://hackage.haskell.org/package/directory-tree-0.12.1)
 - [disjoint-sets-st-0.1](https://hackage.haskell.org/package/disjoint-sets-st-0.1)
-- [distributive >= 0.5.0.2 && <= 0.5.1](https://hackage.haskell.org/package/distributive-0.5.0.2)
+- [distributive >= 0.5.0.2 && <= 0.5.2](https://hackage.haskell.org/package/distributive-0.5.0.2)
   - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
           can be compiled with Eta.
 - [dlist-0.8.0.2](https://hackage.haskell.org/package/dlist-0.8.0.2)

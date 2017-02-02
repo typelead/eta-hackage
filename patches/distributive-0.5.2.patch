@@ -1,0 +1,25 @@
+From cbae04e83a047174b8e8a3aa65a336dbd302fd8b Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 2 Feb 2017 12:32:38 +0530
+Subject: [PATCH] Patched
+
+---
+ distributive.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/distributive.cabal b/distributive.cabal
+index 51dc425..b4bc009 100644
+--- a/distributive.cabal
++++ b/distributive.cabal
+@@ -12,7 +12,7 @@ bug-reports:   http://github.com/ekmett/distributive/issues
+ copyright:     Copyright (C) 2011-2016 Edward A. Kmett
+ synopsis:      Distributive functors -- Dual to Traversable
+ description:   Distributive functors -- Dual to Traversable
+-build-type:    Custom
++build-type:    Simple
+ extra-source-files:
+   .travis.yml
+   .vim.custom
+-- 
+2.7.4 (Apple Git-66)
+
