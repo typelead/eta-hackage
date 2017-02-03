@@ -140,6 +140,7 @@ These packages are supported by `epm`.
 - [http-media-0.6.4](https://hackage.haskell.org/package/http-media-0.6.4)
 - [http-types-0.9.1](https://hackage.haskell.org/package/http-types-0.9.1)
 - [HUnit-1.5.0.0](https://hackage.haskell.org/package/HUnit-1.5.0.0)
+- [ieee754-0.8.0](https://hackage.haskell.org/package/ieee754-0.8.0)
 - [interval-1.20160821](https://hackage.haskell.org/package/interval-1.20160821)
 - [iproute-1.7.1](https://hackage.haskell.org/package/iproute-1.7.1)
 - [js-flot-0.8.3](https://hackage.haskell.org/package/js-flot-0.8.3)
