@@ -1,6 +1,6 @@
-From 8ee25964b9ddfaead9ece635a7d92cd5603ac4b6 Mon Sep 17 00:00:00 2001
+From 24427c4a20dcacc0df7d097cf5e383a7bc3596fd Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Wed, 21 Dec 2016 08:49:08 +0530
+Date: Wed, 1 Feb 2017 18:21:44 +0100
 Subject: [PATCH] Patched
 
 ---
@@ -13,8 +13,8 @@ Subject: [PATCH] Patched
  lib/Data/Time/Clock/CTimeval.hs     | 10 ++++-----
  lib/Data/Time/Clock/POSIX.hs        |  2 +-
  lib/Data/Time/LocalTime/TimeZone.hs | 22 +++++++++-----------
- time.cabal                          | 33 ++++++++++++++---------------
- 10 files changed, 77 insertions(+), 124 deletions(-)
+ time.cabal                          | 37 +++++++++++++++++----------------
+ 10 files changed, 79 insertions(+), 126 deletions(-)
  delete mode 100644 aclocal.m4
  delete mode 100644 configure.ac
  create mode 100644 java/Utils.java
@@ -29,7 +29,7 @@ index 54f57d6..00bfe1f 100644
 -module Main (main) where
 -
  import Distribution.Simple
-
+ 
  main :: IO ()
 -main = defaultMainWithHooks autoconfUserHooks
 +main = defaultMain
@@ -92,7 +92,7 @@ index eacccf6..0000000
 -AC_OUTPUT
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..36a72a3
+index 0000000..8db3327
 --- /dev/null
 +++ b/java/Utils.java
 @@ -0,0 +1,23 @@
@@ -121,7 +121,7 @@ index 0000000..36a72a3
 +}
 diff --git a/lib/Data/Time/Clock/CTimespec.hs b/lib/Data/Time/Clock/CTimespec.hs
 new file mode 100644
-index 0000000..9f9d6d2
+index 0000000..7803f0f
 --- /dev/null
 +++ b/lib/Data/Time/Clock/CTimespec.hs
 @@ -0,0 +1,21 @@
@@ -200,10 +200,10 @@ index 8c2d550..c42b0e9 100644
 @@ -24,13 +24,11 @@ instance Storable CTimeval where
          pokeElemOff (castPtr p) 0 s
          pokeElemOff (castPtr p) 1 mus
-
+ 
 -foreign import ccall unsafe "time.h gettimeofday" gettimeofday :: Ptr CTimeval -> Ptr () -> IO CInt
 +foreign import java unsafe "@static java.lang.System.currentTimeMillis" gettimeofday :: IO CLong
-
+ 
  -- | Get the current POSIX time from the system clock.
  getCTimeval :: IO CTimeval
 -getCTimeval = with (MkCTimeval 0 0) (\ptval -> do
@@ -222,10 +222,10 @@ index a7a3737..1b685dc 100644
 @@ -10,7 +10,7 @@ import Data.Time.Calendar.Days
  import Data.Fixed
  import Control.Monad
-
+ 
 -#include "HsTimeConfig.h"
 +-- #include "HsTimeConfig.h"
-
+ 
  #ifdef mingw32_HOST_OS
  import Data.Word    ( Word64)
 diff --git a/lib/Data/Time/LocalTime/TimeZone.hs b/lib/Data/Time/LocalTime/TimeZone.hs
@@ -237,22 +237,22 @@ index 9381075..e6f60c1 100644
  import Data.Time.Clock.POSIX
  import Data.Time.Clock.UTC
 +import Java.String
-
+ 
  #if __GLASGOW_HASKELL__ >= 709 || __GLASGOW_HASKELL__ < 702
  import Foreign
 @@ -76,24 +77,21 @@ instance Show TimeZone where
  utc :: TimeZone
  utc = TimeZone 0 False "UTC"
-
+ 
 -{-# CFILES cbits/HsTime.c #-}
 -foreign import ccall unsafe "HsTime.h get_current_timezone_seconds" get_current_timezone_seconds :: CTime -> Ptr CInt -> Ptr CString -> IO CLong
 +foreign import java unsafe "@static ghcvm.time.Utils.getTZOffset" getTZOffsetSeconds :: CTime -> IO Int
 +foreign import java unsafe "@static ghcvm.time.Utils.isDST" isDST :: CTime -> IO Bool
 +foreign import java unsafe "@static ghcvm.time.Utils.getTZ" getTZ :: IO JString
-
+ 
  posixToCTime :: POSIXTime -> CTime
  posixToCTime  = fromInteger . floor
-
+ 
  -- | Get the local time-zone for a given time (varying as per summertime adjustments)
  getTimeZone :: UTCTime -> IO TimeZone
 -getTimeZone time = with 0 (\pdst -> with nullPtr (\pcname -> do
@@ -271,11 +271,11 @@ index 9381075..e6f60c1 100644
 +  dst <- isDST ctime
 +  cname <- getTZ
 +  return $ TimeZone (secs `div` 60) dst (fromJString cname)
-
+ 
  -- | Get the current time-zone
  getCurrentTimeZone :: IO TimeZone
 diff --git a/time.cabal b/time.cabal
-index f85af97..c39cd00 100644
+index f85af97..c8f512a 100644
 --- a/time.cabal
 +++ b/time.cabal
 @@ -10,26 +10,26 @@ bug-reports:    https://github.com/haskell/time/issues
@@ -287,7 +287,7 @@ index f85af97..c39cd00 100644
  cabal-version:  >=1.10
  tested-with:    GHC == 8.0.1, GHC == 7.10.3, GHC == 7.8.4
  x-follows-version-policy:
-
+ 
  extra-source-files:
      changelog.md
 -    aclocal.m4
@@ -310,9 +310,20 @@ index f85af97..c39cd00 100644
 +    -- config.status
 +    -- autom4te.cache
 +    -- lib/include/HsTimeConfig.h
-
+ 
  source-repository head
      type:     git
+@@ -52,8 +52,8 @@ library
+     build-depends:
+         base >= 4.7 && < 5,
+         deepseq >= 1.1
+-    if os(windows)
+-        build-depends: Win32
++    -- if os(windows)
++    --     build-depends: Win32
+     exposed-modules:
+         Data.Time.Calendar,
+         Data.Time.Calendar.MonthDay,
 @@ -68,7 +68,8 @@ library
          Data.Time.Format,
          Data.Time
@@ -341,8 +352,9 @@ index f85af97..c39cd00 100644
 +    --     install-includes:
 +    --         HsTime.h
 +    --         HsTimeConfig.h
-
+ 
  test-suite ShowDefaultTZAbbreviations
      type: exitcode-stdio-1.0
---
-2.7.4 (Apple Git-66)
+-- 
+2.11.0.windows.3
+
