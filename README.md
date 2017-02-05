@@ -3,13 +3,21 @@
 [![Build Status](https://travis-ci.org/typelead/eta-hackage.svg?branch=master)](https://travis-ci.org/typelead/eta-hackage)
 
 This repository contains a set of patches for particular packages from
-Hackage that cannot be built out-of-the-box with `epm`. To install a package, you have to run the following command:
+Hackage that cannot be built out-of-the-box with `epm`. To install a package, you 
+have to run the following command:
 
-``` haskell
+```
 epm install <package-name>
 ```
 
-`epm` will take care of downloading the tar file, optionally patching it, and installing it.
+`epm` will take care of downloading the tar file, optionally patching it, and installing it. If a patch is in the repo, but your local `epm` in unable to find a patch
+for it, run
+
+```
+epm update
+```
+
+and try the installation again.
 
 **Table of Contents**
 
@@ -21,7 +29,6 @@ epm install <package-name>
   - [Patching a Library](#patching-a-library)
     - [Prerequisites](#prerequisites)
     - [Patching](#patching)
-  - [Viewing a Patch](#viewing-a-patch)
 
 ## Package Categorization
 
@@ -35,7 +42,9 @@ If you would like to have a given package/version made compatible with `epm`, yo
 - Ask us on [Gitter](https://gitter.im/typelead/eta)
 
 ### Supported Packages
+
 These packages are supported by `epm`.
+
 - [abstract-deque-0.3](https://hackage.haskell.org/package/abstract-deque-0.3)
 - [abstract-par-0.3.3](https://hackage.haskell.org/package/abstract-par-0.3.3)
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
@@ -272,100 +281,144 @@ These packages are supported by `epm`.
 - [xmlhtml-0.2.3.5](https://hackage.haskell.org/package/xmlhtml-0.2.3.5)
 
 ### Unsupported Packages
-These packages are heavy on FFI dependencies and don't make sense in the context of the JVM, hence no effort will be made to port them.
+
+These packages are heavy on FFI dependencies and don't make sense in the context 
+of the JVM, hence no effort will be made to port them.
 - None for now
 
 ### Built-in Packages
-These packages have special meaning in the Eta compiler and hence are provided upon installation.
+These packages have special meaning in the Eta compiler and hence are provided 
+upon installation.
 - [base-4.8.2.0](https://hackage.haskell.org/package/base-4.8.2.0)
 - [integer-0.5.1.0](https://hackage.haskell.org/package/integer-gmp-0.5.1.0)
   - *NOTE*: Due to the drastic differences between the `Integer` implementations,
-            the public API between the corresponding GHC package is slightly different.
+            the public API between the corresponding GHC package is slightly 
+            different.
 - [ghc-prim-0.4.0.0](https://hackage.haskell.org/package/ghc-prim-0.4.0.0)
   - *NOTE*: Due to the introduction of new primitives for Eta,
-            the public API between the corresponding GHC package is slightly different.
+            the public API between the corresponding GHC package is slightly 
+            different.
 
 ## Contributing
 
 ### Patching a Library
 
-Suppose that you find a library you want to patch, say `somepackage-0.1.2.3`.
+Suppose that you find a library you want to patch or fix an existing patch, say
+`somepackage-0.1.2.3`.
 
 #### Prerequisites
-If you have already forked this repository, the skip to step 3.
 
-1. Fork this repository.
+If you have already forked this repository, then skip to step 3.
 
-2. Clone the forked repository & update the `master` branch.
-  ```
-  $ git clone http://github.org/your-name-here/eta-hackage
-  ```
+1. [Fork](https://github.com/typelead/eta-hackage/tree/master/patches#fork-destination-box) this repository.
+
+2. Clone the forked repository.
+
+   ```
+   git clone http://github.org/your-name-here/eta-hackage
+   ```
 
 3. Checkout the `master` branch and pull any changes.
-  ```
-  $ git checkout master
-  $ git pull
-  ```
+
+   ```
+   git checkout master
+   git pull
+   ```
 
 4. Create a new branch with the same name as the package.
-  ```
-  $ git checkout -b somepackage
-  ```
+
+   ```
+   $ git checkout -b somepackage
+   ```
 
 #### Patching
 
-1. Download the `somepackage-0.1.2.3.tar.gz` tarball from Hackage.
+1. Fetch the package and navigate to it.
 
-2. Initialize a git repository and make an initial commit.
-  ```
-  $ git init
-  $ git add .
-  $ git commit -m "First"
-  ```
+   ```
+   epm unpack somepackage-0.1.2.3
+   cd somepackage-0.1.2.3/
+   ```
+
+2. If the message "Found patch in eta-hackage for somepackage-0.1.2.3" appeared 
+   in step 1, skip to step 3.
+   
+   Otherwise, initialize a Git repository and make an initial commit.
+
+   ```
+   git init && git add . && git commit -m "First"
+   ```
 
 3. Build the package.
-  ```
-  $ epm build
-  ```
+
+   ```
+   epm build
+   ```
 
 4. Apply the desired changes and go back to step 3 as long as the build fails.
 
 5. Once the build succeeds, make a commit.
-  ```
-  $ git add .
-  $ git commit -m "Patched"
-  ```
+
+   ```
+   git add . && git commit -m "Patched"
+   ```
 
 6. Create a patch.
-   ```
-   $ git format-patch HEAD~ --stdout > somepackage-0.1.2.3.patch
-   ```
 
-7. If you have changed the `.cabal` file of the package in your patch , make a copy and rename it from `somepackage.cabal` to `somepackage-0.1.2.3.cabal`.
-
-8. Copy the patch file and the cabal file (if changed) to the `patches` directory in your local clone of your fork of the `eta-hackage` repository.
-
-9. In your `eta-hackage` repository,
    ```
-   $ git commit -m "Patched somepackage-0.1.2.3"
-   $ git push origin
+   git format-patch HEAD~ --stdout > somepackage-0.1.2.3.patch
    ```
 
-   Also add the name of the package to the `packages.json` file and
-   update this README.md with the package name (in alphabetical order).
+7. If you have changed the `.cabal` file of the package in your patch, make a copy
+   and rename it from `somepackage.cabal` to `somepackage-0.1.2.3.cabal`.
+
+   ```
+   cp somepackage.cabal somepackage-0.1.2.3.cabal
+   ```
+
+8. Copy the patch file and the cabal file (if changed) to the `patches` directory 
+   in your local clone of your fork of the `eta-hackage` repository. 
+   
+   NOTE: `$YOUR_FORK_PATH` should be replaced with the path to the local clone
+         of your forked version of `eta-hackage`.
+         
+   If the cabal file didn't change:
+   
+   ```
+   cp somepackage-0.1.2.3.patch $YOUR_FORK_PATH/patches/ 
+   ```
+   
+   If the cabal file changes:
+
+   ```
+   cp somepackage-0.1.2.3.cabal somepackage-0.1.2.3.patch $YOUR_FORK_PATH/patches/ 
+   ```
+   
+9. Add `somepackage-0.1.2.3` to the `packages.json` file so that CI will start
+   building it.
+   
+   ```
+   {
+       "patched": [
+         ...
+         "somepackage-0.1.2.3"
+       ],
+       "vanilla": [
+         ...
+         "somepackage-0.1.2.3"
+       ]
+   }
+   ```
+
+10. Update this `README.md` with the package name (in alphabetical order) in the
+    **Supported Packages** section in the same format as the other packages.
+
+11. In your `eta-hackage` repository,
+
+    ```
+    $ git add .
+    $ git commit -m "Patched somepackage-0.1.2.3"
+    $ git push origin
+    ```
 
 10. Submit a pull request to this repository for review.
-
-### Viewing a Patch
-
-When you want to see how a library (say `somepackage-0.1.2.3`) looks with the patches applied:
-
-1. Download the source distribution of that package from Hacakage and extract it.
-
-2. Initialize a git repository in it and apply the patch (after copying it to the directory).
-  ```
-  $ git init
-  $ git apply somepackage-0.1.2.3.patch
-  ```
-
-You may wish to modify an existing patch. If so, apply the steps above after Step 2 in [Patching a Library/Patching](#patching).
