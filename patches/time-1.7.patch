@@ -118,7 +118,7 @@ index 0000000..36a72a3
 --- /dev/null
 +++ b/java/Utils.java
 @@ -0,0 +1,23 @@
-+package ghcvm.time;
++package eta.time;
 +
 +import java.util.Date;
 +import java.util.TimeZone;
@@ -159,7 +159,7 @@ index 0000000..9f9d6d2
 +-- CLong represents the rest of elapsed time as number of nanoseconds
 +-- Reference: https://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html
 +
-+foreign import java unsafe "@static ghcvm.time.Utils.getCurrentTimeInSeconds" getCurrentTimeInSeconds :: IO Int64
++foreign import java unsafe "@static eta.time.Utils.getCurrentTimeInSeconds" getCurrentTimeInSeconds :: IO Int64
 +
 +-- | Get the current POSIX time from the system clock.
 +getCTimespec :: IO CTimespec
@@ -268,9 +268,9 @@ index 9381075..4e02725 100644
  
 -{-# CFILES cbits/HsTime.c #-}
 -foreign import ccall unsafe "HsTime.h get_current_timezone_seconds" get_current_timezone_seconds :: CTime -> Ptr CInt -> Ptr CString -> IO CLong
-+foreign import java unsafe "@static ghcvm.time.Utils.getTZOffset" getTZOffsetSeconds :: CTime -> IO Int
-+foreign import java unsafe "@static ghcvm.time.Utils.isDST" isDST :: CTime -> IO Bool
-+foreign import java unsafe "@static ghcvm.time.Utils.getTZ" getTZ :: IO JString
++foreign import java unsafe "@static eta.time.Utils.getTZOffset" getTZOffsetSeconds :: CTime -> IO Int
++foreign import java unsafe "@static eta.time.Utils.isDST" isDST :: CTime -> IO Bool
++foreign import java unsafe "@static eta.time.Utils.getTZ" getTZ :: IO JString
  
  posixToCTime :: POSIXTime -> CTime
  posixToCTime  = fromInteger . floor

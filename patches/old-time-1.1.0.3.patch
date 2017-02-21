@@ -532,14 +532,14 @@ index 0000000..b1a3088
 +foreign import java unsafe "@static @field java.util.Calendar.MINUTE" mINUTE :: Int
 +foreign import java unsafe "@static @field java.util.Calendar.SECOND" sECOND :: Int
 +foreign import java unsafe "@static @field java.util.Calendar.DAY_OF_YEAR" dAY_OF_YEAR :: Int
-+foreign import java unsafe "@static ghcvm.oldtime.Utils.getTimeInUTC" getTimeInUTC :: Int64 -> Calendar
-+foreign import java unsafe "@static ghcvm.oldtime.Utils.getTZ" getTZ :: Calendar -> JString
-+foreign import java unsafe "@static ghcvm.oldtime.Utils.getClockTimePrim" getClockTimePrim :: Int64
-+foreign import java unsafe "@static ghcvm.oldtime.Utils.getCMonth" getCMonth :: Calendar -> JString
-+foreign import java unsafe "@static ghcvm.oldtime.Utils.getCDayOfWeek" getCDayOfWeek :: Calendar -> JString
-+foreign import java unsafe "@static ghcvm.oldtime.Utils.getIsDST" getIsDST :: Calendar -> Bool
-+foreign import java unsafe "@static ghcvm.oldtime.Utils.getCtTz" getCtTz :: Calendar -> Int
-+foreign import java unsafe "@static ghcvm.oldtime.Utils.setTimeInMillis" setTimeInMillis :: Int64 -> Calendar
++foreign import java unsafe "@static eta.oldtime.Utils.getTimeInUTC" getTimeInUTC :: Int64 -> Calendar
++foreign import java unsafe "@static eta.oldtime.Utils.getTZ" getTZ :: Calendar -> JString
++foreign import java unsafe "@static eta.oldtime.Utils.getClockTimePrim" getClockTimePrim :: Int64
++foreign import java unsafe "@static eta.oldtime.Utils.getCMonth" getCMonth :: Calendar -> JString
++foreign import java unsafe "@static eta.oldtime.Utils.getCDayOfWeek" getCDayOfWeek :: Calendar -> JString
++foreign import java unsafe "@static eta.oldtime.Utils.getIsDST" getIsDST :: Calendar -> Bool
++foreign import java unsafe "@static eta.oldtime.Utils.getCtTz" getCtTz :: Calendar -> Int
++foreign import java unsafe "@static eta.oldtime.Utils.setTimeInMillis" setTimeInMillis :: Int64 -> Calendar
 +
 +-- Again, you can make this pure given that you don't mutate the calendar after -- creation.
 +
@@ -1381,7 +1381,7 @@ index 0000000..c2af5a1
 --- /dev/null
 +++ b/java/Utils.java
 @@ -0,0 +1,64 @@
-+package ghcvm.oldtime;
++package eta.oldtime;
 +
 +import java.util.Date;
 +import java.util.Calendar;

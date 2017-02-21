@@ -4738,7 +4738,7 @@ index 0000000..7e0f6dc
 --- /dev/null
 +++ b/java/Utils.java
 @@ -0,0 +1,18 @@
-+package ghcvm.time;
++package eta.time;
 +
 +import java.util.Date;
 +import java.util.TimeZone;
@@ -4796,9 +4796,9 @@ index 9381075..62d8214 100644
  
 -{-# CFILES cbits/HsTime.c #-}
 -foreign import ccall unsafe "HsTime.h get_current_timezone_seconds" get_current_timezone_seconds :: CTime -> Ptr CInt -> Ptr CString -> IO CLong
-+foreign import java unsafe "@static ghcvm.time.Utils.getTZOffset" getTZOffsetSeconds :: CTime -> IO Int
-+foreign import java unsafe "@static ghcvm.time.Utils.isDST" isDST :: CTime -> IO Bool
-+foreign import java unsafe "@static ghcvm.time.Utils.getTZ" getTZ :: IO JString
++foreign import java unsafe "@static eta.time.Utils.getTZOffset" getTZOffsetSeconds :: CTime -> IO Int
++foreign import java unsafe "@static eta.time.Utils.isDST" isDST :: CTime -> IO Bool
++foreign import java unsafe "@static eta.time.Utils.getTZ" getTZ :: IO JString
  
  posixToCTime :: POSIXTime -> CTime
  posixToCTime  = fromInteger . floor
