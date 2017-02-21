@@ -16,7 +16,7 @@ index f6a1296..2f18056 100644
 +++ b/Data/IntSet/Internal.hs
 @@ -1,4 +1,5 @@
  {-# LANGUAGE CPP #-}
-+{-# LANGUAGE ForeignFunctionInterface #-}
++{-# LANGUAGE ForeignFunctionInterface #-} 
  {-# LANGUAGE BangPatterns #-}
  #if __GLASGOW_HASKELL__
  {-# LANGUAGE MagicHash, DeriveDataTypeable, StandaloneDeriving #-}
@@ -25,9 +25,9 @@ index f6a1296..2f18056 100644
  import qualified GHC.Exts as GHCExts
  #endif
 -import GHC.Prim (indexInt8OffAddr#)
-+import GHC.Prim (indexJByteArray#)
++import GHC.Prim (indexJByteArray#) 
  #endif
-+import Java.Array(JByteArray(..))
++import Java.Array(JByteArray(..)) 
  
  
  infixl 9 \\{-This comment teaches CPP correct behaviour -}
@@ -36,9 +36,9 @@ index f6a1296..2f18056 100644
  {-# INLINE indexOfTheOnlyBit #-}
  indexOfTheOnlyBit bitmask =
 -  I# (lsbArray `indexInt8OffAddr#` unboxInt (intFromNat ((bitmask * magic) `shiftRL` offset)))
-+  I# (GHCExts.jbyte2int# (bytes `indexJByteArray#` unboxInt (intFromNat ((bitmask * magic) `shiftRL` offset))))
++  I# (GHCExts.jbyte2int# (bytes `indexJByteArray#` unboxInt (intFromNat ((bitmask * magic) `shiftRL` offset)))) 
    where unboxInt (I# i) = i
-+        !(JByteArray bytes) = lsbArray'
++        !(JByteArray bytes) = lsbArray' 
  #if WORD_SIZE_IN_BITS==32
          magic = 0x077CB531
          offset = 27
