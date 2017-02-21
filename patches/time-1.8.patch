@@ -26,7 +26,7 @@ index 54f57d6..6fa548c 100644
  
  main :: IO ()
 -main = defaultMainWithHooks autoconfUserHooks
-+main = defaultMain
++main = defaultMain 
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
 index 0000000..45e0c70
