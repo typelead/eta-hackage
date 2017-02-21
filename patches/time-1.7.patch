@@ -1,120 +1,35 @@
-From de927da151e05fd790ec43f7708520a7cbe65437 Mon Sep 17 00:00:00 2001
-From: Sibi Prabakaran <sibi@psibi.in>
-Date: Sun, 20 Nov 2016 00:28:18 +0530
-Subject: [PATCH] Port time-1.7 to eta
+From a6c084fb4e76a54760d7a251d16a110948eed538 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 21 Feb 2017 13:25:10 +0530
+Subject: [PATCH] Patched
 
 ---
- Setup.hs                            |   4 +---
- aclocal.m4                          |  19 -----------------
- configure.ac                        |  26 -----------------------
- java/Utils.class                    | Bin 0 -> 843 bytes
- java/Utils.java                     |  23 ++++++++++++++++++++
- lib/Data/Time/Clock/CTimespec.hs    |  21 ++++++++++++++++++
- lib/Data/Time/Clock/CTimespec.hsc   |  41 ------------------------------------
- lib/Data/Time/Clock/CTimeval.hs     |  10 ++++-----
- lib/Data/Time/Clock/POSIX.hs        |   2 +-
- lib/Data/Time/LocalTime/TimeZone.hs |  22 +++++++++----------
- time.cabal                          |  33 +++++++++++++++--------------
- 11 files changed, 77 insertions(+), 124 deletions(-)
- delete mode 100644 aclocal.m4
- delete mode 100644 configure.ac
- create mode 100644 java/Utils.class
+ Setup.hs                            |  2 +-
+ java/Utils.java                     | 23 +++++++++++++++++++++
+ lib/Data/Time/Clock/CTimespec.hs    | 41 +++++++++++++++++++++++++++++++++++++
+ lib/Data/Time/Clock/CTimespec.hsc   | 41 -------------------------------------
+ lib/Data/Time/Clock/CTimeval.hs     | 10 ++++-----
+ lib/Data/Time/Clock/POSIX.hs        |  2 +-
+ lib/Data/Time/LocalTime/TimeZone.hs | 22 +++++++++-----------
+ time.cabal                          | 22 ++++++++++----------
+ 8 files changed, 91 insertions(+), 72 deletions(-)
  create mode 100644 java/Utils.java
  create mode 100644 lib/Data/Time/Clock/CTimespec.hs
  delete mode 100644 lib/Data/Time/Clock/CTimespec.hsc
 
 diff --git a/Setup.hs b/Setup.hs
-index 54f57d6..00bfe1f 100644
+index 54f57d6..6fa548c 100644
 --- a/Setup.hs
 +++ b/Setup.hs
-@@ -1,6 +1,4 @@
--module Main (main) where
--
+@@ -3,4 +3,4 @@ module Main (main) where
  import Distribution.Simple
  
  main :: IO ()
 -main = defaultMainWithHooks autoconfUserHooks
 +main = defaultMain
-diff --git a/aclocal.m4 b/aclocal.m4
-deleted file mode 100644
-index 86c1553..0000000
---- a/aclocal.m4
-+++ /dev/null
-@@ -1,19 +0,0 @@
--# FP_DECL_ALTZONE
--# ---------------
--# Defines HAVE_DECL_ALTZONE to 1 if declared, 0 otherwise.
--#
--# Used by base package.
--AC_DEFUN([FP_DECL_ALTZONE],
--[AC_REQUIRE([AC_HEADER_TIME])dnl
--AC_CHECK_HEADERS([sys/time.h])
--AC_CHECK_DECLS([altzone], [], [],[#if TIME_WITH_SYS_TIME
--# include <sys/time.h>
--# include <time.h>
--#else
--# if HAVE_SYS_TIME_H
--#  include <sys/time.h>
--# else
--#  include <time.h>
--# endif
--#endif])
--])# FP_DECL_ALTZONE
-diff --git a/configure.ac b/configure.ac
-deleted file mode 100644
-index 4f254dd..0000000
---- a/configure.ac
-+++ /dev/null
-@@ -1,26 +0,0 @@
--AC_INIT([Haskell time package], [1.7], [ashley@semantic.org], [time])
--
--# Safety check: Ensure that we are in the correct source directory.
--AC_CONFIG_SRCDIR([lib/include/HsTime.h])
--
--# These are to silence warnings with older Cabal versions
--AC_ARG_WITH([gcc],[Gnu C compiler])
--AC_ARG_WITH([compiler],[Haskell compiler])
--
--AC_PROG_CC()
--
--AC_USE_SYSTEM_EXTENSIONS
--
--AC_CONFIG_HEADERS([lib/include/HsTimeConfig.h])
--
--AC_CHECK_HEADERS([time.h])
--AC_CHECK_FUNCS([gmtime_r localtime_r])
--
--AC_CHECK_FUNCS([clock_gettime])
--
--AC_STRUCT_TM
--AC_STRUCT_TIMEZONE
--
--FP_DECL_ALTZONE
--
--AC_OUTPUT
-diff --git a/java/Utils.class b/java/Utils.class
-new file mode 100644
-index 0000000000000000000000000000000000000000..b6f0e3f03f0740da8b8f75dcf824bc1c61be6a28
-GIT binary patch
-literal 843
-zcmZuv+invv5IycTS+d#YLedlpErfE}w9w^Jcq!r~5mKsN9uknqo0B-HtBr$pH<kKN
-zAi+yofy4*!CH)G-*hy#=;Ro9@bIzQZv48*h@e9BX-Z;o$%|Qz533AY~F12;f#(f7#
-zl(q4|#)dv0I(US~dV6BSvr%D4zLiSG?-(qv@{wV&I_wID?7mdua5QL(u*us2dD49m
-zH(N)&UL<0Id3%*QLqbNiMss4e$TS#+qF32J;iudWxa#|jIFzct%dkS>>L?6_ikosE
-z>Z&0+L)DFp_8x=N7>>e@crUe{^C6Z&w5`*)$Rg)r6I(8xqR5aj$wvh6YdjV@{>;TT
-ze1@A>A+6CGDhfZx3mY$8yuyx)*H~r9^^ZHJ13xB+Z-mHoRq;{#M0BW2hYGHV9v=l{
-zlx9sC-C1&KD@Ca5bD=3_q^j|=K=zMg4P+>IlY#uJdACCI%IN$u`W*1HL#|;ZuT}r=
-z=&rR@<$+LL9!{R5uA-Q$j^R$3Mq`Ge`m&^=tEj6383Zyy8B6qM^h$uj$kCoBYmH8(
-zy_@G?-|0f*q&;bzHhrH0igeddkEjcD<}R?XUW6sbNaU@{;L98<MXY6%rmQX4hE*We
-zPb5DX<~i&!Zp;&xh`54VQ(_qwB?eMNw5&0lZ*w|%g5SpK6uyB)15aNdJ%&s54ZhA1
-MmI-=?d<(ey7r|tu{Qv*}
-
-literal 0
-HcmV?d00001
-
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..36a72a3
+index 0000000..45e0c70
 --- /dev/null
 +++ b/java/Utils.java
 @@ -0,0 +1,23 @@
@@ -143,31 +58,51 @@ index 0000000..36a72a3
 +}
 diff --git a/lib/Data/Time/Clock/CTimespec.hs b/lib/Data/Time/Clock/CTimespec.hs
 new file mode 100644
-index 0000000..9f9d6d2
+index 0000000..19cf10a
 --- /dev/null
 +++ b/lib/Data/Time/Clock/CTimespec.hs
-@@ -0,0 +1,21 @@
+@@ -0,0 +1,41 @@
 +-- #hide
 +module Data.Time.Clock.CTimespec where
 +
++-- #include "HsTimeConfig.h"
++
++#if !defined(mingw32_HOST_OS) && HAVE_CLOCK_GETTIME
++
++#if __GLASGOW_HASKELL__ >= 709
 +import Foreign
++#else
++import Foreign.Safe
++#endif
 +import Foreign.C
++
++#include <time.h>
 +
 +data CTimespec = MkCTimespec CTime CLong
 +
-+-- CTime represents the number of whole seconds of elapsed time.
-+-- CLong represents the rest of elapsed time as number of nanoseconds
-+-- Reference: https://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html
++instance Storable CTimespec where
++    sizeOf _ = #{size struct timespec}
++    alignment _ = alignment (undefined :: CLong)
++    peek p = do
++        s  <- #{peek struct timespec, tv_sec } p
++        ns <- #{peek struct timespec, tv_nsec} p
++        return (MkCTimespec s ns)
++    poke p (MkCTimespec s ns) = do
++        #{poke struct timespec, tv_sec } p s
++        #{poke struct timespec, tv_nsec} p ns
 +
-+foreign import java unsafe "@static eta.time.Utils.getCurrentTimeInSeconds" getCurrentTimeInSeconds :: IO Int64
++foreign import ccall unsafe "time.h clock_gettime"
++    clock_gettime :: #{type clockid_t} -> Ptr CTimespec -> IO CInt
 +
 +-- | Get the current POSIX time from the system clock.
 +getCTimespec :: IO CTimespec
-+getCTimespec = do
-+  curSeconds <- getCurrentTimeInSeconds
-+  return $ MkCTimespec (fromIntegral curSeconds) (fromIntegral 0)
++getCTimespec = alloca (\ptspec -> do
++    throwErrnoIfMinus1_ "clock_gettime" $
++        clock_gettime #{const CLOCK_REALTIME} ptspec
++    peek ptspec
++    )
 +
-+
++#endif
 diff --git a/lib/Data/Time/Clock/CTimespec.hsc b/lib/Data/Time/Clock/CTimespec.hsc
 deleted file mode 100644
 index fb9aaa3..0000000
@@ -251,7 +186,7 @@ index a7a3737..1b685dc 100644
  #ifdef mingw32_HOST_OS
  import Data.Word    ( Word64)
 diff --git a/lib/Data/Time/LocalTime/TimeZone.hs b/lib/Data/Time/LocalTime/TimeZone.hs
-index 9381075..4e02725 100644
+index 9381075..b7d7a1e 100644
 --- a/lib/Data/Time/LocalTime/TimeZone.hs
 +++ b/lib/Data/Time/LocalTime/TimeZone.hs
 @@ -16,6 +16,7 @@ module Data.Time.LocalTime.TimeZone
@@ -297,10 +232,10 @@ index 9381075..4e02725 100644
  -- | Get the current time-zone
  getCurrentTimeZone :: IO TimeZone
 diff --git a/time.cabal b/time.cabal
-index 99ed765..9c6637f 100644
+index 99ed765..25b6fbc 100644
 --- a/time.cabal
 +++ b/time.cabal
-@@ -10,26 +10,26 @@ bug-reports:    https://github.com/haskell/time/issues
+@@ -10,7 +10,7 @@ bug-reports:    https://github.com/haskell/time/issues
  synopsis:       A time library
  description:    A time library
  category:       System
@@ -309,43 +244,27 @@ index 99ed765..9c6637f 100644
  cabal-version:  >=1.10
  tested-with:    GHC == 8.0.1, GHC == 7.10.3, GHC == 7.8.4
  x-follows-version-policy:
- 
- extra-source-files:
-     changelog.md
--    aclocal.m4
--    configure.ac
--    configure
-+    -- aclocal.m4
-+    -- configure.ac
-+    -- configure
-     lib/include/HsConfigure.h
-     lib/include/HsTime.h
-     lib/include/HsTimeConfig.h.in
-     test/Test/*.c
-     test/Test/*.h
- extra-tmp-files:
--    config.log
--    config.status
--    autom4te.cache
--    lib/include/HsTimeConfig.h
-+    -- config.log
-+    -- config.status
-+    -- autom4te.cache
-+    -- lib/include/HsTimeConfig.h
- 
- source-repository head
-     type:     git
-@@ -68,7 +68,8 @@ library
+@@ -52,8 +52,8 @@ library
+     build-depends:
+         base >= 4.7 && < 5,
+         deepseq >= 1.1
+-    if os(windows)
+-        build-depends: Win32
++    -- if os(windows)
++    --     build-depends: Win32
+     exposed-modules:
+         Data.Time.Calendar,
+         Data.Time.Calendar.MonthDay,
+@@ -68,7 +68,7 @@ library
          Data.Time.Format,
          Data.Time
      default-extensions:    CPP
 -    c-sources: lib/cbits/HsTime.c
-+    -- c-sources: lib/cbits/HsTime.c
 +    java-sources: java/Utils.java
      other-modules:
          Data.Time.Calendar.Private,
          Data.Time.Calendar.Days,
-@@ -85,13 +86,13 @@ library
+@@ -85,13 +85,13 @@ library
          Data.Time.Format.Parse
          Data.Time.Format.Locale
      include-dirs: lib/include
@@ -367,5 +286,5 @@ index 99ed765..9c6637f 100644
  test-suite ShowDefaultTZAbbreviations
      type: exitcode-stdio-1.0
 -- 
-2.7.4
+2.7.4 (Apple Git-66)
 
