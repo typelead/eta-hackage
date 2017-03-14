@@ -254,7 +254,7 @@ These packages are supported by `epm`.
 - [template-haskell-2.11.0.0](https://hackage.haskell.org/package/template-haskell-2.11.0.0)
 - [text-1.2.2.1](https://hackage.haskell.org/package/text-1.2.2.1)
 - [tf-random-0.5](https://hackage.haskell.org/package/tf-random-0.5)
-- [time >= 1.6.0.1 <= 1.8](https://hackage.haskell.org/package/time)
+- [time >= 1.6.0.1 <= 1.8.0.1](https://hackage.haskell.org/package/time)
 - [time-locale-compat-0.1.1.3](https://hackage.haskell.org/package/time-locale-compat-0.1.1.3)
 - [transformers-0.5.2.0](https://hackage.haskell.org/package/transformers-0.5.2.0)
 - [transformers-base-0.4.4](http://hackage.haskell.org/package/transformers-base-0.4.4)
