@@ -1,16 +1,16 @@
-From d2c74f7ad32eff3de12757d0cbeba3b8cc6c0c31 Mon Sep 17 00:00:00 2001
+From 721ac0c36fa9b886e7b823c675c69744d31593c0 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 28 Jan 2017 14:23:41 +0530
+Date: Wed, 22 Mar 2017 13:23:45 +0530
 Subject: [PATCH] Patched
 
 ---
  Network/Socket.hs        | 1664 ++++++++++++++++++++++++++++++++++++++++++++++
  Network/Socket.hsc       | 1660 ---------------------------------------------
- Network/Socket/Types.hs  | 1104 ++++++++++++++++++++++++++++++
+ Network/Socket/Types.hs  | 1106 ++++++++++++++++++++++++++++++
  Network/Socket/Types.hsc | 1103 ------------------------------
  java/Utils.java          |   15 +
  network.cabal            |   45 +-
- 6 files changed, 2806 insertions(+), 2785 deletions(-)
+ 6 files changed, 2808 insertions(+), 2785 deletions(-)
  create mode 100644 Network/Socket.hs
  delete mode 100644 Network/Socket.hsc
  create mode 100644 Network/Socket/Types.hs
@@ -19,7 +19,7 @@ Subject: [PATCH] Patched
 
 diff --git a/Network/Socket.hs b/Network/Socket.hs
 new file mode 100644
-index 0000000..930edc0
+index 0000000..c33d5ef
 --- /dev/null
 +++ b/Network/Socket.hs
 @@ -0,0 +1,1664 @@
@@ -62,8 +62,8 @@ index 0000000..930edc0
 +    -- , isSupportedSockAddr
 +    -- , SocketStatus(..)
 +    , HostAddress
-+--     , hostAddressToTuple
-+--     , tupleToHostAddress
++    , hostAddressToTuple
++    , tupleToHostAddress
 +-- #if defined(IPV6_SOCKET_SUPPORT)
 +    , HostAddress6
 +    -- , hostAddress6ToTuple
@@ -3355,10 +3355,10 @@ index 8b2e6fe..0000000
 -sIsWritable = isWritable
 diff --git a/Network/Socket/Types.hs b/Network/Socket/Types.hs
 new file mode 100644
-index 0000000..1918a0a
+index 0000000..f794d27
 --- /dev/null
 +++ b/Network/Socket/Types.hs
-@@ -0,0 +1,1104 @@
+@@ -0,0 +1,1106 @@
 +{-# LANGUAGE DeriveDataTypeable #-}
 +{-# LANGUAGE FlexibleInstances #-}
 +{-# LANGUAGE ForeignFunctionInterface #-}
@@ -3396,8 +3396,8 @@ index 0000000..1918a0a
 +    SockAddr(..)
 +    -- , isSupportedSockAddr
 +    , HostAddress
-+--     , hostAddressToTuple
-+--     , tupleToHostAddress
++    , hostAddressToTuple
++    , tupleToHostAddress
 +-- #if defined(IPV6_SOCKET_SUPPORT)
 +    , HostAddress6
 +    -- , hostAddress6ToTuple
@@ -3423,7 +3423,7 @@ index 0000000..1918a0a
 +-- import Control.Concurrent.MVar
 +-- import Control.Exception (throwIO)
 +import Control.Monad
-+-- import Data.Bits
++import Data.Bits
 +-- import Data.Maybe
 +import Data.Ratio
 +import Data.Typeable
@@ -4365,20 +4365,22 @@ index 0000000..1918a0a
 +-- 'tupleToHostAddress'.
 +type HostAddress = Word32
 +
-+-- -- | Converts 'HostAddress' to representation-independent IPv4 quadruple.
-+-- -- For example for @127.0.0.1@ the function will return @(0x7f, 0, 0, 1)@
-+-- -- regardless of host endianness.
-+-- hostAddressToTuple :: HostAddress -> (Word8, Word8, Word8, Word8)
-+-- hostAddressToTuple ha' =
-+--     let ha = htonl ha'
-+--         byte i = fromIntegral (ha `shiftR` i) :: Word8
-+--     in (byte 24, byte 16, byte 8, byte 0)
++-- | Converts 'HostAddress' to representation-independent IPv4 quadruple.
++-- For example for @127.0.0.1@ the function will return @(0x7f, 0, 0, 1)@
++-- regardless of host endianness.
++hostAddressToTuple :: HostAddress -> (Word8, Word8, Word8, Word8)
++hostAddressToTuple ha' =
++    let ha = ha'
++    -- TODO: Verify byte order
++        byte i = fromIntegral (ha `shiftR` i) :: Word8
++    in (byte 24, byte 16, byte 8, byte 0)
 +
-+-- -- | Converts IPv4 quadruple to 'HostAddress'.
-+-- tupleToHostAddress :: (Word8, Word8, Word8, Word8) -> HostAddress
-+-- tupleToHostAddress (b3, b2, b1, b0) =
-+--     let x `sl` i = fromIntegral x `shiftL` i :: Word32
-+--     in ntohl $ (b3 `sl` 24) .|. (b2 `sl` 16) .|. (b1 `sl` 8) .|. (b0 `sl` 0)
++-- | Converts IPv4 quadruple to 'HostAddress'.
++tupleToHostAddress :: (Word8, Word8, Word8, Word8) -> HostAddress
++tupleToHostAddress (b3, b2, b1, b0) =
++    let x `sl` i = fromIntegral x `shiftL` i :: Word32
++    in (b3 `sl` 24) .|. (b2 `sl` 16) .|. (b1 `sl` 8) .|. (b0 `sl` 0)
++    -- TODO: Verify byte order
 +
 +-- #if defined(IPV6_SOCKET_SUPPORT)
 +-- | Independent of endianness. For example @::1@ is stored as @(0, 0, 0, 1)@.
