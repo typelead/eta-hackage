@@ -1,6 +1,6 @@
-From 14eb3b437bc4956b34f6715cb9a2312b554735b5 Mon Sep 17 00:00:00 2001
+From c934e8922964d8d1c34013ea05de5efb9fd6257d Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 14 Mar 2017 12:16:00 +0530
+Date: Thu, 30 Mar 2017 00:43:23 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -10,9 +10,10 @@ Subject: [PATCH] Patched
  lib/Data/Time/Clock/Internal/CTimespec.hsc   | 76 ----------------------------
  lib/Data/Time/Clock/Internal/CTimeval.hs     |  9 ++--
  lib/Data/Time/Clock/Internal/SystemTime.hs   |  2 +-
+ lib/Data/Time/Format/Parse.hs                | 14 ++---
  lib/Data/Time/LocalTime/Internal/TimeZone.hs | 21 ++++----
  time.cabal                                   | 22 ++++----
- 8 files changed, 125 insertions(+), 106 deletions(-)
+ 9 files changed, 132 insertions(+), 113 deletions(-)
  create mode 100644 java/Utils.java
  create mode 100644 lib/Data/Time/Clock/Internal/CTimespec.hs
  delete mode 100644 lib/Data/Time/Clock/Internal/CTimespec.hsc
@@ -256,6 +257,38 @@ index 6027cdf..d4c900e 100644
  
  #ifdef mingw32_HOST_OS
  import qualified System.Win32.Time as Win32
+diff --git a/lib/Data/Time/Format/Parse.hs b/lib/Data/Time/Format/Parse.hs
+index 2c47d2b..ded200e 100644
+--- a/lib/Data/Time/Format/Parse.hs
++++ b/lib/Data/Time/Format/Parse.hs
+@@ -7,7 +7,7 @@ module Data.Time.Format.Parse
+     -- * UNIX-style parsing
+ #if LANGUAGE_Rank2Types
+     parseTimeM, parseTimeOrError, readSTime, readPTime,
+-    parseTime, readTime, readsTime,
++    parseTime, readTime, -- readsTime,
+ #endif
+     ParseTime(..),
+     -- * Locale
+@@ -171,12 +171,12 @@ readTime :: ParseTime t =>
+          -> t          -- ^ The time value.
+ readTime = parseTimeOrError True
+ 
+-{-# DEPRECATED readsTime "use \"readSTime True\" instead" #-}
+-readsTime :: ParseTime t =>
+-             TimeLocale -- ^ Time locale.
+-          -> String     -- ^ Format string
+-          -> ReadS t
+-readsTime = readSTime True
++-- {-# DEPRECATED readsTime "use \"readSTime True\" instead" #-}
++-- readsTime :: ParseTime t =>
++--              TimeLocale -- ^ Time locale.
++--           -> String     -- ^ Format string
++--           -> ReadS t
++-- readsTime = readSTime True
+ 
+ 
+ --
 diff --git a/lib/Data/Time/LocalTime/Internal/TimeZone.hs b/lib/Data/Time/LocalTime/Internal/TimeZone.hs
 index e2b2f49..fe036e3 100644
 --- a/lib/Data/Time/LocalTime/Internal/TimeZone.hs
