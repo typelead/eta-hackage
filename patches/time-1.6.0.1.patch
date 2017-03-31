@@ -1,6 +1,6 @@
-From fdb941758cc84404d51736678c428f477871a3a1 Mon Sep 17 00:00:00 2001
+From f5926c4a54e9a2025e68202a910c8478966cbbe2 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 21 Feb 2017 14:01:39 +0530
+Date: Fri, 31 Mar 2017 20:20:05 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -10,9 +10,10 @@ Subject: [PATCH] Patched
  lib/Data/Time/Clock/CTimespec.hsc   | 41 -------------------------------------
  lib/Data/Time/Clock/CTimeval.hs     |  9 ++++----
  lib/Data/Time/Clock/POSIX.hs        |  2 +-
+ lib/Data/Time/Format/Parse.hs       | 14 ++++++-------
  lib/Data/Time/LocalTime/TimeZone.hs | 22 +++++++++-----------
  time.cabal                          | 22 ++++++++++----------
- 8 files changed, 86 insertions(+), 71 deletions(-)
+ 9 files changed, 93 insertions(+), 78 deletions(-)
  create mode 100644 java/Utils.java
  create mode 100644 lib/Data/Time/Clock/CTimespec.hs
  delete mode 100644 lib/Data/Time/Clock/CTimespec.hsc
@@ -180,6 +181,38 @@ index a7a3737..1b685dc 100644
  
  #ifdef mingw32_HOST_OS
  import Data.Word    ( Word64)
+diff --git a/lib/Data/Time/Format/Parse.hs b/lib/Data/Time/Format/Parse.hs
+index 30b4705..220753a 100644
+--- a/lib/Data/Time/Format/Parse.hs
++++ b/lib/Data/Time/Format/Parse.hs
+@@ -7,7 +7,7 @@ module Data.Time.Format.Parse
+     -- * UNIX-style parsing
+ #if LANGUAGE_Rank2Types
+     parseTimeM, parseTimeOrError, readSTime, readPTime,
+-    parseTime, readTime, readsTime,
++    parseTime, readTime, -- readsTime,
+ #endif
+     ParseTime(..),
+     -- * Locale
+@@ -170,12 +170,12 @@ readTime :: ParseTime t =>
+          -> t          -- ^ The time value.
+ readTime = parseTimeOrError True
+ 
+-{-# DEPRECATED readsTime "use \"readSTime True\" instead" #-}
+-readsTime :: ParseTime t =>
+-             TimeLocale -- ^ Time locale.
+-          -> String     -- ^ Format string
+-          -> ReadS t
+-readsTime = readSTime True
++-- {-# DEPRECATED readsTime "use \"readSTime True\" instead" #-}
++-- readsTime :: ParseTime t =>
++--              TimeLocale -- ^ Time locale.
++--           -> String     -- ^ Format string
++--           -> ReadS t
++-- readsTime = readSTime True
+ 
+ 
+ --
 diff --git a/lib/Data/Time/LocalTime/TimeZone.hs b/lib/Data/Time/LocalTime/TimeZone.hs
 index 9381075..efaa2c3 100644
 --- a/lib/Data/Time/LocalTime/TimeZone.hs
