@@ -1,0 +1,92 @@
+From f48637c74f53b2c64b73e60ef6ceb45b109d7022 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 4 Apr 2017 11:24:08 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/IntSet/Internal.hs | 12 +++++++++---
+ containers.cabal        |  1 +
+ java/Utils.java         | 11 +++++++++++
+ 3 files changed, 21 insertions(+), 3 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Data/IntSet/Internal.hs b/Data/IntSet/Internal.hs
+index 7eece21..207798a 100644
+--- a/Data/IntSet/Internal.hs
++++ b/Data/IntSet/Internal.hs
+@@ -1,4 +1,5 @@
+ {-# LANGUAGE CPP #-}
++{-# LANGUAGE ForeignFunctionInterface #-} 
+ {-# LANGUAGE BangPatterns #-}
+ #if __GLASGOW_HASKELL__
+ {-# LANGUAGE MagicHash, DeriveDataTypeable, StandaloneDeriving #-}
+@@ -207,8 +208,9 @@ import GHC.Exts (Int(..), build)
+ #if __GLASGOW_HASKELL__ >= 708
+ import qualified GHC.Exts as GHCExts
+ #endif
+-import GHC.Prim (indexInt8OffAddr#)
++import GHC.Prim (indexJByteArray#)
+ #endif
++import Java.Array(JByteArray(..))
+ 
+ 
+ infixl 9 \\{-This comment teaches CPP correct behaviour -}
+@@ -1326,12 +1328,13 @@ foldr'Bits :: Int -> (Int -> a -> a) -> a -> Nat -> a
+ indexOfTheOnlyBit :: Nat -> Int
+ {-# INLINE indexOfTheOnlyBit #-}
+ indexOfTheOnlyBit bitmask =
+-  I# (lsbArray `indexInt8OffAddr#` unboxInt (intFromNat ((bitmask * magic) `shiftRL` offset)))
++  I# (GHCExts.jbyte2int# (bytes `indexJByteArray#` unboxInt (intFromNat ((bitmask * magic) `shiftRL` offset))))
+   where unboxInt (I# i) = i
++        !(JByteArray bytes) = lsbArray'
+ #if WORD_SIZE_IN_BITS==32
+         magic = 0x077CB531
+         offset = 27
+-        !lsbArray = "\0\1\28\2\29\14\24\3\30\22\20\15\25\17\4\8\31\27\13\23\21\19\16\7\26\12\18\6\11\5\10\9"#
++        -- !lsbArray = "\0\1\28\2\29\14\24\3\30\22\20\15\25\17\4\8\31\27\13\23\21\19\16\7\26\12\18\6\11\5\10\9"#
+ #else
+         magic = 0x07EDD5E59A4E28C2
+         offset = 58
+@@ -1344,6 +1347,9 @@ indexOfTheOnlyBit bitmask =
+ -- is 48B on 32-bit and 56B on 64-bit architectures -- so the 32B and 64B array
+ -- is actually improvement on 32-bit and only a 8B size increase on 64-bit.
+ 
++foreign import java unsafe "@static @field eta.containers.Utils.lsbArray"
++  lsbArray' :: JByteArray
++
+ lowestBitMask :: Nat -> Nat
+ lowestBitMask x = x .&. negate x
+ {-# INLINE lowestBitMask #-}
+diff --git a/containers.cabal b/containers.cabal
+index 987755d..7538a2b 100644
+--- a/containers.cabal
++++ b/containers.cabal
+@@ -37,6 +37,7 @@ Library
+         build-depends: ghc-prim
+ 
+     ghc-options: -O2 -Wall
++    java-sources: java/Utils.java
+ 
+     other-extensions: CPP, BangPatterns
+ 
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..caa7261
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,11 @@
++package eta.containers;
++
++public class Utils {
++    public static final byte[] lsbArray = new byte[] {
++        (byte)0, (byte)1, (byte)28, (byte)2, (byte)29, (byte)14, (byte)24, (byte)3,
++        (byte)30, (byte)22, (byte)20, (byte)15, (byte)25, (byte)17, (byte)4, (byte)8,
++        (byte)31, (byte)27, (byte)13, (byte)23, (byte)21, (byte)19, (byte)16,
++        (byte)7, (byte)26, (byte)12, (byte)18, (byte)6, (byte)11, (byte)5, (byte)10,
++        (byte)9
++    };
++}
+\ No newline at end of file
+-- 
+2.10.1 (Apple Git-78)
+
