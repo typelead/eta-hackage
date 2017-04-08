@@ -1,6 +1,6 @@
-From 7209b48c063ac2ceb7b5b23c7534063a1ff55d57 Mon Sep 17 00:00:00 2001
+From ed15cde9a757e08ec0b782a575aab2ac8a53b948 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 2 Jan 2017 18:59:56 +0530
+Date: Sat, 8 Apr 2017 16:48:12 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -13,22 +13,22 @@ Subject: [PATCH] Patched
  create mode 100644 java/Utils.java
 
 diff --git a/System/Directory.hs b/System/Directory.hs
-index be98632..64261ff 100644
+index be98632..1fb787f 100644
 --- a/System/Directory.hs
 +++ b/System/Directory.hs
 @@ -1,4 +1,4 @@
 -{-# LANGUAGE CPP #-}
 +{-# LANGUAGE CPP, MagicHash #-}
-
+ 
  #if !(MIN_VERSION_base(4,8,0))
  -- In base-4.8.0 the Foreign module became Safe
 @@ -106,6 +106,12 @@ module System.Directory
-
+ 
     ) where
  import Prelude ()
 +import Java.Core hiding ((<.>))
 +import Java.String
-+import Java.Collections (Iterator, consume)
++import Java.Collections (Iterator)
 +import Java.Utils (toString)
 +import Data.Int(Int64)
 +import System.Environment (lookupEnv)
@@ -51,13 +51,13 @@ index be98632..64261ff 100644
 +-- import qualified GHC.Foreign as GHC
 +-- import qualified System.Posix as Posix
 +-- #endif
-
+ 
  {- $intro
  A directory contains a series of entries, each of which is a named
 @@ -138,6 +144,13 @@ some operating systems, it may also be possible to have paths which
  are relative to the current directory.
  -}
-
+ 
 +-- TODO: Make these internal?
 +data {-# CLASS "java.nio.file.Path" #-} Path = Path (Object# Path)
 +  deriving Class
@@ -67,10 +67,10 @@ index be98632..64261ff 100644
 +
  -----------------------------------------------------------------------------
  -- Permissions
-
+ 
 @@ -199,47 +212,27 @@ The operation may fail with:
  -}
-
+ 
  getPermissions :: FilePath -> IO Permissions
 -getPermissions name =
 -#ifdef mingw32_HOST_OS
@@ -134,12 +134,12 @@ index be98632..64261ff 100644
 +  isPathExecutable :: Path -> IO Bool
 +foreign import java unsafe "@static java.nio.file.Files.isDirectory"
 +  isPathDirectory :: Path -> IO Bool
-
+ 
  {- |The 'setPermissions' operation sets the
  permissions for the file or directory.
 @@ -254,57 +247,17 @@ The operation may fail with:
  -}
-
+ 
  setPermissions :: FilePath -> Permissions -> IO ()
 -setPermissions name (Permissions r w e s) =
 -#ifdef mingw32_HOST_OS
@@ -176,7 +176,7 @@ index be98632..64261ff 100644
 +
 +foreign import java unsafe "@static eta.directory.Utils.setPermissions"
 +  setPermissions' :: Path -> Bool -> Bool -> Bool -> IO ()
-
+ 
  copyPermissions :: FilePath -> FilePath -> IO ()
 -copyPermissions source dest =
 -#ifdef mingw32_HOST_OS
@@ -192,7 +192,7 @@ index be98632..64261ff 100644
 -  copyPermissionsFromStatus stat dest
 -#endif
 +copyPermissions source dest = copyPermissions' (toPath source) (toPath dest)
-
+ 
 -#ifndef mingw32_HOST_OS
 -copyPermissionsFromStatus :: Posix.FileStatus -> FilePath -> IO ()
 -copyPermissionsFromStatus st dst = do
@@ -200,12 +200,12 @@ index be98632..64261ff 100644
 -#endif
 +foreign import java unsafe "@static eta.directory.Utils.copyPermissions"
 +  copyPermissions' :: Path -> Path -> IO ()
-
+ 
  -----------------------------------------------------------------------------
  -- Implementation
 @@ -345,14 +298,8 @@ The path refers to an existing non-directory object.
  @[EEXIST]@
-
+ 
  -}
 -
 -createDirectory :: FilePath -> IO ()
@@ -217,7 +217,7 @@ index be98632..64261ff 100644
 -#endif
 +foreign import java unsafe "@static eta.directory.Utils.createDirectory"
 +  createDirectory :: FilePath -> IO ()
-
+ 
  -- | @'createDirectoryIfMissing' parents dir@ creates a new directory
  -- @dir@ if it doesn\'t exist. If the first argument is 'True'
 @@ -399,11 +346,7 @@ createDirectoryIfMissing create_parents path0
@@ -230,11 +230,11 @@ index be98632..64261ff 100644
 -        isDir = (Posix.isDirectory <$> Posix.getFileStatus dir)
 -#endif
 +        isDir = isPathDirectory (toPath dir)
-
+ 
  -- | * @'NotDirectory'@:   not a directory.
  --   * @'Directory'@:      a true directory (not a symbolic link).
 @@ -415,24 +358,23 @@ data DirectoryType = NotDirectory
-
+ 
  -- | Obtain the type of a directory.
  getDirectoryType :: FilePath -> IO DirectoryType
 -getDirectoryType path =
@@ -272,12 +272,12 @@ index be98632..64261ff 100644
 +
 +foreign import java unsafe "isSymbolicLink"
 +  isSymbolicLink' :: BasicFileAttributes -> IO Bool
-
+ 
  {- | @'removeDirectory' dir@ removes an existing directory /dir/.  The
  implementation may specify additional constraints which must be
 @@ -476,12 +418,10 @@ The operand refers to an existing non-directory object.
  -}
-
+ 
  removeDirectory :: FilePath -> IO ()
 -removeDirectory path =
 -#ifdef mingw32_HOST_OS
@@ -289,12 +289,12 @@ index be98632..64261ff 100644
 +
 +foreign import java unsafe "@static java.nio.file.Files.delete"
 +  delete' :: Path -> IO ()
-
+ 
  -- | @'removeDirectoryRecursive' dir@ removes an existing directory /dir/
  -- together with its contents and subdirectories. Within this directory,
 @@ -620,12 +560,7 @@ The operand refers to an existing directory.
  -}
-
+ 
  removeFile :: FilePath -> IO ()
 -removeFile path =
 -#ifdef mingw32_HOST_OS
@@ -303,12 +303,12 @@ index be98632..64261ff 100644
 -  Posix.removeLink path
 -#endif
 +removeFile path = delete' (toPath path)
-
+ 
  {- |@'renameDirectory' old new@ changes the name of an existing
  directory from /old/ to /new/.  If the /new/ directory
 @@ -677,17 +612,8 @@ Either path refers to an existing non-directory object.
  -}
-
+ 
  renameDirectory :: FilePath -> FilePath -> IO ()
 -renameDirectory opath npath =
 -   -- XXX this test isn't performed atomically with the following rename
@@ -341,7 +341,7 @@ index be98632..64261ff 100644
                           mkIOError InappropriateType "" Nothing (Just path)
 +         opath' = toPath opath
 +         npath' = toPath npath
-
+ 
  -- | Rename a file or directory.  If the destination path already exists, it
  -- is replaced atomically.  The destination path must not point to an existing
 @@ -806,12 +734,10 @@ renameFile opath npath = (`ioeAddLocation` "renameFile") `modifyIOError` do
@@ -358,13 +358,13 @@ index be98632..64261ff 100644
 +
 +foreign import java unsafe "@static eta.directory.Utils.atomicMove"
 +  rename' :: Path -> Path -> IO ()
-
+ 
  -- | Copy a file with its permissions.  If the destination file already exists,
  -- it is replaced atomically.  Neither path may refer to an existing
 @@ -825,20 +751,6 @@ copyFile fromFPath toFPath =
      atomicCopyFileContents fromFPath toFPath
        (ignoreIOExceptions . copyPermissions fromFPath)
-
+ 
 -#ifndef mingw32_HOST_OS
 --- | Truncate the destination file and then copy the contents of the source
 --- file to the destination file.  If the destination file already exists, its
@@ -398,7 +398,7 @@ index be98632..64261ff 100644
 -      copyMetadataFromStatus st dst
 -#endif
 +copyFileWithMetadata src dst = copy' (toPath src) (toPath dst)
-
+ 
 -#ifndef mingw32_HOST_OS
 -copyMetadataFromStatus :: Posix.FileStatus -> FilePath -> IO ()
 -copyMetadataFromStatus st dst = do
@@ -434,13 +434,13 @@ index be98632..64261ff 100644
 -#endif
 +foreign import java unsafe "@static eta.directory.Utils.copy"
 +  copy' :: Path -> Path -> IO ()
-
+ 
  -- | Make a path absolute, 'normalise' the path, and remove as many
  -- indirections from it as possible.  Any trailing path separators are
 @@ -1038,18 +909,8 @@ canonicalizePath = \ path ->
      (transform =<< prependCurrentDirectory path)
    where
-
+ 
 -#if defined(mingw32_HOST_OS)
 -    transform path =
 -      attemptRealpath getFinalPathName =<<
@@ -455,7 +455,7 @@ index be98632..64261ff 100644
 -#endif
 +    -- TODO: Implement this
 +    transform path = undefined
-
+ 
      attemptRealpath realpath path =
        realpathPrefix realpath (reverse (zip prefixes suffixes)) path
 @@ -1136,14 +997,11 @@ makeRelativeToCurrentDirectory x = do
@@ -471,7 +471,7 @@ index be98632..64261ff 100644
      path <- getPath
      findFileWith isExecutable path (binary <.> exeExtension)
 -#endif
-
+ 
  -- | Given a file name, searches for the file and returns a list of all
  -- occurences that are executable.
 @@ -1153,23 +1011,17 @@ findExecutable binary = do
@@ -488,7 +488,7 @@ index be98632..64261ff 100644
      path <- getPath
      findExecutablesInDirectories path binary
 -#endif
-
+ 
 -#ifndef mingw32_HOST_OS
  -- | Get the contents of the @PATH@ environment variable.
  getPath :: IO [FilePath]
@@ -496,7 +496,7 @@ index be98632..64261ff 100644
      path <- getEnv "PATH"
      return (splitSearchPath path)
 -#endif
-
+ 
  -- | Given a file name, searches for the file on the given paths and returns a
  -- list of all occurences that are executable.
 @@ -1243,41 +1095,26 @@ findFileWithIn f name d = do
@@ -543,7 +543,7 @@ index be98632..64261ff 100644
 +  (openDirStream (toPath path))
 +  closeDirStream $ \dirp -> do
 +    it <- itDirStream dirp
-+    return (map (fromJString . toString) (consume it))
++    return $ map (fromJString . toString) (fromJava it :: [Path])
 +
 +data {-# CLASS "java.nio.file.DirectoryStream" #-} DirectoryStream a
 +  = DirectoryStream (Object# (DirectoryStream a))
@@ -557,7 +557,7 @@ index be98632..64261ff 100644
 +
 +foreign import java unsafe "@static eta.directory.Utils.itDirStream"
 +  itDirStream :: DirectoryStream Path -> IO (Iterator Path)
-
+ 
  -- | @'listDirectory' dir@ returns a list of /all/ entries in /dir/ without
  -- the special entries (@.@ and @..@).
 @@ -1342,19 +1179,8 @@ listDirectory path =
@@ -579,7 +579,7 @@ index be98632..64261ff 100644
 -#endif
 +foreign import java unsafe "@static eta.directory.Utils.getCurrentDirectory"
 +  getCurrentDirectory :: IO FilePath
-
+ 
  -- | Change the working directory to the given path.
  --
 @@ -1389,13 +1215,8 @@ getCurrentDirectory =
@@ -595,7 +595,7 @@ index be98632..64261ff 100644
 -#endif
 +foreign import java unsafe "@static eta.directory.Utils.setCurrentDirectory"
 +  setCurrentDirectory :: FilePath -> IO ()
-
+ 
  -- | Run an 'IO' action with the given working directory and restore the
  -- original working directory afterwards, even if the given action fails due
 @@ -1418,13 +1239,10 @@ withCurrentDirectory dir action =
@@ -613,7 +613,7 @@ index be98632..64261ff 100644
 +
 +foreign import java unsafe "@static java.nio.file.Files.size"
 +  filesSize :: Path -> IO Int64
-
+ 
  -- | Test whether the given path points to an existing filesystem object.  If
  -- the user lacks necessary permissions to search the parent directories, this
 @@ -1432,13 +1250,10 @@ getFileSize path =
@@ -631,12 +631,12 @@ index be98632..64261ff 100644
 +
 +foreign import java unsafe "@static eta.directory.Utils.exists"
 +  filesExists :: Path -> IO Bool
-
+ 
  {- |The operation 'doesDirectoryExist' returns 'True' if the argument file
  exists and is either a directory or a symbolic link to a directory,
 @@ -1446,60 +1261,30 @@ and 'False' otherwise.
  -}
-
+ 
  doesDirectoryExist :: FilePath -> IO Bool
 -doesDirectoryExist name =
 -#ifdef mingw32_HOST_OS
@@ -647,11 +647,11 @@ index be98632..64261ff 100644
 -#endif
 -   `catchIOError` \ _ -> return False
 +doesDirectoryExist name = isPathDirectory (toPath name)
-
+ 
  {- |The operation 'doesFileExist' returns 'True'
  if the argument file exists and is not a directory, and 'False' otherwise.
  -}
-
+ 
  doesFileExist :: FilePath -> IO Bool
 -doesFileExist name =
 -#ifdef mingw32_HOST_OS
@@ -663,7 +663,7 @@ index be98632..64261ff 100644
 -   `catchIOError` \ _ -> return False
 +doesFileExist name = (&&) <$> doesPathExist name
 +                          <*> fmap not (doesDirectoryExist name)
-
+ 
  -- | Check whether the path refers to a symbolic link.  On Windows, this tests
  -- for @FILE_ATTRIBUTE_REPARSE_POINT@.
  --
@@ -682,11 +682,11 @@ index be98632..64261ff 100644
 +
 +foreign import java unsafe "@static java.nio.file.Files.isSymbolicLink"
 +  isPathSymbolicLink :: Path -> IO Bool
-
+ 
  {-# DEPRECATED isSymbolicLink "Use 'pathIsSymbolicLink' instead" #-}
  isSymbolicLink :: FilePath -> IO Bool
  isSymbolicLink = pathIsSymbolicLink
-
+ 
 -#ifdef mingw32_HOST_OS
 --- | Open the handle of an existing file or directory.
 -openFileHandle :: String -> Win32.AccessMode -> IO Win32.HANDLE
@@ -722,7 +722,7 @@ index be98632..64261ff 100644
 +
 +foreign import java unsafe "@static eta.directory.Utils.lastModifiedTime"
 +  getModifiedTime' :: BasicFileAttributes -> IO Int64
-
+ 
  -- | Obtain the time at which the file or directory was last modified.
  --
 @@ -1533,42 +1330,18 @@ getAccessTime = modifyIOError (`ioeAddLocation` "getAccessTime") .
@@ -732,7 +732,7 @@ index be98632..64261ff 100644
 -getModificationTime = modifyIOError (`ioeAddLocation` "getModificationTime") .
 -                      (snd <$>) . getFileTimes
 +getModificationTime = (snd <$>) . getFileTimes
-
+ 
  getFileTimes :: FilePath -> IO (UTCTime, UTCTime)
 -getFileTimes path =
 -  modifyIOError (`ioeAddLocation` "getFileTimes") .
@@ -775,7 +775,7 @@ index be98632..64261ff 100644
 +        p = toPath path'
 +        toUTCTime t = posixSecondsToUTCTime ( fromIntegral t
 +                                            / 1000000000 )
-
+ 
  -- | Change the time at which the file or directory was last accessed.
  --
 @@ -1595,7 +1368,6 @@ fileTimesFromStatus st =
@@ -784,7 +784,7 @@ index be98632..64261ff 100644
  setAccessTime path atime =
 -  modifyIOError (`ioeAddLocation` "setAccessTime") $
      setFileTimes path (Just atime, Nothing)
-
+ 
  -- | Change the time at which the file or directory was last modified.
 @@ -1623,88 +1395,19 @@ setAccessTime path atime =
  --
@@ -792,7 +792,7 @@ index be98632..64261ff 100644
  setModificationTime path mtime =
 -  modifyIOError (`ioeAddLocation` "setModificationTime") $
      setFileTimes path (Nothing, Just mtime)
-
+ 
  setFileTimes :: FilePath -> (Maybe UTCTime, Maybe UTCTime) -> IO ()
  setFileTimes _ (Nothing, Nothing) = return ()
 -setFileTimes path (atime, mtime) =
@@ -805,7 +805,7 @@ index be98632..64261ff 100644
      path' = normalise path              -- handle empty paths
 +    p = toPath path'
 +    normalizeTime = maybe (-1) $ truncate . utcTimeToPOSIXSeconds
-
+ 
 -    setTimes :: (Maybe POSIXTime, Maybe POSIXTime) -> IO ()
 -#ifdef mingw32_HOST_OS
 -    setTimes (atime', mtime') =
@@ -878,9 +878,9 @@ index be98632..64261ff 100644
 -#endif
 +foreign import java unsafe "@static eta.directory.Utils.setFileTimes"
 +  setFileTimes' :: Path -> Int64 -> Int64 -> IO ()
-
+ 
  {- | Returns the current user's home directory.
-
+ 
 @@ -1726,16 +1429,8 @@ The operating system has no notion of home directory.
  The home directory for the current user does not exist, or
  cannot be found.
@@ -897,7 +897,7 @@ index be98632..64261ff 100644
 -#endif
 +foreign import java unsafe "@static eta.directory.Utils.getHomeDirectory"
 +  getHomeDirectory :: IO FilePath
-
+ 
  -- | Special directories for storing user-specific application data,
  --   configuration, and cache files, as specified by the
 @@ -1798,28 +1493,17 @@ getXdgDirectory xdgDir suffix =
@@ -937,7 +937,7 @@ index be98632..64261ff 100644
 +      where which | isLocal   = "LOCALAPPDATA"
 +                  | otherwise = "APPDATA"
 +            fallback' = (</> fallback) <$> getHomeDirectory
-
+ 
  -- | Similar to 'try' but only catches a specify kind of 'IOError' as
  --   specified by the predicate.
 @@ -1863,18 +1547,17 @@ specializeErrorString str errType action = do
@@ -964,9 +964,9 @@ index be98632..64261ff 100644
 +  | otherwise = do
 +      path <- getEnv "HOME"
 +      return (path ++ '/' : '.' : appName)
-
+ 
  {- | Returns the current user's document directory.
-
+ 
 @@ -1895,15 +1578,12 @@ The operating system has no notion of document directory.
  * 'isDoesNotExistError'
  The document directory for the current user does not exist, or
@@ -984,11 +984,11 @@ index be98632..64261ff 100644
 +getUserDocumentsDirectory
 +  | isWindows = getEnv "USERPROFILE"
 +  | otherwise = getEnv "HOME"
-
+ 
  {- | Returns the current directory for temporary files.
-
+ 
 @@ -1931,14 +1611,8 @@ The operating system has no notion of temporary directory.
-
+ 
  The function doesn\'t verify whether the path exists.
  -}
 -getTemporaryDirectory :: IO FilePath
@@ -1001,7 +1001,7 @@ index be98632..64261ff 100644
 -#endif
 +foreign import java unsafe "@static eta.directory.Utils.getTemporaryDirectory"
 +  getTemporaryDirectory :: IO FilePath
-
+ 
  ioeAddLocation :: IOError -> String -> IOError
  ioeAddLocation e loc = do
 diff --git a/System/Directory/Internal.hs b/System/Directory/Internal.hs
@@ -1011,14 +1011,14 @@ index 0ce6aca..11676f1 100644
 @@ -5,25 +5,25 @@
  module System.Directory.Internal
    ( module System.Directory.Internal.Config
-
+ 
 -#ifdef HAVE_UTIMENSAT
 -  , module System.Directory.Internal.C_utimensat
 -#endif
 +-- #ifdef HAVE_UTIMENSAT
 +--   , module System.Directory.Internal.C_utimensat
 +-- #endif
-
+ 
 -#ifdef mingw32_HOST_OS
 -  , module System.Directory.Internal.Windows
 -#else
@@ -1029,17 +1029,17 @@ index 0ce6aca..11676f1 100644
 +-- #else
 +--   , module System.Directory.Internal.Posix
 +-- #endif
-
+ 
    ) where
  import System.Directory.Internal.Config
-
+ 
 -#ifdef HAVE_UTIMENSAT
 -import System.Directory.Internal.C_utimensat
 -#endif
 +-- #ifdef HAVE_UTIMENSAT
 +-- import System.Directory.Internal.C_utimensat
 +-- #endif
-
+ 
 -#ifdef mingw32_HOST_OS
 -import System.Directory.Internal.Windows
 -#else
@@ -1080,7 +1080,7 @@ index 7200487..5e6f578 100644
 +build-type:     Simple
  cabal-version:  >= 1.10
  tested-with:    GHC>=7.4.1
-
+ 
 @@ -46,21 +46,22 @@ Library
          System.Directory.Internal
          System.Directory.Internal.Prelude
@@ -1093,10 +1093,10 @@ index 7200487..5e6f578 100644
 +        -- System.Directory.Internal.C_utimensat
 +        -- System.Directory.Internal.Posix
 +        -- System.Directory.Internal.Windows
-
+ 
      include-dirs: .
 +    java-sources: java/Utils.java
-
+ 
      build-depends:
          base     >= 4.5 && < 4.11,
          time     >= 1.4 && < 1.8,
@@ -1109,9 +1109,9 @@ index 7200487..5e6f578 100644
 +    --     build-depends: Win32 >= 2.2.2 && < 2.5
 +    -- else
 +    --     build-depends: unix >= 2.5.1 && < 2.8
-
+ 
      ghc-options: -Wall
-
+ 
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
 index 0000000..136828a
@@ -1231,5 +1231,6 @@ index 0000000..136828a
 +        return ds.iterator();
 +    }
 +}
---
+-- 
 2.7.4 (Apple Git-66)
+
