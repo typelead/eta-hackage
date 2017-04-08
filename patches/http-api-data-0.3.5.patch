@@ -1,14 +1,14 @@
-From 0958eee9391d2833560c314c52a7d963851402ba Mon Sep 17 00:00:00 2001
+From 09f96d61e9e1490f4a98a22c632199e05223db40 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 28 Jan 2017 03:56:27 +0530
+Date: Sat, 8 Apr 2017 17:01:43 +0530
 Subject: [PATCH] Patched
 
 ---
- http-api-data.cabal | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ http-api-data.cabal | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/http-api-data.cabal b/http-api-data.cabal
-index b7f1781..c17a250 100644
+index b7f1781..805715c 100644
 --- a/http-api-data.cabal
 +++ b/http-api-data.cabal
 @@ -10,7 +10,7 @@ homepage:        http://github.com/fizruk/http-api-data
@@ -20,6 +20,25 @@ index b7f1781..c17a250 100644
  extra-source-files:
    include/overlapping-compat.h
    test/*.hs
+@@ -22,12 +22,12 @@ tested-with:
+   GHC==8.0.2,
+   GHC==8.1.*
+ 
+-custom-setup
+-  setup-depends:
+-    base >= 4.7 && <4.10,
+-    Cabal >= 1.18 && <1.26,
+-    filepath,
+-    directory
++-- custom-setup
++--   setup-depends:
++--     base >= 4.7 && <4.10,
++--     Cabal >= 1.18 && <1.26,
++--     filepath,
++--     directory
+ 
+ flag use-text-show
+   description: Use text-show library for efficient ToHttpApiData implementations.
 -- 
 2.7.4 (Apple Git-66)
 
