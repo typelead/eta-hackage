@@ -1,17 +1,49 @@
-From 84395f13de9f923fd6b365413d1d1eb7901251fd Mon Sep 17 00:00:00 2001
+From b79785c43e89b2c47171c4040092eb3f3afcb125 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sun, 9 Apr 2017 16:16:38 +0530
-Subject: [PATCH] Patched
+Date: Sun, 9 Apr 2017 22:06:32 +0530
+Subject: [PATCH] Updated word8 patch further
 
 ---
- Data/Word8.hs | 60 +++++++++++++++++++++++++++++------------------------------
- 1 file changed, 30 insertions(+), 30 deletions(-)
+ Data/Char8.hs | 14 +++++------
+ Data/Word8.hs | 76 +++++++++++++++++++++++++++++------------------------------
+ 2 files changed, 45 insertions(+), 45 deletions(-)
 
+diff --git a/Data/Char8.hs b/Data/Char8.hs
+index 24dba31..fc78f73 100644
+--- a/Data/Char8.hs
++++ b/Data/Char8.hs
+@@ -56,8 +56,8 @@ isLowerCommon c = isLower' c
+ 
+ isLower' :: Char -> Bool
+ isLower' c = isAsciiLower c
+-          || _germandbls <= c && c <= _odieresis
+-          || _oslash     <= c && c <= _ydieresis
++          || _germandbls <= c && c <= _odieresis'
++          || _oslash'    <= c && c <= _ydieresis
+ 
+ isUpper :: Char -> Bool
+ isUpper c = isAsciiUpper c
+@@ -195,10 +195,10 @@ _Odieresis = '\xd6'
+ _Oslash    = '\xd8'
+ _Thorn     = '\xde'
+ 
+-_germandbls, _agrave, _odieresis, _oslash, _thorn, _ydieresis :: Char
++_germandbls, _agrave', _odieresis', _oslash', _thorn', _ydieresis :: Char
+ _germandbls = '\xdf'
+-_agrave     = '\xe0'
+-_odieresis  = '\xf6'
+-_oslash     = '\xf8'
+-_thorn      = '\xfe'
++_agrave'    = '\xe0'
++_odieresis' = '\xf6'
++_oslash'    = '\xf8'
++_thorn'     = '\xfe'
+ _ydieresis  = '\xff'
 diff --git a/Data/Word8.hs b/Data/Word8.hs
-index 9ac495a..98f7408 100644
+index 9ac495a..2bed13d 100644
 --- a/Data/Word8.hs
 +++ b/Data/Word8.hs
-@@ -28,7 +28,7 @@ module Data.Word8 (
+@@ -28,14 +28,14 @@ module Data.Word8 (
    , _colon, _semicolon, _less, _equal, _greater, _question, _at
    , _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z
    , _bracketleft, _backslash, _bracketright, _circum, _underscore, _grave
@@ -20,6 +52,25 @@ index 9ac495a..98f7408 100644
    , _braceleft, _bar, _braceright, _tilde, _del
    -- * Some Latin-1 charactors
    , _nbsp
+   , _ordfeminine, _softhyphen, _mu, _ordmasculine
+   , _s2, _s3, _s1, _1'4, _1'2, _3'4
+   , _Agrave, _Odieresis, _Oslash, _Thorn
+-  , _germandbls, _agrave, _odieresis, _oslash, _thorn, _ydieresis
++  , _germandbls, _agrave', _odieresis', _oslash', _thorn', _ydieresis
+   ) where
+ 
+ import Data.Word (Word8)
+@@ -77,8 +77,8 @@ isLowerCommon w = isLower' w
+ 
+ isLower' :: Word8 -> Bool
+ isLower' w = isAsciiLower w
+-          || _germandbls <= w && w <= _odieresis
+-          || _oslash     <= w && w <= _ydieresis
++          || _germandbls <= w && w <= _odieresis'
++          || _oslash'    <= w && w <= _ydieresis
+ 
+ isUpper :: Word8 -> Bool
+ isUpper w = isAsciiUpper w
 @@ -106,7 +106,7 @@ isOctDigit w = _0 <= w && w <= _7
  isHexDigit :: Word8 -> Bool
  isHexDigit w = isDigit w
@@ -99,6 +150,22 @@ index 9ac495a..98f7408 100644
  
  _braceleft, _bar, _braceright, _tilde, _del :: Word8
  _braceleft  = 0x7b
+@@ -320,10 +320,10 @@ _Odieresis = 0xd6
+ _Oslash    = 0xd8
+ _Thorn     = 0xde
+ 
+-_germandbls, _agrave, _odieresis, _oslash, _thorn, _ydieresis :: Word8
++_germandbls, _agrave', _odieresis', _oslash', _thorn', _ydieresis :: Word8
+ _germandbls = 0xdf
+-_agrave     = 0xe0
+-_odieresis  = 0xf6
+-_oslash     = 0xf8
+-_thorn      = 0xfe
++_agrave'    = 0xe0
++_odieresis' = 0xf6
++_oslash'    = 0xf8
++_thorn'     = 0xfe
+ _ydieresis  = 0xff
 -- 
 2.7.4 (Apple Git-66)
 
