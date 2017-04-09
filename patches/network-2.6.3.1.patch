@@ -1,7 +1,7 @@
-From 721ac0c36fa9b886e7b823c675c69744d31593c0 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Wed, 22 Mar 2017 13:23:45 +0530
-Subject: [PATCH] Patched
+From 85b28d74dc5249d18658a79c7a04731f3d726b62 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Sat, 8 Apr 2017 23:58:41 +0200
+Subject: [PATCH 1/2] Patched
 
 ---
  Network/Socket.hs        | 1664 ++++++++++++++++++++++++++++++++++++++++++++++
@@ -3355,7 +3355,7 @@ index 8b2e6fe..0000000
 -sIsWritable = isWritable
 diff --git a/Network/Socket/Types.hs b/Network/Socket/Types.hs
 new file mode 100644
-index 0000000..f794d27
+index 0000000..ba55dce
 --- /dev/null
 +++ b/Network/Socket/Types.hs
 @@ -0,0 +1,1106 @@
@@ -3400,8 +3400,8 @@ index 0000000..f794d27
 +    , tupleToHostAddress
 +-- #if defined(IPV6_SOCKET_SUPPORT)
 +    , HostAddress6
-+    -- , hostAddress6ToTuple
-+    -- , tupleToHostAddress6
++    , hostAddress6ToTuple
++    , tupleToHostAddress6
 +    , FlowInfo
 +    , ScopeID
 +-- #endif
@@ -4389,20 +4389,20 @@ index 0000000..f794d27
 +-- 'tupleToHostAddress6'.
 +type HostAddress6 = (Word32, Word32, Word32, Word32)
 +
-+-- hostAddress6ToTuple :: HostAddress6 -> (Word16, Word16, Word16, Word16,
-+--                                         Word16, Word16, Word16, Word16)
-+-- hostAddress6ToTuple (w3, w2, w1, w0) =
-+--     let high, low :: Word32 -> Word16
-+--         high w = fromIntegral (w `shiftR` 16)
-+--         low w = fromIntegral w
-+--     in (high w3, low w3, high w2, low w2, high w1, low w1, high w0, low w0)
++hostAddress6ToTuple :: HostAddress6 -> (Word16, Word16, Word16, Word16,
++                                        Word16, Word16, Word16, Word16)
++hostAddress6ToTuple (w3, w2, w1, w0) =
++    let high, low :: Word32 -> Word16
++        high w = fromIntegral (w `shiftR` 16)
++        low w = fromIntegral w
++    in (high w3, low w3, high w2, low w2, high w1, low w1, high w0, low w0)
 +
-+-- tupleToHostAddress6 :: (Word16, Word16, Word16, Word16,
-+--                         Word16, Word16, Word16, Word16) -> HostAddress6
-+-- tupleToHostAddress6 (w7, w6, w5, w4, w3, w2, w1, w0) =
-+--     let add :: Word16 -> Word16 -> Word32
-+--         high `add` low = (fromIntegral high `shiftL` 16) .|. (fromIntegral low)
-+--     in (w7 `add` w6, w5 `add` w4, w3 `add` w2, w1 `add` w0)
++tupleToHostAddress6 :: (Word16, Word16, Word16, Word16,
++                        Word16, Word16, Word16, Word16) -> HostAddress6
++tupleToHostAddress6 (w7, w6, w5, w4, w3, w2, w1, w0) =
++    let add :: Word16 -> Word16 -> Word32
++        high `add` low = (fromIntegral high `shiftL` 16) .|. (fromIntegral low)
++    in (w7 `add` w6, w5 `add` w4, w3 `add` w2, w1 `add` w0)
 +
 +-- -- The peek32 and poke32 functions work around the fact that the RFCs
 +-- -- don't require 32-bit-wide address fields to be present.  We can
@@ -5671,5 +5671,33 @@ index c90c9b1..0b0a9c4 100644
  
  test-suite simple
 -- 
-2.7.4 (Apple Git-66)
+2.11.1.windows.1
+
+
+From b142e1b3b09db72b291e4af6466d53da25fc4f8a Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Sun, 9 Apr 2017 00:12:58 +0200
+Subject: [PATCH 2/2] Patched network-2.6.3.1
+
+---
+ Network/Socket.hs | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Network/Socket.hs b/Network/Socket.hs
+index c33d5ef..a702cc3 100644
+--- a/Network/Socket.hs
++++ b/Network/Socket.hs
+@@ -41,8 +41,8 @@ module Network.Socket
+     , tupleToHostAddress
+ -- #if defined(IPV6_SOCKET_SUPPORT)
+     , HostAddress6
+-    -- , hostAddress6ToTuple
+-    -- , tupleToHostAddress6
++    , hostAddress6ToTuple
++    , tupleToHostAddress6
+     , FlowInfo
+     , ScopeID
+ -- #endif
+-- 
+2.11.1.windows.1
 
