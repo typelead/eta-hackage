@@ -1,0 +1,104 @@
+From 84395f13de9f923fd6b365413d1d1eb7901251fd Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 9 Apr 2017 16:16:38 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Word8.hs | 60 +++++++++++++++++++++++++++++------------------------------
+ 1 file changed, 30 insertions(+), 30 deletions(-)
+
+diff --git a/Data/Word8.hs b/Data/Word8.hs
+index 9ac495a..98f7408 100644
+--- a/Data/Word8.hs
++++ b/Data/Word8.hs
+@@ -28,7 +28,7 @@ module Data.Word8 (
+   , _colon, _semicolon, _less, _equal, _greater, _question, _at
+   , _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z
+   , _bracketleft, _backslash, _bracketright, _circum, _underscore, _grave
+-  , _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z
++  , _a', _b', _c', _d', _e', _f', _g', _h', _i', _j', _k', _l', _m', _n', _o', _p', _q', _r', _s', _t', _u', _v', _w', _x', _y', _z'
+   , _braceleft, _bar, _braceright, _tilde, _del
+   -- * Some Latin-1 charactors
+   , _nbsp
+@@ -106,7 +106,7 @@ isOctDigit w = _0 <= w && w <= _7
+ isHexDigit :: Word8 -> Bool
+ isHexDigit w = isDigit w
+             || _A <= w && w <= _F
+-            || _a <= w && w <= _f
++            || _a' <= w && w <= _f'
+ 
+ isLetter :: Word8 -> Bool
+ isLetter w = isLowerCommon w || isUpper w
+@@ -157,7 +157,7 @@ isAsciiUpper :: Word8 -> Bool
+ isAsciiUpper w = _A <= w && w <= _Z
+ 
+ isAsciiLower :: Word8 -> Bool
+-isAsciiLower w = _a <= w && w <= _z
++isAsciiLower w = _a' <= w && w <= _z'
+ 
+ ----------------------------------------------------------------
+ 
+@@ -262,33 +262,33 @@ _circum       = 0x5e
+ _underscore   = 0x5f
+ _grave        = 0x60
+ 
+-_a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z :: Word8
+-_a = 0x61
+-_b = 0x62
+-_c = 0x63
+-_d = 0x64
+-_e = 0x65
+-_f = 0x66
+-_g = 0x67
+-_h = 0x68
+-_i = 0x69
+-_j = 0x6a
+-_k = 0x6b
+-_l = 0x6c
+-_m = 0x6d
+-_n = 0x6e
+-_o = 0x6f
+-_p = 0x70
+-_q = 0x71
+-_r = 0x72
+-_s = 0x73
+-_t = 0x74
+-_u = 0x75
+-_v = 0x76
+-_w = 0x77
+-_x = 0x78
+-_y = 0x79
+-_z = 0x7a
++_a', _b', _c', _d', _e', _f', _g', _h', _i', _j', _k', _l', _m', _n', _o', _p', _q', _r', _s', _t', _u', _v', _w', _x', _y', _z' :: Word8
++_a' = 0x61
++_b' = 0x62
++_c' = 0x63
++_d' = 0x64
++_e' = 0x65
++_f' = 0x66
++_g' = 0x67
++_h' = 0x68
++_i' = 0x69
++_j' = 0x6a
++_k' = 0x6b
++_l' = 0x6c
++_m' = 0x6d
++_n' = 0x6e
++_o' = 0x6f
++_p' = 0x70
++_q' = 0x71
++_r' = 0x72
++_s' = 0x73
++_t' = 0x74
++_u' = 0x75
++_v' = 0x76
++_w' = 0x77
++_x' = 0x78
++_y' = 0x79
++_z' = 0x7a
+ 
+ _braceleft, _bar, _braceright, _tilde, _del :: Word8
+ _braceleft  = 0x7b
+-- 
+2.7.4 (Apple Git-66)
+
