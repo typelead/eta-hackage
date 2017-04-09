@@ -1,0 +1,38 @@
+From 16e2f8c089d865a99279756910c84149d528c4ab Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 9 Apr 2017 23:57:32 +0530
+Subject: [PATCH] Patched
+
+---
+ Network/URI.hs | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Network/URI.hs b/Network/URI.hs
+index 4060dca..d9e70ff 100644
+--- a/Network/URI.hs
++++ b/Network/URI.hs
+@@ -111,7 +111,7 @@ module Network.URI
+     , normalizePathSegments
+ 
+     -- * Deprecated functions
+-    , parseabsoluteURI
++    -- , parseabsoluteURI
+     , escapeString
+     , reserved, unreserved
+     , scheme, authority, path, query, fragment
+@@ -1280,9 +1280,9 @@ normalizePathSegments uristr = normstr juri
+ --  Deprecated functions
+ ------------------------------------------------------------
+ 
+-{-# DEPRECATED parseabsoluteURI "use parseAbsoluteURI" #-}
+-parseabsoluteURI :: String -> Maybe URI
+-parseabsoluteURI = parseAbsoluteURI
++-- {-# DEPRECATED parseabsoluteURI "use parseAbsoluteURI" #-}
++-- parseabsoluteURI :: String -> Maybe URI
++-- parseabsoluteURI = parseAbsoluteURI
+ 
+ {-# DEPRECATED escapeString "use escapeURIString, and note the flipped arguments" #-}
+ escapeString :: String -> (Char->Bool) -> String
+-- 
+2.7.4 (Apple Git-66)
+
