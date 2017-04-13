@@ -10,6 +10,7 @@ else
     echo "Updating ETA"
     cd ${HOME}/eta
     _pull=$(git pull)
+    git submodule sync
     _subs=$(git submodule update --recursive)
 
     if [ "$_pull" == "Already up-to-date." ] && [ -z "$_subs" ]; then
