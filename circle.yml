@@ -17,7 +17,7 @@ dependencies:
   pre:
     - sudo apt-get update
     - mkdir -p ~/.local/bin
-    - wget -qO- https://get.haskellstack.org/ | sh
+    # - wget -qO- https://get.haskellstack.org/ | sh
     - scripts/eta-install.sh
 
   override:
