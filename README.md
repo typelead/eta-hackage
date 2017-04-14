@@ -1,6 +1,6 @@
 # Eta Hackage
 
-[![Build Status](https://travis-ci.org/typelead/eta-hackage.svg?branch=master)](https://travis-ci.org/typelead/eta-hackage)
+[![Build Status](https://circleci.com/gh/typelead/eta-hackage.svg?style=shield&circle-token=d70d4858668d80ca74fbaf0172c7f270a6b0a4f6)](https://circleci.com/gh/typelead/eta-hackage)
 
 This repository contains a set of patches for particular packages from
 Hackage that cannot be built out-of-the-box with `etlas`. To install a package, you 
