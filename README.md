@@ -3,18 +3,18 @@
 [![Build Status](https://travis-ci.org/typelead/eta-hackage.svg?branch=master)](https://travis-ci.org/typelead/eta-hackage)
 
 This repository contains a set of patches for particular packages from
-Hackage that cannot be built out-of-the-box with `epm`. To install a package, you 
+Hackage that cannot be built out-of-the-box with `etlas`. To install a package, you 
 have to run the following command:
 
 ```
-epm install <package-name>
+etlas install <package-name>
 ```
 
-`epm` will take care of downloading the tar file, optionally patching it, and installing it. If a patch is in the repo, but your local `epm` in unable to find a patch
+`etlas` will take care of downloading the tar file, optionally patching it, and installing it. If a patch is in the repo, but your local `etlas` in unable to find a patch
 for it, run
 
 ```
-epm update
+etlas update
 ```
 
 and try the installation again.
@@ -34,16 +34,16 @@ and try the installation again.
 
 ### Overview
 
-We have categorized the packages from Hackage below in relation to `epm` support. If a package from Hackage has not been listed here, it means no one has tried to build it and categorize it.
+We have categorized the packages from Hackage below in relation to `etlas` support. If a package from Hackage has not been listed here, it means no one has tried to build it and categorize it.
 
-If you would like to have a given package/version made compatible with `epm`, you can:
+If you would like to have a given package/version made compatible with `etlas`, you can:
 
 - Submit an [issue](https://github.com/typelead/eta-hackage/issues/new)
 - Ask us on [Gitter](https://gitter.im/typelead/eta)
 
 ### Supported Packages
 
-These packages are supported by `epm`.
+These packages are supported by `etlas`.
 
 - [abstract-deque-0.3](https://hackage.haskell.org/package/abstract-deque-0.3)
 - [abstract-par-0.3.3](https://hackage.haskell.org/package/abstract-par-0.3.3)
@@ -338,7 +338,7 @@ If you have already forked this repository, then skip to step 3.
 1. Fetch the package and navigate to it.
 
    ```
-   epm unpack somepackage-0.1.2.3
+   etlas unpack somepackage-0.1.2.3
    cd somepackage-0.1.2.3/
    ```
 
@@ -354,7 +354,7 @@ If you have already forked this repository, then skip to step 3.
 3. Build the package.
 
    ```
-   epm build
+   etlas build
    ```
 
 4. Apply the desired changes and go back to step 3 as long as the build fails.

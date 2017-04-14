@@ -85,8 +85,8 @@ main :: IO ()
 main = do
   let vmUpdateCmd = "etlas update"
   _ <- shell vmUpdateCmd ""
-  epmPkgs <- packagesFilePath
-  pkg <- parsePackagesFile epmPkgs
+  etlasPkgs <- packagesFilePath
+  pkg <- parsePackagesFile etlasPkgs
   case pkg of
     Nothing -> die "Problem parsing your packages.json file"
     Just pkg' -> do
