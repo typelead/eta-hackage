@@ -1,16 +1,16 @@
-From 69fac52863228f4bbf8b25896cdc5539494090ea Mon Sep 17 00:00:00 2001
+From d7c5030c3246959f0f1be04efad7b9864017a789 Mon Sep 17 00:00:00 2001
 From: jneira <atreyu.bbb@gmail.com>
-Date: Sat, 8 Apr 2017 23:58:41 +0200
-Subject: [PATCH 1/3] Patched
+Date: Sun, 23 Apr 2017 22:33:44 +0200
+Subject: [PATCH] Patched
 
 ---
- Network/Socket.hs        | 1664 ++++++++++++++++++++++++++++++++++++++++++++++
+ Network/Socket.hs        | 1669 ++++++++++++++++++++++++++++++++++++++++++++++
  Network/Socket.hsc       | 1660 ---------------------------------------------
  Network/Socket/Types.hs  | 1106 ++++++++++++++++++++++++++++++
  Network/Socket/Types.hsc | 1103 ------------------------------
- java/Utils.java          |   15 +
+ java/Utils.java          |   27 +
  network.cabal            |   45 +-
- 6 files changed, 2808 insertions(+), 2785 deletions(-)
+ 6 files changed, 2825 insertions(+), 2785 deletions(-)
  create mode 100644 Network/Socket.hs
  delete mode 100644 Network/Socket.hsc
  create mode 100644 Network/Socket/Types.hs
@@ -19,10 +19,10 @@ Subject: [PATCH 1/3] Patched
 
 diff --git a/Network/Socket.hs b/Network/Socket.hs
 new file mode 100644
-index 0000000..c33d5ef
+index 0000000..a89e61c
 --- /dev/null
 +++ b/Network/Socket.hs
-@@ -0,0 +1,1664 @@
+@@ -0,0 +1,1669 @@
 +{-# LANGUAGE CPP, ScopedTypeVariables #-}
 +{-# OPTIONS_GHC -fno-warn-orphans #-}
 +-----------------------------------------------------------------------------
@@ -66,8 +66,8 @@ index 0000000..c33d5ef
 +    , tupleToHostAddress
 +-- #if defined(IPV6_SOCKET_SUPPORT)
 +    , HostAddress6
-+    -- , hostAddress6ToTuple
-+    -- , tupleToHostAddress6
++    , hostAddress6ToTuple
++    , tupleToHostAddress6
 +    , FlowInfo
 +    , ScopeID
 +-- #endif
@@ -223,10 +223,10 @@ index 0000000..c33d5ef
 +-- import Foreign.Marshal.Utils ( maybeWith, with )
 +
 +-- import System.IO
-+-- import Control.Monad (liftM, when)
++import Control.Monad (liftM {-, when -})
 +
 +-- import Control.Concurrent.MVar
-+-- import Data.Typeable
++import Data.Typeable
 +-- import System.IO.Error
 +
 +-- import GHC.Conc (threadWaitRead, threadWaitWrite)
@@ -245,19 +245,19 @@ index 0000000..c33d5ef
 +-- import qualified GHC.IO.Device
 +-- import GHC.IO.Handle.FD
 +-- import GHC.IO.Exception
-+-- import GHC.IO
++import GHC.IO
 +-- import qualified System.Posix.Internals
 +
 +-- import Network.Socket.Internal
 +import Network.Socket.Types
-+
++import Java
 +-- import Prelude -- Silence AMP warnings
 +
 +-- | Either a host name e.g., @\"haskell.org\"@ or a numeric host
 +-- address string consisting of a dotted decimal IPv4 address or an
 +-- IPv6 address e.g., @\"192.168.0.1\"@.
-+-- type HostName       = String
-+-- type ServiceName    = String
++type HostName       = String
++type ServiceName    = String
 +
 +-- ----------------------------------------------------------------------------
 +-- On Windows, our sockets are not put in non-blocking mode (non-blocking
@@ -319,13 +319,13 @@ index 0000000..c33d5ef
 +   . showString ":"
 +   . shows port
 +-- #if defined(IPV6_SOCKET_SUPPORT)
-+--   showsPrec _ addr@(SockAddrInet6 port _ _ _)
-+--    = showChar '['
-+--    . showString (unsafePerformIO $
-+--                  fst `liftM` getNameInfo [NI_NUMERICHOST] True False addr >>=
-+--                  maybe (fail "showsPrec: impossible internal error") return)
-+--    . showString "]:"
-+--    . shows port
++  showsPrec _ addr@(SockAddrInet6 port _ _ _)
++   = showChar '['
++   . showString (unsafePerformIO $
++                 fst `liftM` getNameInfo [NI_NUMERICHOST] True False addr >>=
++                 maybe (fail "showsPrec: impossible internal error") return)
++   . showString "]:"
++   . shows port
 +-- #endif
 +-- #if defined(CAN_SOCKET_SUPPORT)
 +  showsPrec _ (SockAddrCan ifidx) = shows ifidx
@@ -1361,27 +1361,27 @@ index 0000000..c33d5ef
 +
 +-- -- | Flags that control the querying behaviour of 'getNameInfo'.
 +-- --   For more information, see <https://tools.ietf.org/html/rfc3493#page-30>
-+-- data NameInfoFlag =
-+--     -- | Resolve a datagram-based service name.  This is
-+--     --   required only for the few protocols that have different port
-+--     --   numbers for their datagram-based versions than for their
-+--     --   stream-based versions.
-+--       NI_DGRAM
-+--     -- | If the hostname cannot be looked up, an IO error is thrown.
-+--     | NI_NAMEREQD
-+--     -- | If a host is local, return only the hostname part of the FQDN.
-+--     | NI_NOFQDN
-+--     -- | The name of the host is not looked up.
-+--     --   Instead, a numeric representation of the host's
-+--     --   address is returned.  For an IPv4 address, this will be a
-+--     --   dotted-quad string.  For IPv6, it will be colon-separated
-+--     --   hexadecimal.
-+--     | NI_NUMERICHOST
-+--     -- | The name of the service is not
-+--     --   looked up.  Instead, a numeric representation of the
-+--     --   service is returned.
-+--     | NI_NUMERICSERV
-+--     deriving (Eq, Read, Show, Typeable)
++data NameInfoFlag =
++    -- | Resolve a datagram-based service name.  This is
++    --   required only for the few protocols that have different port
++    --   numbers for their datagram-based versions than for their
++    --   stream-based versions.
++      NI_DGRAM
++    -- | If the hostname cannot be looked up, an IO error is thrown.
++    | NI_NAMEREQD
++    -- | If a host is local, return only the hostname part of the FQDN.
++    | NI_NOFQDN
++    -- | The name of the host is not looked up.
++    --   Instead, a numeric representation of the host's
++    --   address is returned.  For an IPv4 address, this will be a
++    --   dotted-quad string.  For IPv6, it will be colon-separated
++    --   hexadecimal.
++    | NI_NUMERICHOST
++    -- | The name of the service is not
++    --   looked up.  Instead, a numeric representation of the
++    --   service is returned.
++    | NI_NUMERICSERV
++    deriving (Eq, Read, Show, Typeable)
 +
 +-- niFlagMapping :: [(NameInfoFlag, CInt)]
 +
@@ -1530,12 +1530,17 @@ index 0000000..c33d5ef
 +-- --   (hostName, _) <- getNameInfo [] True False myAddress
 +-- -- @
 +
-+-- getNameInfo :: [NameInfoFlag] -- ^ flags to control lookup behaviour
-+--             -> Bool -- ^ whether to look up a hostname
-+--             -> Bool -- ^ whether to look up a service name
-+--             -> SockAddr -- ^ the address to look up
-+--             -> IO (Maybe HostName, Maybe ServiceName)
++foreign import java unsafe "@static eta.network.Utils.inet6_ntoa"
++  inet6_ntoa :: JIntArray -> String
 +
++getNameInfo :: [NameInfoFlag] -- ^ flags to control lookup behaviour
++            -> Bool -- ^ whether to look up a hostname
++            -> Bool -- ^ whether to look up a service name
++            -> SockAddr -- ^ the address to look up
++            -> IO (Maybe HostName, Maybe ServiceName)
++getNameInfo [NI_NUMERICHOST] True False (SockAddrInet6 _ _ addr _) = do
++  let (ip1,ip2,ip3,ip4) = addr
++  return (Just $ inet6_ntoa $ toJava [ip1,ip2,ip3,ip4] ,Nothing)
 +-- getNameInfo flags doHost doService addr = withSocketsDo $
 +--   withCStringIf doHost (#const NI_MAXHOST) $ \c_hostlen c_host ->
 +--     withCStringIf doService (#const NI_MAXSERV) $ \c_servlen c_serv -> do
@@ -5576,10 +5581,10 @@ index b42c98d..0000000
 -zeroMemory dest nbytes = memset dest 0 (fromIntegral nbytes)
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..6dd9f0e
+index 0000000..dc8542f
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,27 @@
 +package eta.network;
 +
 +import java.net.InetAddress;
@@ -5594,6 +5599,18 @@ index 0000000..6dd9f0e
 +                (byte)bytes
 +            }).toString().substring(1);
 +    }
++
++    public static String inet6_ntoa(int[] addr) {
++        String res="";
++        if (addr !=null) {
++            for (int i=0; i < addr.length; i++) {
++                res+=Integer.toHexString(addr[i]) +
++                    (i < addr.length-1?":":"");
++            }
++        }
++        return res;
++    }
++
 +}
 diff --git a/network.cabal b/network.cabal
 index c90c9b1..0b0a9c4 100644
@@ -5671,71 +5688,5 @@ index c90c9b1..0b0a9c4 100644
  
  test-suite simple
 -- 
-2.10.0
-
-
-From 8d3f0f8297de12f56b974cbced91c300eea06d12 Mon Sep 17 00:00:00 2001
-From: jneira <atreyu.bbb@gmail.com>
-Date: Sun, 9 Apr 2017 00:12:58 +0200
-Subject: [PATCH 2/3] Patched network-2.6.3.1
-
----
- Network/Socket.hs | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/Network/Socket.hs b/Network/Socket.hs
-index c33d5ef..a702cc3 100644
---- a/Network/Socket.hs
-+++ b/Network/Socket.hs
-@@ -41,8 +41,8 @@ module Network.Socket
-     , tupleToHostAddress
- -- #if defined(IPV6_SOCKET_SUPPORT)
-     , HostAddress6
--    -- , hostAddress6ToTuple
--    -- , tupleToHostAddress6
-+    , hostAddress6ToTuple
-+    , tupleToHostAddress6
-     , FlowInfo
-     , ScopeID
- -- #endif
--- 
-2.10.0
-
-
-From c75a6caf49b58e30c0f86969b2bdce91801815cf Mon Sep 17 00:00:00 2001
-From: Brian McKenna <bmckenna@atlassian.com>
-Date: Fri, 21 Apr 2017 10:16:58 +1000
-Subject: [PATCH 3/3] Patched: fix Show for SockAddrInet6
-
----
- Network/Socket.hs | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/Network/Socket.hs b/Network/Socket.hs
-index a702cc3..50f1cf8 100644
---- a/Network/Socket.hs
-+++ b/Network/Socket.hs
-@@ -294,13 +294,13 @@ instance Show SockAddr where
-    . showString ":"
-    . shows port
- -- #if defined(IPV6_SOCKET_SUPPORT)
----   showsPrec _ addr@(SockAddrInet6 port _ _ _)
----    = showChar '['
----    . showString (unsafePerformIO $
----                  fst `liftM` getNameInfo [NI_NUMERICHOST] True False addr >>=
----                  maybe (fail "showsPrec: impossible internal error") return)
----    . showString "]:"
----    . shows port
-+  showsPrec _ addr@(SockAddrInet6 port _ _ _)
-+   = showChar '['
-+   . showString (unsafePerformIO $
-+                 fst `liftM` getNameInfo [NI_NUMERICHOST] True False addr >>=
-+                 maybe (fail "showsPrec: impossible internal error") return)
-+   . showString "]:"
-+   . shows port
- -- #endif
- -- #if defined(CAN_SOCKET_SUPPORT)
-   showsPrec _ (SockAddrCan ifidx) = shows ifidx
--- 
-2.10.0
+2.11.1.windows.1
 
