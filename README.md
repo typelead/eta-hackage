@@ -397,26 +397,10 @@ If you have already forked this repository, then skip to step 3.
    cp somepackage-0.1.2.3.cabal somepackage-0.1.2.3.patch $YOUR_FORK_PATH/patches/ 
    ```
    
-9. Add `somepackage-0.1.2.3` to the `packages.json` file so that CI will start
-   building it.
-   
-   ```
-   {
-       "patched": [
-         ...
-         "somepackage-0.1.2.3"
-       ],
-       "vanilla": [
-         ...
-         "somepackage-0.1.2.3"
-       ]
-   }
-   ```
+9. Update this `README.md` with the package name (in alphabetical order) in the
+   **Supported Packages** section in the same format as the other packages.
 
-10. Update this `README.md` with the package name (in alphabetical order) in the
-    **Supported Packages** section in the same format as the other packages.
-
-11. In your `eta-hackage` repository,
+10. In your `eta-hackage` repository,
 
     ```
     $ git add .
@@ -424,4 +408,4 @@ If you have already forked this repository, then skip to step 3.
     $ git push origin
     ```
 
-10. Submit a pull request to this repository for review.
+11. Submit a pull request to this repository for review.
