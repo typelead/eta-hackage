@@ -1,6 +1,6 @@
-From ca8e7a69df59f097f74f44e232c47e2124a65ecc Mon Sep 17 00:00:00 2001
+From 55447d00c89f1bf0228ce69cb94e95c7a11e4030 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 20 Dec 2016 17:47:40 +0530
+Date: Tue, 25 Apr 2017 21:28:32 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -11,8 +11,8 @@ Subject: [PATCH] Patched
  Data/ByteString/Short/Internal.hs                  |   7 +-
  Data/ByteString/Unsafe.hs                          |   4 +-
  bytestring.cabal                                   |  11 +-
- java/Utils.java                                    | 282 +++++++++++++++++++++
- 8 files changed, 365 insertions(+), 125 deletions(-)
+ java/Utils.java                                    | 283 +++++++++++++++++++++
+ 8 files changed, 366 insertions(+), 125 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/Data/ByteString/Builder/Prim/ASCII.hs b/Data/ByteString/Builder/Prim/ASCII.hs
@@ -283,7 +283,7 @@ index 2565a49..d0ad12b 100644
 -        c_free_finalizer,       -- :: FunPtr (Ptr Word8 -> IO ())
 +        -- TODO: Deal with the finalizer
 +        -- c_free_finalizer,       -- :: FunPtr (Ptr Word8 -> IO ())
-
+ 
          memchr,                 -- :: Ptr Word8 -> Word8 -> CSize -> IO Ptr Word8
          memcmp,                 -- :: Ptr Word8 -> Ptr Word8 -> Int -> IO CInt
 @@ -195,12 +196,12 @@ packChars :: [Char] -> ByteString
@@ -381,7 +381,7 @@ index 15308d6..be1a1e2 100644
  -- Maintainer  : duncan@community.haskell.org
  -- Stability   : stable
  -- Portability : ghc only
----
+--- 
 +--
  -- Internal representation of ShortByteString
  --
@@ -390,7 +390,7 @@ index 15308d6..be1a1e2 100644
  null :: ShortByteString -> Bool
  null sbs = length sbs == 0
  
---- | /O(1)/ 'ShortByteString' index (subscript) operator, starting from 0.
+--- | /O(1)/ 'ShortByteString' index (subscript) operator, starting from 0. 
 +-- | /O(1)/ 'ShortByteString' index (subscript) operator, starting from 0.
  index :: ShortByteString -> Int -> Word8
  index sbs i
@@ -455,10 +455,10 @@ index 5890959..931ba5d 100644
    if impl(ghc >= 6.11)
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..babb03d
+index 0000000..69a327a
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,282 @@
+@@ -0,0 +1,283 @@
 +package eta.bytestring;
 +
 +import java.io.UnsupportedEncodingException;
@@ -466,6 +466,7 @@ index 0000000..babb03d
 +
 +import eta.runtime.io.StgByteArray;
 +import eta.runtime.stg.StgClosure;
++import eta.runtime.io.MemoryManager;
 +
 +/* NOTE: Hard limit on ByteBuffer API: 2^32 - 1 because of reliance on
 +         signed integer type everywhere.
@@ -496,7 +497,7 @@ index 0000000..babb03d
 +                return (ByteBuffer) b.position(b.position() - 1);
 +            }
 +        }
-+        return null;
++        return MemoryManager.nullAddress;
 +    }
 +
 +    public static int memcmp(StgByteArray b1, StgByteArray b2, int n) {
@@ -741,5 +742,6 @@ index 0000000..babb03d
 +        return (ByteBuffer) ptr.position(nfree);
 +    }
 +}
---
+-- 
 2.7.4 (Apple Git-66)
+
