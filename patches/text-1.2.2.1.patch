@@ -1,16 +1,151 @@
-From b250963aa66ed9fb9e1bc47f0695bf56c7f2a026 Mon Sep 17 00:00:00 2001
-From: jneira <atreyu.bbb@gmail.com>
-Date: Tue, 4 Apr 2017 10:52:43 +0200
-Subject: [PATCH 1/2] Patched
+From c3da1b3c801b2ea76cb64f3e0e4a4bf816cf4cac Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 27 Apr 2017 16:09:06 +0530
+Subject: [PATCH] Patched
 
 ---
- java/Utils.java | 178 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 178 insertions(+)
+ Data/Text/Array.hs            |   8 +-
+ Data/Text/Encoding.hs         |   8 +-
+ Data/Text/Internal.hs         |   2 +-
+ Data/Text/Lazy.hs             |   5 +-
+ Data/Text/Lazy/Builder/Int.hs |   2 +-
+ Data/Text/Show.hs             |   3 +-
+ java/Utils.java               | 178 ++++++++++++++++++++++++++++++++++++++++++
+ text.cabal                    |   7 +-
+ 8 files changed, 197 insertions(+), 16 deletions(-)
  create mode 100644 java/Utils.java
 
+diff --git a/Data/Text/Array.hs b/Data/Text/Array.hs
+index 8900958..12cb293 100644
+--- a/Data/Text/Array.hs
++++ b/Data/Text/Array.hs
+@@ -54,8 +54,6 @@ if (_k_) < 0 || (_k_) >= (_len_) then error ("Data.Text.Array." ++ (_func_) ++ "
+ # define CHECK_BOUNDS(_func_,_len_,_k_)
+ #endif
+ 
+-#include "MachDeps.h"
+-
+ #if defined(ASSERTS)
+ import Control.Exception (assert)
+ #endif
+@@ -235,12 +233,12 @@ equal arrA offA arrB offB count = inlinePerformIO $ do
+   return $! i == 0
+ {-# INLINE equal #-}
+ 
+-foreign import ccall unsafe "_hs_text_memcpy" memcpyI
++foreign import java unsafe "@static eta.text.Utils.memcpy" memcpyI
+     :: MutableByteArray# s -> CSize -> ByteArray# -> CSize -> CSize -> IO ()
+ 
+-foreign import ccall unsafe "_hs_text_memcmp" memcmp
++foreign import java unsafe "@static eta.text.Utils.memcmp" memcmp
+     :: ByteArray# -> CSize -> ByteArray# -> CSize -> CSize -> IO CInt
+ 
+-foreign import ccall unsafe "_hs_text_memcpy" memcpyM
++foreign import java unsafe "@static eta.text.Utils.memcpy" memcpyM
+     :: MutableByteArray# s -> CSize -> MutableByteArray# s -> CSize -> CSize
+     -> IO ()
+diff --git a/Data/Text/Encoding.hs b/Data/Text/Encoding.hs
+index 7289256..7e34b3e 100644
+--- a/Data/Text/Encoding.hs
++++ b/Data/Text/Encoding.hs
+@@ -474,17 +474,17 @@ encodeUtf32BE :: Text -> ByteString
+ encodeUtf32BE txt = E.unstream (E.restreamUtf32BE (F.stream txt))
+ {-# INLINE encodeUtf32BE #-}
+ 
+-foreign import ccall unsafe "_hs_text_decode_utf8" c_decode_utf8
++foreign import java unsafe "@static eta.text.Utils.decode_utf8" c_decode_utf8
+     :: MutableByteArray# s -> Ptr CSize
+     -> Ptr Word8 -> Ptr Word8 -> IO (Ptr Word8)
+ 
+-foreign import ccall unsafe "_hs_text_decode_utf8_state" c_decode_utf8_with_state
++foreign import java unsafe "@static eta.text.Utils.decode_utf8_state" c_decode_utf8_with_state
+     :: MutableByteArray# s -> Ptr CSize
+     -> Ptr (Ptr Word8) -> Ptr Word8
+     -> Ptr CodePoint -> Ptr DecoderState -> IO (Ptr Word8)
+ 
+-foreign import ccall unsafe "_hs_text_decode_latin1" c_decode_latin1
++foreign import java unsafe "@static eta.text.Utils.decode_latin1" c_decode_latin1
+     :: MutableByteArray# s -> Ptr Word8 -> Ptr Word8 -> IO ()
+ 
+-foreign import ccall unsafe "_hs_text_encode_utf8" c_encode_utf8
++foreign import java unsafe "@static eta.text.Utils.encode_utf8" c_encode_utf8
+     :: Ptr (Ptr Word8) -> ByteArray# -> CSize -> CSize -> IO ()
+diff --git a/Data/Text/Internal.hs b/Data/Text/Internal.hs
+index 81f918a..ed82dc5 100644
+--- a/Data/Text/Internal.hs
++++ b/Data/Text/Internal.hs
+@@ -21,7 +21,7 @@
+ -- preserve data invariants.  You have been warned!
+ 
+ #if defined(__GLASGOW_HASKELL__) && !defined(__HADDOCK__)
+-#include "MachDeps.h"
++#define WORD_SIZE_IN_BITS 32
+ #endif
+ 
+ module Data.Text.Internal
+diff --git a/Data/Text/Lazy.hs b/Data/Text/Lazy.hs
+index 1d1b3f1..2a406bf 100644
+--- a/Data/Text/Lazy.hs
++++ b/Data/Text/Lazy.hs
+@@ -421,10 +421,12 @@ unpack t = S.unstreamList (stream t)
+ {-# INLINE [1] unpack #-}
+ 
+ -- | /O(n)/ Convert a literal string into a Text.
++-- TODO: Convert Addr# related functions to Object# JString
+ unpackCString# :: Addr# -> Text
+-unpackCString# addr# = unstream (S.streamCString# addr#)
++unpackCString# addr# = P.undefined --unstream (S.streamCString# addr#)
+ {-# NOINLINE unpackCString# #-}
+ 
++{-
+ {-# RULES "TEXT literal" forall a.
+     unstream (S.streamList (L.map safe (GHC.unpackCString# a)))
+       = unpackCString# a #-}
+@@ -432,6 +434,7 @@ unpackCString# addr# = unstream (S.streamCString# addr#)
+ {-# RULES "TEXT literal UTF8" forall a.
+     unstream (S.streamList (L.map safe (GHC.unpackCStringUtf8# a)))
+       = unpackCString# a #-}
++-}
+ 
+ {-# RULES "LAZY TEXT empty literal"
+     unstream (S.streamList (L.map safe []))
+diff --git a/Data/Text/Lazy/Builder/Int.hs b/Data/Text/Lazy/Builder/Int.hs
+index 1cb0651..8e68d92 100644
+--- a/Data/Text/Lazy/Builder/Int.hs
++++ b/Data/Text/Lazy/Builder/Int.hs
+@@ -35,7 +35,7 @@ import Control.Monad.ST
+ 
+ #ifdef  __GLASGOW_HASKELL__
+ # if defined(INTEGER_GMP)
+-import GHC.Integer.GMP.Internals (Integer(S#))
++import GHC.Integer.BigInteger.Internals (Integer(S#))
+ # elif defined(INTEGER_SIMPLE)
+ import GHC.Integer
+ # else
+diff --git a/Data/Text/Show.hs b/Data/Text/Show.hs
+index 9238eb9..f5e8724 100644
+--- a/Data/Text/Show.hs
++++ b/Data/Text/Show.hs
+@@ -49,7 +49,7 @@ unpack = S.unstreamList . stream
+ unpackCString# :: Addr# -> Text
+ unpackCString# addr# = unstream (S.streamCString# addr#)
+ {-# NOINLINE unpackCString# #-}
+-
++{- TODO: Override streamCString# for Object# JString
+ {-# RULES "TEXT literal" [1] forall a.
+     unstream (S.map safe (S.streamList (GHC.unpackCString# a)))
+       = unpackCString# a #-}
+@@ -57,6 +57,7 @@ unpackCString# addr# = unstream (S.streamCString# addr#)
+ {-# RULES "TEXT literal UTF8" [1] forall a.
+     unstream (S.map safe (S.streamList (GHC.unpackCStringUtf8# a)))
+       = unpackCString# a #-}
++-}
+ 
+ {-# RULES "TEXT empty literal" [1]
+     unstream (S.map safe (S.streamList []))
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..e38f108
+index 0000000..c9ca012
 --- /dev/null
 +++ b/java/Utils.java
 @@ -0,0 +1,178 @@
@@ -154,7 +289,7 @@ index 0000000..e38f108
 +            }
 +            last.get();
 +        }
-+        bufPutInt(destOffset, 0, d.position() - dest.position());
++        bufPutInt(destOffset, 0, (d.position() - dest.position()) / 2);
 +        bufPutInt(codepoint0, 0, codepoint);
 +        bufPutInt(state0, 0, state);
 +        bufPutInt(src0, 0, getAddress(last));
@@ -192,153 +327,6 @@ index 0000000..e38f108
 +        bufPutInt(destp, 0, getAddress(dest));
 +    }
 +}
--- 
-1.9.5.msysgit.1
-
-
-From 300e1a2f9ec3c331ee8cd906256232883baeab87 Mon Sep 17 00:00:00 2001
-From: jneira <atreyu.bbb@gmail.com>
-Date: Tue, 4 Apr 2017 10:54:38 +0200
-Subject: [PATCH 2/2] Patched
-
----
- Data/Text/Array.hs            | 8 +++-----
- Data/Text/Encoding.hs         | 8 ++++----
- Data/Text/Internal.hs         | 2 +-
- Data/Text/Lazy.hs             | 5 ++++-
- Data/Text/Lazy/Builder/Int.hs | 2 +-
- Data/Text/Show.hs             | 3 ++-
- text.cabal                    | 7 ++++---
- 7 files changed, 19 insertions(+), 16 deletions(-)
-
-diff --git a/Data/Text/Array.hs b/Data/Text/Array.hs
-index 8900958..12cb293 100644
---- a/Data/Text/Array.hs
-+++ b/Data/Text/Array.hs
-@@ -54,8 +54,6 @@ if (_k_) < 0 || (_k_) >= (_len_) then error ("Data.Text.Array." ++ (_func_) ++ "
- # define CHECK_BOUNDS(_func_,_len_,_k_)
- #endif
- 
--#include "MachDeps.h"
--
- #if defined(ASSERTS)
- import Control.Exception (assert)
- #endif
-@@ -235,12 +233,12 @@ equal arrA offA arrB offB count = inlinePerformIO $ do
-   return $! i == 0
- {-# INLINE equal #-}
- 
--foreign import ccall unsafe "_hs_text_memcpy" memcpyI
-+foreign import java unsafe "@static eta.text.Utils.memcpy" memcpyI
-     :: MutableByteArray# s -> CSize -> ByteArray# -> CSize -> CSize -> IO ()
- 
--foreign import ccall unsafe "_hs_text_memcmp" memcmp
-+foreign import java unsafe "@static eta.text.Utils.memcmp" memcmp
-     :: ByteArray# -> CSize -> ByteArray# -> CSize -> CSize -> IO CInt
- 
--foreign import ccall unsafe "_hs_text_memcpy" memcpyM
-+foreign import java unsafe "@static eta.text.Utils.memcpy" memcpyM
-     :: MutableByteArray# s -> CSize -> MutableByteArray# s -> CSize -> CSize
-     -> IO ()
-diff --git a/Data/Text/Encoding.hs b/Data/Text/Encoding.hs
-index 7289256..7e34b3e 100644
---- a/Data/Text/Encoding.hs
-+++ b/Data/Text/Encoding.hs
-@@ -474,17 +474,17 @@ encodeUtf32BE :: Text -> ByteString
- encodeUtf32BE txt = E.unstream (E.restreamUtf32BE (F.stream txt))
- {-# INLINE encodeUtf32BE #-}
- 
--foreign import ccall unsafe "_hs_text_decode_utf8" c_decode_utf8
-+foreign import java unsafe "@static eta.text.Utils.decode_utf8" c_decode_utf8
-     :: MutableByteArray# s -> Ptr CSize
-     -> Ptr Word8 -> Ptr Word8 -> IO (Ptr Word8)
- 
--foreign import ccall unsafe "_hs_text_decode_utf8_state" c_decode_utf8_with_state
-+foreign import java unsafe "@static eta.text.Utils.decode_utf8_state" c_decode_utf8_with_state
-     :: MutableByteArray# s -> Ptr CSize
-     -> Ptr (Ptr Word8) -> Ptr Word8
-     -> Ptr CodePoint -> Ptr DecoderState -> IO (Ptr Word8)
- 
--foreign import ccall unsafe "_hs_text_decode_latin1" c_decode_latin1
-+foreign import java unsafe "@static eta.text.Utils.decode_latin1" c_decode_latin1
-     :: MutableByteArray# s -> Ptr Word8 -> Ptr Word8 -> IO ()
- 
--foreign import ccall unsafe "_hs_text_encode_utf8" c_encode_utf8
-+foreign import java unsafe "@static eta.text.Utils.encode_utf8" c_encode_utf8
-     :: Ptr (Ptr Word8) -> ByteArray# -> CSize -> CSize -> IO ()
-diff --git a/Data/Text/Internal.hs b/Data/Text/Internal.hs
-index 81f918a..ed82dc5 100644
---- a/Data/Text/Internal.hs
-+++ b/Data/Text/Internal.hs
-@@ -21,7 +21,7 @@
- -- preserve data invariants.  You have been warned!
- 
- #if defined(__GLASGOW_HASKELL__) && !defined(__HADDOCK__)
--#include "MachDeps.h"
-+#define WORD_SIZE_IN_BITS 32
- #endif
- 
- module Data.Text.Internal
-diff --git a/Data/Text/Lazy.hs b/Data/Text/Lazy.hs
-index 1d1b3f1..2a406bf 100644
---- a/Data/Text/Lazy.hs
-+++ b/Data/Text/Lazy.hs
-@@ -421,10 +421,12 @@ unpack t = S.unstreamList (stream t)
- {-# INLINE [1] unpack #-}
- 
- -- | /O(n)/ Convert a literal string into a Text.
-+-- TODO: Convert Addr# related functions to Object# JString
- unpackCString# :: Addr# -> Text
--unpackCString# addr# = unstream (S.streamCString# addr#)
-+unpackCString# addr# = P.undefined --unstream (S.streamCString# addr#)
- {-# NOINLINE unpackCString# #-}
- 
-+{-
- {-# RULES "TEXT literal" forall a.
-     unstream (S.streamList (L.map safe (GHC.unpackCString# a)))
-       = unpackCString# a #-}
-@@ -432,6 +434,7 @@ unpackCString# addr# = unstream (S.streamCString# addr#)
- {-# RULES "TEXT literal UTF8" forall a.
-     unstream (S.streamList (L.map safe (GHC.unpackCStringUtf8# a)))
-       = unpackCString# a #-}
-+-}
- 
- {-# RULES "LAZY TEXT empty literal"
-     unstream (S.streamList (L.map safe []))
-diff --git a/Data/Text/Lazy/Builder/Int.hs b/Data/Text/Lazy/Builder/Int.hs
-index 1cb0651..8e68d92 100644
---- a/Data/Text/Lazy/Builder/Int.hs
-+++ b/Data/Text/Lazy/Builder/Int.hs
-@@ -35,7 +35,7 @@ import Control.Monad.ST
- 
- #ifdef  __GLASGOW_HASKELL__
- # if defined(INTEGER_GMP)
--import GHC.Integer.GMP.Internals (Integer(S#))
-+import GHC.Integer.BigInteger.Internals (Integer(S#))
- # elif defined(INTEGER_SIMPLE)
- import GHC.Integer
- # else
-diff --git a/Data/Text/Show.hs b/Data/Text/Show.hs
-index 9238eb9..f5e8724 100644
---- a/Data/Text/Show.hs
-+++ b/Data/Text/Show.hs
-@@ -49,7 +49,7 @@ unpack = S.unstreamList . stream
- unpackCString# :: Addr# -> Text
- unpackCString# addr# = unstream (S.streamCString# addr#)
- {-# NOINLINE unpackCString# #-}
--
-+{- TODO: Override streamCString# for Object# JString
- {-# RULES "TEXT literal" [1] forall a.
-     unstream (S.map safe (S.streamList (GHC.unpackCString# a)))
-       = unpackCString# a #-}
-@@ -57,6 +57,7 @@ unpackCString# addr# = unstream (S.streamCString# addr#)
- {-# RULES "TEXT literal UTF8" [1] forall a.
-     unstream (S.map safe (S.streamList (GHC.unpackCStringUtf8# a)))
-       = unpackCString# a #-}
-+-}
- 
- {-# RULES "TEXT empty literal" [1]
-     unstream (S.map safe (S.streamList []))
 diff --git a/text.cabal b/text.cabal
 index a0f2d3b..0a3ae1c 100644
 --- a/text.cabal
@@ -372,5 +360,5 @@ index a0f2d3b..0a3ae1c 100644
  source-repository head
    type:     git
 -- 
-1.9.5.msysgit.1
+2.7.4 (Apple Git-66)
 
