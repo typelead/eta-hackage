@@ -85,6 +85,7 @@ These packages are supported by `etlas`.
 - [cassava-0.4.5.1](https://hackage.haskell.org/package/cassava-0.4.5.1)
 - [cereal-0.5.4.0](https://hackage.haskell.org/package/cereal-0.5.4.0)
 - [chunked-data-0.3.0](https://hackage.haskell.org/package/chunked-data-0.3.0)
+- [clock-0.7.2](https://hackage.haskell.org/package/clock-0.7.2)
 - [conceit-0.4.0.0](https://hackage.haskell.org/package/conceit-0.4.0.0)
 - [concurrent-machines-0.2.3.3](https://hackage.haskell.org/package/concurrent-machines-0.2.3.3)
 - [comonad-5](https://hackage.haskell.org/package/comonad-5)
