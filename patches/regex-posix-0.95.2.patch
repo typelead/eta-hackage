@@ -1,0 +1,24 @@
+From 0bb156c6e69d5dadbf0bd43eee7ace0f518e35cc Mon Sep 17 00:00:00 2001
+From: Abhiroop Sarkar <asiamgenius@gmail.com>
+Date: Tue, 9 May 2017 09:55:39 +0530
+Subject: [PATCH] Remove printlns
+
+---
+ java/Utils.java | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/java/Utils.java b/java/Utils.java
+index 47c6528..5fbbd8d 100644
+--- a/java/Utils.java
++++ b/java/Utils.java
+@@ -54,7 +54,6 @@ public class Utils {
+             y.setOffset(match.end() - match.start());
+             x.add(y);
+         }
+-        System.out.println(x);
+         return x;
+     }
+ }
+-- 
+2.4.9 (Apple Git-60)
+
