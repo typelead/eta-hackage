@@ -1,7 +1,7 @@
 From 839a92cc8c9f925570f5da3a1ef9e9e68142a816 Mon Sep 17 00:00:00 2001
 From: Brian McKenna <bmckenna@atlassian.com>
 Date: Tue, 9 May 2017 17:46:17 +1000
-Subject: [PATCH] Initial patch
+Subject: [PATCH 1/2] Initial patch
 
 ---
  src/System/Console/Terminal/Posix.hs  | 37 ++++++++++++++++++++
@@ -193,6 +193,29 @@ index b6ba317..776ab0d 100644
    hs-source-dirs:
      src
    exposed-modules:
+-- 
+2.10.0
+
+
+From d4aa0ff19a04fd07523f290b15934d8a58c1a6fc Mon Sep 17 00:00:00 2001
+From: Brian McKenna <bmckenna@atlassian.com>
+Date: Tue, 9 May 2017 21:21:16 +1000
+Subject: [PATCH 2/2] Add dependency on Maven artifact
+
+---
+ terminal-size.cabal | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/terminal-size.cabal b/terminal-size.cabal
+index 776ab0d..90c5d22 100644
+--- a/terminal-size.cabal
++++ b/terminal-size.cabal
+@@ -53,3 +53,5 @@ library
+   ghc-options:
+     -Wall
+     -fno-warn-unused-do-bind
++
++  maven-depends: org.jline:jline:3.2.0
 -- 
 2.10.0
 

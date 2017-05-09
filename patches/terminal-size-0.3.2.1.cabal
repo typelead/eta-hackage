@@ -53,3 +53,5 @@ library
   ghc-options:
     -Wall
     -fno-warn-unused-do-bind
+
+  maven-depends: org.jline:jline:3.2.0
