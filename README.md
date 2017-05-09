@@ -254,6 +254,7 @@ These packages are supported by `etlas`.
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
 - [tagsoup-0.14](https://hackage.haskell.org/package/tagsoup-0.14)
 - [template-haskell-2.11.0.0](https://hackage.haskell.org/package/template-haskell-2.11.0.0)
+- [terminal-size-0.3.2.1](https://hackage.haskell.org/package/terminal-size-0.3.2.1)
 - [text-1.2.2.1](https://hackage.haskell.org/package/text-1.2.2.1)
 - [tf-random-0.5](https://hackage.haskell.org/package/tf-random-0.5)
 - [time >= 1.6.0.1 <= 1.8.0.1](https://hackage.haskell.org/package/time)
