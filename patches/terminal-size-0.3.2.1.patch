@@ -1,0 +1,198 @@
+From 839a92cc8c9f925570f5da3a1ef9e9e68142a816 Mon Sep 17 00:00:00 2001
+From: Brian McKenna <bmckenna@atlassian.com>
+Date: Tue, 9 May 2017 17:46:17 +1000
+Subject: [PATCH] Initial patch
+
+---
+ src/System/Console/Terminal/Posix.hs  | 37 ++++++++++++++++++++
+ src/System/Console/Terminal/Posix.hsc | 64 -----------------------------------
+ src/System/Console/Terminal/Size.hs   | 34 -------------------
+ terminal-size.cabal                   |  2 --
+ 4 files changed, 37 insertions(+), 100 deletions(-)
+ create mode 100644 src/System/Console/Terminal/Posix.hs
+ delete mode 100644 src/System/Console/Terminal/Posix.hsc
+
+diff --git a/src/System/Console/Terminal/Posix.hs b/src/System/Console/Terminal/Posix.hs
+new file mode 100644
+index 0000000..217f80b
+--- /dev/null
++++ b/src/System/Console/Terminal/Posix.hs
+@@ -0,0 +1,37 @@
++{-# LANGUAGE TypeOperators #-}
++{-# LANGUAGE MagicHash #-}
++module System.Console.Terminal.Posix
++  ( size
++  ) where
++
++import System.Console.Terminal.Common
++import Control.Exception (catch)
++import Data.Typeable (cast)
++import GHC.IO.FD (FD(FD, fdFD))
++import GHC.IO.Handle.Internals (withHandle_)
++import GHC.IO.Handle.Types (Handle, Handle__(Handle__, haDevice))
++import System.Posix.Types (Fd(Fd))
++import Java
++
++data {-# CLASS "org.jline.terminal.Terminal" #-} Terminal = Terminal (Object# Terminal)
++
++foreign import java unsafe "@static org.jline.terminal.TerminalBuilder.terminal"
++  getTerminal :: IO Terminal
++
++foreign import java unsafe "@interface"
++  getWidth :: Terminal -> IO Int
++
++foreign import java unsafe "@interface"
++  getHeight :: Terminal -> IO Int
++
++size :: Integral n => IO (Maybe (Window n))
++size = do
++  terminal <- getTerminal
++  row <- getWidth terminal
++  col <- getHeight terminal
++  return . Just $ Window (fromIntegral row) (fromIntegral col)
++ `catch`
++  handler
++ where
++  handler :: IOError -> IO (Maybe (Window h))
++  handler _ = return Nothing
+diff --git a/src/System/Console/Terminal/Posix.hsc b/src/System/Console/Terminal/Posix.hsc
+deleted file mode 100644
+index 33f9585..0000000
+--- a/src/System/Console/Terminal/Posix.hsc
++++ /dev/null
+@@ -1,64 +0,0 @@
+-
+-module System.Console.Terminal.Posix
+-  ( size, fdSize, hSize
+-  ) where
+-
+-import System.Console.Terminal.Common
+-import Control.Exception (catch)
+-import Data.Typeable (cast)
+-import Foreign
+-import Foreign.C.Error
+-import Foreign.C.Types
+-import GHC.IO.FD (FD(FD, fdFD))
+-import GHC.IO.Handle.Internals (withHandle_)
+-import GHC.IO.Handle.Types (Handle, Handle__(Handle__, haDevice))
+-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ < 706)
+-import Prelude hiding (catch)
+-#endif
+-import System.Posix.Types (Fd(Fd))
+-
+-#include <sys/ioctl.h>
+-#include <unistd.h>
+-
+-
+-#let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
+-
+-
+--- Interesting part of @struct winsize@
+-data CWin = CWin CUShort CUShort
+-
+-instance Storable CWin where
+-  sizeOf _ = (#size struct winsize)
+-  alignment _ = (#alignment struct winsize)
+-  peek ptr = do
+-    row <- (#peek struct winsize, ws_row) ptr
+-    col <- (#peek struct winsize, ws_col) ptr
+-    return $ CWin row col
+-  poke ptr (CWin row col) = do
+-    (#poke struct winsize, ws_row) ptr row
+-    (#poke struct winsize, ws_col) ptr col
+-
+-
+-fdSize :: Integral n => Fd -> IO (Maybe (Window n))
+-fdSize (Fd fd) = with (CWin 0 0) $ \ws -> do
+-  throwErrnoIfMinus1 "ioctl" $
+-    ioctl fd (#const TIOCGWINSZ) ws
+-  CWin row col <- peek ws
+-  return . Just $ Window (fromIntegral row) (fromIntegral col)
+- `catch`
+-  handler
+- where
+-  handler :: IOError -> IO (Maybe (Window h))
+-  handler _ = return Nothing
+-
+-foreign import ccall "sys/ioctl.h ioctl"
+-  ioctl :: CInt -> CInt -> Ptr CWin -> IO CInt
+-
+-size :: Integral n => IO (Maybe (Window n))
+-size = fdSize (Fd (#const STDOUT_FILENO))
+-
+-hSize :: Integral n => Handle -> IO (Maybe (Window n))
+-hSize h = withHandle_ "hSize" h $ \Handle__ { haDevice = dev } ->
+-  case cast dev of
+-    Nothing -> return Nothing
+-    Just FD { fdFD = fd } -> fdSize (Fd fd)
+diff --git a/src/System/Console/Terminal/Size.hs b/src/System/Console/Terminal/Size.hs
+index ba6162d..298aafa 100644
+--- a/src/System/Console/Terminal/Size.hs
++++ b/src/System/Console/Terminal/Size.hs
+@@ -7,20 +7,12 @@ Based on answer by Andreas Hammar at <http://stackoverflow.com/a/12807521/972985
+ module System.Console.Terminal.Size
+   ( Window(..)
+   , size
+-#if !defined(mingw32_HOST_OS)
+-  , fdSize
+-  , hSize
+-#endif
+   ) where
+ 
+ import System.Console.Terminal.Common
+-#if defined(mingw32_HOST_OS)
+-import qualified System.Console.Terminal.Windows as Host
+-#else
+ import qualified System.Console.Terminal.Posix as Host
+ import System.Posix.Types(Fd)
+ import System.IO(Handle)
+-#endif
+ 
+ 
+ -- | Get terminal window width and height for @stdout@.
+@@ -30,29 +22,3 @@ import System.IO(Handle)
+ -- Just (Window {height = 60, width = 112})
+ size :: Integral n => IO (Maybe (Window n))
+ size = Host.size
+-
+-#if !defined(mingw32_HOST_OS)
+--- | /Not available on Windows:/
+--- Get terminal window width and height for a specified file descriptor. If
+--- it's not attached to a terminal then 'Nothing' is returned.
+---
+--- >>> import System.Console.Terminal.Size
+--- >>> import System.Posix
+--- >>> fdSize stdOutput
+--- Just (Window {height = 56, width = 85})
+--- >>> fd <- openFd "foo" ReadWrite (Just stdFileMode) defaultFileFlags
+--- >>> fdSize fd
+--- Nothing
+-fdSize :: Integral n => Fd -> IO (Maybe (Window n))
+-fdSize = Host.fdSize
+-
+--- | /Not available on Windows:/
+---   Same as 'fdSize', but takes 'Handle' instead of 'Fd' (file descriptor).
+---
+--- >>> import System.Console.Terminal.Size
+--- >>> import System.IO
+--- >>> hSize stdout
+--- Just (Window {height = 56, width = 85})
+-hSize :: Integral n => Handle -> IO (Maybe (Window n))
+-hSize = Host.hSize
+-#endif
+diff --git a/terminal-size.cabal b/terminal-size.cabal
+index b6ba317..776ab0d 100644
+--- a/terminal-size.cabal
++++ b/terminal-size.cabal
+@@ -36,8 +36,6 @@ library
+      build-depends:
+        process
+ 
+-  build-tools:
+-    hsc2hs
+   hs-source-dirs:
+     src
+   exposed-modules:
+-- 
+2.10.0
+
