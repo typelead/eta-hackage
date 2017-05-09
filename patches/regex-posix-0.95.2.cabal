@@ -1,0 +1,96 @@
+Name:                   regex-posix
+-- Keep the Version below in sync with ./Text/Regex/Posix.hs value
+-- getVersion_Text_Regex_Posix :: Version
+Version:                0.95.2
+Cabal-Version:          >=1.2
+Build-Type:             Custom
+License:                BSD3
+License-File:           LICENSE
+Copyright:              Copyright (c) 2007-2010, Christopher Kuklewicz
+Author:                 Christopher Kuklewicz
+Maintainer:             TextRegexLazy@personal.mightyreason.com
+Stability:              Seems to work, passes a few tests
+Homepage:               http://sourceforge.net/projects/lazy-regex
+Package-URL:            http://code.haskell.org/regex-posix/
+Synopsis:               Replaces/Enhances Text.Regex
+Description:            The posix regex backend for regex-base
+Category:               Text
+Tested-With:            GHC
+Build-Type:             Simple
+Extra-Source-Files:     cbits/engine.c cbits/cclass.h cbits/cname.h
+                        cbits/regex2.h cbits/regex.h cbits/utils.h
+                        c-finalizer/myfree.h c-finalizer/myfree.c
+
+flag newBase
+  description: Choose base >= 4
+  default: True
+
+flag splitBase
+  description: Choose the new smaller, split-up base package.
+  default: True
+
+Library
+  if flag(newBase)
+      Build-Depends: regex-base >= 0.93, base >= 4 && < 5, array, containers, bytestring
+      -- Need the next symbol for using CPP to get Data.ByteString.Base|Unsafe in
+      --  ./Text/Regex/Posix/ByteString.hs and  ./Text/Regex/Posix/ByteString/Lazy.hs
+      CPP-Options: "-DSPLIT_BASE=1"
+      Extensions:         MultiParamTypeClasses, FunctionalDependencies, CPP,
+                          ForeignFunctionInterface, GeneralizedNewtypeDeriving,
+                          FlexibleContexts, TypeSynonymInstances,
+                          FlexibleInstances
+
+  else
+    if flag(splitBase)
+      Build-Depends:      regex-base >= 0.93, base >= 3.0, array, containers,
+                          bytestring
+      -- Need the next symbol for using CPP to get Data.ByteString.Base|Unsafe
+      -- in ./Text/Regex/Posix/ByteString.hs and
+      -- ./Text/Regex/Posix/ByteString/Lazy.hs
+      CPP-Options: "-DSPLIT_BASE=1"
+      Extensions:         MultiParamTypeClasses, FunctionalDependencies, CPP,
+                          ForeignFunctionInterface, GeneralizedNewtypeDeriving,
+                          FlexibleContexts, TypeSynonymInstances,
+                          FlexibleInstances
+
+    else
+      Build-Depends:      regex-base >= 0.93, base < 3.0
+      Extensions:         MultiParamTypeClasses, FunctionalDependencies, CPP
+
+  -- C-Sources:            c-finalizer/myfree.c
+  java-sources:         java/Utils.java java/MatchDetails.java
+  Include-Dirs:         c-finalizer
+  if !os(windows)
+    CC-Options:           -DHAVE_REGEX_H
+  else
+    C-Sources:            cbits/reallocf.c cbits/regcomp.c cbits/regerror.c
+                          cbits/regexec.c cbits/regfree.c
+    Include-Dirs:         cbits
+
+  -- Data-Files:
+  -- Extra-Tmp-Files:
+  -- This is the library
+  Exposed-Modules:        Text.Regex.Posix
+                          Text.Regex.Posix.Wrap
+                          Text.Regex.Posix.String
+                          Text.Regex.Posix.Sequence
+                          Text.Regex.Posix.ByteString
+                          Text.Regex.Posix.ByteString.Lazy
+  -- Futher fields
+  Buildable:              True
+  -- Other-Modules:
+  -- HS-Source-Dirs:         "."
+  -- The CPP is for using -DSPLIT_BASE=1 to get Data.ByteString.Base|Unsafe
+  GHC-Options:            -Wall -O2
+  -- GHC-Options:            -Wall -Werror -O2
+  -- GHC-Options:            -Wall -ddump-minimal-imports
+  -- GHC-Prof-Options:
+  -- Hugs-Options:
+  -- NHC-Options:
+  -- C-Sources:
+  -- LD-Options:
+  -- Frameworks:
+  -- Includes:
+  -- Include-Dirs:           include
+  -- Extra-Libraries:
+  -- Extra-Lib-Dirs:

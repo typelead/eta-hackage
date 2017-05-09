@@ -227,6 +227,7 @@ These packages are supported by `etlas`.
   - template-haskell flag was disabled by default. Enable once TemplateHaskell
     works.
 - [regex-base-0.93.2](https://hackage.haskell.org/package/regex-base-0.93.2)
+- [regex-posix-0.95.2](https://hackage.haskell.org/package/regex-posix-0.95.2)
 - [relacion-0.1](https://hackage.haskell.org/package/relacion-0.1)
 - [resourcet >= 1.1.8.1 && <= 1.1.9](https://hackage.haskell.org/package/resourcet-1.1.9)
 - [randproc-0.4](https://hackage.haskell.org/package/randproc-0.4)
