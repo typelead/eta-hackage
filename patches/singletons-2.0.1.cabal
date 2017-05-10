@@ -1,0 +1,100 @@
+name:           singletons
+version:        2.0.1
+                -- Remember to bump version in the Makefile as well
+cabal-version:  >= 1.10
+synopsis:       A framework for generating singleton types
+homepage:       http://www.github.com/goldfirere/singletons
+category:       Dependent Types
+author:         Richard Eisenberg <eir@cis.upenn.edu>, Jan Stolarek <jan.stolarek@p.lodz.pl>
+maintainer:     Richard Eisenberg <eir@cis.upenn.edu>, Jan Stolarek <jan.stolarek@p.lodz.pl>
+bug-reports:    https://github.com/goldfirere/singletons/issues
+stability:      experimental
+tested-with:    GHC >= 7.10.2
+extra-source-files: README.md, CHANGES.md,
+                    tests/compile-and-dump/buildGoldenFiles.awk,
+                    tests/compile-and-dump/GradingClient/*.hs,
+                    tests/compile-and-dump/InsertionSort/*.hs,
+                    tests/compile-and-dump/Promote/*.hs,
+                    tests/compile-and-dump/Singletons/*.hs
+                    tests/compile-and-dump/GradingClient/*.ghc710.template,
+                    tests/compile-and-dump/InsertionSort/*.ghc710.template,
+                    tests/compile-and-dump/Promote/*.ghc710.template,
+                    tests/compile-and-dump/Singletons/*.ghc710.template
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+description:
+    This library generates singleton types, promoted functions, and singleton
+    functions using Template Haskell. It is useful for programmers who wish
+    to use dependently typed programming techniques. The library was originally
+    presented in /Dependently Typed Programming with Singletons/, published
+    at the Haskell Symposium, 2012.
+    (<http://www.cis.upenn.edu/~eir/papers/2012/singletons/paper.pdf>)
+
+    Version 1.0 and onwards works a lot harder to promote functions. See the
+    paper published at Haskell Symposium, 2014:
+    <http://www.cis.upenn.edu/~eir/papers/2014/promotion/promotion.pdf>.
+
+source-repository this
+  type:     git
+  location: https://github.com/goldfirere/singletons.git
+  tag:      v2.0.1
+
+library
+  hs-source-dirs:     src
+  build-depends:      base >= 4.8.1.0 && < 5,
+                      mtl >= 2.1.2,
+                      template-haskell,
+                      containers >= 0.5,
+                      syb >= 0.4
+  default-language:   Haskell2010
+  other-extensions:   TemplateHaskell
+        -- TemplateHaskell must be listed in cabal file to work with
+        -- ghc7.8
+  exposed-modules:    Data.Singletons,
+                      Data.Singletons.Prelude,
+                      Data.Singletons.Prelude.Base,
+                      Data.Singletons.Prelude.Bool,
+                      Data.Singletons.Prelude.Either,
+                      Data.Singletons.Prelude.Enum,
+                      Data.Singletons.Prelude.Eq,
+                      Data.Singletons.Prelude.Ord,
+                      Data.Singletons.Prelude.List,
+                      Data.Singletons.Prelude.Maybe,
+                      Data.Singletons.Prelude.Num
+                      Data.Singletons.Prelude.Tuple,
+                      Data.Promotion.Prelude,
+                      Data.Promotion.Prelude.Base,
+                      Data.Promotion.Prelude.Bool,
+                      Data.Promotion.Prelude.Either,
+                      Data.Promotion.Prelude.Eq,
+                      Data.Promotion.Prelude.Ord,
+                      Data.Promotion.Prelude.Enum,
+                      Data.Promotion.Prelude.List,
+                      Data.Promotion.Prelude.Maybe,
+                      Data.Promotion.Prelude.Num,
+                      Data.Promotion.Prelude.Tuple,
+                      Data.Singletons.TypeLits,
+                      Data.Singletons.Decide,
+                      Data.Singletons.SuppressUnusedWarnings
+
+  other-modules:      Data.Singletons.Prelude.Instances,
+                      Data.Singletons.TypeLits.Internal
+
+  ghc-options:        -Wall -ddump-splices -dsuppress-all
+
+test-suite singletons-test-suite
+  type:               exitcode-stdio-1.0
+  hs-source-dirs:     src, tests
+  ghc-options:        -Wall
+  default-language:   Haskell2010
+  main-is:            SingletonsTestSuite.hs
+  other-modules:      SingletonsTestSuiteUtils
+
+  build-depends:      base >= 4.7.0.1 && < 5,
+                      filepath >= 1.3,
+                      process >= 1.1,
+                      tasty >= 0.6,
+                      tasty-golden >= 2.2,
+                      Cabal >= 1.16,
+                      directory >= 1
