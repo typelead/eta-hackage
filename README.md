@@ -219,6 +219,7 @@ These packages are supported by `etlas`.
 - [primes-0.2.1.0](https://hackage.haskell.org/package/primes-0.2.1.0)
 - [primitive-0.6.2.0](https://hackage.haskell.org/package/primitive-0.6.2.0)
 - [profunctors-5.2](https://hackage.haskell.org/package/profunctors-5.2)
+- [protolude-0.1.10](https://hackage.haskell.org/package/protolude-0.1.10)
 - [queue-0.1.2](https://hackage.haskell.org/package/queue-0.1.2)
 - [QuickCheck-2.9.2](https://hackage.haskell.org/package/QuickCheck-2.9.2)
 - [ReadArgs-1.2.3](https://hackage.haskell.org/package/ReadArgs-1.2.3)
@@ -241,6 +242,7 @@ These packages are supported by `etlas`.
   - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
           can be compiled with Eta.
 - [silently-1.2.5](https://hackage.haskell.org/package/silently-1.2.5)
+- [singletons-2.0.1](https://hackage.haskell.org/package/singletons-2.0.1)
 - [split-0.2.3.1](https://hackage.haskell.org/package/split-0.2.3.1)
 - [stable-marriage-0.1.1.0](https://hackage.haskell.org/package/stable-marriage-0.1.1.0)
 - [StateVar-1.1.0.4](https://hackage.haskell.org/package/StateVar-1.1.0.4)
