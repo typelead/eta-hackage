@@ -240,6 +240,7 @@ These packages are supported by `etlas`.
 - [randproc-0.4](https://hackage.haskell.org/package/randproc-0.4)
 - [safe >= 0.3.9 && <= 0.3.11](https://hackage.haskell.org/package/safe-0.3.11)
 - [servant-0.9.1.1](https://hackage.haskell.org/package/servant-0.9.1.1)
+- [servant-docs-0.9.1.1](https://hackage.haskell.org/package/servant-docs-0.9.1.1)
 - [servant-server-0.9.1.1](https://hackage.haskell.org/package/servant-server-0.9.1.1)
   - NOTE: Servant.Utils.StaticFiles is disabled.
 - [scientific-0.3.4.9](https://hackage.haskell.org/package/scientific-0.3.4.9)
