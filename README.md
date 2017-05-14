@@ -50,6 +50,7 @@ These packages are supported by `etlas`.
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
 - [adjunctions-4.3](https://hackage.haskell.org/package/adjunctions-4.3)
 - [aeson-1.1.0.0](https://hackage.haskell.org/package/aeson-1.1.0.0)
+- [aeson-pretty-0.8.2](https://hackage.haskell.org/package/aeson-pretty-0.8.2)
 - [agum-2.6](https://hackage.haskell.org/package/agum-2.6)
 - [ansi-terminal-0.6.2.3](https://hackage.haskell.org/package/ansi-terminal-0.6.2.3)
   - NOTE: Windows support disabled.
@@ -96,6 +97,7 @@ These packages are supported by `etlas`.
 - [constraints-0.8](https://hackage.haskell.org/package/constraints-0.8)
 - [containers >= 0.5.8.1 && <= 0.5.9.1 ](https://hackage.haskell.org/package/containers-0.5.9.1)
 - [contravariant-1.4](https://hackage.haskell.org/package/contravariant-1.4)
+- [control-monad-omega-0.3.1](https://hackage.haskell.org/package/control-monad-omega-0.3.1)
 - [cookie-0.4.2.1](https://hackage.haskell.org/package/cookie-0.4.2.1)
 - [data-default-0.7.1.1](https://hackage.haskell.org/package/data-default-0.7.1.1)
 - [data-default-class-0.1.2.0](https://hackage.haskell.org/package/data-default-class-0.1.2.0)
@@ -348,7 +350,7 @@ If you have already forked this repository, then skip to step 3.
 1. Fetch the package and navigate to it.
 
    ```
-   etlas unpack somepackage-0.1.2.3
+   etlas get somepackage-0.1.2.3
    cd somepackage-0.1.2.3/
    ```
 
