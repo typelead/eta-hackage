@@ -1,0 +1,84 @@
+From 0c7d63bb59929b39a792bb45f3cac4221f8af8bc Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 14 May 2017 17:49:43 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Aeson/Types/Internal.hs | 32 ++++++++++++++++----------------
+ aeson.cabal                  |  2 +-
+ 2 files changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/Data/Aeson/Types/Internal.hs b/Data/Aeson/Types/Internal.hs
+index 1695817..1dc2e69 100644
+--- a/Data/Aeson/Types/Internal.hs
++++ b/Data/Aeson/Types/Internal.hs
+@@ -75,7 +75,7 @@ import Prelude ()
+ import Prelude.Compat
+ 
+ import Control.Applicative (Alternative(..))
+-import Control.Arrow (first)
++-- import Control.Arrow (first)
+ import Control.DeepSeq (NFData(..))
+ import Control.Monad (MonadPlus(..), ap)
+ import Data.Char (isLower, isUpper, toLower, isAlpha, isAlphaNum)
+@@ -94,9 +94,9 @@ import Data.Typeable (Typeable)
+ import Data.Vector (Vector)
+ import qualified Control.Monad.Fail as Fail
+ import qualified Data.HashMap.Strict as H
+-import qualified Data.Scientific as S
++-- import qualified Data.Scientific as S
+ import qualified Data.Vector as V
+-import qualified Language.Haskell.TH.Syntax as TH
++-- import qualified Language.Haskell.TH.Syntax as TH
+ 
+ #if !MIN_VERSION_unordered_containers(0,2,6)
+ import Data.List (sort)
+@@ -389,19 +389,19 @@ instance Hashable Value where
+     hashWithSalt = hashValue
+ 
+ -- @since 0.11.0.0
+-instance TH.Lift Value where
+-    lift Null = [| Null |]
+-    lift (Bool b) = [| Bool b |]
+-    lift (Number n) = [| Number (S.scientific c e) |]
+-      where
+-        c = S.coefficient n
+-        e = S.base10Exponent n
+-    lift (String t) = [| String (pack s) |]
+-      where s = unpack t
+-    lift (Array a) = [| Array (V.fromList a') |]
+-      where a' = V.toList a
+-    lift (Object o) = [| Object (H.fromList . map (first pack) $ o') |]
+-      where o' = map (first unpack) . H.toList $ o
++-- instance TH.Lift Value where
++--     lift Null = [| Null |]
++--     lift (Bool b) = [| Bool b |]
++--     lift (Number n) = [| Number (S.scientific c e) |]
++--       where
++--         c = S.coefficient n
++--         e = S.base10Exponent n
++--     lift (String t) = [| String (pack s) |]
++--       where s = unpack t
++--     lift (Array a) = [| Array (V.fromList a') |]
++--       where a' = V.toList a
++--     lift (Object o) = [| Object (H.fromList . map (first pack) $ o') |]
++--       where o' = map (first unpack) . H.toList $ o
+ 
+ -- | The empty array.
+ emptyArray :: Value
+diff --git a/aeson.cabal b/aeson.cabal
+index f21d5aa..45c7cdf 100644
+--- a/aeson.cabal
++++ b/aeson.cabal
+@@ -88,7 +88,7 @@ library
+     Data.Aeson.Parser
+     Data.Aeson.Text
+     Data.Aeson.Types
+-    Data.Aeson.TH
++    -- Data.Aeson.TH
+ 
+     Data.Aeson.Encoding.Internal
+     Data.Aeson.Internal
+-- 
+2.7.4 (Apple Git-66)
+
