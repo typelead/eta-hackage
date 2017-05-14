@@ -55,12 +55,14 @@ packagesFilePath = return "packages.json"
 patchedLibraries :: IO [Text]
 patchedLibraries = do
   packageListing <- getDirectoryContents "patches"
-  let packages = nub
+  let packages = map pack
+               . nub
                . map dropExtension
                . filter (\p -> p `notElem` ["",".",".."])
                $ packageListing
+      distinctPackages = nub $ map (T.dropEnd 1 . T.dropWhileEnd (/= '-')) packages
 
-  return $ map pack packages
+  return $ packages ++ distinctPackages
 
 buildPackage :: Text -> IO ()
 buildPackage pkg = do
