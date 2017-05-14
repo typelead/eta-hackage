@@ -20,7 +20,8 @@ import Turtle.Line
 import Turtle.Prelude hiding (die)
 
 import Data.Aeson
-import Data.Text (unpack, pack, Text)
+import Data.Text (Text)
+import qualified Data.Text as T
 import System.Directory (getAppUserDataDirectory, getDirectoryContents, getCurrentDirectory)
 import System.FilePath ((</>), dropExtension)
 import qualified Data.ByteString.Lazy as BS
@@ -55,7 +56,7 @@ packagesFilePath = return "packages.json"
 patchedLibraries :: IO [Text]
 patchedLibraries = do
   packageListing <- getDirectoryContents "patches"
-  let packages = map pack
+  let packages = map T.pack
                . nub
                . map dropExtension
                . filter (\p -> p `notElem` ["",".",".."])
@@ -66,7 +67,7 @@ patchedLibraries = do
 
 buildPackage :: Text -> IO ()
 buildPackage pkg = do
-  let outString = "Installing package " ++ unpack pkg ++ "..."
+  let outString = "Installing package " ++ T.unpack pkg ++ "..."
       lenOutString = length outString
       dashes = replicate lenOutString '-'
   print "Current Directory:"
