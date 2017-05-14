@@ -1,6 +1,6 @@
-From ed15cde9a757e08ec0b782a575aab2ac8a53b948 Mon Sep 17 00:00:00 2001
+From 1fb1c3987c653583019c875911143d8f587505b0 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 8 Apr 2017 16:48:12 +0530
+Date: Sun, 14 May 2017 19:00:46 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -13,7 +13,7 @@ Subject: [PATCH] Patched
  create mode 100644 java/Utils.java
 
 diff --git a/System/Directory.hs b/System/Directory.hs
-index be98632..1fb787f 100644
+index be98632..6406588 100644
 --- a/System/Directory.hs
 +++ b/System/Directory.hs
 @@ -1,4 +1,4 @@
@@ -132,7 +132,7 @@ index be98632..1fb787f 100644
 +  isPathWritable :: Path -> IO Bool
 +foreign import java unsafe "@static java.nio.file.Files.isExecutable"
 +  isPathExecutable :: Path -> IO Bool
-+foreign import java unsafe "@static java.nio.file.Files.isDirectory"
++foreign import java unsafe "@static eta.directory.Utils.isDirectory"
 +  isPathDirectory :: Path -> IO Bool
  
  {- |The 'setPermissions' operation sets the
