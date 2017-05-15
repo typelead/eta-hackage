@@ -61,7 +61,10 @@ patchedLibraries = do
                . map dropExtension
                . filter (\p -> p `notElem` ["",".",".."])
                $ packageListing
-      distinctPackages = nub $ map (T.dropEnd 1 . T.dropWhileEnd (/= '-')) packages
+      distinctPackages = delete "directory" -- Temporary until exceptions are implemented
+                       . nub
+                       . map (T.dropEnd 1 . T.dropWhileEnd (/= '-'))
+                       $ packages
 
   return $ packages ++ distinctPackages
 
