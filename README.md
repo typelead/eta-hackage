@@ -92,6 +92,7 @@ These packages are supported by `epm`.
 - [data-default-instances-old-locale-0.0.1](https://hackage.haskell.org/package/data-default-instances-old-locale-0.0.1)
 - [deepseq-1.4.2.0](https://hackage.haskell.org/package/deepseq-1.4.2.0)
 - [directory-1.3.0.0](https://hackage.haskell.org/package/directory-1.3.0.0)
+- [directory-1.3.0.1](https://hackage.haskell.org/package/directory-1.3.0.1)
 - [directory-tree-0.12.1](https://hackage.haskell.org/package/directory-tree-0.12.1)
 - [disjoint-sets-st-0.1](https://hackage.haskell.org/package/disjoint-sets-st-0.1)
 - [distributive >= 0.5.0.2 && <= 0.5.1](https://hackage.haskell.org/package/distributive-0.5.0.2)
