@@ -93,6 +93,7 @@ These packages are supported by `epm`.
 - [deepseq-1.4.2.0](https://hackage.haskell.org/package/deepseq-1.4.2.0)
 - [directory-1.3.0.0](https://hackage.haskell.org/package/directory-1.3.0.0)
 - [directory-1.3.0.1](https://hackage.haskell.org/package/directory-1.3.0.1)
+- [directory-1.3.0.2](https://hackage.haskell.org/package/directory-1.3.0.2)
 - [directory-tree-0.12.1](https://hackage.haskell.org/package/directory-tree-0.12.1)
 - [disjoint-sets-st-0.1](https://hackage.haskell.org/package/disjoint-sets-st-0.1)
 - [distributive >= 0.5.0.2 && <= 0.5.1](https://hackage.haskell.org/package/distributive-0.5.0.2)
