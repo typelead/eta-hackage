@@ -289,6 +289,7 @@ These packages are supported by `etlas`.
 - [vector-0.11.0.0](https://hackage.haskell.org/package/vector-0.11.0.0)
 - [vector-algorithms-0.7.0.1](https://hackage.haskell.org/package/vector-algorithms-0.7.0.1)
 - [vector-binary-instances-0.2.3.3](https://hackage.haskell.org/package/vector-binary-instances-0.2.3.3)
+- [versions-3.0.1.1](https://hackage.haskell.org/package/versions-3.0.1.1)
 - [vinyl-0.5.1.1](https://hackage.haskell.org/package/vinyl-0.5.1.1)
 - [void-0.7.1](https://hackage.haskell.org/package/void-0.7.1)
 - [wai-3.2.1.1](https://hackage.haskell.org/package/wai-3.2.1.1)
