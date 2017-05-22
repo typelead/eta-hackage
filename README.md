@@ -116,6 +116,7 @@ These packages are supported by `etlas`.
 - [dom-lt-0.1.3](https://hackage.haskell.org/package/dom-lt-0.1.3)
 - [DecisionTree-0.0](https://hackage.haskell.org/package/DecisionTree-0.0)
 - [either-4.4.1.1](https://hackage.haskell.org/package/either-4.4.1.1)
+- [erf-2.0.0.0](https://hackage.haskell.org/package/erf-2.0.0.0)
 - [errors-2.1.3](https://hackage.haskell.org/package/errors-2.1.3)
 - [exceptions-0.8.3](https://hackage.haskell.org/package/exceptions-0.8.3)
 - [extra-1.5.2](https://hackage.haskell.org/package/extra)
