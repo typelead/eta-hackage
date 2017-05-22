@@ -196,7 +196,7 @@ These packages are supported by `etlas`.
 - [mtl-2.2.1](https://hackage.haskell.org/package/mtl-2.2.1)
 - [mtl-compat-0.2.1.3](https://hackage.haskell.org/package/mtl-compat-0.2.1.3)
 - [multiset-0.3.3](https://hackage.haskell.org/package/multiset-0.3.3)
-- [mwc-random-0.13.5.0](https://hackage.haskell.org/package/mwc-random-0.13.5.0)
+- [mwc-random >= 0.13.5.0 && <= 0.13.6.0](https://hackage.haskell.org/package/mwc-random)
 - [nested-sequence-0.2](https://hackage.haskell.org/package/nested-sequence-0.2)
 - [nested-sets-0.0.1.1](https://hackage.haskell.org/package/nested-sets-0.0.1.1)
 - [network-uri-2.6.1.0](https://hackage.haskell.org/package/network-uri-2.6.1.0)
@@ -257,6 +257,7 @@ These packages are supported by `etlas`.
 - [split-0.2.3.1](https://hackage.haskell.org/package/split-0.2.3.1)
 - [stable-marriage-0.1.1.0](https://hackage.haskell.org/package/stable-marriage-0.1.1.0)
 - [StateVar-1.1.0.4](https://hackage.haskell.org/package/StateVar-1.1.0.4)
+- [statistics-0.14.0.2](https://hackage.haskell.org/package/statistics-0.14.0.2)
 - [stm-2.4.4.1](https://hackage.haskell.org/package/stm-2.4.4.1)
 - [stm-chans-3.0.0.4](https://hackage.haskell.org/package/stm-chans-3.0.0.4)
   - NOTE: The patch just changes the Build-Type. Should be restored once Cabal

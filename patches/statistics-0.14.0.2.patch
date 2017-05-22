@@ -1,0 +1,991 @@
+From 7d67dd39dec7310a2dee85fb19804855d04f90ba Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 22 May 2017 18:41:02 +0530
+Subject: [PATCH] Patched
+
+---
+ Statistics/Types.hs | 962 ++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 926 insertions(+), 36 deletions(-)
+
+diff --git a/Statistics/Types.hs b/Statistics/Types.hs
+index 9b5d319..fad6b53 100644
+--- a/Statistics/Types.hs
++++ b/Statistics/Types.hs
+@@ -73,10 +73,12 @@ import Data.Vector.Unboxed          (Unbox)
+ import Data.Vector.Unboxed.Deriving (derivingUnbox)
+ import GHC.Generics                 (Generic)
+ 
+-#if __GLASGOW_HASKELL__ == 704
++import qualified GHC.Base
++import qualified Data.Vector.Unboxed.Base
+ import qualified Data.Vector.Generic
++import qualified Data.Vector.Generic.Base
+ import qualified Data.Vector.Generic.Mutable
+-#endif
++import qualified Data.Vector.Generic.Mutable.Base
+ 
+ import Statistics.Internal
+ import Statistics.Types.Internal
+@@ -493,37 +495,925 @@ instance NFData   a => NFData   (LowerLimit a) where
+ -- Deriving unbox instances
+ ----------------------------------------------------------------
+ 
+-derivingUnbox "CL"
+-  [t| forall a. Unbox a => CL a -> a |]
+-  [| \(CL a) -> a |]
+-  [| CL           |]
+-
+-derivingUnbox "PValue"
+-  [t| forall a. Unbox a => PValue a -> a |]
+-  [| \(PValue a) -> a |]
+-  [| PValue           |]
+-
+-derivingUnbox "Estimate"
+-  [t| forall a e. (Unbox a, Unbox (e a)) => Estimate e a -> (a, e a) |]
+-  [| \(Estimate x dx) -> (x,dx) |]
+-  [| \(x,dx) -> (Estimate x dx) |]
+-
+-derivingUnbox "NormalErr"
+-  [t| forall a. Unbox a => NormalErr a -> a |]
+-  [| \(NormalErr a) -> a |]
+-  [| NormalErr           |]
+-
+-derivingUnbox "ConfInt"
+-  [t| forall a. Unbox a => ConfInt a -> (a, a, CL Double) |]
+-  [| \(ConfInt a b c) -> (a,b,c) |]
+-  [| \(a,b,c) -> ConfInt a b c   |]
+-
+-derivingUnbox "UpperLimit"
+-  [t| forall a. Unbox a => UpperLimit a -> (a, CL Double) |]
+-  [| \(UpperLimit a b) -> (a,b) |]
+-  [| \(a,b) -> UpperLimit a b   |]
+-
+-derivingUnbox "LowerLimit"
+-  [t| forall a. Unbox a => LowerLimit a -> (a, CL Double) |]
+-  [| \(LowerLimit a b) -> (a,b) |]
+-  [| \(a,b) -> LowerLimit a b   |]
++instance Unbox a_a5h91 => Unbox (CL a_a5h91)
++newtype instance Data.Vector.Unboxed.Base.MVector s (CL a_a5h91)
++  = MV_CL (Data.Vector.Unboxed.Base.MVector s a_a5h91)
++instance Unbox a_a5h91 =>
++          Data.Vector.Generic.Mutable.Base.MVector Data.Vector.Unboxed.Base.MVector (CL a_a5h91) where
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicOverlaps #-}
++  {-# INLINE basicUnsafeNew #-}
++  {-# INLINE basicInitialize #-}
++  {-# INLINE basicUnsafeReplicate #-}
++  {-# INLINE basicUnsafeRead #-}
++  {-# INLINE basicUnsafeWrite #-}
++  {-# INLINE basicClear #-}
++  {-# INLINE basicSet #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE basicUnsafeMove #-}
++  {-# INLINE basicUnsafeGrow #-}
++  basicLength (MV_CL mvec_a5h8W)
++    = Data.Vector.Generic.Mutable.Base.basicLength mvec_a5h8W
++  basicUnsafeSlice
++    idx_a5h8U
++    len_a5h8V
++    (MV_CL mvec_a5h8W)
++    = MV_CL
++        (Data.Vector.Generic.Mutable.Base.basicUnsafeSlice
++            idx_a5h8U len_a5h8V mvec_a5h8W)
++  basicOverlaps
++    (MV_CL mvec_a5h8W)
++    (MV_CL mvec'_a5h8X)
++    = Data.Vector.Generic.Mutable.Base.basicOverlaps
++        mvec_a5h8W mvec'_a5h8X
++  basicUnsafeNew len_a5h8V
++    = (MV_CL
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeNew len_a5h8V))
++  basicInitialize (MV_CL mvec_a5h8W)
++    = Data.Vector.Generic.Mutable.Base.basicInitialize mvec_a5h8W
++  basicUnsafeReplicate
++    len_a5h8V
++    val_a5h90
++    = (MV_CL
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeReplicate
++            len_a5h8V ((\ (CL a_a5h8Z) -> a_a5h8Z) val_a5h90)))
++  basicUnsafeRead
++    (MV_CL mvec_a5h8W)
++    idx_a5h8U
++    = (CL
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeRead
++            mvec_a5h8W idx_a5h8U))
++  basicUnsafeWrite
++    (MV_CL mvec_a5h8W)
++    idx_a5h8U
++    val_a5h90
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeWrite
++        mvec_a5h8W idx_a5h8U ((\ (CL a_a5h8Z) -> a_a5h8Z) val_a5h90)
++  basicClear (MV_CL mvec_a5h8W)
++    = Data.Vector.Generic.Mutable.Base.basicClear mvec_a5h8W
++  basicSet
++    (MV_CL mvec_a5h8W)
++    val_a5h90
++    = Data.Vector.Generic.Mutable.Base.basicSet
++        mvec_a5h8W ((\ (CL a_a5h8Z) -> a_a5h8Z) val_a5h90)
++  basicUnsafeCopy
++    (MV_CL mvec_a5h8W)
++    (MV_CL mvec'_a5h8X)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeCopy
++        mvec_a5h8W mvec'_a5h8X
++  basicUnsafeMove
++    (MV_CL mvec_a5h8W)
++    (MV_CL mvec'_a5h8X)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeMove
++        mvec_a5h8W mvec'_a5h8X
++  basicUnsafeGrow
++    (MV_CL mvec_a5h8W)
++    len_a5h8V
++    = (MV_CL
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeGrow
++            mvec_a5h8W len_a5h8V))
++newtype instance Data.Vector.Unboxed.Base.Vector (CL a_a5h91)
++  = V_CL (Data.Vector.Unboxed.Base.Vector a_a5h91)
++instance Unbox a_a5h91 =>
++          Data.Vector.Generic.Base.Vector Data.Vector.Unboxed.Base.Vector (CL a_a5h91) where
++  {-# INLINE basicUnsafeFreeze #-}
++  {-# INLINE basicUnsafeThaw #-}
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicUnsafeIndexM #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE elemseq #-}
++  basicUnsafeFreeze (MV_CL mvec_a5h8W)
++    = (V_CL
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeFreeze mvec_a5h8W))
++  basicUnsafeThaw (V_CL vec_a5h8Y)
++    = (MV_CL
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeThaw vec_a5h8Y))
++  basicLength (V_CL vec_a5h8Y)
++    = Data.Vector.Generic.Base.basicLength vec_a5h8Y
++  basicUnsafeSlice
++    idx_a5h8U
++    len_a5h8V
++    (V_CL vec_a5h8Y)
++    = V_CL
++        (Data.Vector.Generic.Base.basicUnsafeSlice
++            idx_a5h8U len_a5h8V vec_a5h8Y)
++  basicUnsafeIndexM
++    (V_CL vec_a5h8Y)
++    idx_a5h8U
++    = (CL
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeIndexM vec_a5h8Y idx_a5h8U))
++  basicUnsafeCopy
++    (MV_CL mvec_a5h8W)
++    (V_CL vec_a5h8Y)
++    = Data.Vector.Generic.Base.basicUnsafeCopy mvec_a5h8W vec_a5h8Y
++  elemseq (V_CL vec_a5h8Y) val_a5h90
++    = Data.Vector.Generic.Base.elemseq
++        vec_a5h8Y ((\ (CL a_a5h8Z) -> a_a5h8Z) val_a5h90)
++
++instance Unbox a_a5hhx => Unbox (PValue a_a5hhx)
++newtype instance Data.Vector.Unboxed.Base.MVector s (PValue a_a5hhx)
++  = MV_PValue (Data.Vector.Unboxed.Base.MVector s a_a5hhx)
++instance Unbox a_a5hhx =>
++          Data.Vector.Generic.Mutable.Base.MVector Data.Vector.Unboxed.Base.MVector (PValue a_a5hhx) where
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicOverlaps #-}
++  {-# INLINE basicUnsafeNew #-}
++  {-# INLINE basicInitialize #-}
++  {-# INLINE basicUnsafeReplicate #-}
++  {-# INLINE basicUnsafeRead #-}
++  {-# INLINE basicUnsafeWrite #-}
++  {-# INLINE basicClear #-}
++  {-# INLINE basicSet #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE basicUnsafeMove #-}
++  {-# INLINE basicUnsafeGrow #-}
++  basicLength (MV_PValue mvec_a5hhs)
++    = Data.Vector.Generic.Mutable.Base.basicLength mvec_a5hhs
++  basicUnsafeSlice
++    idx_a5hhq
++    len_a5hhr
++    (MV_PValue mvec_a5hhs)
++    = MV_PValue
++        (Data.Vector.Generic.Mutable.Base.basicUnsafeSlice
++            idx_a5hhq len_a5hhr mvec_a5hhs)
++  basicOverlaps
++    (MV_PValue mvec_a5hhs)
++    (MV_PValue mvec'_a5hht)
++    = Data.Vector.Generic.Mutable.Base.basicOverlaps
++        mvec_a5hhs mvec'_a5hht
++  basicUnsafeNew len_a5hhr
++    = (MV_PValue
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeNew len_a5hhr))
++  basicInitialize
++    (MV_PValue mvec_a5hhs)
++    = Data.Vector.Generic.Mutable.Base.basicInitialize mvec_a5hhs
++  basicUnsafeReplicate
++    len_a5hhr
++    val_a5hhw
++    = (MV_PValue
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeReplicate
++            len_a5hhr ((\ (PValue a_a5hhv) -> a_a5hhv) val_a5hhw)))
++  basicUnsafeRead
++    (MV_PValue mvec_a5hhs)
++    idx_a5hhq
++    = (PValue
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeRead
++            mvec_a5hhs idx_a5hhq))
++  basicUnsafeWrite
++    (MV_PValue mvec_a5hhs)
++    idx_a5hhq
++    val_a5hhw
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeWrite
++        mvec_a5hhs idx_a5hhq ((\ (PValue a_a5hhv) -> a_a5hhv) val_a5hhw)
++  basicClear (MV_PValue mvec_a5hhs)
++    = Data.Vector.Generic.Mutable.Base.basicClear mvec_a5hhs
++  basicSet
++    (MV_PValue mvec_a5hhs)
++    val_a5hhw
++    = Data.Vector.Generic.Mutable.Base.basicSet
++        mvec_a5hhs ((\ (PValue a_a5hhv) -> a_a5hhv) val_a5hhw)
++  basicUnsafeCopy
++    (MV_PValue mvec_a5hhs)
++    (MV_PValue mvec'_a5hht)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeCopy
++        mvec_a5hhs mvec'_a5hht
++  basicUnsafeMove
++    (MV_PValue mvec_a5hhs)
++    (MV_PValue mvec'_a5hht)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeMove
++        mvec_a5hhs mvec'_a5hht
++  basicUnsafeGrow
++    (MV_PValue mvec_a5hhs)
++    len_a5hhr
++    = (MV_PValue
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeGrow
++            mvec_a5hhs len_a5hhr))
++newtype instance Data.Vector.Unboxed.Base.Vector (PValue a_a5hhx)
++  = V_PValue (Data.Vector.Unboxed.Base.Vector a_a5hhx)
++instance Unbox a_a5hhx =>
++          Data.Vector.Generic.Base.Vector Data.Vector.Unboxed.Base.Vector (PValue a_a5hhx) where
++  {-# INLINE basicUnsafeFreeze #-}
++  {-# INLINE basicUnsafeThaw #-}
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicUnsafeIndexM #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE elemseq #-}
++  basicUnsafeFreeze (MV_PValue mvec_a5hhs)
++    = (V_PValue
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeFreeze mvec_a5hhs))
++  basicUnsafeThaw (V_PValue vec_a5hhu)
++    = (MV_PValue
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeThaw vec_a5hhu))
++  basicLength (V_PValue vec_a5hhu)
++    = Data.Vector.Generic.Base.basicLength vec_a5hhu
++  basicUnsafeSlice
++    idx_a5hhq
++    len_a5hhr
++    (V_PValue vec_a5hhu)
++    = V_PValue
++        (Data.Vector.Generic.Base.basicUnsafeSlice
++            idx_a5hhq len_a5hhr vec_a5hhu)
++  basicUnsafeIndexM
++    (V_PValue vec_a5hhu)
++    idx_a5hhq
++    = (PValue
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeIndexM vec_a5hhu idx_a5hhq))
++  basicUnsafeCopy
++    (MV_PValue mvec_a5hhs)
++    (V_PValue vec_a5hhu)
++    = Data.Vector.Generic.Base.basicUnsafeCopy mvec_a5hhs vec_a5hhu
++  elemseq (V_PValue vec_a5hhu) val_a5hhw
++    = Data.Vector.Generic.Base.elemseq
++        vec_a5hhu ((\ (PValue a_a5hhv) -> a_a5hhv) val_a5hhw)
++
++instance (Unbox a_a5hre, Unbox (e_a5hrf a_a5hre)) =>
++          Unbox (Estimate e_a5hrf a_a5hre)
++newtype instance Data.Vector.Unboxed.Base.MVector s (Estimate e_a5hrf a_a5hre)
++  = MV_Estimate (Data.Vector.Unboxed.Base.MVector s (a_a5hre,
++                                                      e_a5hrf a_a5hre))
++instance (Unbox a_a5hre, Unbox (e_a5hrf a_a5hre)) =>
++          Data.Vector.Generic.Mutable.Base.MVector Data.Vector.Unboxed.Base.MVector (Estimate e_a5hrf a_a5hre) where
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicOverlaps #-}
++  {-# INLINE basicUnsafeNew #-}
++  {-# INLINE basicInitialize #-}
++  {-# INLINE basicUnsafeReplicate #-}
++  {-# INLINE basicUnsafeRead #-}
++  {-# INLINE basicUnsafeWrite #-}
++  {-# INLINE basicClear #-}
++  {-# INLINE basicSet #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE basicUnsafeMove #-}
++  {-# INLINE basicUnsafeGrow #-}
++  basicLength
++    (MV_Estimate mvec_a5hr6)
++    = Data.Vector.Generic.Mutable.Base.basicLength mvec_a5hr6
++  basicUnsafeSlice
++    idx_a5hr4
++    len_a5hr5
++    (MV_Estimate mvec_a5hr6)
++    = MV_Estimate
++        (Data.Vector.Generic.Mutable.Base.basicUnsafeSlice
++            idx_a5hr4 len_a5hr5 mvec_a5hr6)
++  basicOverlaps
++    (MV_Estimate mvec_a5hr6)
++    (MV_Estimate mvec'_a5hr7)
++    = Data.Vector.Generic.Mutable.Base.basicOverlaps
++        mvec_a5hr6 mvec'_a5hr7
++  basicUnsafeNew len_a5hr5
++    = (MV_Estimate
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeNew len_a5hr5))
++  basicInitialize
++    (MV_Estimate mvec_a5hr6)
++    = Data.Vector.Generic.Mutable.Base.basicInitialize mvec_a5hr6
++  basicUnsafeReplicate
++    len_a5hr5
++    val_a5hrd
++    = (MV_Estimate
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeReplicate
++            len_a5hr5
++            ((\ (Estimate x_a5hr9 dx_a5hra) -> (x_a5hr9, dx_a5hra)) val_a5hrd)))
++  basicUnsafeRead
++    (MV_Estimate mvec_a5hr6)
++    idx_a5hr4
++    = ((\ (x_a5hrb, dx_a5hrc) -> Estimate x_a5hrb dx_a5hrc)
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeRead
++            mvec_a5hr6 idx_a5hr4))
++  basicUnsafeWrite
++    (MV_Estimate mvec_a5hr6)
++    idx_a5hr4
++    val_a5hrd
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeWrite
++        mvec_a5hr6
++        idx_a5hr4
++        ((\ (Estimate x_a5hr9 dx_a5hra) -> (x_a5hr9, dx_a5hra)) val_a5hrd)
++  basicClear
++    (MV_Estimate mvec_a5hr6)
++    = Data.Vector.Generic.Mutable.Base.basicClear mvec_a5hr6
++  basicSet
++    (MV_Estimate mvec_a5hr6)
++    val_a5hrd
++    = Data.Vector.Generic.Mutable.Base.basicSet
++        mvec_a5hr6
++        ((\ (Estimate x_a5hr9 dx_a5hra) -> (x_a5hr9, dx_a5hra)) val_a5hrd)
++  basicUnsafeCopy
++    (MV_Estimate mvec_a5hr6)
++    (MV_Estimate mvec'_a5hr7)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeCopy
++        mvec_a5hr6 mvec'_a5hr7
++  basicUnsafeMove
++    (MV_Estimate mvec_a5hr6)
++    (MV_Estimate mvec'_a5hr7)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeMove
++        mvec_a5hr6 mvec'_a5hr7
++  basicUnsafeGrow
++    (MV_Estimate mvec_a5hr6)
++    len_a5hr5
++    = (MV_Estimate
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeGrow
++            mvec_a5hr6 len_a5hr5))
++newtype instance Data.Vector.Unboxed.Base.Vector (Estimate e_a5hrf a_a5hre)
++  = V_Estimate (Data.Vector.Unboxed.Base.Vector (a_a5hre,
++                                                  e_a5hrf a_a5hre))
++instance (Unbox a_a5hre, Unbox (e_a5hrf a_a5hre)) =>
++          Data.Vector.Generic.Base.Vector Data.Vector.Unboxed.Base.Vector (Estimate e_a5hrf a_a5hre) where
++  {-# INLINE basicUnsafeFreeze #-}
++  {-# INLINE basicUnsafeThaw #-}
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicUnsafeIndexM #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE elemseq #-}
++  basicUnsafeFreeze (MV_Estimate mvec_a5hr6)
++    = (V_Estimate
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeFreeze mvec_a5hr6))
++  basicUnsafeThaw (V_Estimate vec_a5hr8)
++    = (MV_Estimate
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeThaw vec_a5hr8))
++  basicLength (V_Estimate vec_a5hr8)
++    = Data.Vector.Generic.Base.basicLength vec_a5hr8
++  basicUnsafeSlice
++    idx_a5hr4
++    len_a5hr5
++    (V_Estimate vec_a5hr8)
++    = V_Estimate
++        (Data.Vector.Generic.Base.basicUnsafeSlice
++            idx_a5hr4 len_a5hr5 vec_a5hr8)
++  basicUnsafeIndexM
++    (V_Estimate vec_a5hr8)
++    idx_a5hr4
++    = ((\ (x_a5hrb, dx_a5hrc) -> Estimate x_a5hrb dx_a5hrc)
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeIndexM vec_a5hr8 idx_a5hr4))
++  basicUnsafeCopy
++    (MV_Estimate mvec_a5hr6)
++    (V_Estimate vec_a5hr8)
++    = Data.Vector.Generic.Base.basicUnsafeCopy mvec_a5hr6 vec_a5hr8
++  elemseq (V_Estimate vec_a5hr8) val_a5hrd
++    = Data.Vector.Generic.Base.elemseq
++        vec_a5hr8
++        ((\ (Estimate x_a5hr9 dx_a5hra) -> (x_a5hr9, dx_a5hra)) val_a5hrd)
++
++instance Unbox a_a5hBa => Unbox (NormalErr a_a5hBa)
++newtype instance Data.Vector.Unboxed.Base.MVector s (NormalErr a_a5hBa)
++  = MV_NormalErr (Data.Vector.Unboxed.Base.MVector s a_a5hBa)
++instance Unbox a_a5hBa =>
++          Data.Vector.Generic.Mutable.Base.MVector Data.Vector.Unboxed.Base.MVector (NormalErr a_a5hBa) where
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicOverlaps #-}
++  {-# INLINE basicUnsafeNew #-}
++  {-# INLINE basicInitialize #-}
++  {-# INLINE basicUnsafeReplicate #-}
++  {-# INLINE basicUnsafeRead #-}
++  {-# INLINE basicUnsafeWrite #-}
++  {-# INLINE basicClear #-}
++  {-# INLINE basicSet #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE basicUnsafeMove #-}
++  {-# INLINE basicUnsafeGrow #-}
++  basicLength
++    (MV_NormalErr mvec_a5hB5)
++    = Data.Vector.Generic.Mutable.Base.basicLength mvec_a5hB5
++  basicUnsafeSlice
++    idx_a5hB3
++    len_a5hB4
++    (MV_NormalErr mvec_a5hB5)
++    = MV_NormalErr
++        (Data.Vector.Generic.Mutable.Base.basicUnsafeSlice
++            idx_a5hB3 len_a5hB4 mvec_a5hB5)
++  basicOverlaps
++    (MV_NormalErr mvec_a5hB5)
++    (MV_NormalErr mvec'_a5hB6)
++    = Data.Vector.Generic.Mutable.Base.basicOverlaps
++        mvec_a5hB5 mvec'_a5hB6
++  basicUnsafeNew len_a5hB4
++    = (MV_NormalErr
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeNew len_a5hB4))
++  basicInitialize
++    (MV_NormalErr mvec_a5hB5)
++    = Data.Vector.Generic.Mutable.Base.basicInitialize mvec_a5hB5
++  basicUnsafeReplicate
++    len_a5hB4
++    val_a5hB9
++    = (MV_NormalErr
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeReplicate
++            len_a5hB4 ((\ (NormalErr a_a5hB8) -> a_a5hB8) val_a5hB9)))
++  basicUnsafeRead
++    (MV_NormalErr mvec_a5hB5)
++    idx_a5hB3
++    = (NormalErr
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeRead
++            mvec_a5hB5 idx_a5hB3))
++  basicUnsafeWrite
++    (MV_NormalErr mvec_a5hB5)
++    idx_a5hB3
++    val_a5hB9
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeWrite
++        mvec_a5hB5 idx_a5hB3 ((\ (NormalErr a_a5hB8) -> a_a5hB8) val_a5hB9)
++  basicClear
++    (MV_NormalErr mvec_a5hB5)
++    = Data.Vector.Generic.Mutable.Base.basicClear mvec_a5hB5
++  basicSet
++    (MV_NormalErr mvec_a5hB5)
++    val_a5hB9
++    = Data.Vector.Generic.Mutable.Base.basicSet
++        mvec_a5hB5 ((\ (NormalErr a_a5hB8) -> a_a5hB8) val_a5hB9)
++  basicUnsafeCopy
++    (MV_NormalErr mvec_a5hB5)
++    (MV_NormalErr mvec'_a5hB6)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeCopy
++        mvec_a5hB5 mvec'_a5hB6
++  basicUnsafeMove
++    (MV_NormalErr mvec_a5hB5)
++    (MV_NormalErr mvec'_a5hB6)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeMove
++        mvec_a5hB5 mvec'_a5hB6
++  basicUnsafeGrow
++    (MV_NormalErr mvec_a5hB5)
++    len_a5hB4
++    = (MV_NormalErr
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeGrow
++            mvec_a5hB5 len_a5hB4))
++newtype instance Data.Vector.Unboxed.Base.Vector (NormalErr a_a5hBa)
++  = V_NormalErr (Data.Vector.Unboxed.Base.Vector a_a5hBa)
++instance Unbox a_a5hBa =>
++          Data.Vector.Generic.Base.Vector Data.Vector.Unboxed.Base.Vector (NormalErr a_a5hBa) where
++  {-# INLINE basicUnsafeFreeze #-}
++  {-# INLINE basicUnsafeThaw #-}
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicUnsafeIndexM #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE elemseq #-}
++  basicUnsafeFreeze
++    (MV_NormalErr mvec_a5hB5)
++    = (V_NormalErr
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeFreeze mvec_a5hB5))
++  basicUnsafeThaw (V_NormalErr vec_a5hB7)
++    = (MV_NormalErr
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeThaw vec_a5hB7))
++  basicLength (V_NormalErr vec_a5hB7)
++    = Data.Vector.Generic.Base.basicLength vec_a5hB7
++  basicUnsafeSlice
++    idx_a5hB3
++    len_a5hB4
++    (V_NormalErr vec_a5hB7)
++    = V_NormalErr
++        (Data.Vector.Generic.Base.basicUnsafeSlice
++            idx_a5hB3 len_a5hB4 vec_a5hB7)
++  basicUnsafeIndexM
++    (V_NormalErr vec_a5hB7)
++    idx_a5hB3
++    = (NormalErr
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeIndexM vec_a5hB7 idx_a5hB3))
++  basicUnsafeCopy
++    (MV_NormalErr mvec_a5hB5)
++    (V_NormalErr vec_a5hB7)
++    = Data.Vector.Generic.Base.basicUnsafeCopy mvec_a5hB5 vec_a5hB7
++  elemseq (V_NormalErr vec_a5hB7) val_a5hB9
++    = Data.Vector.Generic.Base.elemseq
++        vec_a5hB7 ((\ (NormalErr a_a5hB8) -> a_a5hB8) val_a5hB9)
++
++instance Unbox a_a5hKQ => Unbox (ConfInt a_a5hKQ)
++newtype instance Data.Vector.Unboxed.Base.MVector s (ConfInt a_a5hKQ)
++  = MV_ConfInt (Data.Vector.Unboxed.Base.MVector s (a_a5hKQ,
++                                                    a_a5hKQ,
++                                                    CL Double))
++instance Unbox a_a5hKQ =>
++          Data.Vector.Generic.Mutable.Base.MVector Data.Vector.Unboxed.Base.MVector (ConfInt a_a5hKQ) where
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicOverlaps #-}
++  {-# INLINE basicUnsafeNew #-}
++  {-# INLINE basicInitialize #-}
++  {-# INLINE basicUnsafeReplicate #-}
++  {-# INLINE basicUnsafeRead #-}
++  {-# INLINE basicUnsafeWrite #-}
++  {-# INLINE basicClear #-}
++  {-# INLINE basicSet #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE basicUnsafeMove #-}
++  {-# INLINE basicUnsafeGrow #-}
++  basicLength
++    (MV_ConfInt mvec_a5hKG)
++    = Data.Vector.Generic.Mutable.Base.basicLength mvec_a5hKG
++  basicUnsafeSlice
++    idx_a5hKE
++    len_a5hKF
++    (MV_ConfInt mvec_a5hKG)
++    = MV_ConfInt
++        (Data.Vector.Generic.Mutable.Base.basicUnsafeSlice
++            idx_a5hKE len_a5hKF mvec_a5hKG)
++  basicOverlaps
++    (MV_ConfInt mvec_a5hKG)
++    (MV_ConfInt mvec'_a5hKH)
++    = Data.Vector.Generic.Mutable.Base.basicOverlaps
++        mvec_a5hKG mvec'_a5hKH
++  basicUnsafeNew len_a5hKF
++    = (MV_ConfInt
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeNew len_a5hKF))
++  basicInitialize
++    (MV_ConfInt mvec_a5hKG)
++    = Data.Vector.Generic.Mutable.Base.basicInitialize mvec_a5hKG
++  basicUnsafeReplicate
++    len_a5hKF
++    val_a5hKP
++    = (MV_ConfInt
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeReplicate
++            len_a5hKF
++            ((\ (ConfInt a_a5hKJ b_a5hKK c_a5hKL) -> (a_a5hKJ, b_a5hKK, c_a5hKL))
++                val_a5hKP)))
++  basicUnsafeRead
++    (MV_ConfInt mvec_a5hKG)
++    idx_a5hKE
++    = ((\ (a_a5hKM, b_a5hKN, c_a5hKO)
++          -> ConfInt a_a5hKM b_a5hKN c_a5hKO)
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeRead
++            mvec_a5hKG idx_a5hKE))
++  basicUnsafeWrite
++    (MV_ConfInt mvec_a5hKG)
++    idx_a5hKE
++    val_a5hKP
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeWrite
++        mvec_a5hKG
++        idx_a5hKE
++        ((\ (ConfInt a_a5hKJ b_a5hKK c_a5hKL) -> (a_a5hKJ, b_a5hKK, c_a5hKL))
++            val_a5hKP)
++  basicClear (MV_ConfInt mvec_a5hKG)
++    = Data.Vector.Generic.Mutable.Base.basicClear mvec_a5hKG
++  basicSet
++    (MV_ConfInt mvec_a5hKG)
++    val_a5hKP
++    = Data.Vector.Generic.Mutable.Base.basicSet
++        mvec_a5hKG
++        ((\ (ConfInt a_a5hKJ b_a5hKK c_a5hKL) -> (a_a5hKJ, b_a5hKK, c_a5hKL))
++            val_a5hKP)
++  basicUnsafeCopy
++    (MV_ConfInt mvec_a5hKG)
++    (MV_ConfInt mvec'_a5hKH)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeCopy
++        mvec_a5hKG mvec'_a5hKH
++  basicUnsafeMove
++    (MV_ConfInt mvec_a5hKG)
++    (MV_ConfInt mvec'_a5hKH)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeMove
++        mvec_a5hKG mvec'_a5hKH
++  basicUnsafeGrow
++    (MV_ConfInt mvec_a5hKG)
++    len_a5hKF
++    = (MV_ConfInt
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeGrow
++            mvec_a5hKG len_a5hKF))
++newtype instance Data.Vector.Unboxed.Base.Vector (ConfInt a_a5hKQ)
++  = V_ConfInt (Data.Vector.Unboxed.Base.Vector (a_a5hKQ,
++                                                a_a5hKQ,
++                                                CL Double))
++instance Unbox a_a5hKQ =>
++          Data.Vector.Generic.Base.Vector Data.Vector.Unboxed.Base.Vector (ConfInt a_a5hKQ) where
++  {-# INLINE basicUnsafeFreeze #-}
++  {-# INLINE basicUnsafeThaw #-}
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicUnsafeIndexM #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE elemseq #-}
++  basicUnsafeFreeze (MV_ConfInt mvec_a5hKG)
++    = (V_ConfInt
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeFreeze mvec_a5hKG))
++  basicUnsafeThaw (V_ConfInt vec_a5hKI)
++    = (MV_ConfInt
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeThaw vec_a5hKI))
++  basicLength (V_ConfInt vec_a5hKI)
++    = Data.Vector.Generic.Base.basicLength vec_a5hKI
++  basicUnsafeSlice
++    idx_a5hKE
++    len_a5hKF
++    (V_ConfInt vec_a5hKI)
++    = V_ConfInt
++        (Data.Vector.Generic.Base.basicUnsafeSlice
++            idx_a5hKE len_a5hKF vec_a5hKI)
++  basicUnsafeIndexM
++    (V_ConfInt vec_a5hKI)
++    idx_a5hKE
++    = ((\ (a_a5hKM, b_a5hKN, c_a5hKO)
++          -> ConfInt a_a5hKM b_a5hKN c_a5hKO)
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeIndexM vec_a5hKI idx_a5hKE))
++  basicUnsafeCopy
++    (MV_ConfInt mvec_a5hKG)
++    (V_ConfInt vec_a5hKI)
++    = Data.Vector.Generic.Base.basicUnsafeCopy mvec_a5hKG vec_a5hKI
++  elemseq (V_ConfInt vec_a5hKI) val_a5hKP
++    = Data.Vector.Generic.Base.elemseq
++        vec_a5hKI
++        ((\ (ConfInt a_a5hKJ b_a5hKK c_a5hKL) -> (a_a5hKJ, b_a5hKK, c_a5hKL))
++            val_a5hKP)
++
++instance Unbox a_a5hUw => Unbox (UpperLimit a_a5hUw)
++newtype instance Data.Vector.Unboxed.Base.MVector s (UpperLimit a_a5hUw)
++  = MV_UpperLimit (Data.Vector.Unboxed.Base.MVector s (a_a5hUw,
++                                                        CL Double))
++instance Unbox a_a5hUw =>
++          Data.Vector.Generic.Mutable.Base.MVector Data.Vector.Unboxed.Base.MVector (UpperLimit a_a5hUw) where
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicOverlaps #-}
++  {-# INLINE basicUnsafeNew #-}
++  {-# INLINE basicInitialize #-}
++  {-# INLINE basicUnsafeReplicate #-}
++  {-# INLINE basicUnsafeRead #-}
++  {-# INLINE basicUnsafeWrite #-}
++  {-# INLINE basicClear #-}
++  {-# INLINE basicSet #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE basicUnsafeMove #-}
++  {-# INLINE basicUnsafeGrow #-}
++  basicLength
++    (MV_UpperLimit mvec_a5hUo)
++    = Data.Vector.Generic.Mutable.Base.basicLength mvec_a5hUo
++  basicUnsafeSlice
++    idx_a5hUm
++    len_a5hUn
++    (MV_UpperLimit mvec_a5hUo)
++    = MV_UpperLimit
++        (Data.Vector.Generic.Mutable.Base.basicUnsafeSlice
++            idx_a5hUm len_a5hUn mvec_a5hUo)
++  basicOverlaps
++    (MV_UpperLimit mvec_a5hUo)
++    (MV_UpperLimit mvec'_a5hUp)
++    = Data.Vector.Generic.Mutable.Base.basicOverlaps
++        mvec_a5hUo mvec'_a5hUp
++  basicUnsafeNew len_a5hUn
++    = (MV_UpperLimit
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeNew len_a5hUn))
++  basicInitialize
++    (MV_UpperLimit mvec_a5hUo)
++    = Data.Vector.Generic.Mutable.Base.basicInitialize mvec_a5hUo
++  basicUnsafeReplicate
++    len_a5hUn
++    val_a5hUv
++    = (MV_UpperLimit
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeReplicate
++            len_a5hUn
++            ((\ (UpperLimit a_a5hUr b_a5hUs) -> (a_a5hUr, b_a5hUs)) val_a5hUv)))
++  basicUnsafeRead
++    (MV_UpperLimit mvec_a5hUo)
++    idx_a5hUm
++    = ((\ (a_a5hUt, b_a5hUu) -> UpperLimit a_a5hUt b_a5hUu)
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeRead
++            mvec_a5hUo idx_a5hUm))
++  basicUnsafeWrite
++    (MV_UpperLimit mvec_a5hUo)
++    idx_a5hUm
++    val_a5hUv
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeWrite
++        mvec_a5hUo
++        idx_a5hUm
++        ((\ (UpperLimit a_a5hUr b_a5hUs) -> (a_a5hUr, b_a5hUs)) val_a5hUv)
++  basicClear
++    (MV_UpperLimit mvec_a5hUo)
++    = Data.Vector.Generic.Mutable.Base.basicClear mvec_a5hUo
++  basicSet
++    (MV_UpperLimit mvec_a5hUo)
++    val_a5hUv
++    = Data.Vector.Generic.Mutable.Base.basicSet
++        mvec_a5hUo
++        ((\ (UpperLimit a_a5hUr b_a5hUs) -> (a_a5hUr, b_a5hUs)) val_a5hUv)
++  basicUnsafeCopy
++    (MV_UpperLimit mvec_a5hUo)
++    (MV_UpperLimit mvec'_a5hUp)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeCopy
++        mvec_a5hUo mvec'_a5hUp
++  basicUnsafeMove
++    (MV_UpperLimit mvec_a5hUo)
++    (MV_UpperLimit mvec'_a5hUp)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeMove
++        mvec_a5hUo mvec'_a5hUp
++  basicUnsafeGrow
++    (MV_UpperLimit mvec_a5hUo)
++    len_a5hUn
++    = (MV_UpperLimit
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeGrow
++            mvec_a5hUo len_a5hUn))
++newtype instance Data.Vector.Unboxed.Base.Vector (UpperLimit a_a5hUw)
++  = V_UpperLimit (Data.Vector.Unboxed.Base.Vector (a_a5hUw,
++                                                    CL Double))
++instance Unbox a_a5hUw =>
++          Data.Vector.Generic.Base.Vector Data.Vector.Unboxed.Base.Vector (UpperLimit a_a5hUw) where
++  {-# INLINE basicUnsafeFreeze #-}
++  {-# INLINE basicUnsafeThaw #-}
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicUnsafeIndexM #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE elemseq #-}
++  basicUnsafeFreeze
++    (MV_UpperLimit mvec_a5hUo)
++    = (V_UpperLimit
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeFreeze mvec_a5hUo))
++  basicUnsafeThaw (V_UpperLimit vec_a5hUq)
++    = (MV_UpperLimit
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeThaw vec_a5hUq))
++  basicLength (V_UpperLimit vec_a5hUq)
++    = Data.Vector.Generic.Base.basicLength vec_a5hUq
++  basicUnsafeSlice
++    idx_a5hUm
++    len_a5hUn
++    (V_UpperLimit vec_a5hUq)
++    = V_UpperLimit
++        (Data.Vector.Generic.Base.basicUnsafeSlice
++            idx_a5hUm len_a5hUn vec_a5hUq)
++  basicUnsafeIndexM
++    (V_UpperLimit vec_a5hUq)
++    idx_a5hUm
++    = ((\ (a_a5hUt, b_a5hUu) -> UpperLimit a_a5hUt b_a5hUu)
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeIndexM vec_a5hUq idx_a5hUm))
++  basicUnsafeCopy
++    (MV_UpperLimit mvec_a5hUo)
++    (V_UpperLimit vec_a5hUq)
++    = Data.Vector.Generic.Base.basicUnsafeCopy mvec_a5hUo vec_a5hUq
++  elemseq (V_UpperLimit vec_a5hUq) val_a5hUv
++    = Data.Vector.Generic.Base.elemseq
++        vec_a5hUq
++        ((\ (UpperLimit a_a5hUr b_a5hUs) -> (a_a5hUr, b_a5hUs)) val_a5hUv)
++
++instance Unbox a_a5i46 => Unbox (LowerLimit a_a5i46)
++newtype instance Data.Vector.Unboxed.Base.MVector s (LowerLimit a_a5i46)
++  = MV_LowerLimit (Data.Vector.Unboxed.Base.MVector s (a_a5i46,
++                                                        CL Double))
++instance Unbox a_a5i46 =>
++          Data.Vector.Generic.Mutable.Base.MVector Data.Vector.Unboxed.Base.MVector (LowerLimit a_a5i46) where
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicOverlaps #-}
++  {-# INLINE basicUnsafeNew #-}
++  {-# INLINE basicInitialize #-}
++  {-# INLINE basicUnsafeReplicate #-}
++  {-# INLINE basicUnsafeRead #-}
++  {-# INLINE basicUnsafeWrite #-}
++  {-# INLINE basicClear #-}
++  {-# INLINE basicSet #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE basicUnsafeMove #-}
++  {-# INLINE basicUnsafeGrow #-}
++  basicLength
++    (MV_LowerLimit mvec_a5i3Y)
++    = Data.Vector.Generic.Mutable.Base.basicLength mvec_a5i3Y
++  basicUnsafeSlice
++    idx_a5i3W
++    len_a5i3X
++    (MV_LowerLimit mvec_a5i3Y)
++    = MV_LowerLimit
++        (Data.Vector.Generic.Mutable.Base.basicUnsafeSlice
++            idx_a5i3W len_a5i3X mvec_a5i3Y)
++  basicOverlaps
++    (MV_LowerLimit mvec_a5i3Y)
++    (MV_LowerLimit mvec'_a5i3Z)
++    = Data.Vector.Generic.Mutable.Base.basicOverlaps
++        mvec_a5i3Y mvec'_a5i3Z
++  basicUnsafeNew len_a5i3X
++    = (MV_LowerLimit
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeNew len_a5i3X))
++  basicInitialize
++    (MV_LowerLimit mvec_a5i3Y)
++    = Data.Vector.Generic.Mutable.Base.basicInitialize mvec_a5i3Y
++  basicUnsafeReplicate
++    len_a5i3X
++    val_a5i45
++    = (MV_LowerLimit
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeReplicate
++            len_a5i3X
++            ((\ (LowerLimit a_a5i41 b_a5i42) -> (a_a5i41, b_a5i42)) val_a5i45)))
++  basicUnsafeRead
++    (MV_LowerLimit mvec_a5i3Y)
++    idx_a5i3W
++    = ((\ (a_a5i43, b_a5i44) -> LowerLimit a_a5i43 b_a5i44)
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeRead
++            mvec_a5i3Y idx_a5i3W))
++  basicUnsafeWrite
++    (MV_LowerLimit mvec_a5i3Y)
++    idx_a5i3W
++    val_a5i45
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeWrite
++        mvec_a5i3Y
++        idx_a5i3W
++        ((\ (LowerLimit a_a5i41 b_a5i42) -> (a_a5i41, b_a5i42)) val_a5i45)
++  basicClear
++    (MV_LowerLimit mvec_a5i3Y)
++    = Data.Vector.Generic.Mutable.Base.basicClear mvec_a5i3Y
++  basicSet
++    (MV_LowerLimit mvec_a5i3Y)
++    val_a5i45
++    = Data.Vector.Generic.Mutable.Base.basicSet
++        mvec_a5i3Y
++        ((\ (LowerLimit a_a5i41 b_a5i42) -> (a_a5i41, b_a5i42)) val_a5i45)
++  basicUnsafeCopy
++    (MV_LowerLimit mvec_a5i3Y)
++    (MV_LowerLimit mvec'_a5i3Z)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeCopy
++        mvec_a5i3Y mvec'_a5i3Z
++  basicUnsafeMove
++    (MV_LowerLimit mvec_a5i3Y)
++    (MV_LowerLimit mvec'_a5i3Z)
++    = Data.Vector.Generic.Mutable.Base.basicUnsafeMove
++        mvec_a5i3Y mvec'_a5i3Z
++  basicUnsafeGrow
++    (MV_LowerLimit mvec_a5i3Y)
++    len_a5i3X
++    = (MV_LowerLimit
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Mutable.Base.basicUnsafeGrow
++            mvec_a5i3Y len_a5i3X))
++newtype instance Data.Vector.Unboxed.Base.Vector (LowerLimit a_a5i46)
++  = V_LowerLimit (Data.Vector.Unboxed.Base.Vector (a_a5i46,
++                                                    CL Double))
++instance Unbox a_a5i46 =>
++          Data.Vector.Generic.Base.Vector Data.Vector.Unboxed.Base.Vector (LowerLimit a_a5i46) where
++  {-# INLINE basicUnsafeFreeze #-}
++  {-# INLINE basicUnsafeThaw #-}
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicUnsafeIndexM #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE elemseq #-}
++  basicUnsafeFreeze
++    (MV_LowerLimit mvec_a5i3Y)
++    = (V_LowerLimit
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeFreeze mvec_a5i3Y))
++  basicUnsafeThaw (V_LowerLimit vec_a5i40)
++    = (MV_LowerLimit
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeThaw vec_a5i40))
++  basicLength (V_LowerLimit vec_a5i40)
++    = Data.Vector.Generic.Base.basicLength vec_a5i40
++  basicUnsafeSlice
++    idx_a5i3W
++    len_a5i3X
++    (V_LowerLimit vec_a5i40)
++    = V_LowerLimit
++        (Data.Vector.Generic.Base.basicUnsafeSlice
++            idx_a5i3W len_a5i3X vec_a5i40)
++  basicUnsafeIndexM
++    (V_LowerLimit vec_a5i40)
++    idx_a5i3W
++    = ((\ (a_a5i43, b_a5i44) -> LowerLimit a_a5i43 b_a5i44)
++        `GHC.Base.liftM`
++          (Data.Vector.Generic.Base.basicUnsafeIndexM vec_a5i40 idx_a5i3W))
++  basicUnsafeCopy
++    (MV_LowerLimit mvec_a5i3Y)
++    (V_LowerLimit vec_a5i40)
++    = Data.Vector.Generic.Base.basicUnsafeCopy mvec_a5i3Y vec_a5i40
++  elemseq (V_LowerLimit vec_a5i40) val_a5i45
++    = Data.Vector.Generic.Base.elemseq
++        vec_a5i40
++        ((\ (LowerLimit a_a5i41 b_a5i42) -> (a_a5i41, b_a5i42)) val_a5i45)
+-- 
+2.7.4 (Apple Git-66)
+
