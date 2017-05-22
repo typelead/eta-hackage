@@ -1,0 +1,364 @@
+From 4d83dce17526d540b40ae2d8eefb96b23278c48f Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 22 May 2017 17:43:28 +0530
+Subject: [PATCH] Patched
+
+---
+ Numeric/SpecFunctions/Internal.hs |   8 +-
+ Numeric/Sum.hs                    | 266 ++++++++++++++++++++++++++++++++++++--
+ math-functions.cabal              |   5 +-
+ 3 files changed, 262 insertions(+), 17 deletions(-)
+
+diff --git a/Numeric/SpecFunctions/Internal.hs b/Numeric/SpecFunctions/Internal.hs
+index a45ac06..0684c74 100644
+--- a/Numeric/SpecFunctions/Internal.hs
++++ b/Numeric/SpecFunctions/Internal.hs
+@@ -74,8 +74,10 @@ erfc :: Double -> Double
+ {-# INLINE erfc #-}
+ erfc = c_erfc
+ 
+-foreign import ccall "erf"  c_erf  :: Double -> Double
+-foreign import ccall "erfc" c_erfc :: Double -> Double
++foreign import java unsafe "@static org.apache.commons.math3.special.Erf.erf"
++  c_erf  :: Double -> Double
++foreign import java unsafe "@static org.apache.commons.math3.special.Erf.erfc"
++  c_erfc :: Double -> Double
+ 
+ 
+ -- | Inverse of 'erf'.
+@@ -768,7 +770,7 @@ expm1 :: Double -> Double
+ #ifdef USE_SYSTEM_EXPM1
+ expm1 = c_expm1
+ 
+-foreign import ccall "expm1" c_expm1 :: Double -> Double
++foreign import java unsafe "@static java.lang.Math.expm1"  c_expm1 :: Double -> Double
+ #else
+ -- NOTE: this is simplest implementation and not terribly efficient.
+ expm1 x
+diff --git a/Numeric/Sum.hs b/Numeric/Sum.hs
+index b1b3bdf..12e4c0f 100644
+--- a/Numeric/Sum.hs
++++ b/Numeric/Sum.hs
+@@ -57,6 +57,8 @@ import Data.Vector.Generic (Vector(..), foldl')
+ import Data.Vector.Unboxed.Deriving (derivingUnbox)
+ -- Needed for GHC 7.2 & 7.4 to derive Unbox instances
+ import Data.Vector.Generic.Mutable (MVector(..))
++import qualified Data.Vector.Generic.Mutable
++import qualified GHC.Base
+ 
+ import qualified Data.Foldable as F
+ import qualified Data.Vector as V
+@@ -94,10 +96,89 @@ instance Summation Double where
+ data KahanSum = KahanSum {-# UNPACK #-} !Double {-# UNPACK #-} !Double
+               deriving (Eq, Show, Typeable, Data)
+ 
+-derivingUnbox "KahanSum"
+-    [t| KahanSum -> (Double, Double) |]
+-    [| \ (KahanSum a b) -> (a, b) |]
+-    [| \ (a, b) -> KahanSum a b |]
++instance U.Unbox KahanSum
++newtype instance U.MVector s KahanSum
++  = MV_KahanSum (U.MVector s (Double, Double))
++instance MVector U.MVector KahanSum where
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicOverlaps #-}
++  {-# INLINE basicUnsafeNew #-}
++  {-# INLINE basicInitialize #-}
++  {-# INLINE basicUnsafeReplicate #-}
++  {-# INLINE basicUnsafeRead #-}
++  {-# INLINE basicUnsafeWrite #-}
++  {-# INLINE basicClear #-}
++  {-# INLINE basicSet #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE basicUnsafeMove #-}
++  {-# INLINE basicUnsafeGrow #-}
++  basicLength (MV_KahanSum mvec_a9IU)
++    = Data.Vector.Generic.Mutable.basicLength mvec_a9IU
++  basicUnsafeSlice
++    idx_a9IS
++    len_a9IT
++    (MV_KahanSum mvec_a9IU)
++    = MV_KahanSum
++        (Data.Vector.Generic.Mutable.basicUnsafeSlice
++            idx_a9IS len_a9IT mvec_a9IU)
++  basicOverlaps (MV_KahanSum mvec_a9IU) (MV_KahanSum mvec'_a9IV)
++    = basicOverlaps mvec_a9IU mvec'_a9IV
++  basicUnsafeNew len_a9IT
++    = (MV_KahanSum `GHC.Base.liftM` (basicUnsafeNew len_a9IT))
++  basicInitialize (MV_KahanSum mvec_a9IU) = basicInitialize mvec_a9IU
++  basicUnsafeReplicate len_a9IT val_a9J1
++    = (MV_KahanSum
++        `GHC.Base.liftM`
++          (basicUnsafeReplicate
++            len_a9IT
++            ((\ (KahanSum a_a9IX b_a9IY) -> (a_a9IX, b_a9IY)) val_a9J1)))
++  basicUnsafeRead (MV_KahanSum mvec_a9IU) idx_a9IS
++    = ((\ (a_a9IZ, b_a9J0) -> KahanSum a_a9IZ b_a9J0)
++        `GHC.Base.liftM` (basicUnsafeRead mvec_a9IU idx_a9IS))
++  basicUnsafeWrite (MV_KahanSum mvec_a9IU) idx_a9IS val_a9J1
++    = basicUnsafeWrite
++        mvec_a9IU
++        idx_a9IS
++        ((\ (KahanSum a_a9IX b_a9IY) -> (a_a9IX, b_a9IY)) val_a9J1)
++  basicClear (MV_KahanSum mvec_a9IU) = basicClear mvec_a9IU
++  basicSet (MV_KahanSum mvec_a9IU) val_a9J1
++    = basicSet
++        mvec_a9IU ((\ (KahanSum a_a9IX b_a9IY) -> (a_a9IX, b_a9IY)) val_a9J1)
++  basicUnsafeCopy
++    (MV_KahanSum mvec_a9IU)
++    (MV_KahanSum mvec'_a9IV)
++    = Data.Vector.Generic.Mutable.basicUnsafeCopy mvec_a9IU mvec'_a9IV
++  basicUnsafeMove (MV_KahanSum mvec_a9IU) (MV_KahanSum mvec'_a9IV)
++    = basicUnsafeMove mvec_a9IU mvec'_a9IV
++  basicUnsafeGrow (MV_KahanSum mvec_a9IU) len_a9IT
++    = (MV_KahanSum
++        `GHC.Base.liftM` (basicUnsafeGrow mvec_a9IU len_a9IT))
++newtype instance U.Vector KahanSum
++  = V_KahanSum (U.Vector (Double, Double))
++instance Vector U.Vector KahanSum where
++  {-# INLINE basicUnsafeFreeze #-}
++  {-# INLINE basicUnsafeThaw #-}
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicUnsafeIndexM #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE elemseq #-}
++  basicUnsafeFreeze (MV_KahanSum mvec_a9IU)
++    = (V_KahanSum `GHC.Base.liftM` (basicUnsafeFreeze mvec_a9IU))
++  basicUnsafeThaw (V_KahanSum vec_a9IW)
++    = (MV_KahanSum `GHC.Base.liftM` (basicUnsafeThaw vec_a9IW))
++  basicLength (V_KahanSum vec_a9IW) = G.basicLength vec_a9IW
++  basicUnsafeSlice idx_a9IS len_a9IT (V_KahanSum vec_a9IW)
++    = V_KahanSum (G.basicUnsafeSlice idx_a9IS len_a9IT vec_a9IW)
++  basicUnsafeIndexM (V_KahanSum vec_a9IW) idx_a9IS
++    = ((\ (a_a9IZ, b_a9J0) -> KahanSum a_a9IZ b_a9J0)
++        `GHC.Base.liftM` (basicUnsafeIndexM vec_a9IW idx_a9IS))
++  basicUnsafeCopy (MV_KahanSum mvec_a9IU) (V_KahanSum vec_a9IW)
++    = G.basicUnsafeCopy mvec_a9IU vec_a9IW
++  elemseq (V_KahanSum vec_a9IW) val_a9J1
++    = elemseq
++        vec_a9IW ((\ (KahanSum a_a9IX b_a9IY) -> (a_a9IX, b_a9IY)) val_a9J1)
+ 
+ instance Summation KahanSum where
+     zero = KahanSum 0 0
+@@ -122,10 +203,87 @@ kahan (KahanSum sum _) = sum
+ data KBNSum = KBNSum {-# UNPACK #-} !Double {-# UNPACK #-} !Double
+             deriving (Eq, Show, Typeable, Data)
+ 
+-derivingUnbox "KBNSum"
+-    [t| KBNSum -> (Double, Double) |]
+-    [| \ (KBNSum a b) -> (a, b) |]
+-    [| \ (a, b) -> KBNSum a b |]
++instance U.Unbox KBNSum
++newtype instance U.MVector s KBNSum
++  = MV_KBNSum (U.MVector s (Double, Double))
++instance MVector U.MVector KBNSum where
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicOverlaps #-}
++  {-# INLINE basicUnsafeNew #-}
++  {-# INLINE basicInitialize #-}
++  {-# INLINE basicUnsafeReplicate #-}
++  {-# INLINE basicUnsafeRead #-}
++  {-# INLINE basicUnsafeWrite #-}
++  {-# INLINE basicClear #-}
++  {-# INLINE basicSet #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE basicUnsafeMove #-}
++  {-# INLINE basicUnsafeGrow #-}
++  basicLength (MV_KBNSum mvec_abIV)
++    = Data.Vector.Generic.Mutable.basicLength mvec_abIV
++  basicUnsafeSlice
++    idx_abIT
++    len_abIU
++    (MV_KBNSum mvec_abIV)
++    = MV_KBNSum
++        (Data.Vector.Generic.Mutable.basicUnsafeSlice
++            idx_abIT len_abIU mvec_abIV)
++  basicOverlaps (MV_KBNSum mvec_abIV) (MV_KBNSum mvec'_abIW)
++    = basicOverlaps mvec_abIV mvec'_abIW
++  basicUnsafeNew len_abIU
++    = (MV_KBNSum `GHC.Base.liftM` (basicUnsafeNew len_abIU))
++  basicInitialize (MV_KBNSum mvec_abIV) = basicInitialize mvec_abIV
++  basicUnsafeReplicate len_abIU val_abJ2
++    = (MV_KBNSum
++        `GHC.Base.liftM`
++          (basicUnsafeReplicate
++            len_abIU ((\ (KBNSum a_abIY b_abIZ) -> (a_abIY, b_abIZ)) val_abJ2)))
++  basicUnsafeRead (MV_KBNSum mvec_abIV) idx_abIT
++    = ((\ (a_abJ0, b_abJ1) -> KBNSum a_abJ0 b_abJ1)
++        `GHC.Base.liftM` (basicUnsafeRead mvec_abIV idx_abIT))
++  basicUnsafeWrite (MV_KBNSum mvec_abIV) idx_abIT val_abJ2
++    = basicUnsafeWrite
++        mvec_abIV
++        idx_abIT
++        ((\ (KBNSum a_abIY b_abIZ) -> (a_abIY, b_abIZ)) val_abJ2)
++  basicClear (MV_KBNSum mvec_abIV) = basicClear mvec_abIV
++  basicSet (MV_KBNSum mvec_abIV) val_abJ2
++    = basicSet
++        mvec_abIV ((\ (KBNSum a_abIY b_abIZ) -> (a_abIY, b_abIZ)) val_abJ2)
++  basicUnsafeCopy
++    (MV_KBNSum mvec_abIV)
++    (MV_KBNSum mvec'_abIW)
++    = Data.Vector.Generic.Mutable.basicUnsafeCopy mvec_abIV mvec'_abIW
++  basicUnsafeMove (MV_KBNSum mvec_abIV) (MV_KBNSum mvec'_abIW)
++    = basicUnsafeMove mvec_abIV mvec'_abIW
++  basicUnsafeGrow (MV_KBNSum mvec_abIV) len_abIU
++    = (MV_KBNSum `GHC.Base.liftM` (basicUnsafeGrow mvec_abIV len_abIU))
++newtype instance U.Vector KBNSum
++  = V_KBNSum (U.Vector (Double, Double))
++instance Vector U.Vector KBNSum where
++  {-# INLINE basicUnsafeFreeze #-}
++  {-# INLINE basicUnsafeThaw #-}
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicUnsafeIndexM #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE elemseq #-}
++  basicUnsafeFreeze (MV_KBNSum mvec_abIV)
++    = (V_KBNSum `GHC.Base.liftM` (basicUnsafeFreeze mvec_abIV))
++  basicUnsafeThaw (V_KBNSum vec_abIX)
++    = (MV_KBNSum `GHC.Base.liftM` (basicUnsafeThaw vec_abIX))
++  basicLength (V_KBNSum vec_abIX) = G.basicLength vec_abIX
++  basicUnsafeSlice idx_abIT len_abIU (V_KBNSum vec_abIX)
++    = V_KBNSum (G.basicUnsafeSlice idx_abIT len_abIU vec_abIX)
++  basicUnsafeIndexM (V_KBNSum vec_abIX) idx_abIT
++    = ((\ (a_abJ0, b_abJ1) -> KBNSum a_abJ0 b_abJ1)
++        `GHC.Base.liftM` (basicUnsafeIndexM vec_abIX idx_abIT))
++  basicUnsafeCopy (MV_KBNSum mvec_abIV) (V_KBNSum vec_abIX)
++    = G.basicUnsafeCopy mvec_abIV vec_abIX
++  elemseq (V_KBNSum vec_abIX) val_abJ2
++    = elemseq
++        vec_abIX ((\ (KBNSum a_abIY b_abIZ) -> (a_abIY, b_abIZ)) val_abJ2)
+ 
+ instance Summation KBNSum where
+     zero = KBNSum 0 0
+@@ -157,10 +315,94 @@ data KB2Sum = KB2Sum {-# UNPACK #-} !Double
+                      {-# UNPACK #-} !Double
+             deriving (Eq, Show, Typeable, Data)
+ 
+-derivingUnbox "KB2Sum"
+-    [t| KB2Sum -> (Double, Double, Double) |]
+-    [| \ (KB2Sum a b c) -> (a, b, c) |]
+-    [| \ (a, b, c) -> KB2Sum a b c |]
++instance U.Unbox KB2Sum
++newtype instance U.MVector s KB2Sum
++  = MV_KB2Sum (U.MVector s (Double, Double, Double))
++instance MVector U.MVector KB2Sum where
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicOverlaps #-}
++  {-# INLINE basicUnsafeNew #-}
++  {-# INLINE basicInitialize #-}
++  {-# INLINE basicUnsafeReplicate #-}
++  {-# INLINE basicUnsafeRead #-}
++  {-# INLINE basicUnsafeWrite #-}
++  {-# INLINE basicClear #-}
++  {-# INLINE basicSet #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE basicUnsafeMove #-}
++  {-# INLINE basicUnsafeGrow #-}
++  basicLength (MV_KB2Sum mvec_abVs)
++    = Data.Vector.Generic.Mutable.basicLength mvec_abVs
++  basicUnsafeSlice
++    idx_abVq
++    len_abVr
++    (MV_KB2Sum mvec_abVs)
++    = MV_KB2Sum
++        (Data.Vector.Generic.Mutable.basicUnsafeSlice
++            idx_abVq len_abVr mvec_abVs)
++  basicOverlaps (MV_KB2Sum mvec_abVs) (MV_KB2Sum mvec'_abVt)
++    = basicOverlaps mvec_abVs mvec'_abVt
++  basicUnsafeNew len_abVr
++    = (MV_KB2Sum `GHC.Base.liftM` (basicUnsafeNew len_abVr))
++  basicInitialize (MV_KB2Sum mvec_abVs) = basicInitialize mvec_abVs
++  basicUnsafeReplicate len_abVr val_abVB
++    = (MV_KB2Sum
++        `GHC.Base.liftM`
++          (basicUnsafeReplicate
++            len_abVr
++            ((\ (KB2Sum a_abVv b_abVw c_abVx) -> (a_abVv, b_abVw, c_abVx))
++                 val_abVB)))
++  basicUnsafeRead (MV_KB2Sum mvec_abVs) idx_abVq
++    = ((\ (a_abVy, b_abVz, c_abVA) -> KB2Sum a_abVy b_abVz c_abVA)
++        `GHC.Base.liftM` (basicUnsafeRead mvec_abVs idx_abVq))
++  basicUnsafeWrite (MV_KB2Sum mvec_abVs) idx_abVq val_abVB
++    = basicUnsafeWrite
++        mvec_abVs
++        idx_abVq
++        ((\ (KB2Sum a_abVv b_abVw c_abVx) -> (a_abVv, b_abVw, c_abVx))
++             val_abVB)
++  basicClear (MV_KB2Sum mvec_abVs) = basicClear mvec_abVs
++  basicSet (MV_KB2Sum mvec_abVs) val_abVB
++    = basicSet
++        mvec_abVs
++        ((\ (KB2Sum a_abVv b_abVw c_abVx) -> (a_abVv, b_abVw, c_abVx))
++             val_abVB)
++  basicUnsafeCopy
++    (MV_KB2Sum mvec_abVs)
++    (MV_KB2Sum mvec'_abVt)
++    = Data.Vector.Generic.Mutable.basicUnsafeCopy mvec_abVs mvec'_abVt
++  basicUnsafeMove (MV_KB2Sum mvec_abVs) (MV_KB2Sum mvec'_abVt)
++    = basicUnsafeMove mvec_abVs mvec'_abVt
++  basicUnsafeGrow (MV_KB2Sum mvec_abVs) len_abVr
++    = (MV_KB2Sum `GHC.Base.liftM` (basicUnsafeGrow mvec_abVs len_abVr))
++newtype instance U.Vector KB2Sum
++  = V_KB2Sum (U.Vector (Double, Double, Double))
++instance Vector U.Vector KB2Sum where
++  {-# INLINE basicUnsafeFreeze #-}
++  {-# INLINE basicUnsafeThaw #-}
++  {-# INLINE basicLength #-}
++  {-# INLINE basicUnsafeSlice #-}
++  {-# INLINE basicUnsafeIndexM #-}
++  {-# INLINE basicUnsafeCopy #-}
++  {-# INLINE elemseq #-}
++  basicUnsafeFreeze (MV_KB2Sum mvec_abVs)
++    = (V_KB2Sum `GHC.Base.liftM` (basicUnsafeFreeze mvec_abVs))
++  basicUnsafeThaw (V_KB2Sum vec_abVu)
++    = (MV_KB2Sum `GHC.Base.liftM` (basicUnsafeThaw vec_abVu))
++  basicLength (V_KB2Sum vec_abVu) = G.basicLength vec_abVu
++  basicUnsafeSlice idx_abVq len_abVr (V_KB2Sum vec_abVu)
++    = V_KB2Sum (G.basicUnsafeSlice idx_abVq len_abVr vec_abVu)
++  basicUnsafeIndexM (V_KB2Sum vec_abVu) idx_abVq
++    = ((\ (a_abVy, b_abVz, c_abVA) -> KB2Sum a_abVy b_abVz c_abVA)
++        `GHC.Base.liftM` (basicUnsafeIndexM vec_abVu idx_abVq))
++  basicUnsafeCopy (MV_KB2Sum mvec_abVs) (V_KB2Sum vec_abVu)
++    = G.basicUnsafeCopy mvec_abVs vec_abVu
++  elemseq (V_KB2Sum vec_abVu) val_abVB
++    = elemseq
++        vec_abVu
++        ((\ (KB2Sum a_abVv b_abVw c_abVx) -> (a_abVv, b_abVw, c_abVx))
++             val_abVB)
+ 
+ instance Summation KB2Sum where
+     zero = KB2Sum 0 0 0
+diff --git a/math-functions.cabal b/math-functions.cabal
+index c5ad286..9b4f40f 100644
+--- a/math-functions.cabal
++++ b/math-functions.cabal
+@@ -44,7 +44,7 @@ library
+                       , vector >= 0.7
+                       , primitive
+                       , vector-th-unbox
+-  if flag(system-expm1) || !os(windows)
++  if flag(system-expm1)
+     cpp-options: -DUSE_SYSTEM_EXPM1
+   exposed-modules:
+     Numeric.MathFunctions.Constants
+@@ -58,10 +58,11 @@ library
+     Numeric.Sum
+   other-modules:
+     Numeric.SpecFunctions.Internal
++  maven-depends:          org.apache.commons:commons-math3:3.6.1
+ 
+ flag system-expm1
+      description: Use expm1 provided by system. Only have effect on windows
+-     default:     False
++     default:     True
+      manual:      True
+ 
+ test-suite tests
+-- 
+2.7.4 (Apple Git-66)
+

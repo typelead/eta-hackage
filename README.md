@@ -177,6 +177,7 @@ These packages are supported by `etlas`.
 - [machines-0.6.1](https://hackage.haskell.org/package/machines-0.6.1)
 - [machines-binary-0.3.0.3](https://hackage.haskell.org/package/machines-binary-0.3.0.3)
 - [machines-io-0.2.0.13](https://hackage.haskell.org/package/machines-io-0.2.0.13)
+- [math-functions-0.2.1.0](https://hackage.haskell.org/package/math-functions-0.2.1.0)
 - [matrix-0.3.5.0](https://hackage.haskell.org/package/matrix-0.3.5.0)
 - [map-syntax-0.2.0.1](https://hackage.haskell.org/package/map-syntax-0.2.0.1)
 - [meldable-heap-2.0.3](https://hackage.haskell.org/package/meldable-heap-2.0.3)

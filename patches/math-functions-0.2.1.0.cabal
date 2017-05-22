@@ -1,0 +1,106 @@
+name:           math-functions
+version:        0.2.1.0
+cabal-version:  >= 1.10
+license:        BSD3
+license-file:   LICENSE
+author:         Bryan O'Sullivan <bos@serpentine.com>,
+                Aleksey Khudyakov <alexey.skladnoy@gmail.com>
+maintainer:     Bryan O'Sullivan <bos@serpentine.com>
+homepage:       https://github.com/bos/math-functions
+bug-reports:    https://github.com/bos/math-functions/issues
+category:       Math, Numeric
+build-type:     Simple
+synopsis:       Special functions and Chebyshev polynomials
+description:
+  This library provides implementations of special mathematical
+  functions and Chebyshev polynomials.  These functions are often
+  useful in statistical and numerical computing.
+
+extra-source-files:
+  changelog.md
+  README.markdown
+  benchmark/*.hs
+  tests/*.hs
+  tests/Tests/*.hs
+  tests/Tests/SpecFunctions/gen.py
+  doc/sinc.hs
+
+library
+  default-language: Haskell2010
+  other-extensions:
+    BangPatterns
+    CPP
+    DeriveDataTypeable
+    FlexibleContexts
+    MultiParamTypeClasses
+    ScopedTypeVariables
+    TemplateHaskell
+    TypeFamilies
+    DeriveGeneric
+
+  ghc-options:          -Wall -O2
+  build-depends:        base >=4.5 && <5
+                      , deepseq
+                      , vector >= 0.7
+                      , primitive
+                      , vector-th-unbox
+  if flag(system-expm1)
+    cpp-options: -DUSE_SYSTEM_EXPM1
+  exposed-modules:
+    Numeric.MathFunctions.Constants
+    Numeric.MathFunctions.Comparison
+    Numeric.Polynomial
+    Numeric.Polynomial.Chebyshev
+    Numeric.RootFinding
+    Numeric.SpecFunctions
+    Numeric.SpecFunctions.Extra
+    Numeric.Series
+    Numeric.Sum
+  other-modules:
+    Numeric.SpecFunctions.Internal
+  maven-depends:          org.apache.commons:commons-math3:3.6.1
+
+flag system-expm1
+     description: Use expm1 provided by system. Only have effect on windows
+     default:     True
+     manual:      True
+
+test-suite tests
+  default-language: Haskell2010
+  other-extensions: ViewPatterns
+
+  type:           exitcode-stdio-1.0
+  ghc-options:    -Wall -threaded
+  if arch(i386)
+    -- The Sum tests require SSE2 on i686 to pass (because of excess precision)
+    ghc-options:  -msse2
+  hs-source-dirs: tests
+  main-is:        tests.hs
+  other-modules:
+    Tests.Helpers
+    Tests.Chebyshev
+    Tests.Comparison
+    Tests.SpecFunctions
+    Tests.SpecFunctions.Tables
+    Tests.Sum
+  build-depends:
+    math-functions,
+    base >=4.5 && <5,
+    deepseq,
+    primitive,
+    vector >= 0.7,
+    vector-th-unbox,
+    erf,
+    HUnit      >= 1.2,
+    QuickCheck >= 2.7,
+    test-framework,
+    test-framework-hunit,
+    test-framework-quickcheck2
+
+source-repository head
+  type:     git
+  location: https://github.com/bos/math-functions
+
+source-repository head
+  type:     mercurial
+  location: https://bitbucket.org/bos/math-functions
