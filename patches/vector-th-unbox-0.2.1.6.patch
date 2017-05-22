@@ -1,0 +1,147 @@
+From c60581e65055cd37d8dece3c219e16f63ea9ac29 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 22 May 2017 16:38:37 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Vector/Unboxed/Deriving.hs | 117 ++++++++++++++++++++--------------------
+ 1 file changed, 59 insertions(+), 58 deletions(-)
+
+diff --git a/Data/Vector/Unboxed/Deriving.hs b/Data/Vector/Unboxed/Deriving.hs
+index 52380b6..2c47daa 100644
+--- a/Data/Vector/Unboxed/Deriving.hs
++++ b/Data/Vector/Unboxed/Deriving.hs
+@@ -70,7 +70,7 @@ capture = id
+ #endif
+ 
+ liftE :: Exp -> Exp -> Exp
+-liftE e = InfixE (Just e) (VarE 'liftM) . Just
++liftE e = undefined -- InfixE (Just e) (VarE 'liftM) . Just
+ 
+ -- Create a wrapper for the given function with the same 'nameBase', given
+ -- a list of argument bindings and expressions in terms of said bindings.
+@@ -106,63 +106,64 @@ derivingUnbox
+     -> ExpQ     -- ^ Quotation of an expression of type @rep → src@
+     -> DecsQ    -- ^ Declarations to be spliced for the derived Unbox instance
+ derivingUnbox name argsQ toRepQ fromRepQ = do
+-    Common {..} <- common name
+-    toRep <- toRepQ
+-    fromRep <- fromRepQ
+-    a <- second (AppE toRep) <$> newPatExp "val"
+-    args <- argsQ
+-    (cxts, typ, rep) <- case args of
+-        ForallT _ cxts (ArrowT `AppT` typ `AppT` rep) -> return (cxts, typ, rep)
+-        ArrowT `AppT` typ `AppT` rep -> return ([], typ, rep)
+-        _ -> fail "Expecting a type of the form: cxts => typ -> rep"
+-
+-    let s = VarT (mkName "s")
+-#if MIN_VERSION_template_haskell(2,11,0)
+-    let lazy = Bang NoSourceUnpackedness NoSourceStrictness
+-# define MAYBE_KIND Nothing
+-# define MAYBE_OVERLAP Nothing
+-#else
+-    let lazy = NotStrict
+-# define MAYBE_KIND
+-# define MAYBE_OVERLAP
+-#endif
+-    let newtypeMVector = NewtypeInstD [] ''MVector [s, typ] MAYBE_KIND
+-            (NormalC mvName [(lazy, ConT ''MVector `AppT` s `AppT` rep)]) []
+-    let mvCon = ConE mvName
+-    let instanceMVector = InstanceD MAYBE_OVERLAP cxts
+-            (ConT ''M.MVector `AppT` ConT ''MVector `AppT` typ) $ concat
+-            [ wrap 'M.basicLength           [mv]        id
+-            , wrap 'M.basicUnsafeSlice      [i, n, mv]  (AppE mvCon)
+-            , wrap 'M.basicOverlaps         [mv, mv']   id
+-            , wrap 'M.basicUnsafeNew        [n]         (liftE mvCon)
+-#if MIN_VERSION_vector(0,11,0)
+-            , wrap 'M.basicInitialize       [mv]        id
+-#endif
+-            , wrap 'M.basicUnsafeReplicate  [n, a]      (liftE mvCon)
+-            , wrap 'M.basicUnsafeRead       [mv, i]     (liftE fromRep)
+-            , wrap 'M.basicUnsafeWrite      [mv, i, a]  id
+-            , wrap 'M.basicClear            [mv]        id
+-            , wrap 'M.basicSet              [mv, a]     id
+-            , wrap 'M.basicUnsafeCopy       [mv, mv']   id
+-            , wrap 'M.basicUnsafeMove       [mv, mv']   id
+-            , wrap 'M.basicUnsafeGrow       [mv, n]     (liftE mvCon) ]
+-
+-    let newtypeVector = NewtypeInstD [] ''Vector [typ] MAYBE_KIND
+-            (NormalC vName [(lazy, ConT ''Vector `AppT` rep)]) []
+-    let vCon  = ConE vName
+-    let instanceVector = InstanceD MAYBE_OVERLAP cxts
+-            (ConT ''G.Vector `AppT` ConT ''Vector `AppT` typ) $ concat
+-            [ wrap 'G.basicUnsafeFreeze     [mv]        (liftE vCon)
+-            , wrap 'G.basicUnsafeThaw       [v]         (liftE mvCon)
+-            , wrap 'G.basicLength           [v]         id
+-            , wrap 'G.basicUnsafeSlice      [i, n, v]   (AppE vCon)
+-            , wrap 'G.basicUnsafeIndexM     [v, i]      (liftE fromRep)
+-            , wrap 'G.basicUnsafeCopy       [mv, v]     id
+-            , wrap 'G.elemseq               [v, a]      id ]
+-
+-    return [ InstanceD MAYBE_OVERLAP cxts (ConT ''Unbox `AppT` typ) []
+-        , newtypeMVector, instanceMVector
+-        , newtypeVector, instanceVector ]
++  undefined
++--     Common {..} <- common name
++--     toRep <- toRepQ
++--     fromRep <- fromRepQ
++--     a <- second (AppE toRep) <$> newPatExp "val"
++--     args <- argsQ
++--     (cxts, typ, rep) <- case args of
++--         ForallT _ cxts (ArrowT `AppT` typ `AppT` rep) -> return (cxts, typ, rep)
++--         ArrowT `AppT` typ `AppT` rep -> return ([], typ, rep)
++--         _ -> fail "Expecting a type of the form: cxts => typ -> rep"
++
++--     let s = VarT (mkName "s")
++-- #if MIN_VERSION_template_haskell(2,11,0)
++--     let lazy = Bang NoSourceUnpackedness NoSourceStrictness
++-- # define MAYBE_KIND Nothing
++-- # define MAYBE_OVERLAP Nothing
++-- #else
++--     let lazy = NotStrict
++-- # define MAYBE_KIND
++-- # define MAYBE_OVERLAP
++-- #endif
++--     let newtypeMVector = NewtypeInstD [] ''MVector [s, typ] MAYBE_KIND
++--             (NormalC mvName [(lazy, ConT ''MVector `AppT` s `AppT` rep)]) []
++--     let mvCon = ConE mvName
++--     let instanceMVector = InstanceD MAYBE_OVERLAP cxts
++--             (ConT ''M.MVector `AppT` ConT ''MVector `AppT` typ) $ concat
++--             [ wrap 'M.basicLength           [mv]        id
++--             , wrap 'M.basicUnsafeSlice      [i, n, mv]  (AppE mvCon)
++--             , wrap 'M.basicOverlaps         [mv, mv']   id
++--             , wrap 'M.basicUnsafeNew        [n]         (liftE mvCon)
++-- #if MIN_VERSION_vector(0,11,0)
++--             , wrap 'M.basicInitialize       [mv]        id
++-- #endif
++--             , wrap 'M.basicUnsafeReplicate  [n, a]      (liftE mvCon)
++--             , wrap 'M.basicUnsafeRead       [mv, i]     (liftE fromRep)
++--             , wrap 'M.basicUnsafeWrite      [mv, i, a]  id
++--             , wrap 'M.basicClear            [mv]        id
++--             , wrap 'M.basicSet              [mv, a]     id
++--             , wrap 'M.basicUnsafeCopy       [mv, mv']   id
++--             , wrap 'M.basicUnsafeMove       [mv, mv']   id
++--             , wrap 'M.basicUnsafeGrow       [mv, n]     (liftE mvCon) ]
++
++--     let newtypeVector = NewtypeInstD [] ''Vector [typ] MAYBE_KIND
++--             (NormalC vName [(lazy, ConT ''Vector `AppT` rep)]) []
++--     let vCon  = ConE vName
++--     let instanceVector = InstanceD MAYBE_OVERLAP cxts
++--             (ConT ''G.Vector `AppT` ConT ''Vector `AppT` typ) $ concat
++--             [ wrap 'G.basicUnsafeFreeze     [mv]        (liftE vCon)
++--             , wrap 'G.basicUnsafeThaw       [v]         (liftE mvCon)
++--             , wrap 'G.basicLength           [v]         id
++--             , wrap 'G.basicUnsafeSlice      [i, n, v]   (AppE vCon)
++--             , wrap 'G.basicUnsafeIndexM     [v, i]      (liftE fromRep)
++--             , wrap 'G.basicUnsafeCopy       [mv, v]     id
++--             , wrap 'G.elemseq               [v, a]      id ]
++
++--     return [ InstanceD MAYBE_OVERLAP cxts (ConT ''Unbox `AppT` typ) []
++--         , newtypeMVector, instanceMVector
++--         , newtypeVector, instanceVector ]
+ 
+ #undef __GLASGOW_HASKELL__
+ {-$usage
+-- 
+2.7.4 (Apple Git-66)
+
