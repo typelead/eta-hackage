@@ -246,6 +246,7 @@ These packages are supported by `etlas`.
 - [regex-posix-0.95.2](https://hackage.haskell.org/package/regex-posix-0.95.2)
 - [regex-tdfa-1.2.2](https://hackage.haskell.org/package/regex-tdfa-1.2.2)
 - [relacion-0.1](https://hackage.haskell.org/package/relacion-0.1)
+- [repa-3.4.1.2](https://hackage.haskell.org/package/repa-3.4.1.2)
 - [resourcet >= 1.1.8.1 && <= 1.1.9](https://hackage.haskell.org/package/resourcet-1.1.9)
 - [randproc-0.4](https://hackage.haskell.org/package/randproc-0.4)
 - [safe >= 0.3.9 && <= 0.3.11](https://hackage.haskell.org/package/safe-0.3.11)
