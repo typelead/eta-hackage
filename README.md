@@ -149,6 +149,8 @@ These packages are supported by `etlas`.
 - [hgal-2.0.0.2](https://hackage.haskell.org/package/hgal-2.0.0.2)
 - [HoleyMonoid-0.1.1](https://hackage.haskell.org/package/HoleyMonoid-0.1.1)
 - [hostname-1.0](https://hackage.haskell.org/package/hostname-1.0)
+- [hspec-discover-2.4.3](https://hackage.haskell.org/package/hspec-discover-2.4.3)
+- [hspec-expectations-0.8.2](https://hackage.haskell.org/package/hspec-expectations-0.8.2)
 - [html-truncate-0.3.0.0](https://hackage.haskell.org/package/html-truncate-0.3.0.0)
 - [http-api-data-0.3.5](https://hackage.haskell.org/package/http-api-data-0.3.5)
   - NOTE: The patch just changes the Build-Type. Should be restored once Cabal
@@ -156,7 +158,7 @@ These packages are supported by `etlas`.
 - [http-date-0.0.6.1](https://hackage.haskell.org/package/http-date-0.0.6.1)
 - [http-media-0.6.4](https://hackage.haskell.org/package/http-media-0.6.4)
 - [http-types-0.9.1](https://hackage.haskell.org/package/http-types-0.9.1)
-- [HUnit-1.5.0.0](https://hackage.haskell.org/package/HUnit-1.5.0.0)
+- [HUnit >= 1.5.0.0 && <= 1.6.0.0](https://hackage.haskell.org/package/HUnit)
 - [ieee754-0.8.0](https://hackage.haskell.org/package/ieee754-0.8.0)
 - [interval-1.20160821](https://hackage.haskell.org/package/interval-1.20160821)
 - [iproute-1.7.1](https://hackage.haskell.org/package/iproute-1.7.1)
@@ -248,6 +250,7 @@ These packages are supported by `etlas`.
 - [servant-docs-0.9.1.1](https://hackage.haskell.org/package/servant-docs-0.9.1.1)
 - [servant-server-0.9.1.1](https://hackage.haskell.org/package/servant-server-0.9.1.1)
   - NOTE: Servant.Utils.StaticFiles is disabled.
+- [setenv-0.1.1.3](https://hackage.haskell.org/package/setenv-0.1.1.3)
 - [scientific-0.3.4.9](https://hackage.haskell.org/package/scientific-0.3.4.9)
 - [semigroups-0.18.2](https://hackage.haskell.org/package/semigroups-0.18.2)
 - [semigroupoids-5.1](https://hackage.haskell.org/package/semigroupoids-5.1)
@@ -269,6 +272,7 @@ These packages are supported by `etlas`.
 - [system-filepath-0.4.13.4](https://hackage.haskell.org/package/system-filepath-0.4.13.4)
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
 - [tagsoup-0.14](https://hackage.haskell.org/package/tagsoup-0.14)
+- [tasty-0.11.2.1](https://hackage.haskell.org/package/tasty-0.11.2.1)
 - [template-haskell-2.11.0.0](https://hackage.haskell.org/package/template-haskell-2.11.0.0)
 - [terminal-size-0.3.2.1](https://hackage.haskell.org/package/terminal-size-0.3.2.1)
 - [text-1.2.2.1](https://hackage.haskell.org/package/text-1.2.2.1)
