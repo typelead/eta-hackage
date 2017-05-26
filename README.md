@@ -434,6 +434,10 @@ If you have already forked this repository, then skip to step 3.
    
 9. Update this `README.md` with the package name (in alphabetical order) in the
    **Supported Packages** section in the same format as the other packages.
+   
+   If there already exists an entry for an older or newer version of the package,
+   please consolidate the new versions into the existing entry. You can see the
+   `directory` entry as an example.
 
 10. In your `eta-hackage` repository,
 
