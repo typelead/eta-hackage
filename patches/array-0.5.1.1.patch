@@ -18,16 +18,16 @@ index 9908ad2..52d625d 100644
 @@ -46,8 +46,6 @@ import GHC.IOArray      ( IOArray(..),
                            newIOArray, unsafeReadIOArray, unsafeWriteIOArray )
  import Data.Typeable
-
+ 
 -#include "MachDeps.h"
 -
  -----------------------------------------------------------------------------
  -- Class of immutable arrays
-
+ 
 @@ -1350,6 +1348,10 @@ instance MArray (STUArray s) Word64 (ST s) where
  -----------------------------------------------------------------------------
  -- Translation between elements and bytes
-
+ 
 +#define SIZEOF_HSWORD 4
 +#define SIZEOF_HSDOUBLE 8
 +#define SIZEOF_HSFLOAT 4
@@ -38,21 +38,21 @@ index 9908ad2..52d625d 100644
 @@ -1402,7 +1404,7 @@ freezeSTUArray (STUArray l u n marr#) = ST $ \s1# ->
      case unsafeFreezeByteArray# marr'# s3# of { (# s4#, arr# #) ->
      (# s4#, UArray l u n arr# #) }}}}}
-
+ 
 -foreign import ccall unsafe "memcpy"
 +foreign import java unsafe "@static eta.array.Utils.memcpy"
      memcpy_freeze :: MutableByteArray# s -> MutableByteArray# s -> CSize
             -> IO (Ptr a)
-
+ 
 @@ -1480,7 +1482,7 @@ thawSTUArray (UArray l u n arr#) = ST $ \s1# ->
      case unsafeCoerce# m s2#            of { (# s3#, _ #) ->
      (# s3#, STUArray l u n marr# #) }}}}
-
+ 
 -foreign import ccall unsafe "memcpy"
 +foreign import java unsafe "@static eta.array.Utils.memcpy"
      memcpy_thaw :: MutableByteArray# s -> ByteArray# -> CSize
             -> IO (Ptr a)
-
+ 
 diff --git a/Data/Array/IO.hs b/Data/Array/IO.hs
 index f0a8f89..24f9dc6 100644
 --- a/Data/Array/IO.hs
@@ -60,20 +60,20 @@ index f0a8f89..24f9dc6 100644
 @@ -67,7 +67,7 @@ hGetArray handle (IOUArray (STUArray _l _u n ptr)) count
          _ <- memcpy_ba_ptr ptr p (fromIntegral r)
          return r
-
+ 
 -foreign import ccall unsafe "memcpy"
 +foreign import java unsafe "@static eta.array.Utils.memcpy_ba_ptr"
     memcpy_ba_ptr :: MutableByteArray# RealWorld -> Ptr a -> CSize -> IO (Ptr ())
-
+ 
  -- ---------------------------------------------------------------------------
 @@ -90,7 +90,7 @@ hPutArray handle (IOUArray (STUArray _l _u n raw)) count
         _ <- memcpy_ptr_ba p raw (fromIntegral count)
         hPutBuf handle p count
-
+ 
 -foreign import ccall unsafe "memcpy"
 +foreign import java unsafe "@static eta.array.Utils.memcpy_ptr_ba"
     memcpy_ptr_ba :: Ptr a -> MutableByteArray# RealWorld -> CSize -> IO (Ptr ())
-
+ 
  -- ---------------------------------------------------------------------------
 diff --git a/array.cabal b/array.cabal
 index d5dd036..72c4192 100644

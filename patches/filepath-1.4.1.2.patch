@@ -1,0 +1,158 @@
+From 2e14fdad7aef07ad306d0e5b1d4f3dbfe5741e59 Mon Sep 17 00:00:00 2001
+From: Ashley Towns <mail@ashleytowns.id.au>
+Date: Sat, 4 Feb 2017 15:49:59 +1100
+Subject: [PATCH] patched
+
+---
+ System/FilePath.hs          | 16 +++++-----------
+ System/FilePath/Internal.hs | 11 ++++-------
+ System/FilePath/Posix.hs    |  6 ++----
+ System/FilePath/Windows.hs  |  6 ++----
+ filepath.cabal              |  6 ++++--
+ java/Utils.java             |  8 ++++++++
+ 6 files changed, 25 insertions(+), 28 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/System/FilePath.hs b/System/FilePath.hs
+index 331ae81..98e9796 100644
+--- a/System/FilePath.hs
++++ b/System/FilePath.hs
+@@ -1,7 +1,5 @@
+ {-# LANGUAGE CPP #-}
+-#if __GLASGOW_HASKELL__ >= 704
+-{-# LANGUAGE Safe #-}
+-#endif
++
+ {- |
+ Module      :  System.FilePath
+ Copyright   :  (c) Neil Mitchell 2005-2014
+@@ -18,12 +16,8 @@ Both "System.FilePath.Posix" and "System.FilePath.Windows" provide the
+ same interface. See either for examples and a list of the available
+ functions.
+ -}
++module System.FilePath
++  ( module System.FilePath.Internal
++  ) where
+ 
+-
+-#if defined(mingw32_HOST_OS) || defined(__MINGW32__)
+-module System.FilePath(module System.FilePath.Windows) where
+-import System.FilePath.Windows
+-#else
+-module System.FilePath(module System.FilePath.Posix) where
+-import System.FilePath.Posix
+-#endif
++import System.FilePath.Internal
+diff --git a/System/FilePath/Internal.hs b/System/FilePath/Internal.hs
+index 4a376b3..4b75760 100644
+--- a/System/FilePath/Internal.hs
++++ b/System/FilePath/Internal.hs
+@@ -1,6 +1,4 @@
+-#if __GLASGOW_HASKELL__ >= 704
+-{-# LANGUAGE Safe #-}
+-#endif
++{-# LANGUAGE CPP, ForeignFunctionInterface #-}
+ {-# LANGUAGE PatternGuards #-}
+ 
+ -- This template expects CPP definitions for:
+@@ -8,7 +6,7 @@
+ --     IS_WINDOWS  = False | True
+ 
+ -- |
+--- Module      :  System.FilePath.MODULE_NAME
++-- Module      :  System.FilePath.Internal
+ -- Copyright   :  (c) Neil Mitchell 2005-2014
+ -- License     :  BSD3
+ --
+@@ -61,7 +59,7 @@
+ --
+ -- References:
+ -- [1] <http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247.aspx Naming Files, Paths and Namespaces> (Microsoft MSDN)
+-module System.FilePath.MODULE_NAME
++module System.FilePath.Internal
+     (
+     -- * Separator predicates
+     FilePath,
+@@ -125,8 +123,7 @@ isPosix :: Bool
+ isPosix = not isWindows
+ 
+ -- | Is the operating system Windows like
+-isWindows :: Bool
+-isWindows = IS_WINDOWS
++foreign import java unsafe "@static eta.filepath.Utils.isWindows" isWindows :: Bool
+ 
+ 
+ ---------------------------------------------------------------------
+diff --git a/System/FilePath/Posix.hs b/System/FilePath/Posix.hs
+index 3fbd0ff..8c4159c 100644
+--- a/System/FilePath/Posix.hs
++++ b/System/FilePath/Posix.hs
+@@ -1,4 +1,2 @@
+-{-# LANGUAGE CPP #-}
+-#define MODULE_NAME     Posix
+-#define IS_WINDOWS      False
+-#include "Internal.hs"
++module System.FilePath.Posix(module System.FilePath.Internal) where
++import System.FilePath.Internal
+diff --git a/System/FilePath/Windows.hs b/System/FilePath/Windows.hs
+index 3e3e9d6..89b6df9 100644
+--- a/System/FilePath/Windows.hs
++++ b/System/FilePath/Windows.hs
+@@ -1,4 +1,2 @@
+-{-# LANGUAGE CPP #-}
+-#define MODULE_NAME     Windows
+-#define IS_WINDOWS      True
+-#include "Internal.hs"
++module System.FilePath.Windows(module System.FilePath.Internal) where
++import System.FilePath.Internal
+diff --git a/filepath.cabal b/filepath.cabal
+index 93d6405..abe2158 100644
+--- a/filepath.cabal
++++ b/filepath.cabal
+@@ -24,8 +24,6 @@ description:
+     .
+     All three modules provide the same API, and the same documentation (calling out differences in the different variants).
+ 
+-extra-source-files:
+-    System/FilePath/Internal.hs
+ extra-doc-files:
+     README.md
+     changelog.md
+@@ -36,9 +34,11 @@ source-repository head
+ 
+ library
+     default-language: Haskell2010
++    java-sources: java/Utils.java
+     other-extensions:
+         CPP
+         PatternGuards
++        ForeignFunctionInterface
+     if impl(GHC >= 7.2)
+         other-extensions: Safe
+ 
+@@ -46,6 +46,8 @@ library
+         System.FilePath
+         System.FilePath.Posix
+         System.FilePath.Windows
++    other-modules:
++        System.FilePath.Internal
+ 
+     build-depends:
+         base >= 4 && < 4.11
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..1bb3f22
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,8 @@
++package eta.filepath;
++
++public class Utils {
++    public static boolean isWindows() {
++        String osName = System.getProperty("os.name");
++        return osName.startsWith("Windows");
++    }
++}
+-- 
+2.11.1
+

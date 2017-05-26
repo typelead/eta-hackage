@@ -1,0 +1,395 @@
+From 66519f91785241ac4548e22fbb2bcb8e3ad7a4dd Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 14 May 2017 12:52:57 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Servant/Docs/Internal.hs | 364 +++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 353 insertions(+), 11 deletions(-)
+
+diff --git a/src/Servant/Docs/Internal.hs b/src/Servant/Docs/Internal.hs
+index 7053045..f420b31 100644
+--- a/src/Servant/Docs/Internal.hs
++++ b/src/Servant/Docs/Internal.hs
+@@ -22,8 +22,10 @@ module Servant.Docs.Internal where
+ 
+ import           Control.Applicative
+ import           Control.Arrow              (second)
+-import           Control.Lens               (makeLenses, mapped, over, traversed, view, (%~),
++import           Control.Lens               (mapped, over, traversed, view, (%~),
+                                              (&), (.~), (<>~), (^.), (|>))
++import           Control.Lens.Type          (Lens', Iso')
++import           Control.Lens.Iso           (iso)
+ import qualified Control.Monad.Omega        as Omega
+ import           Data.ByteString.Lazy.Char8 (ByteString)
+ import qualified Data.ByteString.Char8      as BSC
+@@ -284,16 +286,356 @@ single :: Endpoint -> Action -> API
+ single e a = API mempty (HM.singleton e a)
+ 
+ -- gimme some lenses
+-makeLenses ''DocAuthentication
+-makeLenses ''DocOptions
+-makeLenses ''API
+-makeLenses ''Endpoint
+-makeLenses ''DocCapture
+-makeLenses ''DocQueryParam
+-makeLenses ''DocIntro
+-makeLenses ''DocNote
+-makeLenses ''Response
+-makeLenses ''Action
++authDataRequired ::
++  Control.Lens.Type.Lens' DocAuthentication String
++authDataRequired f_apYd (DocAuthentication x1_apYe x2_apYf)
++  = fmap
++      (\ y1_apYg -> DocAuthentication x1_apYe y1_apYg) (f_apYd x2_apYf)
++{-# INLINE authDataRequired #-}
++authIntro :: Control.Lens.Type.Lens' DocAuthentication String
++authIntro f_apYh (DocAuthentication x1_apYi x2_apYj)
++  = fmap
++      (\ y1_apYk -> DocAuthentication y1_apYk x2_apYj) (f_apYh x1_apYi)
++{-# INLINE authIntro #-}
++
++maxSamples :: Control.Lens.Type.Iso' DocOptions Int
++maxSamples
++  = Control.Lens.Iso.iso (\ (DocOptions x_aq0d) -> x_aq0d) DocOptions
++{-# INLINE maxSamples #-}
++
++apiEndpoints ::
++  Control.Lens.Type.Lens' API (HashMap Endpoint Action)
++apiEndpoints f_aq5p (API x1_aq5q x2_aq5r)
++  = fmap (\ y1_aq5s -> API x1_aq5q y1_aq5s) (f_aq5p x2_aq5r)
++{-# INLINE apiEndpoints #-}
++apiIntros :: Control.Lens.Type.Lens' API [DocIntro]
++apiIntros f_aq5t (API x1_aq5u x2_aq5v)
++  = fmap (\ y1_aq5w -> API y1_aq5w x2_aq5v) (f_aq5t x1_aq5u)
++{-# INLINE apiIntros #-}
++
++method :: Control.Lens.Type.Lens' Endpoint HTTP.Method
++method f_aq6i (Endpoint x1_aq6j x2_aq6k)
++  = fmap (\ y1_aq6l -> Endpoint x1_aq6j y1_aq6l) (f_aq6i x2_aq6k)
++{-# INLINE method #-}
++path :: Control.Lens.Type.Lens' Endpoint [String]
++path f_aq6m (Endpoint x1_aq6n x2_aq6o)
++  = fmap (\ y1_aq6p -> Endpoint y1_aq6p x2_aq6o) (f_aq6m x1_aq6n)
++{-# INLINE path #-}
++
++capDesc :: Control.Lens.Type.Lens' DocCapture String
++capDesc f_aq7a (DocCapture x1_aq7b x2_aq7c)
++  = fmap (\ y1_aq7d -> DocCapture x1_aq7b y1_aq7d) (f_aq7a x2_aq7c)
++{-# INLINE capDesc #-}
++capSymbol :: Control.Lens.Type.Lens' DocCapture String
++capSymbol f_aq7e (DocCapture x1_aq7f x2_aq7g)
++  = fmap (\ y1_aq7h -> DocCapture y1_aq7h x2_aq7g) (f_aq7e x1_aq7f)
++{-# INLINE capSymbol #-}
++
++paramDesc :: Control.Lens.Type.Lens' DocQueryParam String
++paramDesc f_aq82 (DocQueryParam x1_aq83 x2_aq84 x3_aq85 x4_aq86)
++  = fmap
++      (\ y1_aq87 -> DocQueryParam x1_aq83 x2_aq84 y1_aq87 x4_aq86)
++      (f_aq82 x3_aq85)
++{-# INLINE paramDesc #-}
++paramKind :: Control.Lens.Type.Lens' DocQueryParam ParamKind
++paramKind f_aq88 (DocQueryParam x1_aq89 x2_aq8a x3_aq8b x4_aq8c)
++  = fmap
++      (\ y1_aq8d -> DocQueryParam x1_aq89 x2_aq8a x3_aq8b y1_aq8d)
++      (f_aq88 x4_aq8c)
++{-# INLINE paramKind #-}
++paramName :: Control.Lens.Type.Lens' DocQueryParam String
++paramName f_aq8e (DocQueryParam x1_aq8f x2_aq8g x3_aq8h x4_aq8i)
++  = fmap
++      (\ y1_aq8j -> DocQueryParam y1_aq8j x2_aq8g x3_aq8h x4_aq8i)
++      (f_aq8e x1_aq8f)
++{-# INLINE paramName #-}
++paramValues :: Control.Lens.Type.Lens' DocQueryParam [String]
++paramValues f_aq8k (DocQueryParam x1_aq8l x2_aq8m x3_aq8n x4_aq8o)
++  = fmap
++      (\ y1_aq8p -> DocQueryParam x1_aq8l y1_aq8p x3_aq8n x4_aq8o)
++      (f_aq8k x2_aq8m)
++{-# INLINE paramValues #-}
++
++introBody :: Control.Lens.Type.Lens' DocIntro [String]
++introBody f_aq9O (DocIntro x1_aq9P x2_aq9Q)
++  = fmap (\ y1_aq9R -> DocIntro x1_aq9P y1_aq9R) (f_aq9O x2_aq9Q)
++{-# INLINE introBody #-}
++introTitle :: Control.Lens.Type.Lens' DocIntro String
++introTitle f_aq9S (DocIntro x1_aq9T x2_aq9U)
++  = fmap (\ y1_aq9V -> DocIntro y1_aq9V x2_aq9U) (f_aq9S x1_aq9T)
++{-# INLINE introTitle #-}
++
++noteBody :: Control.Lens.Type.Lens' DocNote [String]
++noteBody f_aqaG (DocNote x1_aqaH x2_aqaI)
++  = fmap (\ y1_aqaJ -> DocNote x1_aqaH y1_aqaJ) (f_aqaG x2_aqaI)
++{-# INLINE noteBody #-}
++noteTitle :: Control.Lens.Type.Lens' DocNote String
++noteTitle f_aqaK (DocNote x1_aqaL x2_aqaM)
++  = fmap (\ y1_aqaN -> DocNote y1_aqaN x2_aqaM) (f_aqaK x1_aqaL)
++{-# INLINE noteTitle #-}
++
++respBody ::
++  Control.Lens.Type.Lens' Response [(Text, M.MediaType, ByteString)]
++respBody f_aqby (Response x1_aqbz x2_aqbA x3_aqbB x4_aqbC)
++  = fmap
++      (\ y1_aqbD -> Response x1_aqbz x2_aqbA y1_aqbD x4_aqbC)
++      (f_aqby x3_aqbB)
++{-# INLINE respBody #-}
++respHeaders :: Control.Lens.Type.Lens' Response [HTTP.Header]
++respHeaders f_aqbE (Response x1_aqbF x2_aqbG x3_aqbH x4_aqbI)
++  = fmap
++      (\ y1_aqbJ -> Response x1_aqbF x2_aqbG x3_aqbH y1_aqbJ)
++      (f_aqbE x4_aqbI)
++{-# INLINE respHeaders #-}
++respStatus :: Control.Lens.Type.Lens' Response Int
++respStatus f_aqbK (Response x1_aqbL x2_aqbM x3_aqbN x4_aqbO)
++  = fmap
++      (\ y1_aqbP -> Response y1_aqbP x2_aqbM x3_aqbN x4_aqbO)
++      (f_aqbK x1_aqbL)
++{-# INLINE respStatus #-}
++respTypes :: Control.Lens.Type.Lens' Response [M.MediaType]
++respTypes f_aqbQ (Response x1_aqbR x2_aqbS x3_aqbT x4_aqbU)
++  = fmap
++      (\ y1_aqbV -> Response x1_aqbR y1_aqbV x3_aqbT x4_aqbU)
++      (f_aqbQ x2_aqbS)
++{-# INLINE respTypes #-}
++
++authInfo :: Control.Lens.Type.Lens' Action [DocAuthentication]
++authInfo
++  f_aqdk
++  (Action x1_aqdl
++          x2_aqdm
++          x3_aqdn
++          x4_aqdo
++          x5_aqdp
++          x6_aqdq
++          x7_aqdr
++          x8_aqds
++          x9_aqdt)
++  = fmap
++      (\ y1_aqdu
++          -> Action
++              y1_aqdu
++              x2_aqdm
++              x3_aqdn
++              x4_aqdo
++              x5_aqdp
++              x6_aqdq
++              x7_aqdr
++              x8_aqds
++              x9_aqdt)
++      (f_aqdk x1_aqdl)
++{-# INLINE authInfo #-}
++captures :: Control.Lens.Type.Lens' Action [DocCapture]
++captures
++  f_aqdv
++  (Action x1_aqdw
++          x2_aqdx
++          x3_aqdy
++          x4_aqdz
++          x5_aqdA
++          x6_aqdB
++          x7_aqdC
++          x8_aqdD
++          x9_aqdE)
++  = fmap
++      (\ y1_aqdF
++          -> Action
++              x1_aqdw
++              y1_aqdF
++              x3_aqdy
++              x4_aqdz
++              x5_aqdA
++              x6_aqdB
++              x7_aqdC
++              x8_aqdD
++              x9_aqdE)
++      (f_aqdv x2_aqdx)
++{-# INLINE captures #-}
++headers :: Control.Lens.Type.Lens' Action [Text]
++headers
++  f_aqdG
++  (Action x1_aqdH
++          x2_aqdI
++          x3_aqdJ
++          x4_aqdK
++          x5_aqdL
++          x6_aqdM
++          x7_aqdN
++          x8_aqdO
++          x9_aqdP)
++  = fmap
++      (\ y1_aqdQ
++          -> Action
++              x1_aqdH
++              x2_aqdI
++              y1_aqdQ
++              x4_aqdK
++              x5_aqdL
++              x6_aqdM
++              x7_aqdN
++              x8_aqdO
++              x9_aqdP)
++      (f_aqdG x3_aqdJ)
++{-# INLINE headers #-}
++mxParams ::
++  Control.Lens.Type.Lens' Action [(String, [DocQueryParam])]
++mxParams
++  f_aqdR
++  (Action x1_aqdS
++          x2_aqdT
++          x3_aqdU
++          x4_aqdV
++          x5_aqdW
++          x6_aqdX
++          x7_aqdY
++          x8_aqdZ
++          x9_aqe0)
++  = fmap
++      (\ y1_aqe1
++          -> Action
++              x1_aqdS
++              x2_aqdT
++              x3_aqdU
++              x4_aqdV
++              x5_aqdW
++              y1_aqe1
++              x7_aqdY
++              x8_aqdZ
++              x9_aqe0)
++      (f_aqdR x6_aqdX)
++{-# INLINE mxParams #-}
++notes :: Control.Lens.Type.Lens' Action [DocNote]
++notes
++  f_aqe2
++  (Action x1_aqe3
++          x2_aqe4
++          x3_aqe5
++          x4_aqe6
++          x5_aqe7
++          x6_aqe8
++          x7_aqe9
++          x8_aqea
++          x9_aqeb)
++  = fmap
++      (\ y1_aqec
++          -> Action
++              x1_aqe3
++              x2_aqe4
++              x3_aqe5
++              x4_aqe6
++              y1_aqec
++              x6_aqe8
++              x7_aqe9
++              x8_aqea
++              x9_aqeb)
++      (f_aqe2 x5_aqe7)
++{-# INLINE notes #-}
++params :: Control.Lens.Type.Lens' Action [DocQueryParam]
++params
++  f_aqed
++  (Action x1_aqee
++          x2_aqef
++          x3_aqeg
++          x4_aqeh
++          x5_aqei
++          x6_aqej
++          x7_aqek
++          x8_aqel
++          x9_aqem)
++  = fmap
++      (\ y1_aqen
++          -> Action
++              x1_aqee
++              x2_aqef
++              x3_aqeg
++              y1_aqen
++              x5_aqei
++              x6_aqej
++              x7_aqek
++              x8_aqel
++              x9_aqem)
++      (f_aqed x4_aqeh)
++{-# INLINE params #-}
++response :: Control.Lens.Type.Lens' Action Response
++response
++  f_aqeo
++  (Action x1_aqep
++          x2_aqeq
++          x3_aqer
++          x4_aqes
++          x5_aqet
++          x6_aqeu
++          x7_aqev
++          x8_aqew
++          x9_aqex)
++  = fmap
++      (\ y1_aqey
++          -> Action
++              x1_aqep
++              x2_aqeq
++              x3_aqer
++              x4_aqes
++              x5_aqet
++              x6_aqeu
++              x7_aqev
++              x8_aqew
++              y1_aqey)
++      (f_aqeo x9_aqex)
++{-# INLINE response #-}
++rqbody ::
++  Control.Lens.Type.Lens' Action [(M.MediaType, ByteString)]
++rqbody
++  f_aqez
++  (Action x1_aqeA
++          x2_aqeB
++          x3_aqeC
++          x4_aqeD
++          x5_aqeE
++          x6_aqeF
++          x7_aqeG
++          x8_aqeH
++          x9_aqeI)
++  = fmap
++      (\ y1_aqeJ
++          -> Action
++              x1_aqeA
++              x2_aqeB
++              x3_aqeC
++              x4_aqeD
++              x5_aqeE
++              x6_aqeF
++              x7_aqeG
++              y1_aqeJ
++              x9_aqeI)
++      (f_aqez x8_aqeH)
++{-# INLINE rqbody #-}
++rqtypes :: Control.Lens.Type.Lens' Action [M.MediaType]
++rqtypes
++  f_aqeK
++  (Action x1_aqeL
++          x2_aqeM
++          x3_aqeN
++          x4_aqeO
++          x5_aqeP
++          x6_aqeQ
++          x7_aqeR
++          x8_aqeS
++          x9_aqeT)
++  = fmap
++      (\ y1_aqeU
++          -> Action
++              x1_aqeL
++              x2_aqeM
++              x3_aqeN
++              x4_aqeO
++              x5_aqeP
++              x6_aqeQ
++              y1_aqeU
++              x8_aqeS
++              x9_aqeT)
++      (f_aqeK x7_aqeR)
++{-# INLINE rqtypes #-}
+ 
+ -- | Generate the docs for a given API that implements 'HasDocs'. This is the
+ -- default way to create documentation.
+-- 
+2.7.4 (Apple Git-66)
+

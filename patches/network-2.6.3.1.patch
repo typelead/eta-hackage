@@ -1,16 +1,16 @@
-From d2c74f7ad32eff3de12757d0cbeba3b8cc6c0c31 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 28 Jan 2017 14:23:41 +0530
+From d7c5030c3246959f0f1be04efad7b9864017a789 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Sun, 23 Apr 2017 22:33:44 +0200
 Subject: [PATCH] Patched
 
 ---
- Network/Socket.hs        | 1664 ++++++++++++++++++++++++++++++++++++++++++++++
+ Network/Socket.hs        | 1669 ++++++++++++++++++++++++++++++++++++++++++++++
  Network/Socket.hsc       | 1660 ---------------------------------------------
- Network/Socket/Types.hs  | 1104 ++++++++++++++++++++++++++++++
+ Network/Socket/Types.hs  | 1106 ++++++++++++++++++++++++++++++
  Network/Socket/Types.hsc | 1103 ------------------------------
- java/Utils.java          |   15 +
+ java/Utils.java          |   27 +
  network.cabal            |   45 +-
- 6 files changed, 2806 insertions(+), 2785 deletions(-)
+ 6 files changed, 2825 insertions(+), 2785 deletions(-)
  create mode 100644 Network/Socket.hs
  delete mode 100644 Network/Socket.hsc
  create mode 100644 Network/Socket/Types.hs
@@ -19,10 +19,10 @@ Subject: [PATCH] Patched
 
 diff --git a/Network/Socket.hs b/Network/Socket.hs
 new file mode 100644
-index 0000000..930edc0
+index 0000000..a89e61c
 --- /dev/null
 +++ b/Network/Socket.hs
-@@ -0,0 +1,1664 @@
+@@ -0,0 +1,1669 @@
 +{-# LANGUAGE CPP, ScopedTypeVariables #-}
 +{-# OPTIONS_GHC -fno-warn-orphans #-}
 +-----------------------------------------------------------------------------
@@ -62,12 +62,12 @@ index 0000000..930edc0
 +    -- , isSupportedSockAddr
 +    -- , SocketStatus(..)
 +    , HostAddress
-+--     , hostAddressToTuple
-+--     , tupleToHostAddress
++    , hostAddressToTuple
++    , tupleToHostAddress
 +-- #if defined(IPV6_SOCKET_SUPPORT)
 +    , HostAddress6
-+    -- , hostAddress6ToTuple
-+    -- , tupleToHostAddress6
++    , hostAddress6ToTuple
++    , tupleToHostAddress6
 +    , FlowInfo
 +    , ScopeID
 +-- #endif
@@ -223,10 +223,10 @@ index 0000000..930edc0
 +-- import Foreign.Marshal.Utils ( maybeWith, with )
 +
 +-- import System.IO
-+-- import Control.Monad (liftM, when)
++import Control.Monad (liftM {-, when -})
 +
 +-- import Control.Concurrent.MVar
-+-- import Data.Typeable
++import Data.Typeable
 +-- import System.IO.Error
 +
 +-- import GHC.Conc (threadWaitRead, threadWaitWrite)
@@ -245,19 +245,19 @@ index 0000000..930edc0
 +-- import qualified GHC.IO.Device
 +-- import GHC.IO.Handle.FD
 +-- import GHC.IO.Exception
-+-- import GHC.IO
++import GHC.IO
 +-- import qualified System.Posix.Internals
 +
 +-- import Network.Socket.Internal
 +import Network.Socket.Types
-+
++import Java
 +-- import Prelude -- Silence AMP warnings
 +
 +-- | Either a host name e.g., @\"haskell.org\"@ or a numeric host
 +-- address string consisting of a dotted decimal IPv4 address or an
 +-- IPv6 address e.g., @\"192.168.0.1\"@.
-+-- type HostName       = String
-+-- type ServiceName    = String
++type HostName       = String
++type ServiceName    = String
 +
 +-- ----------------------------------------------------------------------------
 +-- On Windows, our sockets are not put in non-blocking mode (non-blocking
@@ -319,13 +319,13 @@ index 0000000..930edc0
 +   . showString ":"
 +   . shows port
 +-- #if defined(IPV6_SOCKET_SUPPORT)
-+--   showsPrec _ addr@(SockAddrInet6 port _ _ _)
-+--    = showChar '['
-+--    . showString (unsafePerformIO $
-+--                  fst `liftM` getNameInfo [NI_NUMERICHOST] True False addr >>=
-+--                  maybe (fail "showsPrec: impossible internal error") return)
-+--    . showString "]:"
-+--    . shows port
++  showsPrec _ addr@(SockAddrInet6 port _ _ _)
++   = showChar '['
++   . showString (unsafePerformIO $
++                 fst `liftM` getNameInfo [NI_NUMERICHOST] True False addr >>=
++                 maybe (fail "showsPrec: impossible internal error") return)
++   . showString "]:"
++   . shows port
 +-- #endif
 +-- #if defined(CAN_SOCKET_SUPPORT)
 +  showsPrec _ (SockAddrCan ifidx) = shows ifidx
@@ -1361,27 +1361,27 @@ index 0000000..930edc0
 +
 +-- -- | Flags that control the querying behaviour of 'getNameInfo'.
 +-- --   For more information, see <https://tools.ietf.org/html/rfc3493#page-30>
-+-- data NameInfoFlag =
-+--     -- | Resolve a datagram-based service name.  This is
-+--     --   required only for the few protocols that have different port
-+--     --   numbers for their datagram-based versions than for their
-+--     --   stream-based versions.
-+--       NI_DGRAM
-+--     -- | If the hostname cannot be looked up, an IO error is thrown.
-+--     | NI_NAMEREQD
-+--     -- | If a host is local, return only the hostname part of the FQDN.
-+--     | NI_NOFQDN
-+--     -- | The name of the host is not looked up.
-+--     --   Instead, a numeric representation of the host's
-+--     --   address is returned.  For an IPv4 address, this will be a
-+--     --   dotted-quad string.  For IPv6, it will be colon-separated
-+--     --   hexadecimal.
-+--     | NI_NUMERICHOST
-+--     -- | The name of the service is not
-+--     --   looked up.  Instead, a numeric representation of the
-+--     --   service is returned.
-+--     | NI_NUMERICSERV
-+--     deriving (Eq, Read, Show, Typeable)
++data NameInfoFlag =
++    -- | Resolve a datagram-based service name.  This is
++    --   required only for the few protocols that have different port
++    --   numbers for their datagram-based versions than for their
++    --   stream-based versions.
++      NI_DGRAM
++    -- | If the hostname cannot be looked up, an IO error is thrown.
++    | NI_NAMEREQD
++    -- | If a host is local, return only the hostname part of the FQDN.
++    | NI_NOFQDN
++    -- | The name of the host is not looked up.
++    --   Instead, a numeric representation of the host's
++    --   address is returned.  For an IPv4 address, this will be a
++    --   dotted-quad string.  For IPv6, it will be colon-separated
++    --   hexadecimal.
++    | NI_NUMERICHOST
++    -- | The name of the service is not
++    --   looked up.  Instead, a numeric representation of the
++    --   service is returned.
++    | NI_NUMERICSERV
++    deriving (Eq, Read, Show, Typeable)
 +
 +-- niFlagMapping :: [(NameInfoFlag, CInt)]
 +
@@ -1530,12 +1530,17 @@ index 0000000..930edc0
 +-- --   (hostName, _) <- getNameInfo [] True False myAddress
 +-- -- @
 +
-+-- getNameInfo :: [NameInfoFlag] -- ^ flags to control lookup behaviour
-+--             -> Bool -- ^ whether to look up a hostname
-+--             -> Bool -- ^ whether to look up a service name
-+--             -> SockAddr -- ^ the address to look up
-+--             -> IO (Maybe HostName, Maybe ServiceName)
++foreign import java unsafe "@static eta.network.Utils.inet6_ntoa"
++  inet6_ntoa :: JIntArray -> String
 +
++getNameInfo :: [NameInfoFlag] -- ^ flags to control lookup behaviour
++            -> Bool -- ^ whether to look up a hostname
++            -> Bool -- ^ whether to look up a service name
++            -> SockAddr -- ^ the address to look up
++            -> IO (Maybe HostName, Maybe ServiceName)
++getNameInfo [NI_NUMERICHOST] True False (SockAddrInet6 _ _ addr _) = do
++  let (ip1,ip2,ip3,ip4) = addr
++  return (Just $ inet6_ntoa $ toJava [ip1,ip2,ip3,ip4] ,Nothing)
 +-- getNameInfo flags doHost doService addr = withSocketsDo $
 +--   withCStringIf doHost (#const NI_MAXHOST) $ \c_hostlen c_host ->
 +--     withCStringIf doService (#const NI_MAXSERV) $ \c_servlen c_serv -> do
@@ -3355,10 +3360,10 @@ index 8b2e6fe..0000000
 -sIsWritable = isWritable
 diff --git a/Network/Socket/Types.hs b/Network/Socket/Types.hs
 new file mode 100644
-index 0000000..1918a0a
+index 0000000..ba55dce
 --- /dev/null
 +++ b/Network/Socket/Types.hs
-@@ -0,0 +1,1104 @@
+@@ -0,0 +1,1106 @@
 +{-# LANGUAGE DeriveDataTypeable #-}
 +{-# LANGUAGE FlexibleInstances #-}
 +{-# LANGUAGE ForeignFunctionInterface #-}
@@ -3396,12 +3401,12 @@ index 0000000..1918a0a
 +    SockAddr(..)
 +    -- , isSupportedSockAddr
 +    , HostAddress
-+--     , hostAddressToTuple
-+--     , tupleToHostAddress
++    , hostAddressToTuple
++    , tupleToHostAddress
 +-- #if defined(IPV6_SOCKET_SUPPORT)
 +    , HostAddress6
-+    -- , hostAddress6ToTuple
-+    -- , tupleToHostAddress6
++    , hostAddress6ToTuple
++    , tupleToHostAddress6
 +    , FlowInfo
 +    , ScopeID
 +-- #endif
@@ -3423,7 +3428,7 @@ index 0000000..1918a0a
 +-- import Control.Concurrent.MVar
 +-- import Control.Exception (throwIO)
 +import Control.Monad
-+-- import Data.Bits
++import Data.Bits
 +-- import Data.Maybe
 +import Data.Ratio
 +import Data.Typeable
@@ -4365,20 +4370,22 @@ index 0000000..1918a0a
 +-- 'tupleToHostAddress'.
 +type HostAddress = Word32
 +
-+-- -- | Converts 'HostAddress' to representation-independent IPv4 quadruple.
-+-- -- For example for @127.0.0.1@ the function will return @(0x7f, 0, 0, 1)@
-+-- -- regardless of host endianness.
-+-- hostAddressToTuple :: HostAddress -> (Word8, Word8, Word8, Word8)
-+-- hostAddressToTuple ha' =
-+--     let ha = htonl ha'
-+--         byte i = fromIntegral (ha `shiftR` i) :: Word8
-+--     in (byte 24, byte 16, byte 8, byte 0)
++-- | Converts 'HostAddress' to representation-independent IPv4 quadruple.
++-- For example for @127.0.0.1@ the function will return @(0x7f, 0, 0, 1)@
++-- regardless of host endianness.
++hostAddressToTuple :: HostAddress -> (Word8, Word8, Word8, Word8)
++hostAddressToTuple ha' =
++    let ha = ha'
++    -- TODO: Verify byte order
++        byte i = fromIntegral (ha `shiftR` i) :: Word8
++    in (byte 24, byte 16, byte 8, byte 0)
 +
-+-- -- | Converts IPv4 quadruple to 'HostAddress'.
-+-- tupleToHostAddress :: (Word8, Word8, Word8, Word8) -> HostAddress
-+-- tupleToHostAddress (b3, b2, b1, b0) =
-+--     let x `sl` i = fromIntegral x `shiftL` i :: Word32
-+--     in ntohl $ (b3 `sl` 24) .|. (b2 `sl` 16) .|. (b1 `sl` 8) .|. (b0 `sl` 0)
++-- | Converts IPv4 quadruple to 'HostAddress'.
++tupleToHostAddress :: (Word8, Word8, Word8, Word8) -> HostAddress
++tupleToHostAddress (b3, b2, b1, b0) =
++    let x `sl` i = fromIntegral x `shiftL` i :: Word32
++    in (b3 `sl` 24) .|. (b2 `sl` 16) .|. (b1 `sl` 8) .|. (b0 `sl` 0)
++    -- TODO: Verify byte order
 +
 +-- #if defined(IPV6_SOCKET_SUPPORT)
 +-- | Independent of endianness. For example @::1@ is stored as @(0, 0, 0, 1)@.
@@ -4387,20 +4394,20 @@ index 0000000..1918a0a
 +-- 'tupleToHostAddress6'.
 +type HostAddress6 = (Word32, Word32, Word32, Word32)
 +
-+-- hostAddress6ToTuple :: HostAddress6 -> (Word16, Word16, Word16, Word16,
-+--                                         Word16, Word16, Word16, Word16)
-+-- hostAddress6ToTuple (w3, w2, w1, w0) =
-+--     let high, low :: Word32 -> Word16
-+--         high w = fromIntegral (w `shiftR` 16)
-+--         low w = fromIntegral w
-+--     in (high w3, low w3, high w2, low w2, high w1, low w1, high w0, low w0)
++hostAddress6ToTuple :: HostAddress6 -> (Word16, Word16, Word16, Word16,
++                                        Word16, Word16, Word16, Word16)
++hostAddress6ToTuple (w3, w2, w1, w0) =
++    let high, low :: Word32 -> Word16
++        high w = fromIntegral (w `shiftR` 16)
++        low w = fromIntegral w
++    in (high w3, low w3, high w2, low w2, high w1, low w1, high w0, low w0)
 +
-+-- tupleToHostAddress6 :: (Word16, Word16, Word16, Word16,
-+--                         Word16, Word16, Word16, Word16) -> HostAddress6
-+-- tupleToHostAddress6 (w7, w6, w5, w4, w3, w2, w1, w0) =
-+--     let add :: Word16 -> Word16 -> Word32
-+--         high `add` low = (fromIntegral high `shiftL` 16) .|. (fromIntegral low)
-+--     in (w7 `add` w6, w5 `add` w4, w3 `add` w2, w1 `add` w0)
++tupleToHostAddress6 :: (Word16, Word16, Word16, Word16,
++                        Word16, Word16, Word16, Word16) -> HostAddress6
++tupleToHostAddress6 (w7, w6, w5, w4, w3, w2, w1, w0) =
++    let add :: Word16 -> Word16 -> Word32
++        high `add` low = (fromIntegral high `shiftL` 16) .|. (fromIntegral low)
++    in (w7 `add` w6, w5 `add` w4, w3 `add` w2, w1 `add` w0)
 +
 +-- -- The peek32 and poke32 functions work around the fact that the RFCs
 +-- -- don't require 32-bit-wide address fields to be present.  We can
@@ -5574,10 +5581,10 @@ index b42c98d..0000000
 -zeroMemory dest nbytes = memset dest 0 (fromIntegral nbytes)
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..6dd9f0e
+index 0000000..dc8542f
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,27 @@
 +package eta.network;
 +
 +import java.net.InetAddress;
@@ -5592,6 +5599,18 @@ index 0000000..6dd9f0e
 +                (byte)bytes
 +            }).toString().substring(1);
 +    }
++
++    public static String inet6_ntoa(int[] addr) {
++        String res="";
++        if (addr !=null) {
++            for (int i=0; i < addr.length; i++) {
++                res+=Integer.toHexString(addr[i]) +
++                    (i < addr.length-1?":":"");
++            }
++        }
++        return res;
++    }
++
 +}
 diff --git a/network.cabal b/network.cabal
 index c90c9b1..0b0a9c4 100644
@@ -5669,5 +5688,5 @@ index c90c9b1..0b0a9c4 100644
  
  test-suite simple
 -- 
-2.7.4 (Apple Git-66)
+2.11.1.windows.1
 

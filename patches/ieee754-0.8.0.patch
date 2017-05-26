@@ -1,0 +1,339 @@
+From 73a00b8f75838dc1f3d5d5c261700cea89760075 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 3 Feb 2017 21:22:52 +0530
+Subject: [PATCH] Patched
+
+---
+ Numeric/IEEE.hs |  45 ++++++-------
+ ieee754.cabal   |   5 +-
+ java/Utils.java | 194 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 220 insertions(+), 24 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Numeric/IEEE.hs b/Numeric/IEEE.hs
+index 78af5e5..048453a 100644
+--- a/Numeric/IEEE.hs
++++ b/Numeric/IEEE.hs
+@@ -109,7 +109,7 @@ minNaN x y | x <= y || isNaN x = x
+ 
+ 
+ instance IEEE Float where
+-    identicalIEEE x y = c_identicalf x y /= 0
++    identicalIEEE x y = c_identicalf x y
+     {-# INLINE identicalIEEE #-}
+     infinity = 1/0
+     {-# INLINE infinity #-}
+@@ -142,7 +142,7 @@ instance IEEE Float where
+ 
+ 
+ instance IEEE CFloat where
+-    identicalIEEE x y = c_identicalf (realToFrac x) (realToFrac y) /= 0
++    identicalIEEE x y = c_identicalf (realToFrac x) (realToFrac y)
+     {-# INLINE identicalIEEE #-}
+     infinity = 1/0
+     {-# INLINE infinity #-}
+@@ -175,7 +175,7 @@ instance IEEE CFloat where
+ 
+ 
+ instance IEEE Double where
+-    identicalIEEE x y = c_identical x y /= 0
++    identicalIEEE x y = c_identical x y
+     {-# INLINE identicalIEEE #-}
+     infinity = 1/0
+     {-# INLINE infinity #-}
+@@ -208,7 +208,7 @@ instance IEEE Double where
+ 
+ 
+ instance IEEE CDouble where
+-    identicalIEEE x y = c_identical (realToFrac x) (realToFrac y) /= 0
++    identicalIEEE x y = c_identical (realToFrac x) (realToFrac y)
+     {-# INLINE identicalIEEE #-}
+     infinity = 1/0
+     {-# INLINE infinity #-}
+@@ -240,49 +240,50 @@ instance IEEE CDouble where
+     {-# INLINE sameSignificandBits #-}
+ 
+ 
+-foreign import ccall unsafe "identical"
+-    c_identical :: Double -> Double -> Int
++foreign import java unsafe "@static eta.ieee754.Utils.identical"
++    c_identical :: Double -> Double -> Bool
+ 
+-foreign import ccall unsafe "identicalf"
+-    c_identicalf :: Float -> Float -> Int
++foreign import java unsafe "@static eta.ieee754.Utils.identicalf"
++    c_identicalf :: Float -> Float -> Bool
+ 
+-foreign import ccall unsafe "feqrel"
++foreign import java unsafe "@static eta.ieee754.Utils.feqrel"
+     c_feqrel :: Double -> Double -> Int
+-foreign import ccall unsafe "feqrelf"
++
++foreign import java unsafe "@static eta.ieee754.Utils.feqrelf"
+     c_feqrelf :: Float -> Float -> Int
+ 
+-foreign import ccall unsafe "ieeesucc"
++foreign import java unsafe "@static eta.ieee754.Utils.ieeesucc"
+     c_ieeesucc :: Double -> Double
+ 
+-foreign import ccall unsafe "ieeesuccf"
++foreign import java unsafe "@static eta.ieee754.Utils.ieeesuccf"
+     c_ieeesuccf :: Float -> Float
+ 
+-foreign import ccall unsafe "ieeepred"
++foreign import java unsafe "@static eta.ieee754.Utils.ieeepred"
+     c_ieeepred :: Double -> Double
+ 
+-foreign import ccall unsafe "ieeepredf"
++foreign import java unsafe "@static eta.ieee754.Utils.ieeepredf"
+     c_ieeepredf :: Float -> Float
+ 
+-foreign import ccall unsafe "ieeemean"
++foreign import java unsafe "@static eta.ieee754.Utils.ieeemean"
+     c_ieeemean :: Double -> Double -> Double
+ 
+-foreign import ccall unsafe "ieeemeanf"
++foreign import java unsafe "@static eta.ieee754.Utils.ieeemeanf"
+     c_ieeemeanf :: Float -> Float -> Float
+ 
+-foreign import ccall unsafe "copysign"
++foreign import java unsafe "@static eta.ieee754.Utils.copysign"
+     c_copysign :: Double -> Double -> Double
+ 
+-foreign import ccall unsafe "copysignf"
++foreign import java unsafe "@static eta.ieee754.Utils.copysignf"
+     c_copysignf :: Float -> Float -> Float
+ 
+-foreign import ccall unsafe "mknan"
++foreign import java unsafe "@static eta.ieee754.Utils.mknan"
+     c_mknan :: Word64 -> Double
+ 
+-foreign import ccall unsafe "getnan"
++foreign import java unsafe "@static eta.ieee754.Utils.getnan"
+     c_getnan :: Double -> Word64
+ 
+-foreign import ccall unsafe "mknanf"
++foreign import java unsafe "@static eta.ieee754.Utils.mknanf"
+     c_mknanf :: Word32 -> Float
+ 
+-foreign import ccall unsafe "getnanf"
++foreign import java unsafe "@static eta.ieee754.Utils.getnanf"
+     c_getnanf :: Float -> Word32
+diff --git a/ieee754.cabal b/ieee754.cabal
+index 111f162..fa25c3e 100644
+--- a/ieee754.cabal
++++ b/ieee754.cabal
+@@ -30,7 +30,8 @@ library
+     ghc-options:     -Wall
+ 
+ 
+-    c-sources:       cbits/float.c
+-                     cbits/double.c
++    java-sources:    java/Utils.java
++    -- c-sources:       cbits/float.c
++    --                  cbits/double.c
+ 
+     cc-options:      -Wall --std=c99
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..e14f8f6
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,194 @@
++package eta.ieee754;
++
++public class Utils {
++
++    public static final double DOUBLE_NAN      = Double.NaN;
++    public static final float  FLOAT_NAN       = Float.NaN;
++    public static final double DOUBLE_MAX      = Double.MAX_VALUE;
++    public static final float  FLOAT_MAX       = Float.MAX_VALUE;
++    public static final double DOUBLE_INFINITY = Double.POSITIVE_INFINITY;
++    public static final float  FLOAT_INFINITY  = Float.POSITIVE_INFINITY;
++
++
++    public static boolean identical(double x, double y) {
++        return Double.doubleToRawLongBits(x) == Double.doubleToRawLongBits(y);
++    }
++
++    public static boolean identicalf(float x, float y) {
++        return Float.floatToRawIntBits(x) == Float.floatToRawIntBits(y);
++    }
++
++    public static double copysign(double x, double y) {
++        return Double.longBitsToDouble(
++                 (Double.doubleToRawLongBits(x) & 0x7FFFFFFFFFFFFFFFL)
++               | (Double.doubleToRawLongBits(y) & 0x8000000000000000L));
++    }
++
++    public static float copysignf(float x, float y) {
++        return Float.intBitsToFloat(
++                 (Float.floatToRawIntBits(x) & 0x7FFFFFFF)
++               | (Float.floatToRawIntBits(y) & 0x80000000));
++    }
++
++    public static double ieeesucc(double x) {
++        long ps = Double.doubleToRawLongBits(x);
++        if ((ps & 0x7FF0000000000000L) == 0x7FF0000000000000L) {
++            if (x == -DOUBLE_INFINITY) {
++                return -DOUBLE_MAX;
++            } else {
++                return x;
++            }
++        } else if ((ps & 0x8000000000000000L) != 0)  {
++            if (ps == 0x8000000000000000L) {
++                ps = 0x0000000000000001L;
++            } else {
++                ps--;
++            }
++        } else {
++            ps++;
++        }
++        return Double.longBitsToDouble(ps);
++    }
++
++    public static float ieeesuccf (float x) {
++        int ps = Float.floatToRawIntBits(x);
++
++        if ((ps & 0x7F800000) == 0x7F800000) {
++            /* First, deal with NANs and infinity */
++            if (x == -FLOAT_INFINITY) {
++                return -FLOAT_MAX;
++            } else {
++                return x;
++            }
++        } else if ((ps & 0x80000000) != 0)  {
++            if (ps == 0x80000000) {
++                ps = 0x00000001;
++            } else {
++                ps--;
++            }
++        } else {
++            ps++;
++        }
++        return Float.intBitsToFloat(ps);
++    }
++
++    public static double ieeepred(double x) {
++        return -ieeesucc(-x);
++    }
++
++    public static float ieeepred(float x) {
++        return -ieeesuccf(-x);
++    }
++
++    public static double ieeemean(double x, double y) {
++        if (!((x >= 0 && y >= 0) || (x <= 0 && y <= 0))) return DOUBLE_NAN;
++        long xl = Double.doubleToRawLongBits(x);
++        long yl = Double.doubleToRawLongBits(y);
++        long m = ( (xl & 0x7FFFFFFFFFFFFFFFL)
++                 + (yl & 0x7FFFFFFFFFFFFFFFL) ) >>> 1;
++        m |= (xl & 0x8000000000000000L);
++        return Double.longBitsToDouble(m);
++    }
++
++    public static float ieeemeanf (float x, float y) {
++        if (!((x >= 0 && y >= 0) || (x <= 0 && y <= 0))) return FLOAT_NAN;
++        int xl = Float.floatToRawIntBits(x);
++        int yl = Float.floatToRawIntBits(y);
++        int m = ((xl & 0x7FFFFFFF) + (yl & 0x7FFFFFFF)) >>> 1;
++        m |= (xl & 0x80000000);
++        return Float.intBitsToFloat(m);
++    }
++
++    public static double mknan (long payload) {
++        long x = Double.doubleToRawLongBits(DOUBLE_NAN);
++        x &= 0xFFF8000000000000L;
++        payload &= 0x0007FFFFFFFFFFFFL;
++        x |= payload;
++        return Double.longBitsToDouble(x);
++    }
++
++    public static float mknanf (int payload) {
++        int ux = Float.floatToRawIntBits(FLOAT_NAN);
++        ux &= 0xFFC00000;
++        payload &= 0x003FFFFF;
++        ux |= payload;
++        return Float.intBitsToFloat(ux);
++    }
++
++    public static long getnan (double x) {
++        long payload = Double.doubleToRawLongBits(x);
++        payload &= 0x0007FFFFFFFFFFFFL;
++        return payload;
++    }
++
++    public static int getnanf (float x) {
++        int payload = Float.floatToRawIntBits(x);
++        payload &= 0x003FFFFF;
++        return payload;
++    }
++
++    public static final int    DOUBLE_MANT_DIG      = 53;
++    public static final int    DOUBLE_EXPMASK       = 0x7FF0;
++    public static final double DOUBLE_RECIP_EPSILON = 1 / (2.2204460492503131e-16);
++
++    int feqrel(double x, double y) {
++        /* Public Domain. Original Author: Don Clugston, 18 Aug 2005.
++         * Ported to C by Patrick Perry, 26 Feb 2010.
++         * Ported to Java by Rahul Muttineni, 3 Feb 2017.
++         */
++        if (x == y) return DOUBLE_MANT_DIG;
++        double diff = Math.abs(x - y);
++        int pa   = (int)(Double.doubleToRawLongBits(x)    >>> 48);
++        int pb   = (int)(Double.doubleToRawLongBits(y)    >>> 48);
++        int pd   = (int)(Double.doubleToRawLongBits(diff) >>> 48);
++
++        int bitsdiff = (( ((pa & DOUBLE_EXPMASK)
++                         + (pb & DOUBLE_EXPMASK)
++                         - (0x8000 - DOUBLE_EXPMASK)) >>> 1)
++                         - (pd & DOUBLE_EXPMASK)) >>> 4;
++                         /* TODO: Is this signed? */
++
++        if ((pd & DOUBLE_EXPMASK) == 0) {
++            pd = (int)(Double.doubleToRawLongBits(diff * DOUBLE_RECIP_EPSILON) >>> 48);
++            return bitsdiff + DOUBLE_MANT_DIG - (pd >>> 4);
++        }
++
++        if (bitsdiff > 0)
++            return bitsdiff + 1;
++
++        return (bitsdiff == 0 && (((pa ^ pb) & DOUBLE_EXPMASK) != 0)) ? 1 : 0;
++    }
++
++    public static final int   FLOAT_MANT_DIG      = 24;
++    public static final int   FLOAT_EXPMASK       = 0x7F80;
++    public static final float FLOAT_RECIP_EPSILON = 1f / (1.19209290e-07f);
++
++    int feqrelf(float x, float y) {
++        /* Public Domain. Original Author: Don Clugston, 18 Aug 2005.
++        * Ported to C by Patrick Perry, 26 Feb 2010.
++        * Ported to Java by Rahul Muttineni, 3 Feb 2017.
++        */
++        if (x == y) return FLOAT_MANT_DIG;
++
++        float diff = Math.abs(x - y);
++
++        int pa   = Float.floatToRawIntBits(x)    >>> 16;
++        int pb   = Float.floatToRawIntBits(y)    >>> 16;
++        int pd   = Float.floatToRawIntBits(diff) >>> 16;
++
++        int bitsdiff =  (( ((pa & FLOAT_EXPMASK)
++                          + (pb & FLOAT_EXPMASK)
++                          - (0x8000 - FLOAT_EXPMASK)) >>> 1)
++                          - (pd & FLOAT_EXPMASK)) >>> 7;
++
++        if ((pd & FLOAT_EXPMASK) == 0) {
++            pd = Float.floatToRawIntBits(diff * FLOAT_RECIP_EPSILON) >>> 16;
++            return bitsdiff + FLOAT_MANT_DIG - (pd >>> 7);
++        }
++
++        if (bitsdiff > 0)
++            return bitsdiff + 1;
++
++        return (bitsdiff == 0 && (((pa ^ pb) & FLOAT_EXPMASK) != 0)) ? 1 : 0;
++    }
++}
+-- 
+2.7.4 (Apple Git-66)
+

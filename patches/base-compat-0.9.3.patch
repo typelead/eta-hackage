@@ -1,0 +1,27 @@
+From d9dbfa7fbe08bed02ec92e63a221c6d4c070082c Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 14 May 2017 17:07:49 +0530
+Subject: [PATCH] Patched base-compat-0.9.3
+
+---
+ base-compat.cabal | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/base-compat.cabal b/base-compat.cabal
+index 02cdffb..8d36287 100644
+--- a/base-compat.cabal
++++ b/base-compat.cabal
+@@ -51,8 +51,8 @@ library
+       -Wall
+   build-depends:
+       base >= 4.3 && < 5
+-  if !os(windows) && !os(halvm)
+-      build-depends: unix
++  -- if !os(windows) && !os(halvm)
++  --     build-depends: unix
+   ghc-options:
+       -fno-warn-duplicate-exports
+ 
+-- 
+2.7.4 (Apple Git-66)
+

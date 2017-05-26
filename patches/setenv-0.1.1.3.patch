@@ -1,0 +1,24 @@
+From 44bed4c17558c7b15756b36b8f0bda16acaa1628 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 22 May 2017 19:09:37 +0530
+Subject: [PATCH] Patched
+
+---
+ setenv.cabal | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/setenv.cabal b/setenv.cabal
+index 1047297..2bc8be8 100644
+--- a/setenv.cabal
++++ b/setenv.cabal
+@@ -30,5 +30,5 @@ library
+       System.SetEnv
+   build-depends:
+       base == 4.*
+-  if !os(windows)
+-    build-depends: unix
++  -- if !os(windows)
++  --   build-depends: unix
+-- 
+2.7.4 (Apple Git-66)
+

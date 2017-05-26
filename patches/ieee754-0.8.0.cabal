@@ -1,0 +1,37 @@
+name:            ieee754
+version:         0.8.0
+homepage:        http://github.com/patperry/hs-ieee754
+synopsis:        Utilities for dealing with IEEE floating point numbers
+description:
+    Utilities for dealing with IEEE floating point numbers, ported
+    from the Tango math library; approximate and exact equality
+    comparisons for general types.
+category:        Math
+license:         BSD3
+license-file:    LICENSE
+copyright:       (c) 2011-2016. Patrick Perry <patperry@gmail.com>
+author:          Patrick Perry
+maintainer:      Patrick Perry <patperry@gmail.com>
+cabal-version: >= 1.2.0
+build-type:      Simple
+tested-with:     GHC ==7.6.3
+
+extra-source-files: LICENSE.Tango CHANGELOG cbits/feqrel_source.c
+                    tests/Makefile tests/Tests.hs
+
+library
+    exposed-modules: Data.AEq
+                     Numeric.IEEE
+
+    extensions:      FlexibleInstances
+                     ForeignFunctionInterface
+
+    build-depends:   base >= 3 && < 5
+    ghc-options:     -Wall
+
+
+    java-sources:    java/Utils.java
+    -- c-sources:       cbits/float.c
+    --                  cbits/double.c
+
+    cc-options:      -Wall --std=c99

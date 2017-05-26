@@ -1,6 +1,6 @@
-From 29671e3a06d7f21bef69ea5b3895fafadaaa0f80 Mon Sep 17 00:00:00 2001
+From c3da1b3c801b2ea76cb64f3e0e4a4bf816cf4cac Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Thu, 26 Jan 2017 13:31:20 +0530
+Date: Thu, 27 Apr 2017 16:09:06 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -145,7 +145,7 @@ index 9238eb9..f5e8724 100644
      unstream (S.map safe (S.streamList []))
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..49c5f22
+index 0000000..c9ca012
 --- /dev/null
 +++ b/java/Utils.java
 @@ -0,0 +1,178 @@
@@ -189,8 +189,8 @@ index 0000000..49c5f22
 +        return 0;
 +    }
 +
-+    public static void decode_latin1(ByteBuffer dest, ByteBuffer src, ByteBuffer srcend) {
-+        dest = dest.duplicate();
++    public static void decode_latin1(StgByteArray destArray, ByteBuffer src, ByteBuffer srcend) {
++        ByteBuffer dest=destArray.buf.duplicate();
 +        ByteBuffer p = src.duplicate();
 +        // while (getAddress(p) != getAddress(srcend)) {
 +        while (p.position() != srcend.position()) {
@@ -226,7 +226,7 @@ index 0000000..49c5f22
 +        12,36,12,12,12,12,12,12,12,12,12,12,
 +    };
 +
-+    public static ByteBuffer decode_utf8( ByteBuffer dest, ByteBuffer destOffset
++    public static ByteBuffer decode_utf8( StgByteArray destArray, ByteBuffer destOffset
 +                                        , ByteBuffer src,  ByteBuffer srcend) {
 +        /* TODO: This part of the text implementation can be optimized.
 +                 Unnecessary byte buffers are being created. Instead,
@@ -237,7 +237,7 @@ index 0000000..49c5f22
 +        ByteBuffer codepoint0 = allocateAnonymousBuffer(4, false);
 +        ByteBuffer src0 = allocateAnonymousBuffer(4, false);
 +        bufPutInt(src0, 0, getAddress(src));
-+        ByteBuffer ret = decode_utf8_int(dest, destOffset, src0, srcend,
++        ByteBuffer ret = decode_utf8_int(destArray.buf, destOffset, src0, srcend,
 +                                         codepoint0, state0);
 +        if (bufGetInt(state0, 0) != UTF8_ACCEPT) {
 +            bufSetOffset(ret, -1);
@@ -246,10 +246,10 @@ index 0000000..49c5f22
 +    }
 +
 +    public static ByteBuffer decode_utf8_state
-+        (ByteBuffer dest, ByteBuffer destOffset, ByteBuffer src0,
++        (StgByteArray destArray, ByteBuffer destOffset, ByteBuffer src0,
 +         ByteBuffer srcend, ByteBuffer codepoint0, ByteBuffer state0)
 +    {
-+        ByteBuffer ret = decode_utf8_int(dest, destOffset, src0, srcend,
++        ByteBuffer ret = decode_utf8_int(destArray.buf, destOffset, src0, srcend,
 +                                         codepoint0, state0);
 +        if (bufGetInt(state0, 0) != UTF8_ACCEPT) {
 +            bufSetOffset(ret, -1);
@@ -289,7 +289,7 @@ index 0000000..49c5f22
 +            }
 +            last.get();
 +        }
-+        bufPutInt(destOffset, 0, d.position() - dest.position());
++        bufPutInt(destOffset, 0, (d.position() - dest.position()) / 2);
 +        bufPutInt(codepoint0, 0, codepoint);
 +        bufPutInt(state0, 0, state);
 +        bufPutInt(src0, 0, getAddress(last));

@@ -17,19 +17,19 @@ x-follows-version-policy:
 
 extra-source-files:
     changelog.md
-    -- aclocal.m4
-    -- configure.ac
-    -- configure
+    aclocal.m4
+    configure.ac
+    configure
     lib/include/HsConfigure.h
     lib/include/HsTime.h
     lib/include/HsTimeConfig.h.in
     test/Test/*.c
     test/Test/*.h
 extra-tmp-files:
-    -- config.log
-    -- config.status
-    -- autom4te.cache
-    -- lib/include/HsTimeConfig.h
+    config.log
+    config.status
+    autom4te.cache
+    lib/include/HsTimeConfig.h
 
 source-repository head
     type:     git
@@ -52,8 +52,8 @@ library
     build-depends:
         base >= 4.7 && < 5,
         deepseq >= 1.1
-    if os(windows)
-        build-depends: Win32
+    -- if os(windows)
+    --     build-depends: Win32
     exposed-modules:
         Data.Time.Calendar,
         Data.Time.Calendar.MonthDay,
@@ -68,7 +68,6 @@ library
         Data.Time.Format,
         Data.Time
     default-extensions:    CPP
-    -- c-sources: lib/cbits/HsTime.c
     java-sources: java/Utils.java
     other-modules:
         Data.Time.Calendar.Private,

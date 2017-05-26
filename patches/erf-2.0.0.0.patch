@@ -1,0 +1,67 @@
+From 2a7d529583af22a3e6809cf2af3b04139f809dcf Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 22 May 2017 16:23:11 +0530
+Subject: [PATCH] Patched
+
+---
+ erf.cabal              |  2 ++
+ java/Utils.java        | 13 +++++++++++++
+ src/Data/Number/Erf.hs | 12 ++++++++----
+ 3 files changed, 23 insertions(+), 4 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/erf.cabal b/erf.cabal
+index 00b06e8..af5debc 100644
+--- a/erf.cabal
++++ b/erf.cabal
+@@ -14,3 +14,5 @@ Description:    A type class for the error function, erf, and related functions.
+ Hs-Source-Dirs: src
+ Build-Depends:          base >= 4 && < 10
+ Exposed-modules:        Data.Number.Erf
++Maven-Depends:          org.apache.commons:commons-math3:3.6.1
++Java-Sources:           java/Utils.java
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..d636021
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,13 @@
++package eta.erf;
++
++import org.apache.commons.math3.special.Erf;
++
++public class Utils {
++    public static float erff(float x) {
++        return (float) Erf.erf(x);
++    }
++
++    public static float erfcf(float x) {
++        return (float) Erf.erfc(x);
++    }
++}
+diff --git a/src/Data/Number/Erf.hs b/src/Data/Number/Erf.hs
+index 9fbacd6..cfae6e4 100644
+--- a/src/Data/Number/Erf.hs
++++ b/src/Data/Number/Erf.hs
+@@ -2,10 +2,14 @@
+ module Data.Number.Erf(Erf(..), InvErf(..)) where
+ import Foreign.C
+ 
+-foreign import ccall "erf" c_erf :: CDouble -> CDouble
+-foreign import ccall "erfc" c_erfc :: CDouble -> CDouble
+-foreign import ccall "erff" c_erff :: CFloat -> CFloat
+-foreign import ccall "erfcf" c_erfcf :: CFloat -> CFloat
++foreign import java unsafe "@static org.apache.commons.math3.special.Erf.erf"
++  c_erf :: CDouble -> CDouble
++foreign import java unsafe "@static org.apache.commons.math3.special.Erf.erfc"
++  c_erfc :: CDouble -> CDouble
++foreign import java unsafe "@static eta.erf.Utils.erff"
++  c_erff :: CFloat -> CFloat
++foreign import java unsafe "@static eta.erf.Utils.erfcf"
++  c_erfcf :: CFloat -> CFloat
+ 
+ -- |Error function related functions.
+ --
+-- 
+2.7.4 (Apple Git-66)
+

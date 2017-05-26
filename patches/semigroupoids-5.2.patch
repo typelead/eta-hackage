@@ -1,0 +1,42 @@
+From 53101986de2391e5c977e2abdf5759c1d2eb54ab Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 24 Apr 2017 22:16:32 +0530
+Subject: [PATCH] Patched
+
+---
+ semigroupoids.cabal | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/semigroupoids.cabal b/semigroupoids.cabal
+index e4d58ea..4ab5af6 100644
+--- a/semigroupoids.cabal
++++ b/semigroupoids.cabal
+@@ -11,7 +11,7 @@ homepage:      http://github.com/ekmett/semigroupoids
+ bug-reports:   http://github.com/ekmett/semigroupoids/issues
+ copyright:     Copyright (C) 2011-2015 Edward A. Kmett
+ tested-with:   GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.1
+-build-type:    Custom
++build-type:    Simple
+ synopsis:      Semigroupoids: Category sans id
+ extra-source-files:
+   .travis.yml
+@@ -56,11 +56,11 @@ source-repository head
+   type: git
+   location: git://github.com/ekmett/semigroupoids.git
+ 
+-custom-setup
+-  setup-depends:
+-    base          >= 4 && < 5,
+-    Cabal,
+-    cabal-doctest >= 1 && < 1.1
++-- custom-setup
++--   setup-depends:
++--     base          >= 4 && < 5,
++--     Cabal,
++--     cabal-doctest >= 1 && < 1.1
+ 
+ flag containers
+   description:
+-- 
+2.7.4 (Apple Git-66)
+

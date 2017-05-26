@@ -22,12 +22,12 @@ tested-with:
   GHC==8.0.2,
   GHC==8.1.*
 
-custom-setup
-  setup-depends:
-    base >= 4.7 && <4.10,
-    Cabal >= 1.18 && <1.26,
-    filepath,
-    directory
+-- custom-setup
+--   setup-depends:
+--     base >= 4.7 && <4.10,
+--     Cabal >= 1.18 && <1.26,
+--     filepath,
+--     directory
 
 flag use-text-show
   description: Use text-show library for efficient ToHttpApiData implementations.
