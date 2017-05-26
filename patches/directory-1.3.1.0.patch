@@ -1,0 +1,1294 @@
+From 4a7fdcb56a397dd1ab1fa9e2b142b85a959d10df Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andreas=20L=C3=A4ndle?= <>
+Date: Fri, 19 May 2017 20:29:58 +0200
+Subject: [PATCH] Patched.
+
+---
+ System/Directory.hs                 | 769 +++++++++---------------------------
+ System/Directory/Internal.hs        |  35 +-
+ System/Directory/Internal/Config.hs |   6 +-
+ directory.cabal                     |  19 +-
+ java/Utils.java                     | 113 ++++++
+ 5 files changed, 342 insertions(+), 600 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/System/Directory.hs b/System/Directory.hs
+index 0f32863..c3410af 100644
+--- a/System/Directory.hs
++++ b/System/Directory.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE CPP #-}
++{-# LANGUAGE CPP, MagicHash #-}
+ 
+ #if !(MIN_VERSION_base(4,8,0))
+ -- In base-4.8.0 the Foreign module became Safe
+@@ -110,6 +110,12 @@ module System.Directory
+ 
+    ) where
+ import Prelude ()
++import Java.Core hiding ((<.>))
++import Java.String
++import Java.Collections (Iterator)
++import Java.Utils (toString)
++import Data.Int(Int64)
++import System.Environment (lookupEnv)
+ import System.Directory.Internal
+ import System.Directory.Internal.Prelude
+ import System.FilePath
+@@ -119,13 +125,13 @@ import Data.Time.Clock.POSIX
+   , utcTimeToPOSIXSeconds
+   , POSIXTime
+   )
+-import qualified System.Directory.Internal.Config as Cfg
+-#ifdef mingw32_HOST_OS
+-import qualified System.Win32 as Win32
+-#else
+-import qualified GHC.Foreign as GHC
+-import qualified System.Posix as Posix
+-#endif
++-- import qualified System.Directory.Internal.Config as Cfg
++-- #ifdef mingw32_HOST_OS
++-- import qualified System.Win32 as Win32
++-- #else
++-- import qualified GHC.Foreign as GHC
++-- import qualified System.Posix as Posix
++-- #endif
+ 
+ {- $intro
+ A directory contains a series of entries, each of which is a named
+@@ -165,6 +171,13 @@ andM mx my = do
+     then my
+     else return x
+ 
++-- TODO: Make these internal?
++data {-# CLASS "java.nio.file.Path" #-} Path = Path (Object# Path)
++  deriving Class
++
++foreign import java unsafe "@static eta.directory.Utils.toPath"
++  toPath :: String -> Path
++
+ -----------------------------------------------------------------------------
+ -- Permissions
+ 
+@@ -226,47 +239,27 @@ The operation may fail with:
+ -}
+ 
+ getPermissions :: FilePath -> IO Permissions
+-getPermissions name =
+-#ifdef mingw32_HOST_OS
+-  -- issue #9: Windows doesn't like trailing path separators
+-  withFilePath (dropTrailingPathSeparator name) $ \s ->
+-  -- stat() does a better job of guessing the permissions on Windows
+-  -- than access() does.  e.g. for execute permission, it looks at the
+-  -- filename extension :-)
+-  --
+-  -- I tried for a while to do this properly, using the Windows security API,
+-  -- and eventually gave up.  getPermissions is a flawed API anyway. -- SimonM
+-  allocaBytes sizeof_stat $ \ p_stat -> do
+-  throwErrnoIfMinus1_ "getPermissions" $ c_stat s p_stat
+-  mode <- st_mode p_stat
+-  let usr_read   = mode .&. s_IRUSR
+-  let usr_write  = mode .&. s_IWUSR
+-  let usr_exec   = mode .&. s_IXUSR
+-  let is_dir = mode .&. s_IFDIR
+-  return (
+-    Permissions {
+-      readable   = usr_read  /= 0,
+-      writable   = usr_write /= 0,
+-      executable = is_dir == 0 && usr_exec /= 0,
+-      searchable = is_dir /= 0 && usr_exec /= 0
+-    }
+-   )
+-#else
+-  do
+-  read_ok  <- Posix.fileAccess name True  False False
+-  write_ok <- Posix.fileAccess name False True  False
+-  exec_ok  <- Posix.fileAccess name False False True
+-  stat <- Posix.getFileStatus name
+-  let is_dir = Posix.isDirectory stat
+-  return (
+-    Permissions {
+-      readable   = read_ok,
+-      writable   = write_ok,
+-      executable = not is_dir && exec_ok,
+-      searchable = is_dir && exec_ok
+-    }
+-   )
+-#endif
++getPermissions name = do
++  r <- isPathReadable p
++  w <- isPathWritable p
++  x <- isPathExecutable p
++  d <- isPathDirectory p
++  return $ Permissions {
++    readable   = r,
++    writable   = w,
++    executable = not d && x,
++    searchable = d && x
++  }
++  where p = toPath name
++
++foreign import java unsafe "@static java.nio.file.Files.isReadable"
++  isPathReadable :: Path -> IO Bool
++foreign import java unsafe "@static java.nio.file.Files.isWritable"
++  isPathWritable :: Path -> IO Bool
++foreign import java unsafe "@static java.nio.file.Files.isExecutable"
++  isPathExecutable :: Path -> IO Bool
++foreign import java unsafe "@static eta.directory.Utils.isDirectory"
++  isPathDirectory :: Path -> IO Bool
+ 
+ {- |The 'setPermissions' operation sets the
+ permissions for the file or directory.
+@@ -281,57 +274,17 @@ The operation may fail with:
+ -}
+ 
+ setPermissions :: FilePath -> Permissions -> IO ()
+-setPermissions name (Permissions r w e s) =
+-#ifdef mingw32_HOST_OS
+-  allocaBytes sizeof_stat $ \ p_stat ->
+-  withFilePath name $ \p_name -> do
+-    throwErrnoIfMinus1_ "setPermissions" $
+-      c_stat p_name p_stat
+-
+-    throwErrnoIfMinus1_ "setPermissions" $ do
+-      mode <- st_mode p_stat
+-      let mode1 = modifyBit r mode s_IRUSR
+-      let mode2 = modifyBit w mode1 s_IWUSR
+-      let mode3 = modifyBit (e || s) mode2 s_IXUSR
+-      c_wchmod p_name mode3
+- where
+-   modifyBit :: Bool -> CMode -> CMode -> CMode
+-   modifyBit False m b = m .&. (complement b)
+-   modifyBit True  m b = m .|. b
+-#else
+-  do
+-      stat <- Posix.getFileStatus name
+-      let mode = Posix.fileMode stat
+-      let mode1 = modifyBit r mode  Posix.ownerReadMode
+-      let mode2 = modifyBit w mode1 Posix.ownerWriteMode
+-      let mode3 = modifyBit (e || s) mode2 Posix.ownerExecuteMode
+-      Posix.setFileMode name mode3
+- where
+-   modifyBit :: Bool -> FileMode -> FileMode -> FileMode
+-   modifyBit False m b = m .&. (complement b)
+-   modifyBit True  m b = m .|. b
+-#endif
++setPermissions name (Permissions r w e s) = setPermissions' p r w (e || s)
++  where p = toPath name
++
++foreign import java unsafe "@static eta.directory.Utils.setPermissions"
++  setPermissions' :: Path -> Bool -> Bool -> Bool -> IO ()
+ 
+ copyPermissions :: FilePath -> FilePath -> IO ()
+-copyPermissions source dest =
+-#ifdef mingw32_HOST_OS
+-  allocaBytes sizeof_stat $ \ p_stat ->
+-  withFilePath source $ \p_source ->
+-  withFilePath dest $ \p_dest -> do
+-    throwErrnoIfMinus1_ "copyPermissions" $ c_stat p_source p_stat
+-    mode <- st_mode p_stat
+-    throwErrnoIfMinus1_ "copyPermissions" $ c_wchmod p_dest mode
+-#else
+-  do
+-  stat <- Posix.getFileStatus source
+-  copyPermissionsFromStatus stat dest
+-#endif
++copyPermissions source dest = copyPermissions' (toPath source) (toPath dest)
+ 
+-#ifndef mingw32_HOST_OS
+-copyPermissionsFromStatus :: Posix.FileStatus -> FilePath -> IO ()
+-copyPermissionsFromStatus st dst = do
+-  Posix.setFileMode dst (Posix.fileMode st)
+-#endif
++foreign import java unsafe "@static eta.directory.Utils.copyPermissions"
++  copyPermissions' :: Path -> Path -> IO ()
+ 
+ -----------------------------------------------------------------------------
+ -- Implementation
+@@ -372,14 +325,8 @@ The path refers to an existing non-directory object.
+ @[EEXIST]@
+ 
+ -}
+-
+-createDirectory :: FilePath -> IO ()
+-createDirectory path = do
+-#ifdef mingw32_HOST_OS
+-  Win32.createDirectory path Nothing
+-#else
+-  Posix.createDirectory path 0o777
+-#endif
++foreign import java unsafe "@static eta.directory.Utils.createDirectory"
++  createDirectory :: FilePath -> IO ()
+ 
+ -- | @'createDirectoryIfMissing' parents dir@ creates a new directory
+ -- @dir@ if it doesn\'t exist. If the first argument is 'True'
+@@ -426,11 +373,7 @@ createDirectoryIfMissing create_parents path0
+               unless canIgnore (ioError e)
+           | otherwise              -> ioError e
+       where
+-#ifdef mingw32_HOST_OS
+-        isDir = withFileStatus "createDirectoryIfMissing" dir isDirectory
+-#else
+-        isDir = (Posix.isDirectory <$> Posix.getFileStatus dir)
+-#endif
++        isDir = isPathDirectory (toPath dir)
+ 
+ -- | * @'NotDirectory'@:   not a directory.
+ --   * @'Directory'@:      a true directory (not a symbolic link).
+@@ -442,24 +385,23 @@ data DirectoryType = NotDirectory
+ 
+ -- | Obtain the type of a directory.
+ getDirectoryType :: FilePath -> IO DirectoryType
+-getDirectoryType path =
+-  (`ioeAddLocation` "getDirectoryType") `modifyIOError` do
+-#ifdef mingw32_HOST_OS
+-    isDir <- withSymbolicLinkStatus "getDirectoryType" path isDirectory
+-    if isDir
+-      then do
+-        isLink <- pathIsSymbolicLink path
+-        if isLink
+-          then return DirectoryLink
+-          else return Directory
+-      else do
+-        return NotDirectory
+-#else
+-    stat <- Posix.getSymbolicLinkStatus path
+-    return $ if Posix.isDirectory stat
+-             then Directory
+-             else NotDirectory
+-#endif
++getDirectoryType path = do
++  attrs <- getFileAttributes' p
++  isDir <- isDirectory' attrs
++  if isDir
++  then do
++    isLink <- isSymbolicLink' attrs
++    if isLink
++    then return DirectoryLink
++    else return Directory
++  else return NotDirectory
++  where p = toPath path
++
++foreign import java unsafe "isDirectory"
++  isDirectory' :: BasicFileAttributes -> IO Bool
++
++foreign import java unsafe "isSymbolicLink"
++  isSymbolicLink' :: BasicFileAttributes -> IO Bool
+ 
+ {- | @'removeDirectory' dir@ removes an existing directory /dir/.  The
+ implementation may specify additional constraints which must be
+@@ -503,12 +445,10 @@ The operand refers to an existing non-directory object.
+ -}
+ 
+ removeDirectory :: FilePath -> IO ()
+-removeDirectory path =
+-#ifdef mingw32_HOST_OS
+-  Win32.removeDirectory path
+-#else
+-  Posix.removeDirectory path
+-#endif
++removeDirectory path = delete' (toPath path)
++
++foreign import java unsafe "@static java.nio.file.Files.delete"
++  delete' :: Path -> IO ()
+ 
+ -- | @'removeDirectoryRecursive' dir@ removes an existing directory /dir/
+ -- together with its contents and subdirectories. Within this directory,
+@@ -648,12 +588,7 @@ The operand refers to an existing directory.
+ -}
+ 
+ removeFile :: FilePath -> IO ()
+-removeFile path =
+-#ifdef mingw32_HOST_OS
+-  Win32.deleteFile path
+-#else
+-  Posix.removeLink path
+-#endif
++removeFile path = delete' (toPath path)
+ 
+ {- |@'renameDirectory' old new@ changes the name of an existing
+ directory from /old/ to /new/.  If the /new/ directory
+@@ -705,17 +640,8 @@ Either path refers to an existing non-directory object.
+ -}
+ 
+ renameDirectory :: FilePath -> FilePath -> IO ()
+-renameDirectory opath npath =
+-   -- XXX this test isn't performed atomically with the following rename
+-#ifdef mingw32_HOST_OS
+-   -- ToDo: use Win32 API
+-   withFileStatus "renameDirectory" opath $ \st -> do
+-   is_dir <- isDirectory st
+-#else
+-   do
+-   stat <- Posix.getFileStatus opath
+-   let is_dir = Posix.fileMode stat .&. Posix.directoryMode /= 0
+-#endif
++renameDirectory opath npath = do
++   is_dir <- isPathDirectory (toPath opath)
+    when (not is_dir) $ do
+      ioError . (`ioeSetErrorString` "not a directory") $
+        (mkIOError InappropriateType "renameDirectory" Nothing (Just opath))
+@@ -769,7 +695,7 @@ renameFile :: FilePath -> FilePath -> IO ()
+ renameFile opath npath = (`ioeAddLocation` "renameFile") `modifyIOError` do
+    -- XXX the tests are not performed atomically with the rename
+    checkNotDir opath
+-   renamePath opath npath
++   rename' opath' npath'
+      -- The underlying rename implementation can throw odd exceptions when the
+      -- destination is a directory.  For example, Windows typically throws a
+      -- permission error, while POSIX systems may throw a resource busy error
+@@ -788,6 +714,8 @@ renameFile opath npath = (`ioeAddLocation` "renameFile") `modifyIOError` do
+              NotDirectory  -> return ()
+          errIsDir path = ioError . (`ioeSetErrorString` "is a directory") $
+                          mkIOError InappropriateType "" Nothing (Just path)
++         opath' = toPath opath
++         npath' = toPath npath
+ 
+ -- | Rename a file or directory.  If the destination path already exists, it
+ -- is replaced atomically.  The destination path must not point to an existing
+@@ -834,12 +762,10 @@ renameFile opath npath = (`ioeAddLocation` "renameFile") `modifyIOError` do
+ renamePath :: FilePath                  -- ^ Old path
+            -> FilePath                  -- ^ New path
+            -> IO ()
+-renamePath opath npath = (`ioeAddLocation` "renamePath") `modifyIOError` do
+-#ifdef mingw32_HOST_OS
+-   Win32.moveFileEx opath npath Win32.mOVEFILE_REPLACE_EXISTING
+-#else
+-   Posix.rename opath npath
+-#endif
++renamePath opath npath = rename' (toPath opath) (toPath npath)
++
++foreign import java unsafe "@static eta.directory.Utils.atomicMove"
++  rename' :: Path -> Path -> IO ()
+ 
+ -- | Copy a file with its permissions.  If the destination file already exists,
+ -- it is replaced atomically.  Neither path may refer to an existing
+@@ -853,20 +779,6 @@ copyFile fromFPath toFPath =
+     atomicCopyFileContents fromFPath toFPath
+       (ignoreIOExceptions . copyPermissions fromFPath)
+ 
+-#ifndef mingw32_HOST_OS
+--- | Truncate the destination file and then copy the contents of the source
+--- file to the destination file.  If the destination file already exists, its
+--- attributes shall remain unchanged.  Otherwise, its attributes are reset to
+--- the defaults.
+-copyFileContents :: FilePath            -- ^ Source filename
+-                 -> FilePath            -- ^ Destination filename
+-                 -> IO ()
+-copyFileContents fromFPath toFPath =
+-  (`ioeAddLocation` "copyFileContents") `modifyIOError` do
+-    withBinaryFile toFPath WriteMode $ \ hTo ->
+-      copyFileToHandle fromFPath hTo
+-#endif
+-
+ -- | Copy the contents of a source file to a destination file, replacing the
+ -- destination file atomically via 'withReplacementFile', resetting the
+ -- attributes of the destination file to the defaults.
+@@ -952,51 +864,10 @@ copyHandleData hFrom hTo =
+ copyFileWithMetadata :: FilePath        -- ^ Source file
+                      -> FilePath        -- ^ Destination file
+                      -> IO ()
+-copyFileWithMetadata src dst =
+-  (`ioeAddLocation` "copyFileWithMetadata") `modifyIOError` doCopy
+-  where
+-#ifdef mingw32_HOST_OS
+-    doCopy = Win32.copyFile src dst False
+-#else
+-    doCopy = do
+-      st <- Posix.getFileStatus src
+-      copyFileContents src dst
+-      copyMetadataFromStatus st dst
+-#endif
+-
+-#ifndef mingw32_HOST_OS
+-copyMetadataFromStatus :: Posix.FileStatus -> FilePath -> IO ()
+-copyMetadataFromStatus st dst = do
+-  tryCopyOwnerAndGroupFromStatus st dst
+-  copyPermissionsFromStatus st dst
+-  copyFileTimesFromStatus st dst
+-#endif
+-
+-#ifndef mingw32_HOST_OS
+-tryCopyOwnerAndGroupFromStatus :: Posix.FileStatus -> FilePath -> IO ()
+-tryCopyOwnerAndGroupFromStatus st dst = do
+-  ignoreIOExceptions (copyOwnerFromStatus st dst)
+-  ignoreIOExceptions (copyGroupFromStatus st dst)
+-#endif
++copyFileWithMetadata src dst = copy' (toPath src) (toPath dst)
+ 
+-#ifndef mingw32_HOST_OS
+-copyOwnerFromStatus :: Posix.FileStatus -> FilePath -> IO ()
+-copyOwnerFromStatus st dst = do
+-  Posix.setOwnerAndGroup dst (Posix.fileOwner st) (-1)
+-#endif
+-
+-#ifndef mingw32_HOST_OS
+-copyGroupFromStatus :: Posix.FileStatus -> FilePath -> IO ()
+-copyGroupFromStatus st dst = do
+-  Posix.setOwnerAndGroup dst (-1) (Posix.fileGroup st)
+-#endif
+-
+-#ifndef mingw32_HOST_OS
+-copyFileTimesFromStatus :: Posix.FileStatus -> FilePath -> IO ()
+-copyFileTimesFromStatus st dst = do
+-  let (atime, mtime) = fileTimesFromStatus st
+-  setFileTimes dst (Just atime, Just mtime)
+-#endif
++foreign import java unsafe "@static eta.directory.Utils.copy"
++  copy' :: Path -> Path -> IO ()
+ 
+ -- | Make a path absolute, 'normalise' the path, and remove as many
+ -- indirections from it as possible.  Any trailing path separators are
+@@ -1070,81 +941,8 @@ canonicalizePath = \ path ->
+     (transform =<< prependCurrentDirectory path)
+   where
+ 
+-#if defined(mingw32_HOST_OS)
+-    transform = attemptRealpath getFinalPathName
+-
+-    simplify path =
+-      Win32.getFullPathName path
+-        `catchIOError` \ _ ->
+-          return path
+-#else
+-    transform path = do
+-      encoding <- getFileSystemEncoding
+-      let realpath path' =
+-            GHC.withCString encoding path'
+-              (`withRealpath` GHC.peekCString encoding)
+-      attemptRealpath realpath path
+-
+-    simplify = return
+-#endif
+-
+-    -- allow up to 64 cycles before giving up
+-    attemptRealpath realpath =
+-      attemptRealpathWith (64 :: Int) Nothing realpath <=< simplify
+-
+-    -- n is a counter to make sure we don't run into an infinite loop; we
+-    -- don't try to do any cycle detection here because an adversary could DoS
+-    -- any arbitrarily clever algorithm
+-    attemptRealpathWith n mFallback realpath path =
+-      case mFallback of
+-        -- too many indirections ... giving up.
+-        Just fallback | n <= 0 -> return fallback
+-        -- either mFallback == Nothing (first attempt)
+-        --     or n > 0 (still have some attempts left)
+-        _ -> realpathPrefix (reverse (zip prefixes suffixes))
+-
+-      where
+-
+-        segments = splitDirectories path
+-        prefixes = scanl1 (</>) segments
+-        suffixes = tail (scanr (</>) "" segments)
+-
+-        -- try to call realpath on the largest possible prefix
+-        realpathPrefix candidates =
+-          case candidates of
+-            [] -> return path
+-            (prefix, suffix) : rest -> do
+-              exist <- doesPathExist prefix
+-              if not exist
+-                -- never call realpath on an inaccessible path
+-                -- (to avoid bugs in system realpath implementations)
+-                -- try a smaller prefix instead
+-                then realpathPrefix rest
+-                else do
+-                  mp <- tryIOError (realpath prefix)
+-                  case mp of
+-                    -- realpath failed: try a smaller prefix instead
+-                    Left _ -> realpathPrefix rest
+-                    -- realpath succeeded: fine-tune the result
+-                    Right p -> realpathFurther (p </> suffix) p suffix
+-
+-        -- by now we have a reasonable fallback value that we can use if we
+-        -- run into too many indirections; the fallback value is the same
+-        -- result that we have been returning in versions prior to 1.3.1.0
+-        -- (this is essentially the fix to #64)
+-        realpathFurther fallback p suffix =
+-          case splitDirectories suffix of
+-            [] -> return fallback
+-            next : restSuffix -> do
+-              -- see if the 'next' segment is a symlink
+-              mTarget <- tryIOError (getSymbolicLinkTarget (p </> next))
+-              case mTarget of
+-                Left _ -> return fallback
+-                Right target -> do
+-                  -- if so, dereference it and restart the whole cycle
+-                  let mFallback' = Just (fromMaybe fallback mFallback)
+-                  path' <- simplify (p </> target </> joinPath restSuffix)
+-                  attemptRealpathWith (n - 1) mFallback' realpath path'
++    -- TODO: Implement this
++    transform path = undefined
+ 
+ -- | Convert a path into an absolute path.  If the given path is relative, the
+ -- current directory is prepended and then the combined result is
+@@ -1354,48 +1152,33 @@ findFilesWithLazy f dirs path
+ --   (usually @\"\"@ on POSIX systems and @\".exe\"@ on Windows or OS\/2).
+ --
+ -- @since 1.2.4.0
+-exeExtension :: String
+-exeExtension = Cfg.exeExtension
++-- exeExtension :: String
++-- exeExtension = Cfg.exeExtension
+ 
+ -- | Similar to 'listDirectory', but always includes the special entries (@.@
+ -- and @..@).  (This applies to Windows as well.)
+ --
+ -- The operation may fail with the same exceptions as 'listDirectory'.
++-- TODO: Include . and ..
+ getDirectoryContents :: FilePath -> IO [FilePath]
+-getDirectoryContents path =
+-  modifyIOError ((`ioeSetFileName` path) .
+-                 (`ioeAddLocation` "getDirectoryContents")) $ do
+-#ifndef mingw32_HOST_OS
+-    bracket
+-      (Posix.openDirStream path)
+-      Posix.closeDirStream
+-      start
+- where
+-  start dirp =
+-      loop id
+-    where
+-      loop acc = do
+-        e <- Posix.readDirStream dirp
+-        if null e
+-          then return (acc [])
+-          else loop (acc . (e:))
+-#else
+-  bracket
+-     (Win32.findFirstFile (path </> "*"))
+-     (\(h,_) -> Win32.findClose h)
+-     (\(h,fdat) -> loop h fdat [])
+-  where
+-        -- we needn't worry about empty directories: adirectory always
+-        -- has at least "." and ".." entries
+-    loop :: Win32.HANDLE -> Win32.FindData -> [FilePath] -> IO [FilePath]
+-    loop h fdat acc = do
+-       filename <- Win32.getFindDataFileName fdat
+-       more <- Win32.findNextFile h fdat
+-       if more
+-          then loop h fdat (filename:acc)
+-          else return (filename:acc)
+-                 -- no need to reverse, ordering is undefined
+-#endif /* mingw32 */
++getDirectoryContents path = bracket
++  (openDirStream (toPath path))
++  closeDirStream $ \dirp -> do
++    it <- itDirStream dirp
++    return $ map (fromJString . toString) (fromJava it :: [Path])
++
++data {-# CLASS "java.nio.file.DirectoryStream" #-} DirectoryStream a
++  = DirectoryStream (Object# (DirectoryStream a))
++  deriving Class
++
++foreign import java unsafe "@static java.nio.file.Files.newDirectoryStream"
++  openDirStream :: Path -> IO (DirectoryStream Path)
++
++foreign import java unsafe "@static eta.directory.Utils.closeDirStream"
++  closeDirStream :: DirectoryStream Path -> IO ()
++
++foreign import java unsafe "@static eta.directory.Utils.itDirStream"
++  itDirStream :: DirectoryStream Path -> IO (Iterator Path)
+ 
+ -- | @'listDirectory' dir@ returns a list of /all/ entries in /dir/ without
+ -- the special entries (@.@ and @..@).
+@@ -1460,19 +1243,8 @@ listDirectory path =
+ -- * 'UnsupportedOperation'
+ -- The operating system has no notion of current working directory.
+ --
+-getCurrentDirectory :: IO FilePath
+-getCurrentDirectory =
+-  modifyIOError (`ioeAddLocation` "getCurrentDirectory") $
+-  specializeErrorString
+-    "Current working directory no longer exists"
+-    isDoesNotExistError
+-    getCwd
+-  where
+-#ifdef mingw32_HOST_OS
+-    getCwd = Win32.getCurrentDirectory
+-#else
+-    getCwd = Posix.getWorkingDirectory
+-#endif
++foreign import java unsafe "@static eta.directory.Utils.getCurrentDirectory"
++  getCurrentDirectory :: IO FilePath
+ 
+ -- | Change the working directory to the given path.
+ --
+@@ -1507,13 +1279,8 @@ getCurrentDirectory =
+ -- The path refers to an existing non-directory object.
+ -- @[ENOTDIR]@
+ --
+-setCurrentDirectory :: FilePath -> IO ()
+-setCurrentDirectory =
+-#ifdef mingw32_HOST_OS
+-  Win32.setCurrentDirectory
+-#else
+-  Posix.changeWorkingDirectory
+-#endif
++foreign import java unsafe "@static eta.directory.Utils.setCurrentDirectory"
++  setCurrentDirectory :: FilePath -> IO ()
+ 
+ -- | Run an 'IO' action with the given working directory and restore the
+ -- original working directory afterwards, even if the given action fails due
+@@ -1536,13 +1303,10 @@ withCurrentDirectory dir action =
+ --
+ -- @since 1.2.7.0
+ getFileSize :: FilePath -> IO Integer
+-getFileSize path =
+-  (`ioeAddLocation` "getFileSize") `modifyIOError` do
+-#ifdef mingw32_HOST_OS
+-    fromIntegral <$> withFileStatus "" path st_size
+-#else
+-    fromIntegral . Posix.fileSize <$> Posix.getFileStatus path
+-#endif
++getFileSize path = fmap fromIntegral $ filesSize (toPath path)
++
++foreign import java unsafe "@static java.nio.file.Files.size"
++  filesSize :: Path -> IO Int64
+ 
+ -- | Test whether the given path points to an existing filesystem object.  If
+ -- the user lacks necessary permissions to search the parent directories, this
+@@ -1550,13 +1314,10 @@ getFileSize path =
+ --
+ -- @since 1.2.7.0
+ doesPathExist :: FilePath -> IO Bool
+-doesPathExist path =
+-#ifdef mingw32_HOST_OS
+-  (withFileStatus "" path $ \ _ -> return True)
+-#else
+-  (Posix.getFileStatus path >> return True)
+-#endif
+-  `catchIOError` \ _ -> return False
++doesPathExist path = filesExists (toPath path)
++
++foreign import java unsafe "@static eta.directory.Utils.exists"
++  filesExists :: Path -> IO Bool
+ 
+ {- |The operation 'doesDirectoryExist' returns 'True' if the argument file
+ exists and is either a directory or a symbolic link to a directory,
+@@ -1564,28 +1325,15 @@ and 'False' otherwise.
+ -}
+ 
+ doesDirectoryExist :: FilePath -> IO Bool
+-doesDirectoryExist name =
+-#ifdef mingw32_HOST_OS
+-   (withFileStatus "doesDirectoryExist" name $ \st -> isDirectory st)
+-#else
+-   (do stat <- Posix.getFileStatus name
+-       return (Posix.isDirectory stat))
+-#endif
+-   `catchIOError` \ _ -> return False
++doesDirectoryExist name = isPathDirectory (toPath name)
+ 
+ {- |The operation 'doesFileExist' returns 'True'
+ if the argument file exists and is not a directory, and 'False' otherwise.
+ -}
+ 
+ doesFileExist :: FilePath -> IO Bool
+-doesFileExist name =
+-#ifdef mingw32_HOST_OS
+-   (withFileStatus "doesFileExist" name $ \st -> do b <- isDirectory st; return (not b))
+-#else
+-   (do stat <- Posix.getFileStatus name
+-       return (not (Posix.isDirectory stat)))
+-#endif
+-   `catchIOError` \ _ -> return False
++doesFileExist name = (&&) <$> doesPathExist name
++                          <*> fmap not (doesDirectoryExist name)
+ 
+ -- | Create a /file/ symbolic link.  The target path can be either absolute or
+ -- relative and need not refer to an existing file.  The order of arguments
+@@ -1616,13 +1364,10 @@ createFileLink
+   :: FilePath                           -- ^ path to the target file
+   -> FilePath                           -- ^ path of the link to be created
+   -> IO ()
+-createFileLink target link =
+-  (`ioeAddLocation` "createFileLink") `modifyIOError` do
+-#ifdef mingw32_HOST_OS
+-    createSymbolicLink False target link
+-#else
+-    Posix.createSymbolicLink target link
+-#endif
++createFileLink target link = createSymbolicLink (toPath link) (toPath target)
++
++foreign import java unsafe "@static java.nio.file.Files.createSymbolicLink"
++  createSymbolicLink :: Path -> Path -> IO ()
+ 
+ -- | Create a /directory/ symbolic link.  The target path can be either
+ -- absolute or relative and need not refer to an existing directory.  The
+@@ -1687,15 +1432,10 @@ removeDirectoryLink path =
+ --
+ -- @since 1.3.0.0
+ pathIsSymbolicLink :: FilePath -> IO Bool
+-pathIsSymbolicLink path =
+-  (`ioeAddLocation` "pathIsSymbolicLink") `modifyIOError` do
+-#ifdef mingw32_HOST_OS
+-    isReparsePoint <$> Win32.getFileAttributes path
+-  where
+-    isReparsePoint attr = attr .&. win32_fILE_ATTRIBUTE_REPARSE_POINT /= 0
+-#else
+-    Posix.isSymbolicLink <$> Posix.getSymbolicLinkStatus path
+-#endif
++pathIsSymbolicLink path = isPathSymbolicLink (toPath path)
++
++foreign import java unsafe "@static java.nio.file.Files.isSymbolicLink"
++  isPathSymbolicLink :: Path -> IO Bool
+ 
+ {-# DEPRECATED isSymbolicLink "Use 'pathIsSymbolicLink' instead" #-}
+ isSymbolicLink :: FilePath -> IO Bool
+@@ -1715,13 +1455,12 @@ isSymbolicLink = pathIsSymbolicLink
+ --
+ -- @since 1.3.1.0
+ getSymbolicLinkTarget :: FilePath -> IO FilePath
+-getSymbolicLinkTarget path =
+-  (`ioeAddLocation` "getSymbolicLinkTarget") `modifyIOError` do
+-#ifdef mingw32_HOST_OS
+-    readSymbolicLink path
+-#else
+-    Posix.readSymbolicLink path
+-#endif
++getSymbolicLinkTarget path = do
++                               p <- readSymbolicLink (toPath path)
++                               return $ (fromJString . toString) p
++
++foreign import java unsafe "@static java.nio.file.Files.readSymbolicLink"
++  readSymbolicLink :: Path -> IO Path
+ 
+ #ifdef mingw32_HOST_OS
+ -- | Open the handle of an existing file or directory.
+@@ -1751,8 +1490,20 @@ openFileHandle path mode = Win32.createFile path mode share Nothing
+ -- @since 1.2.3.0
+ --
+ getAccessTime :: FilePath -> IO UTCTime
+-getAccessTime = modifyIOError (`ioeAddLocation` "getAccessTime") .
+-                (fst <$>) . getFileTimes
++getAccessTime = (fst <$>) . getFileTimes
++
++data {-# CLASS "java.nio.file.attribute.BasicFileAttributes" #-}
++     BasicFileAttributes = BasicFileAttributes (Object# BasicFileAttributes)
++     deriving Class
++
++foreign import java unsafe "@static eta.directory.Utils.getFileAttributes"
++  getFileAttributes' :: Path -> IO BasicFileAttributes
++
++foreign import java unsafe "@static eta.directory.Utils.lastAccessTime"
++  getAccessTime' :: BasicFileAttributes -> IO Int64
++
++foreign import java unsafe "@static eta.directory.Utils.lastModifiedTime"
++  getModifiedTime' :: BasicFileAttributes -> IO Int64
+ 
+ -- | Obtain the time at which the file or directory was last modified.
+ --
+@@ -1768,42 +1519,18 @@ getAccessTime = modifyIOError (`ioeAddLocation` "getAccessTime") .
+ -- and the underlying filesystem supports them.
+ --
+ getModificationTime :: FilePath -> IO UTCTime
+-getModificationTime = modifyIOError (`ioeAddLocation` "getModificationTime") .
+-                      (snd <$>) . getFileTimes
++getModificationTime = (snd <$>) . getFileTimes
+ 
+ getFileTimes :: FilePath -> IO (UTCTime, UTCTime)
+-getFileTimes path =
+-  modifyIOError (`ioeAddLocation` "getFileTimes") .
+-  modifyIOError (`ioeSetFileName` path) $
+-    getTimes
+-  where
+-    path' = normalise path              -- handle empty paths
+-#ifdef mingw32_HOST_OS
+-    getTimes =
+-      bracket (openFileHandle path' Win32.gENERIC_READ)
+-              Win32.closeHandle $ \ handle ->
+-      alloca $ \ atime ->
+-      alloca $ \ mtime -> do
+-        Win32.failIf_ not "" $
+-          Win32.c_GetFileTime handle nullPtr atime mtime
+-        ((,) `on` posixSecondsToUTCTime . windowsToPosixTime)
+-          <$> peek atime
+-          <*> peek mtime
+-#else
+-    getTimes = fileTimesFromStatus <$> Posix.getFileStatus path'
+-#endif
+-
+-#ifndef mingw32_HOST_OS
+-fileTimesFromStatus :: Posix.FileStatus -> (UTCTime, UTCTime)
+-fileTimesFromStatus st =
+-# if MIN_VERSION_unix(2, 6, 0)
+-  ( posixSecondsToUTCTime (Posix.accessTimeHiRes st)
+-  , posixSecondsToUTCTime (Posix.modificationTimeHiRes st) )
+-# else
+-  ( posixSecondsToUTCTime (realToFrac (Posix.accessTime st))
+-  , posixSecondsToUTCTime (realToFrac (Posix.modificationTime st)) )
+-# endif
+-#endif
++getFileTimes path = do
++  attrs <- getFileAttributes' p
++  atime <- getAccessTime' attrs
++  mtime <- getModifiedTime' attrs
++  return (toUTCTime atime, toUTCTime mtime)
++  where path' = normalise path  -- handle empty paths
++        p = toPath path'
++        toUTCTime t = posixSecondsToUTCTime ( fromIntegral t
++                                            / 1000000000 )
+ 
+ -- | Change the time at which the file or directory was last accessed.
+ --
+@@ -1830,7 +1557,6 @@ fileTimesFromStatus st =
+ --
+ setAccessTime :: FilePath -> UTCTime -> IO ()
+ setAccessTime path atime =
+-  modifyIOError (`ioeAddLocation` "setAccessTime") $
+     setFileTimes path (Just atime, Nothing)
+ 
+ -- | Change the time at which the file or directory was last modified.
+@@ -1863,89 +1589,15 @@ setModificationTime path mtime =
+ 
+ setFileTimes :: FilePath -> (Maybe UTCTime, Maybe UTCTime) -> IO ()
+ setFileTimes _ (Nothing, Nothing) = return ()
+-setFileTimes path (atime, mtime) =
+-  modifyIOError (`ioeAddLocation` "setFileTimes") .
+-  modifyIOError (`ioeSetFileName` path) $
+-    setTimes (utcTimeToPOSIXSeconds <$> atime, utcTimeToPOSIXSeconds <$> mtime)
++setFileTimes path (atime, mtime) = do
++  setFileTimes' p (normalizeTime atime) (normalizeTime mtime)
+   where
+     path' = normalise path              -- handle empty paths
++    p = toPath path'
++    normalizeTime = maybe (-1) $ truncate . utcTimeToPOSIXSeconds
+ 
+-    setTimes :: (Maybe POSIXTime, Maybe POSIXTime) -> IO ()
+-#ifdef mingw32_HOST_OS
+-    setTimes (atime', mtime') =
+-      bracket (openFileHandle path' Win32.gENERIC_WRITE)
+-              Win32.closeHandle $ \ handle ->
+-      maybeWith with (posixToWindowsTime <$> atime') $ \ atime'' ->
+-      maybeWith with (posixToWindowsTime <$> mtime') $ \ mtime'' ->
+-      Win32.failIf_ not "" $
+-        Win32.c_SetFileTime handle nullPtr atime'' mtime''
+-#elif defined HAVE_UTIMENSAT
+-    setTimes (atime', mtime') =
+-      withFilePath path' $ \ path'' ->
+-      withArray [ maybe utimeOmit toCTimeSpec atime'
+-                , maybe utimeOmit toCTimeSpec mtime' ] $ \ times ->
+-      throwErrnoPathIfMinus1_ "" path' $
+-        c_utimensat c_AT_FDCWD path'' times 0
+-#else
+-    setTimes (Just atime', Just mtime') = setFileTimes' path' atime' mtime'
+-    setTimes (atime', mtime') = do
+-      (atimeOld, mtimeOld) <- fileTimesFromStatus <$> Posix.getFileStatus path'
+-      setFileTimes' path'
+-        (fromMaybe (utcTimeToPOSIXSeconds atimeOld) atime')
+-        (fromMaybe (utcTimeToPOSIXSeconds mtimeOld) mtime')
+-
+-    setFileTimes' :: FilePath -> POSIXTime -> POSIXTime -> IO ()
+-# if MIN_VERSION_unix(2, 7, 0)
+-    setFileTimes' = Posix.setFileTimesHiRes
+-#  else
+-    setFileTimes' pth atime' mtime' =
+-      Posix.setFileTimes pth
+-        (fromInteger (truncate atime'))
+-        (fromInteger (truncate mtime'))
+-# endif
+-#endif
+-
+-#ifdef mingw32_HOST_OS
+--- | Difference between the Windows and POSIX epochs in units of 100ns.
+-windowsPosixEpochDifference :: Num a => a
+-windowsPosixEpochDifference = 116444736000000000
+-
+--- | Convert from Windows time to POSIX time.
+-windowsToPosixTime :: Win32.FILETIME -> POSIXTime
+-windowsToPosixTime (Win32.FILETIME t) =
+-  (fromIntegral t - windowsPosixEpochDifference) / 10000000
+-
+--- | Convert from POSIX time to Windows time.  This is lossy as Windows time
+---   has a resolution of only 100ns.
+-posixToWindowsTime :: POSIXTime -> Win32.FILETIME
+-posixToWindowsTime t = Win32.FILETIME $
+-  truncate (t * 10000000 + windowsPosixEpochDifference)
+-#endif
+-
+-#ifdef mingw32_HOST_OS
+-withFileStatus :: String -> FilePath -> (Ptr CStat -> IO a) -> IO a
+-withFileStatus loc name f =
+-  modifyIOError (`ioeSetFileName` name) $ do
+-    name' <- getFinalPathName name
+-    withSymbolicLinkStatus loc name' f
+-
+-withSymbolicLinkStatus :: String -> FilePath -> (Ptr CStat -> IO a) -> IO a
+-withSymbolicLinkStatus loc name f = do
+-  modifyIOError (`ioeSetFileName` name) $ do
+-    allocaBytes sizeof_stat $ \p ->
+-      withFilePath (fileNameEndClean name) $ \s -> do
+-        throwErrnoIfMinus1Retry_ loc (c_stat s p)
+-        f p
+-
+-isDirectory :: Ptr CStat -> IO Bool
+-isDirectory stat = do
+-  mode <- st_mode stat
+-  return (s_isdir mode)
+-
+-fileNameEndClean :: String -> String
+-fileNameEndClean name = if isDrive name then addTrailingPathSeparator name
+-                                        else dropTrailingPathSeparator name
+-#endif
++foreign import java unsafe "@static eta.directory.Utils.setFileTimes"
++  setFileTimes' :: Path -> Int64 -> Int64 -> IO ()
+ 
+ {- | Returns the current user's home directory.
+ 
+@@ -1967,16 +1619,8 @@ The operating system has no notion of home directory.
+ The home directory for the current user does not exist, or
+ cannot be found.
+ -}
+-getHomeDirectory :: IO FilePath
+-getHomeDirectory = modifyIOError (`ioeAddLocation` "getHomeDirectory") get
+-  where
+-#if defined(mingw32_HOST_OS)
+-    get = getFolderPath Win32.cSIDL_PROFILE `catchIOError` \ _ ->
+-          getFolderPath Win32.cSIDL_WINDOWS
+-    getFolderPath what = Win32.sHGetFolderPath nullPtr what nullPtr 0
+-#else
+-    get = getEnv "HOME"
+-#endif
++foreign import java unsafe "@static eta.directory.Utils.getHomeDirectory"
++  getHomeDirectory :: IO FilePath
+ 
+ -- | Special directories for storing user-specific application data,
+ --   configuration, and cache files, as specified by the
+@@ -2039,28 +1683,17 @@ getXdgDirectory xdgDir suffix =
+     XdgConfig -> get False "XDG_CONFIG_HOME" ".config"
+     XdgCache  -> get True  "XDG_CACHE_HOME"  ".cache"
+   where
+-#if defined(mingw32_HOST_OS)
+-    get isLocal _ _ = Win32.sHGetFolderPath nullPtr which nullPtr 0
+-      where which | isLocal   = win32_cSIDL_LOCAL_APPDATA
+-                  | otherwise = Win32.cSIDL_APPDATA
+-#else
+-    get _ name fallback = do
+-      env <- lookupEnv name
+-      case env of
+-        Nothing                     -> fallback'
+-        Just path | isRelative path -> fallback'
+-                  | otherwise       -> return path
+-      where fallback' = (</> fallback) <$> getHomeDirectory
+-
+--- | Return the value of an environment variable, or 'Nothing' if there is no
+---   such value.  (Equivalent to "lookupEnv" from base-4.6.)
+-lookupEnv :: String -> IO (Maybe String)
+-lookupEnv name = do
+-  env <- tryIOErrorType isDoesNotExistError (getEnv name)
+-  case env of
+-    Left  _     -> return Nothing
+-    Right value -> return (Just value)
+-#endif
++    get isLocal name fallback
++      | isWindows = getEnv which
++      | otherwise = do
++        env <- lookupEnv name
++        case env of
++          Nothing                     -> fallback'
++          Just path | isRelative path -> fallback'
++                    | otherwise       -> return path
++      where which | isLocal   = "LOCALAPPDATA"
++                  | otherwise = "APPDATA"
++            fallback' = (</> fallback) <$> getHomeDirectory
+ 
+ -- | Similar to 'try' but only catches a specify kind of 'IOError' as
+ --   specified by the predicate.
+@@ -2104,18 +1737,17 @@ specializeErrorString str errType action = do
+ --     The home directory for the current user does not exist, or cannot be
+ --     found.
+ --
++-- TODO: Handle windows case
+ getAppUserDataDirectory :: FilePath     -- ^ a relative path that is appended
+                                         --   to the path
+                         -> IO FilePath
+-getAppUserDataDirectory appName = do
+-  modifyIOError (`ioeAddLocation` "getAppUserDataDirectory") $ do
+-#if defined(mingw32_HOST_OS)
+-    s <- Win32.sHGetFolderPath nullPtr Win32.cSIDL_APPDATA nullPtr 0
+-    return (s++'\\':appName)
+-#else
+-    path <- getEnv "HOME"
+-    return (path++'/':'.':appName)
+-#endif
++getAppUserDataDirectory appName
++  | isWindows = do
++      s <- getEnv "APPDATA"
++      return (s ++ '\\' : appName)
++  | otherwise = do
++      path <- getEnv "HOME"
++      return (path ++ '/' : '.' : appName)
+ 
+ {- | Returns the current user's document directory.
+ 
+@@ -2136,15 +1768,12 @@ The operating system has no notion of document directory.
+ * 'isDoesNotExistError'
+ The document directory for the current user does not exist, or
+ cannot be found.
++TODO: Handle windows case
+ -}
+ getUserDocumentsDirectory :: IO FilePath
+-getUserDocumentsDirectory = do
+-  modifyIOError (`ioeAddLocation` "getUserDocumentsDirectory") $ do
+-#if defined(mingw32_HOST_OS)
+-    Win32.sHGetFolderPath nullPtr Win32.cSIDL_PERSONAL nullPtr 0
+-#else
+-    getEnv "HOME"
+-#endif
++getUserDocumentsDirectory
++  | isWindows = getEnv "USERPROFILE"
++  | otherwise = getEnv "HOME"
+ 
+ {- | Returns the current directory for temporary files.
+ 
+@@ -2172,14 +1801,8 @@ The operating system has no notion of temporary directory.
+ 
+ The function doesn\'t verify whether the path exists.
+ -}
+-getTemporaryDirectory :: IO FilePath
+-getTemporaryDirectory =
+-#if defined(mingw32_HOST_OS)
+-  Win32.getTemporaryDirectory
+-#else
+-  getEnv "TMPDIR" `catchIOError` \ err ->
+-  if isDoesNotExistError err then return "/tmp" else ioError err
+-#endif
++foreign import java unsafe "@static eta.directory.Utils.getTemporaryDirectory"
++  getTemporaryDirectory :: IO FilePath
+ 
+ ioeAddLocation :: IOError -> String -> IOError
+ ioeAddLocation e loc = do
+diff --git a/System/Directory/Internal.hs b/System/Directory/Internal.hs
+index f85d6d6..95791b4 100644
+--- a/System/Directory/Internal.hs
++++ b/System/Directory/Internal.hs
+@@ -12,25 +12,26 @@
+ 
+ module System.Directory.Internal
+   (
++    module System.Directory.Internal.Config
++-- #ifdef mingw32_HOST_OS
++--     module System.Directory.Internal.Windows
++-- #else
++--     module System.Directory.Internal.Posix
++-- #endif
+ 
+-#ifdef mingw32_HOST_OS
+-    module System.Directory.Internal.Windows
+-#else
+-    module System.Directory.Internal.Posix
+-#endif
+-
+-#ifdef HAVE_UTIMENSAT
+-  , module System.Directory.Internal.C_utimensat
+-#endif
++-- #ifdef HAVE_UTIMENSAT
++--   , module System.Directory.Internal.C_utimensat
++-- #endif
+ 
+   ) where
++import System.Directory.Internal.Config
+ 
+-#ifdef HAVE_UTIMENSAT
+-import System.Directory.Internal.C_utimensat
+-#endif
++-- #ifdef HAVE_UTIMENSAT
++-- import System.Directory.Internal.C_utimensat
++-- #endif
+ 
+-#ifdef mingw32_HOST_OS
+-import System.Directory.Internal.Windows
+-#else
+-import System.Directory.Internal.Posix
+-#endif
++-- #ifdef mingw32_HOST_OS
++-- import System.Directory.Internal.Windows
++-- #else
++-- import System.Directory.Internal.Posix
++-- #endif
+diff --git a/System/Directory/Internal/Config.hs b/System/Directory/Internal/Config.hs
+index 54d1064..607fe52 100644
+--- a/System/Directory/Internal/Config.hs
++++ b/System/Directory/Internal/Config.hs
+@@ -3,8 +3,12 @@
+ module System.Directory.Internal.Config where
+ 
+ exeExtension :: String
+-exeExtension = EXE_EXTENSION
++exeExtension
++  | isWindows = "exe"
++  | otherwise = ""
+ -- We avoid using #const_str from hsc because it breaks cross-compilation
+ -- builds, so we use this ugly workaround where we simply paste the C string
+ -- literal directly in here.  This will probably break if the EXE_EXTENSION
+ -- contains strange characters, but hopefully no sane OS would ever do that.
++foreign import java unsafe "@static eta.directory.Utils.isWindows"
++  isWindows :: Bool
+diff --git a/directory.cabal b/directory.cabal
+index 3f73c9a..a2f4d61 100644
+--- a/directory.cabal
++++ b/directory.cabal
+@@ -10,7 +10,7 @@ description:
+   This library provides a basic set of operations for manipulating files and
+   directories in a portable way.
+ category:       System
+-build-type:     Configure
++build-type:     Simple
+ cabal-version:  >= 1.10
+ tested-with:    GHC>=7.4.1
+ 
+@@ -46,21 +46,22 @@ Library
+         System.Directory.Internal
+         System.Directory.Internal.Prelude
+     other-modules:
+-        System.Directory.Internal.C_utimensat
+-        System.Directory.Internal.Config
+-        System.Directory.Internal.Posix
+-        System.Directory.Internal.Windows
++        -- System.Directory.Internal.C_utimensat
++        -- System.Directory.Internal.Config
++        -- System.Directory.Internal.Posix
++        -- System.Directory.Internal.Windows
+ 
+     include-dirs: .
++    java-sources: java/Utils.java
+ 
+     build-depends:
+         base     >= 4.5 && < 4.11,
+         time     >= 1.4 && < 1.9,
+         filepath >= 1.3 && < 1.5
+-    if os(windows)
+-        build-depends: Win32 >= 2.2.2 && < 2.6
+-    else
+-        build-depends: unix >= 2.5.1 && < 2.8
++    -- if os(windows)
++    --     build-depends: Win32 >= 2.2.2 && < 2.6
++    -- else
++    --     build-depends: unix >= 2.5.1 && < 2.8
+ 
+     ghc-options: -Wall
+ 
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..136828a
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,113 @@
++package eta.directory;
++
++import java.io.IOException;
++import java.util.Set;
++import java.util.Iterator;
++import java.util.concurrent.TimeUnit;
++import java.nio.file.Path;
++import java.nio.file.Paths;
++import java.nio.file.Files;
++import java.nio.file.DirectoryStream;
++import java.nio.file.StandardCopyOption;
++import java.nio.file.attribute.FileTime;
++import java.nio.file.attribute.PosixFilePermission;
++import java.nio.file.attribute.PosixFilePermissions;
++import java.nio.file.attribute.PosixFileAttributes;
++import java.nio.file.attribute.PosixFileAttributeView;
++import java.nio.file.attribute.BasicFileAttributes;
++import java.nio.file.attribute.BasicFileAttributeView;
++
++public class Utils {
++    /* TODO: Check for exceptions */
++    public static String getHomeDirectory() {
++        return System.getProperty("user.home");
++    }
++
++    /* TODO: Check for exceptions */
++    public static String getTemporaryDirectory() {
++        return System.getProperty("java.io.tmpdir");
++    }
++
++    public static Path toPath(String path) {
++        return Paths.get(path);
++    }
++
++    public static void createDirectory(String path) throws IOException {
++        Files.createDirectory(toPath(path),
++                PosixFilePermissions.asFileAttribute(
++                PosixFilePermissions.fromString("rwxrwxrwx")));
++    }
++
++    public static boolean isDirectory(Path path) {
++        return Files.isDirectory(path);
++    }
++
++    public static void setCurrentDirectory(String path) {
++        System.setProperty("user.dir", path);
++    }
++
++    public static String getCurrentDirectory() {
++        return System.getProperty("user.dir");
++    }
++
++    public static boolean exists(Path p) {
++        return Files.exists(p);
++    }
++    public static BasicFileAttributes getFileAttributes(Path p) throws IOException {
++        return Files.readAttributes(p, BasicFileAttributes.class);
++    }
++
++    public static long lastAccessTime(BasicFileAttributes attrs) {
++        return attrs.lastAccessTime().to(TimeUnit.NANOSECONDS);
++    }
++
++    public static long lastModifiedTime(BasicFileAttributes attrs) {
++        return attrs.lastModifiedTime().to(TimeUnit.NANOSECONDS);
++    }
++
++    public static void setFileTimes(Path p, long access, long modified) throws IOException {
++        FileTime atime = access > 0? FileTime.from(access, TimeUnit.SECONDS):null;
++        FileTime mtime = modified > 0? FileTime.from(modified, TimeUnit.SECONDS):null;
++        Files.getFileAttributeView(p, BasicFileAttributeView.class)
++             .setTimes(mtime, atime, null);
++    }
++
++    public static void setPermissions(Path p, boolean r, boolean w, boolean x) throws IOException {
++
++        PosixFileAttributeView pv = Files.getFileAttributeView(p, PosixFileAttributeView.class);
++        Set<PosixFilePermission> permissions = pv.readAttributes().permissions();
++        if (r) permissions.add(PosixFilePermission.OWNER_READ);
++        else   permissions.remove(PosixFilePermission.OWNER_READ);
++        if (w) permissions.add(PosixFilePermission.OWNER_WRITE);
++        else   permissions.remove(PosixFilePermission.OWNER_WRITE);
++        if (x) permissions.add(PosixFilePermission.OWNER_EXECUTE);
++        else   permissions.remove(PosixFilePermission.OWNER_EXECUTE);
++        pv.setPermissions(permissions);
++    }
++
++    public static void copyPermissions(Path source, Path dest) throws IOException {
++        Files.getFileAttributeView(dest, PosixFileAttributeView.class)
++             .setPermissions(Files
++               .readAttributes(source, PosixFileAttributes.class).permissions());
++    }
++
++    public static void atomicMove(Path source, Path dest) throws IOException {
++        Files.move(source, dest, StandardCopyOption.ATOMIC_MOVE);
++    }
++
++    public static void copy(Path source, Path dest) throws IOException {
++        Files.copy(source, dest, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
++    }
++
++    private static boolean isWindows() {
++        return System.getProperty("os.name").startsWith("Windows");
++    }
++
++    public static void closeDirStream(DirectoryStream<Path> ds) throws IOException {
++        ds.close();
++    }
++
++    public static Iterator<Path> itDirStream(DirectoryStream<Path> ds) {
++        return ds.iterator();
++    }
++}
+-- 
+2.11.0.windows.3
+
