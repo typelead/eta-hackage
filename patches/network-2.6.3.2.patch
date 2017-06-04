@@ -1,6 +1,6 @@
-From 85c023adc0d16a443be5de551337bbeffd6db29d Mon Sep 17 00:00:00 2001
+From 94a52b826990bb4f29a700b8685b5a574078ee2d Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 3 Jun 2017 07:24:37 +0530
+Date: Sun, 4 Jun 2017 22:45:54 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -9,8 +9,8 @@ Subject: [PATCH] Patched
  Network/Socket/Types.hs  | 1113 ++++++++++++++++++++++++++++++
  Network/Socket/Types.hsc | 1111 ------------------------------
  java/Utils.java          |   27 +
- network.cabal            |   45 +-
- 6 files changed, 2861 insertions(+), 2816 deletions(-)
+ network.cabal            |   44 +-
+ 6 files changed, 2860 insertions(+), 2816 deletions(-)
  create mode 100644 Network/Socket.hs
  delete mode 100644 Network/Socket.hsc
  create mode 100644 Network/Socket/Types.hs
@@ -5681,10 +5681,10 @@ index 0000000..81810f0
 +}
 \ No newline at end of file
 diff --git a/network.cabal b/network.cabal
-index 4c0cac1..59bfa43 100644
+index ede8fd2..1edc1f2 100644
 --- a/network.cabal
 +++ b/network.cabal
-@@ -27,7 +27,7 @@ description:
+@@ -26,7 +26,7 @@ description:
    That is, get the module from either network < 2.6 or from
    network-uri >= 2.6.
  category:       Network
@@ -5693,7 +5693,7 @@ index 4c0cac1..59bfa43 100644
  cabal-version:  >=1.8
  extra-tmp-files:
    config.log config.status autom4te.cache network.buildinfo
-@@ -46,39 +46,40 @@ tested-with:   GHC == 7.8.4, GHC == 7.10.1, GHC == 7.10.2, GHC == 8.0.1, GHC ==
+@@ -45,39 +45,39 @@ tested-with:   GHC == 7.8.4, GHC == 7.10.1, GHC == 7.10.2, GHC == 8.0.1, GHC ==
  
  library
    exposed-modules:
@@ -5731,7 +5731,7 @@ index 4c0cac1..59bfa43 100644
 +  --     Network.Socket.ByteString.Lazy.Windows
  
    build-depends:
-     base >= 4.6 && < 5,
+     base >= 3 && < 5,
      bytestring < 0.11
  
 -  if !os(windows)
@@ -5750,7 +5750,6 @@ index 4c0cac1..59bfa43 100644
 +  -- include-dirs: include
 +  -- includes: HsNet.h
 +  -- install-includes: HsNet.h HsNetworkConfig.h
-+  -- c-sources: cbits/HsNet.c
 +  java-sources: java/Utils.java
    ghc-options: -Wall -fwarn-tabs
  
