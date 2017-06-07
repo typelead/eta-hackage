@@ -12,6 +12,7 @@ git pull --all
 if [ -n "${ETA_BRANCH}" ]; then
     echo "Building eta branch ${ETA_BRANCH}"
     git checkout "${ETA_BRANCH}"
+    git pull
 
 elif [ -n "${ETA_TAG}" ]; then
     echo "Building eta tag ${ETA_TAG}"
@@ -26,6 +27,7 @@ elif [ -n "${ETA_PR}" ]; then
 else
     echo "Building without trigger"
     git checkout master
+    git pull
 fi
 
 git submodule sync
