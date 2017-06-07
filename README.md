@@ -301,7 +301,7 @@ These packages are supported by `etlas`.
 - [union-find-array-0.1.0.2](https://hackage.haskell.org/package/union-find-array-0.1.0.2)
 - [unicode-transforms-0.2.0](https://hackage.haskell.org/packages/unicode-transforms-0.2.0)
 - [unordered-containers-0.2.7.1](https://hackage.haskell.org/package/unordered-containers-0.2.7.1)
-- [uri-bytestring >= 0.2.2.1 && <= 0.2.3.2](https://hackage.haskell.org/package/uri-bytestring)
+- [uri-bytestring >= 0.2.2.1 && <= 0.2.3.3](https://hackage.haskell.org/package/uri-bytestring)
 - [utf8-string-1.0.1.1](https://hackage.haskell.org/package/utf8-string-1.0.1.1)
 - [uuid-types-1.0.3](https://hackage.haskell.org/package/uuid-types-1.0.3)
 - [vault-0.3.0.6](https://hackage.haskell.org/package/vault-0.3.0.6)
