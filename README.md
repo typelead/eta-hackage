@@ -258,7 +258,7 @@ These packages are supported by `etlas`.
 - [safe >= 0.3.9 && <= 0.3.11](https://hackage.haskell.org/package/safe-0.3.11)
 - [servant >= 0.9.1.1 && <= 0.11](https://hackage.haskell.org/package/servant)
 - [servant-docs >= 0.9.1.1 && <= 0.10.0.1](https://hackage.haskell.org/package/servant-docs)
-- [servant-server-0.9.1.1](https://hackage.haskell.org/package/servant-server-0.9.1.1)
+- [servant-server >= 0.9.1.1 && <= 0.11](https://hackage.haskell.org/package/servant-server)
   - NOTE: Servant.Utils.StaticFiles is disabled.
 - [setenv-0.1.1.3](https://hackage.haskell.org/package/setenv-0.1.1.3)
 - [scientific-0.3.4.9](https://hackage.haskell.org/package/scientific-0.3.4.9)
