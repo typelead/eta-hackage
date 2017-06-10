@@ -213,7 +213,7 @@ These packages are supported by `etlas`.
 - [old-locale-1.0.0.7](https://hackage.haskell.org/package/old-locale-1.0.0.7)
 - [old-time-1.1.0.3](https://hackage.haskell.org/package/old-time-1.1.0.3)
 - [operational-0.2.3.5](https://hackage.haskell.org/package/operational-0.2.3.5)
-- [optparse-applicative-0.13.2.0](https://hackage.haskell.org/package/optparse-applicative-0.13.2.0)
+- [optparse-applicative >= 0.13.2.0 && <= 0.14.0.0](https://hackage.haskell.org/package/optparse-applicative)
 - [parallel-3.2.1.0](https://hackage.haskell.org/package/parallel-3.2.1.0)
 - [parsec-3.1.11](https://hackage.haskell.org/package/parsec-3.1.11)
 - [patch-combinators-0.2.2](https://hackage.haskell.org/package/patch-combinators-0.2.2)
