@@ -353,7 +353,7 @@ If you have already forked this repository, then skip to step 3.
 2. Clone the forked repository.
 
    ```
-   git clone http://github.org/your-name-here/eta-hackage
+   git clone http://github.com/your-name-here/eta-hackage
    ```
 
 3. Checkout the `master` branch and pull any changes.
