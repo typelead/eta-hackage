@@ -142,7 +142,7 @@ These packages are supported by `etlas`.
 - [graph-matchings-0.1.0.0](https://hackage.haskell.org/package/graph-matchings-0.1.0.0)
 - [graph-wrapper-0.2.5.1](https://hackage.haskell.org/package/graph-wrapper-0.2.5.1)
 - [groups-0.4.0.0](https://hackage.haskell.org/package/groups-0.4.0.0)
-- [hashable >= 1.2.4.0 && <= 1.2.6.0](https://hackage.haskell.org/package/hashable-1.2.5.0)
+- [hashable >= 1.2.4.0 && <= 1.2.6.1](https://hackage.haskell.org/package/hashable-1.2.6.1)
 - [hashtables >= 1.2.1.0 && <= 1.2.1.1](https://hackage.haskell.org/package/hashtables)
 - [heap-1.0.3](https://hackage.haskell.org/package/heap-1.0.3)
 - [heaps-0.3.3](https://hackage.haskell.org/package/heaps-0.3.3)

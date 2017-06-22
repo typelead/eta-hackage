@@ -1,0 +1,91 @@
+From b2a4e83d1af1d1bf0b7824e359e25ad4f3994c92 Mon Sep 17 00:00:00 2001
+From: George Wilson <george@wils.online>
+Date: Fri, 23 Jun 2017 07:47:42 +1000
+Subject: [PATCH] Patched
+
+---
+ Data/Hashable/Class.hs |  8 ++++----
+ hashable.cabal         |  5 +++--
+ java/Utils.java        | 20 ++++++++++++++++++++
+ 3 files changed, 27 insertions(+), 6 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Data/Hashable/Class.hs b/Data/Hashable/Class.hs
+index f848d7b..852513f 100644
+--- a/Data/Hashable/Class.hs
++++ b/Data/Hashable/Class.hs
+@@ -631,8 +631,8 @@ instance Hashable TL.Text where
+ hashThreadId :: ThreadId -> Int
+ hashThreadId (ThreadId t) = hash (fromIntegral (getThreadId t) :: Int)
+ 
+-foreign import ccall unsafe "rts_getThreadId" getThreadId
+-    :: ThreadId# -> CInt
++foreign import java unsafe "@static eta.runtime.stg.StgTSO.getThreadId"
++  getThreadId :: ThreadId# -> CInt
+ 
+ instance Hashable ThreadId where
+     hash = hashThreadId
+@@ -715,7 +715,7 @@ hashPtrWithSalt p len salt =
+     fromIntegral `fmap` c_hashCString (castPtr p) (fromIntegral len)
+     (fromIntegral salt)
+ 
+-foreign import ccall unsafe "hashable_fnv_hash" c_hashCString
++foreign import java unsafe "@static eta.hashable.Utils.fnv_hash" c_hashCString
+     :: CString -> CLong -> CLong -> IO CLong
+ 
+ -- | Compute a hash value for the content of this 'ByteArray#',
+@@ -743,7 +743,7 @@ hashByteArrayWithSalt ba !off !len !h =
+     fromIntegral $ c_hashByteArray ba (fromIntegral off) (fromIntegral len)
+     (fromIntegral h)
+ 
+-foreign import ccall unsafe "hashable_fnv_hash_offset" c_hashByteArray
++foreign import java unsafe "@static eta.hashable.Utils.fnv_hash_offset" c_hashByteArray
+     :: ByteArray# -> CLong -> CLong -> CLong -> CLong
+ 
+ -- | Combine two given hash values.  'combine' has zero as a left
+diff --git a/hashable.cabal b/hashable.cabal
+index c782ea4..baa1812 100644
+--- a/hashable.cabal
++++ b/hashable.cabal
+@@ -59,8 +59,9 @@ Library
+     CPP-Options:     -DGENERICS
+     Other-modules:   Data.Hashable.Generic
+ 
+-  C-sources:
+-                     cbits/fnv.c
++  Java-sources: java/Utils.java
++  -- C-sources:
++  --                    cbits/fnv.c
+ 
+   Ghc-options:       -Wall
+   if impl(ghc >= 6.8)
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..b5c124f
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,20 @@
++package eta.hashable;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.StgByteArray;
++
++import static eta.runtime.io.MemoryManager.bufSetOffset;
++
++public class Utils {
++    public static long fnv_hash(ByteBuffer str, long len, long hash) {
++        str = str.duplicate();
++        while (len-- > 0) {
++            hash = (hash * 16777619) ^ (str.get() & 0xFF);
++        }
++        return hash;
++    }
++
++    public static long fnv_hash_offset(StgByteArray str, long offset, long len, long hash) {
++        return fnv_hash(bufSetOffset(str.buf.duplicate(), (int) offset), len, hash);
++    }
++}
+\ No newline at end of file
+-- 
+2.9.4
+
