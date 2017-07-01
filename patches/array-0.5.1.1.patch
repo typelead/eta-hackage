@@ -1,41 +1,23 @@
-From 8d73b19c725d2336b433fb5b539cd8c00960e910 Mon Sep 17 00:00:00 2001
+From a999308d712a131673db2364cf894c8d02cb2423 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Fri, 16 Dec 2016 13:04:20 +0530
+Date: Sat, 1 Jul 2017 15:21:33 +0530
 Subject: [PATCH] Patched
 
 ---
- Data/Array/Base.hs | 10 ++++++----
+ Data/Array/Base.hs |  4 ++--
  Data/Array/IO.hs   |  4 ++--
- array.cabal        |  1 +
+ array.cabal        |  4 ++++
  java/Utils.java    | 29 +++++++++++++++++++++++++++++
- 4 files changed, 38 insertions(+), 6 deletions(-)
+ java/Utils2.java   | 23 +++++++++++++++++++++++
+ 5 files changed, 60 insertions(+), 4 deletions(-)
  create mode 100644 java/Utils.java
+ create mode 100644 java/Utils2.java
 
 diff --git a/Data/Array/Base.hs b/Data/Array/Base.hs
-index 9908ad2..52d625d 100644
+index 9908ad2..5edc257 100644
 --- a/Data/Array/Base.hs
 +++ b/Data/Array/Base.hs
-@@ -46,8 +46,6 @@ import GHC.IOArray      ( IOArray(..),
-                           newIOArray, unsafeReadIOArray, unsafeWriteIOArray )
- import Data.Typeable
- 
--#include "MachDeps.h"
--
- -----------------------------------------------------------------------------
- -- Class of immutable arrays
- 
-@@ -1350,6 +1348,10 @@ instance MArray (STUArray s) Word64 (ST s) where
- -----------------------------------------------------------------------------
- -- Translation between elements and bytes
- 
-+#define SIZEOF_HSWORD 4
-+#define SIZEOF_HSDOUBLE 8
-+#define SIZEOF_HSFLOAT 4
-+
- bOOL_SCALE, bOOL_WORD_SCALE,
-   wORD_SCALE, dOUBLE_SCALE, fLOAT_SCALE :: Int# -> Int#
- bOOL_SCALE n# = (n# +# last#) `uncheckedIShiftRA#` 3#
-@@ -1402,7 +1404,7 @@ freezeSTUArray (STUArray l u n marr#) = ST $ \s1# ->
+@@ -1402,7 +1402,7 @@ freezeSTUArray (STUArray l u n marr#) = ST $ \s1# ->
      case unsafeFreezeByteArray# marr'# s3# of { (# s4#, arr# #) ->
      (# s4#, UArray l u n arr# #) }}}}}
  
@@ -44,7 +26,7 @@ index 9908ad2..52d625d 100644
      memcpy_freeze :: MutableByteArray# s -> MutableByteArray# s -> CSize
             -> IO (Ptr a)
  
-@@ -1480,7 +1482,7 @@ thawSTUArray (UArray l u n arr#) = ST $ \s1# ->
+@@ -1480,7 +1480,7 @@ thawSTUArray (UArray l u n arr#) = ST $ \s1# ->
      case unsafeCoerce# m s2#            of { (# s3#, _ #) ->
      (# s3#, STUArray l u n marr# #) }}}}
  
@@ -76,14 +58,17 @@ index f0a8f89..24f9dc6 100644
  
  -- ---------------------------------------------------------------------------
 diff --git a/array.cabal b/array.cabal
-index d5dd036..72c4192 100644
+index d5dd036..4fd96be 100644
 --- a/array.cabal
 +++ b/array.cabal
-@@ -39,6 +39,7 @@ library
+@@ -39,6 +39,10 @@ library
        UnliftedFFITypes
    build-depends: base >= 4.5 && < 4.10
    ghc-options: -Wall
-+  java-sources: java/Utils.java
++  if impl(eta >= 0.0.9)
++    java-sources: java/Utils2.java
++  else
++    java-sources: java/Utils.java
    exposed-modules:
        Data.Array
        Data.Array.Base
@@ -122,5 +107,35 @@ index 0000000..c07395b
 +        return memcpy_buf(destBuffer, srcArray.buf, size);
 +    }
 +}
---
+diff --git a/java/Utils2.java b/java/Utils2.java
+new file mode 100644
+index 0000000..fc79b0c
+--- /dev/null
++++ b/java/Utils2.java
+@@ -0,0 +1,23 @@
++package eta.array;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.ByteArray;
++import eta.runtime.io.MemoryManager;
++import eta.base.Utils;
++
++/* This version is to be used for Eta >= 0.0.9 */
++
++public class Utils2 {
++
++    public static long memcpy(ByteArray destArray, ByteArray srcArray, int size) {
++        return Utils.c_memcpy(destArray.bufferAddress, srcArray.bufferAddress, size);
++    }
++
++    public static long memcpy_ba_ptr(ByteArray destArray, long srcBuffer, int size) {
++        return Utils.c_memcpy(destArray.bufferAddress, srcBuffer, size);
++    }
++
++    public static long memcpy_ptr_ba(long destBuffer, ByteArray srcArray, int size) {
++        return Utils.c_memcpy(destBuffer, srcArray.bufferAddress, size);
++    }
++}
+-- 
 2.7.4 (Apple Git-66)
+

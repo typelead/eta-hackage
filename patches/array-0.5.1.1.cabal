@@ -39,7 +39,10 @@ library
       UnliftedFFITypes
   build-depends: base >= 4.5 && < 4.10
   ghc-options: -Wall
-  java-sources: java/Utils.java
+  if impl(eta >= 0.0.9)
+    java-sources: java/Utils2.java
+  else
+    java-sources: java/Utils.java
   exposed-modules:
       Data.Array
       Data.Array.Base
