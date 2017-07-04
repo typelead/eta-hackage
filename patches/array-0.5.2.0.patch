@@ -1,15 +1,15 @@
-From 21c8b4f6793b37316b4f689b91b2c6f69635d496 Mon Sep 17 00:00:00 2001
+From 9c147bc0c7123918142ae2441e22685147ab535c Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 4 Jul 2017 21:01:43 +0530
+Date: Tue, 4 Jul 2017 21:12:48 +0530
 Subject: [PATCH] Patched
 
 ---
  Data/Array/Base.hs | 36 +++++++++++++++++++++++++-----------
- Data/Array/IO.hs   | 14 ++++++++++++--
+ Data/Array/IO.hs   | 16 +++++++++++++---
  array.cabal        |  5 +++++
  java/Utils.java    | 29 +++++++++++++++++++++++++++++
  java/Utils2.java   | 23 +++++++++++++++++++++++
- 5 files changed, 94 insertions(+), 13 deletions(-)
+ 5 files changed, 95 insertions(+), 14 deletions(-)
  create mode 100644 java/Utils.java
  create mode 100644 java/Utils2.java
 
@@ -77,9 +77,15 @@ index 8cc319c..fc36439 100644
  {-# RULES
  "thaw/STArray"  thaw = ArrST.thawSTArray
 diff --git a/Data/Array/IO.hs b/Data/Array/IO.hs
-index f0a8f89..3d7c270 100644
+index f0a8f89..feaa43b 100644
 --- a/Data/Array/IO.hs
 +++ b/Data/Array/IO.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE MagicHash, UnliftedFFITypes #-}
++{-# LANGUAGE MagicHash, UnliftedFFITypes, CPP #-}
+ 
+ -----------------------------------------------------------------------------
+ -- |
 @@ -67,8 +67,13 @@ hGetArray handle (IOUArray (STUArray _l _u n ptr)) count
          _ <- memcpy_ba_ptr ptr p (fromIntegral r)
          return r
