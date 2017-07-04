@@ -41,6 +41,7 @@ library
   ghc-options: -Wall
   if impl(eta >= 0.0.9)
     java-sources: java/Utils2.java
+    cpp-options: -DETA009
   else
     java-sources: java/Utils.java
   exposed-modules:

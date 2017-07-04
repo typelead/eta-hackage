@@ -1,72 +1,107 @@
-From a999308d712a131673db2364cf894c8d02cb2423 Mon Sep 17 00:00:00 2001
+From ed7b43fb8bfdd6383a0abe54eee8ff0099b7c061 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 1 Jul 2017 15:21:33 +0530
+Date: Tue, 4 Jul 2017 21:08:47 +0530
 Subject: [PATCH] Patched
 
 ---
- Data/Array/Base.hs |  4 ++--
- Data/Array/IO.hs   |  4 ++--
- array.cabal        |  4 ++++
+ Data/Array/Base.hs | 16 ++++++++++++++--
+ Data/Array/IO.hs   | 16 +++++++++++++---
+ array.cabal        |  5 +++++
  java/Utils.java    | 29 +++++++++++++++++++++++++++++
  java/Utils2.java   | 23 +++++++++++++++++++++++
- 5 files changed, 60 insertions(+), 4 deletions(-)
+ 5 files changed, 84 insertions(+), 5 deletions(-)
  create mode 100644 java/Utils.java
  create mode 100644 java/Utils2.java
 
 diff --git a/Data/Array/Base.hs b/Data/Array/Base.hs
-index 9908ad2..5edc257 100644
+index 9908ad2..6f63236 100644
 --- a/Data/Array/Base.hs
 +++ b/Data/Array/Base.hs
-@@ -1402,7 +1402,7 @@ freezeSTUArray (STUArray l u n marr#) = ST $ \s1# ->
+@@ -1402,9 +1402,15 @@ freezeSTUArray (STUArray l u n marr#) = ST $ \s1# ->
      case unsafeFreezeByteArray# marr'# s3# of { (# s4#, arr# #) ->
      (# s4#, UArray l u n arr# #) }}}}}
  
 -foreign import ccall unsafe "memcpy"
-+foreign import java unsafe "@static eta.array.Utils.memcpy"
++#ifdef ETA009
++foreign import java unsafe "@static eta.array.Utils2.memcpy"
      memcpy_freeze :: MutableByteArray# s -> MutableByteArray# s -> CSize
             -> IO (Ptr a)
++#else
++foreign import java unsafe "@static eta.array.Utils.memcpy"
++    memcpy_freeze :: MutableByteArray# s -> MutableByteArray# s -> CSize
++           -> IO (Ptr a)
++#endif
  
-@@ -1480,7 +1480,7 @@ thawSTUArray (UArray l u n arr#) = ST $ \s1# ->
+ {-# RULES
+ "freeze/STArray"  freeze = ArrST.freezeSTArray
+@@ -1480,9 +1486,15 @@ thawSTUArray (UArray l u n arr#) = ST $ \s1# ->
      case unsafeCoerce# m s2#            of { (# s3#, _ #) ->
      (# s3#, STUArray l u n marr# #) }}}}
  
 -foreign import ccall unsafe "memcpy"
-+foreign import java unsafe "@static eta.array.Utils.memcpy"
++#ifdef ETA009
++foreign import java unsafe "@static eta.array.Utils2.memcpy"
      memcpy_thaw :: MutableByteArray# s -> ByteArray# -> CSize
             -> IO (Ptr a)
++#else
++foreign import java unsafe "@static eta.array.Utils.memcpy"
++    memcpy_thaw :: MutableByteArray# s -> ByteArray# -> CSize
++           -> IO (Ptr a)
++#endif
  
+ {-# RULES
+ "thaw/STArray"  thaw = ArrST.thawSTArray
 diff --git a/Data/Array/IO.hs b/Data/Array/IO.hs
-index f0a8f89..24f9dc6 100644
+index f0a8f89..feaa43b 100644
 --- a/Data/Array/IO.hs
 +++ b/Data/Array/IO.hs
-@@ -67,7 +67,7 @@ hGetArray handle (IOUArray (STUArray _l _u n ptr)) count
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE MagicHash, UnliftedFFITypes #-}
++{-# LANGUAGE MagicHash, UnliftedFFITypes, CPP #-}
+ 
+ -----------------------------------------------------------------------------
+ -- |
+@@ -67,8 +67,13 @@ hGetArray handle (IOUArray (STUArray _l _u n ptr)) count
          _ <- memcpy_ba_ptr ptr p (fromIntegral r)
          return r
  
 -foreign import ccall unsafe "memcpy"
-+foreign import java unsafe "@static eta.array.Utils.memcpy_ba_ptr"
++#ifdef ETA009
++foreign import java unsafe "@static eta.array.Utils2.memcpy_ba_ptr"
     memcpy_ba_ptr :: MutableByteArray# RealWorld -> Ptr a -> CSize -> IO (Ptr ())
++#else
++foreign import java unsafe "@static eta.array.Utils.memcpy_ba_ptr"
++   memcpy_ba_ptr :: MutableByteArray# RealWorld -> Ptr a -> CSize -> IO (Ptr ())
++#endif
  
  -- ---------------------------------------------------------------------------
-@@ -90,7 +90,7 @@ hPutArray handle (IOUArray (STUArray _l _u n raw)) count
+ -- hPutArray
+@@ -90,8 +95,13 @@ hPutArray handle (IOUArray (STUArray _l _u n raw)) count
         _ <- memcpy_ptr_ba p raw (fromIntegral count)
         hPutBuf handle p count
  
 -foreign import ccall unsafe "memcpy"
++#ifdef ETA009
++foreign import java unsafe "@static eta.array.Utils2.memcpy_ptr_ba"
++   memcpy_ptr_ba :: Ptr a -> MutableByteArray# RealWorld -> CSize -> IO (Ptr ())
++#else
 +foreign import java unsafe "@static eta.array.Utils.memcpy_ptr_ba"
     memcpy_ptr_ba :: Ptr a -> MutableByteArray# RealWorld -> CSize -> IO (Ptr ())
++#endif
  
  -- ---------------------------------------------------------------------------
+ -- Internal Utils
 diff --git a/array.cabal b/array.cabal
-index d5dd036..4fd96be 100644
+index d5dd036..7db6713 100644
 --- a/array.cabal
 +++ b/array.cabal
-@@ -39,6 +39,10 @@ library
+@@ -39,6 +39,11 @@ library
        UnliftedFFITypes
    build-depends: base >= 4.5 && < 4.10
    ghc-options: -Wall
 +  if impl(eta >= 0.0.9)
 +    java-sources: java/Utils2.java
++    cpp-options: -DETA009
 +  else
 +    java-sources: java/Utils.java
    exposed-modules:
