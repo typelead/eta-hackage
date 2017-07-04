@@ -56,7 +56,7 @@ These packages are supported by `etlas`.
   - NOTE: Windows support disabled.
 - [ansi-wl-pprint-0.6.7.3](https://hackage.haskell.org/package/ansi-wl-pprint-0.6.7.3)
 - [appar-0.1.4](https://hackage.haskell.org/package/appar-0.1.4)
-- [array-0.5.1.1](https://hackage.haskell.org/package/array-0.5.1.1)
+- [array >= 0.5.1.1 && <= 0.5.2.0](https://hackage.haskell.org/package/array)
 - [array-utils-0.3](https://hackage.haskell.org/package/array-utils-0.3)
 - [async-2.1.1](https://hackage.haskell.org/package/async-2.1.1)
 - [attoparsec-0.13.1.0](https://hackage.haskell.org/package/attoparsec-0.13.1.0)

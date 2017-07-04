@@ -1,0 +1,196 @@
+From 21c8b4f6793b37316b4f689b91b2c6f69635d496 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 4 Jul 2017 21:01:43 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Array/Base.hs | 36 +++++++++++++++++++++++++-----------
+ Data/Array/IO.hs   | 14 ++++++++++++--
+ array.cabal        |  5 +++++
+ java/Utils.java    | 29 +++++++++++++++++++++++++++++
+ java/Utils2.java   | 23 +++++++++++++++++++++++
+ 5 files changed, 94 insertions(+), 13 deletions(-)
+ create mode 100644 java/Utils.java
+ create mode 100644 java/Utils2.java
+
+diff --git a/Data/Array/Base.hs b/Data/Array/Base.hs
+index 8cc319c..fc36439 100644
+--- a/Data/Array/Base.hs
++++ b/Data/Array/Base.hs
+@@ -1006,13 +1006,15 @@ instance MArray (STUArray s) Bool (ST s) where
+     getNumElements (STUArray _ _ n _) = return n
+     {-# INLINE newArray #-}
+     newArray (l,u) initialValue = ST $ \s1# ->
+-        case safeRangeSize (l,u)                   of { n@(I# n#) ->
+-        case bOOL_SCALE n#                         of { nbytes# ->
+-        case newByteArray# nbytes# s1#             of { (# s2#, marr# #) ->
+-        case setByteArray# marr# 0# nbytes# e# s2# of { s3# ->
+-        (# s3#, STUArray l u n marr# #) }}}}
+-      where
+-        !(I# e#) = if initialValue then 0xff else 0x0
++      undefined
++      -- TODO: Fix this
++      --   case safeRangeSize (l,u)                   of { n@(I# n#) ->
++      --   case bOOL_SCALE n#                         of { nbytes# ->
++      --   case newByteArray# nbytes# s1#             of { (# s2#, marr# #) ->
++      --   case setByteArray# marr# 0# nbytes# e# s2# of { s3# ->
++      --   (# s3#, STUArray l u n marr# #) }}}}
++      -- where
++      --   !(I# e#) = if initialValue then 0xff else 0x0
+     {-# INLINE unsafeNewArray_ #-}
+     unsafeNewArray_ (l,u) = unsafeNewArraySTUArray_ (l,u) bOOL_SCALE
+     {-# INLINE newArray_ #-}
+@@ -1383,9 +1385,15 @@ freezeSTUArray (STUArray l u n marr#) = ST $ \s1# ->
+     case unsafeFreezeByteArray# marr'# s3# of { (# s4#, arr# #) ->
+     (# s4#, UArray l u n arr# #) }}}}}
+ 
+-foreign import ccall unsafe "memcpy"
++#ifdef ETA009
++foreign import java unsafe "@static eta.array.Utils2.memcpy"
+     memcpy_freeze :: MutableByteArray# s -> MutableByteArray# s -> CSize
+-           -> IO (Ptr a)
++                  -> IO (Ptr a)
++#else
++foreign import java unsafe "@static eta.array.Utils.memcpy"
++    memcpy_freeze :: MutableByteArray# s -> MutableByteArray# s -> CSize
++                  -> IO (Ptr a)
++#endif
+ 
+ {-# RULES
+ "freeze/STArray"  freeze = ArrST.freezeSTArray
+@@ -1461,9 +1469,15 @@ thawSTUArray (UArray l u n arr#) = ST $ \s1# ->
+     case unsafeCoerce# m s2#            of { (# s3#, _ #) ->
+     (# s3#, STUArray l u n marr# #) }}}}
+ 
+-foreign import ccall unsafe "memcpy"
++#ifdef ETA009
++foreign import java unsafe "@static eta.array.Utils2.memcpy"
+     memcpy_thaw :: MutableByteArray# s -> ByteArray# -> CSize
+-           -> IO (Ptr a)
++                -> IO (Ptr a)
++#else
++foreign import java unsafe "@static eta.array.Utils.memcpy"
++    memcpy_thaw :: MutableByteArray# s -> ByteArray# -> CSize
++                -> IO (Ptr a)
++#endif
+ 
+ {-# RULES
+ "thaw/STArray"  thaw = ArrST.thawSTArray
+diff --git a/Data/Array/IO.hs b/Data/Array/IO.hs
+index f0a8f89..3d7c270 100644
+--- a/Data/Array/IO.hs
++++ b/Data/Array/IO.hs
+@@ -67,8 +67,13 @@ hGetArray handle (IOUArray (STUArray _l _u n ptr)) count
+         _ <- memcpy_ba_ptr ptr p (fromIntegral r)
+         return r
+ 
+-foreign import ccall unsafe "memcpy"
++#ifdef ETA009
++foreign import java unsafe "@static eta.array.Utils2.memcpy_ba_ptr"
+    memcpy_ba_ptr :: MutableByteArray# RealWorld -> Ptr a -> CSize -> IO (Ptr ())
++#else
++foreign import java unsafe "@static eta.array.Utils.memcpy_ba_ptr"
++   memcpy_ba_ptr :: MutableByteArray# RealWorld -> Ptr a -> CSize -> IO (Ptr ())
++#endif
+ 
+ -- ---------------------------------------------------------------------------
+ -- hPutArray
+@@ -90,8 +95,13 @@ hPutArray handle (IOUArray (STUArray _l _u n raw)) count
+        _ <- memcpy_ptr_ba p raw (fromIntegral count)
+        hPutBuf handle p count
+ 
+-foreign import ccall unsafe "memcpy"
++#ifdef ETA009
++foreign import java unsafe "@static eta.array.Utils2.memcpy_ptr_ba"
++   memcpy_ptr_ba :: Ptr a -> MutableByteArray# RealWorld -> CSize -> IO (Ptr ())
++#else
++foreign import java unsafe "@static eta.array.Utils.memcpy_ptr_ba"
+    memcpy_ptr_ba :: Ptr a -> MutableByteArray# RealWorld -> CSize -> IO (Ptr ())
++#endif
+ 
+ -- ---------------------------------------------------------------------------
+ -- Internal Utils
+diff --git a/array.cabal b/array.cabal
+index 1a71bab..f8ac02e 100644
+--- a/array.cabal
++++ b/array.cabal
+@@ -39,6 +39,11 @@ library
+       UnliftedFFITypes
+   build-depends: base >= 4.7 && < 4.11
+   ghc-options: -Wall
++  if impl(eta >= 0.0.9)
++     java-sources: java/Utils2.java
++     cpp-options: -DETA009
++  else
++     java-sources: java/Utils.java
+   exposed-modules:
+       Data.Array
+       Data.Array.Base
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..c07395b
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,29 @@
++package eta.array;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.StgByteArray;
++import eta.runtime.stg.StgClosure;
++
++public class Utils {
++    private static ByteBuffer memcpy_buf(ByteBuffer destBuffer, ByteBuffer srcBuffer, int size) {
++        ByteBuffer dest = destBuffer.duplicate();
++        ByteBuffer src = srcBuffer.duplicate();
++        int srcOffset = src.position();
++        src.limit(srcOffset + size);
++        dest.put(srcBuffer);
++        return dest;
++    }
++
++    public static ByteBuffer memcpy(StgByteArray destArray, StgByteArray srcArray, int size) {
++        return memcpy_buf(destArray.buf, srcArray.buf, size);
++    }
++
++    public static ByteBuffer memcpy_ba_ptr(StgByteArray destArray, ByteBuffer srcBuffer, int size) {
++
++        return memcpy_buf(destArray.buf, srcBuffer, size);
++    }
++
++    public static ByteBuffer memcpy_ptr_ba(ByteBuffer destBuffer, StgByteArray srcArray, int size) {
++        return memcpy_buf(destBuffer, srcArray.buf, size);
++    }
++}
+diff --git a/java/Utils2.java b/java/Utils2.java
+new file mode 100644
+index 0000000..7e0c83a
+--- /dev/null
++++ b/java/Utils2.java
+@@ -0,0 +1,23 @@
++package eta.array;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.ByteArray;
++import eta.runtime.io.MemoryManager;
++import eta.base.Utils;
++
++/* This version is to be used for Eta >= 0.0.9 */
++
++public class Utils2 {
++
++    public static long memcpy(ByteArray destArray, ByteArray srcArray, int size) {
++        return Utils.c_memcpy(destArray.bufferAddress, srcArray.bufferAddress, size);
++    }
++
++    public static long memcpy_ba_ptr(ByteArray destArray, long srcBuffer, int size) {
++        return Utils.c_memcpy(destArray.bufferAddress, srcBuffer, size);
++    }
++
++    public static long memcpy_ptr_ba(long destBuffer, ByteArray srcArray, int size) {
++        return Utils.c_memcpy(destBuffer, srcArray.bufferAddress, size);
++    }
++}
+\ No newline at end of file
+-- 
+2.7.4 (Apple Git-66)
+
