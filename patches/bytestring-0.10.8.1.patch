@@ -1,6 +1,6 @@
-From f740c678922b5d9cb024d6ca8557a5f7e69498c3 Mon Sep 17 00:00:00 2001
+From c7914e9924339657fbec00f20fb0ac53e820f7c7 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Thu, 6 Jul 2017 22:32:40 -0400
+Date: Fri, 7 Jul 2017 02:47:28 -0400
 Subject: [PATCH] Patched
 
 ---
@@ -477,14 +477,14 @@ index 15308d6..05ecb1b 100644
  #endif
 -
 diff --git a/Data/ByteString/Unsafe.hs b/Data/ByteString/Unsafe.hs
-index a0a1da8..f157403 100644
+index a0a1da8..bea8e3b 100644
 --- a/Data/ByteString/Unsafe.hs
 +++ b/Data/ByteString/Unsafe.hs
 @@ -217,7 +217,11 @@ unsafePackCStringLen (ptr,len) = do
  --
  unsafePackMallocCString :: CString -> IO ByteString
  unsafePackMallocCString cstr = do
-+#ifdef ETA_VERSION >= 9
++#if ETA_VERSION >= 9
      fp <- newForeignPtr c_free_finalizer (castPtr cstr)
 +#else
 +    fp <- newForeignPtr_ {- c_free_finalizer -} (castPtr cstr)
@@ -496,7 +496,7 @@ index a0a1da8..f157403 100644
  --
  unsafePackMallocCStringLen :: CStringLen -> IO ByteString
  unsafePackMallocCStringLen (cstr, len) = do
-+#ifdef ETA_VERSION >= 9
++#if ETA_VERSION >= 9
      fp <- newForeignPtr c_free_finalizer (castPtr cstr)
 +#else
 +    fp <- newForeignPtr_ {- c_free_finalizer -} (castPtr cstr)
