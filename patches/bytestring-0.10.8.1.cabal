@@ -126,12 +126,10 @@ library
                     -fdicts-cheap
                     -fspec-constr-count=6
 
-  java-sources: java/Utils.java
-  -- c-sources:         cbits/fpstring.c
-  --                    cbits/itoa.c
-  -- include-dirs:      include
-  -- includes:          fpstring.h
-  -- install-includes:  fpstring.h
+  if impl(eta >= 0.0.9)
+    java-sources: java/Utils2.java
+  else
+    java-sources: java/Utils.java
 
    -- flags for the decimal integer serialization code
   if impl(ghc >= 6.11)
