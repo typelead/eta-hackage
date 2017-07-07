@@ -1,17 +1,19 @@
-From b2a4e83d1af1d1bf0b7824e359e25ad4f3994c92 Mon Sep 17 00:00:00 2001
-From: George Wilson <george@wils.online>
-Date: Fri, 23 Jun 2017 07:47:42 +1000
+From 115e2ae67cb3048c6b91b42235ec33758713f3bf Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 7 Jul 2017 08:42:23 -0400
 Subject: [PATCH] Patched
 
 ---
- Data/Hashable/Class.hs |  8 ++++----
- hashable.cabal         |  5 +++--
+ Data/Hashable/Class.hs | 18 ++++++++++++++----
+ hashable.cabal         |  8 ++++++--
  java/Utils.java        | 20 ++++++++++++++++++++
- 3 files changed, 27 insertions(+), 6 deletions(-)
+ java/Utils2.java       | 19 +++++++++++++++++++
+ 4 files changed, 59 insertions(+), 6 deletions(-)
  create mode 100644 java/Utils.java
+ create mode 100644 java/Utils2.java
 
 diff --git a/Data/Hashable/Class.hs b/Data/Hashable/Class.hs
-index f848d7b..852513f 100644
+index f848d7b..f218fe1 100644
 --- a/Data/Hashable/Class.hs
 +++ b/Data/Hashable/Class.hs
 @@ -631,8 +631,8 @@ instance Hashable TL.Text where
@@ -25,35 +27,50 @@ index f848d7b..852513f 100644
  
  instance Hashable ThreadId where
      hash = hashThreadId
-@@ -715,7 +715,7 @@ hashPtrWithSalt p len salt =
+@@ -715,8 +715,13 @@ hashPtrWithSalt p len salt =
      fromIntegral `fmap` c_hashCString (castPtr p) (fromIntegral len)
      (fromIntegral salt)
  
 -foreign import ccall unsafe "hashable_fnv_hash" c_hashCString
-+foreign import java unsafe "@static eta.hashable.Utils.fnv_hash" c_hashCString
++#if ETA_VERSION >= 9
++foreign import java unsafe "@static eta.hashable.Utils2.fnv_hash" c_hashCString
      :: CString -> CLong -> CLong -> IO CLong
++#else
++foreign import java unsafe "@static eta.hashable.Utils.fnv_hash" c_hashCString
++    :: CString -> CLong -> CLong -> IO CLong
++#endif
  
  -- | Compute a hash value for the content of this 'ByteArray#',
-@@ -743,7 +743,7 @@ hashByteArrayWithSalt ba !off !len !h =
+ -- beginning at the specified offset, using specified number of bytes.
+@@ -743,8 +748,13 @@ hashByteArrayWithSalt ba !off !len !h =
      fromIntegral $ c_hashByteArray ba (fromIntegral off) (fromIntegral len)
      (fromIntegral h)
  
 -foreign import ccall unsafe "hashable_fnv_hash_offset" c_hashByteArray
-+foreign import java unsafe "@static eta.hashable.Utils.fnv_hash_offset" c_hashByteArray
++#if ETA_VERSION >= 9
++foreign import java unsafe "@static eta.hashable.Utils2.fnv_hash_offset" c_hashByteArray
      :: ByteArray# -> CLong -> CLong -> CLong -> CLong
++#else
++foreign import java unsafe "@static eta.hashable.Utils.fnv_hash_offset" c_hashByteArray
++    :: ByteArray# -> CLong -> CLong -> CLong -> CLong
++#endif
  
  -- | Combine two given hash values.  'combine' has zero as a left
+ -- identity.
 diff --git a/hashable.cabal b/hashable.cabal
-index c782ea4..baa1812 100644
+index c782ea4..85871c0 100644
 --- a/hashable.cabal
 +++ b/hashable.cabal
-@@ -59,8 +59,9 @@ Library
+@@ -59,8 +59,12 @@ Library
      CPP-Options:     -DGENERICS
      Other-modules:   Data.Hashable.Generic
  
 -  C-sources:
 -                     cbits/fnv.c
-+  Java-sources: java/Utils.java
++  if impl(eta >= 0.0.9)
++     Java-sources: java/Utils2.java
++  else
++     Java-sources: java/Utils.java
 +  -- C-sources:
 +  --                    cbits/fnv.c
  
@@ -86,6 +103,31 @@ index 0000000..b5c124f
 +    }
 +}
 \ No newline at end of file
+diff --git a/java/Utils2.java b/java/Utils2.java
+new file mode 100644
+index 0000000..4437db4
+--- /dev/null
++++ b/java/Utils2.java
+@@ -0,0 +1,19 @@
++package eta.hashable;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.ByteArray;
++import eta.runtime.io.MemoryManager;
++
++public class Utils2 {
++    public static long fnv_hash(long strAddress, long len, long hash) {
++        ByteBuffer str = MemoryManager.getBoundedBuffer(strAddress);
++        while (len-- > 0) {
++            hash = (hash * 16777619) ^ (str.get() & 0xFF);
++        }
++        return hash;
++    }
++
++    public static long fnv_hash_offset(ByteArray strArray, long offset, long len, long hash) {
++        return fnv_hash(strArray.bufferAddress + offset, len, hash);
++    }
++}
 -- 
-2.9.4
+2.7.4 (Apple Git-66)
 

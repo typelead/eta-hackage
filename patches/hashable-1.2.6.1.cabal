@@ -59,7 +59,10 @@ Library
     CPP-Options:     -DGENERICS
     Other-modules:   Data.Hashable.Generic
 
-  Java-sources: java/Utils.java
+  if impl(eta >= 0.0.9)
+     Java-sources: java/Utils2.java
+  else
+     Java-sources: java/Utils.java
   -- C-sources:
   --                    cbits/fnv.c
 
