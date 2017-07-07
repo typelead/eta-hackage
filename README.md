@@ -238,7 +238,7 @@ These packages are supported by `etlas`.
 - [profunctors-5.2](https://hackage.haskell.org/package/profunctors-5.2)
 - [protolude-0.1.10](https://hackage.haskell.org/package/protolude-0.1.10)
 - [queue-0.1.2](https://hackage.haskell.org/package/queue-0.1.2)
-- [QuickCheck-2.9.2](https://hackage.haskell.org/package/QuickCheck-2.9.2)
+- [QuickCheck >= 2.9.2 && <= 2.10.0.1](https://hackage.haskell.org/package/QuickCheck)
 - [quickcheck-io-0.1.4](https://hackage.haskell.org/package/quickcheck-io-0.1.4)
 - [ReadArgs-1.2.3](https://hackage.haskell.org/package/ReadArgs-1.2.3)
 - [readable-0.3.1](https://hackage.haskell.org/package/readable-0.3.1)
