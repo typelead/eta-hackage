@@ -1,0 +1,25 @@
+From 4a518e33c98bf7d365d46d77c5c1ac00133a5764 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 12 Jul 2017 17:26:15 -0400
+Subject: [PATCH] Patched
+
+---
+ aeson-pretty.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/aeson-pretty.cabal b/aeson-pretty.cabal
+index c8c2c3e..32cdaa4 100644
+--- a/aeson-pretty.cabal
++++ b/aeson-pretty.cabal
+@@ -33,7 +33,7 @@ extra-source-files:
+ 
+ flag lib-only
+     description: Only build/install the library, NOT the command-line tool.
+-    default: False
++    default: True
+ 
+ library
+     exposed-modules:
+-- 
+2.7.4 (Apple Git-66)
+

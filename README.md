@@ -50,7 +50,7 @@ These packages are supported by `etlas`.
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
 - [adjunctions-4.3](https://hackage.haskell.org/package/adjunctions-4.3)
 - [aeson-1.1.0.0](https://hackage.haskell.org/package/aeson-1.1.0.0)
-- [aeson-pretty-0.8.2](https://hackage.haskell.org/package/aeson-pretty-0.8.2)
+- [aeson-pretty >= 0.8.2 && aeson-pretty <= 0.8.5](https://hackage.haskell.org/package/aeson-pretty-0.8.5)
 - [agum-2.6](https://hackage.haskell.org/package/agum-2.6)
 - [ansi-terminal-0.6.2.3](https://hackage.haskell.org/package/ansi-terminal-0.6.2.3)
   - NOTE: Windows support disabled.
