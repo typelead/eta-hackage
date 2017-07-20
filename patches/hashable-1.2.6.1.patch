@@ -1,19 +1,19 @@
-From 115e2ae67cb3048c6b91b42235ec33758713f3bf Mon Sep 17 00:00:00 2001
+From 44092d10ecec1304e2a6c157a094c9d5866d9076 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Fri, 7 Jul 2017 08:42:23 -0400
+Date: Thu, 20 Jul 2017 15:08:19 -0400
 Subject: [PATCH] Patched
 
 ---
- Data/Hashable/Class.hs | 18 ++++++++++++++----
- hashable.cabal         |  8 ++++++--
- java/Utils.java        | 20 ++++++++++++++++++++
- java/Utils2.java       | 19 +++++++++++++++++++
- 4 files changed, 59 insertions(+), 6 deletions(-)
+ Data/Hashable/Class.hs    |  8 ++++----
+ hashable.cabal            |  6 ++++--
+ java/Utils.java           | 20 ++++++++++++++++++++
+ java/eta-0.0.9/Utils.java | 19 +++++++++++++++++++
+ 4 files changed, 47 insertions(+), 6 deletions(-)
  create mode 100644 java/Utils.java
- create mode 100644 java/Utils2.java
+ create mode 100644 java/eta-0.0.9/Utils.java
 
 diff --git a/Data/Hashable/Class.hs b/Data/Hashable/Class.hs
-index f848d7b..f218fe1 100644
+index f848d7b..852513f 100644
 --- a/Data/Hashable/Class.hs
 +++ b/Data/Hashable/Class.hs
 @@ -631,8 +631,8 @@ instance Hashable TL.Text where
@@ -27,52 +27,38 @@ index f848d7b..f218fe1 100644
  
  instance Hashable ThreadId where
      hash = hashThreadId
-@@ -715,8 +715,13 @@ hashPtrWithSalt p len salt =
+@@ -715,7 +715,7 @@ hashPtrWithSalt p len salt =
      fromIntegral `fmap` c_hashCString (castPtr p) (fromIntegral len)
      (fromIntegral salt)
  
 -foreign import ccall unsafe "hashable_fnv_hash" c_hashCString
-+#if ETA_VERSION >= 9
-+foreign import java unsafe "@static eta.hashable.Utils2.fnv_hash" c_hashCString
-     :: CString -> CLong -> CLong -> IO CLong
-+#else
 +foreign import java unsafe "@static eta.hashable.Utils.fnv_hash" c_hashCString
-+    :: CString -> CLong -> CLong -> IO CLong
-+#endif
+     :: CString -> CLong -> CLong -> IO CLong
  
  -- | Compute a hash value for the content of this 'ByteArray#',
- -- beginning at the specified offset, using specified number of bytes.
-@@ -743,8 +748,13 @@ hashByteArrayWithSalt ba !off !len !h =
+@@ -743,7 +743,7 @@ hashByteArrayWithSalt ba !off !len !h =
      fromIntegral $ c_hashByteArray ba (fromIntegral off) (fromIntegral len)
      (fromIntegral h)
  
 -foreign import ccall unsafe "hashable_fnv_hash_offset" c_hashByteArray
-+#if ETA_VERSION >= 9
-+foreign import java unsafe "@static eta.hashable.Utils2.fnv_hash_offset" c_hashByteArray
-     :: ByteArray# -> CLong -> CLong -> CLong -> CLong
-+#else
 +foreign import java unsafe "@static eta.hashable.Utils.fnv_hash_offset" c_hashByteArray
-+    :: ByteArray# -> CLong -> CLong -> CLong -> CLong
-+#endif
+     :: ByteArray# -> CLong -> CLong -> CLong -> CLong
  
  -- | Combine two given hash values.  'combine' has zero as a left
- -- identity.
 diff --git a/hashable.cabal b/hashable.cabal
-index c782ea4..85871c0 100644
+index c782ea4..90aa7fd 100644
 --- a/hashable.cabal
 +++ b/hashable.cabal
-@@ -59,8 +59,12 @@ Library
+@@ -59,8 +59,10 @@ Library
      CPP-Options:     -DGENERICS
      Other-modules:   Data.Hashable.Generic
  
 -  C-sources:
 -                     cbits/fnv.c
 +  if impl(eta >= 0.0.9)
-+     Java-sources: java/Utils2.java
++     Java-sources: java/eta-0.0.9/Utils.java
 +  else
 +     Java-sources: java/Utils.java
-+  -- C-sources:
-+  --                    cbits/fnv.c
  
    Ghc-options:       -Wall
    if impl(ghc >= 6.8)
@@ -103,11 +89,11 @@ index 0000000..b5c124f
 +    }
 +}
 \ No newline at end of file
-diff --git a/java/Utils2.java b/java/Utils2.java
+diff --git a/java/eta-0.0.9/Utils.java b/java/eta-0.0.9/Utils.java
 new file mode 100644
-index 0000000..4437db4
+index 0000000..c1c4157
 --- /dev/null
-+++ b/java/Utils2.java
++++ b/java/eta-0.0.9/Utils.java
 @@ -0,0 +1,19 @@
 +package eta.hashable;
 +
@@ -115,7 +101,7 @@ index 0000000..4437db4
 +import eta.runtime.io.ByteArray;
 +import eta.runtime.io.MemoryManager;
 +
-+public class Utils2 {
++public class Utils {
 +    public static long fnv_hash(long strAddress, long len, long hash) {
 +        ByteBuffer str = MemoryManager.getBoundedBuffer(strAddress);
 +        while (len-- > 0) {
