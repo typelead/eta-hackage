@@ -1,14 +1,16 @@
-From a4ff05830f4137bd1d6c69fc300638f4c0968617 Mon Sep 17 00:00:00 2001
+From eaf2f1ffe8ceb92294f4264988d0fa75eca38874 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 28 Jan 2017 02:46:49 +0530
+Date: Thu, 20 Jul 2017 15:27:35 -0400
 Subject: [PATCH] Patched
 
 ---
- Data/Hashable/Class.hs |  8 ++++----
- hashable.cabal         |  5 +++--
- java/Utils.java        | 19 +++++++++++++++++++
- 3 files changed, 26 insertions(+), 6 deletions(-)
+ Data/Hashable/Class.hs    |  8 ++++----
+ hashable.cabal            |  6 ++++--
+ java/Utils.java           | 19 +++++++++++++++++++
+ java/eta-0.0.9/Utils.java | 19 +++++++++++++++++++
+ 4 files changed, 46 insertions(+), 6 deletions(-)
  create mode 100644 java/Utils.java
+ create mode 100644 java/eta-0.0.9/Utils.java
 
 diff --git a/Data/Hashable/Class.hs b/Data/Hashable/Class.hs
 index 9223d16..d916118 100644
@@ -44,18 +46,19 @@ index 9223d16..d916118 100644
  
  -- | Combine two given hash values.  'combine' has zero as a left
 diff --git a/hashable.cabal b/hashable.cabal
-index f6534e9..7faf007 100644
+index f6534e9..9fe7dae 100644
 --- a/hashable.cabal
 +++ b/hashable.cabal
-@@ -51,8 +51,9 @@ Library
+@@ -51,8 +51,10 @@ Library
      CPP-Options:     -DGENERICS
      Other-modules:   Data.Hashable.Generic
  
 -  C-sources:
 -                     cbits/fnv.c
-+  Java-sources: java/Utils.java
-+  -- C-sources:
-+  --                    cbits/fnv.c
++  if impl(eta >= 0.0.9)
++     Java-sources: java/eta-0.0.9/Utils.java
++  else
++     Java-sources: java/Utils.java
  
    Ghc-options:       -Wall
    if impl(ghc >= 6.8)
@@ -82,6 +85,31 @@ index 0000000..2d529b1
 +
 +    public static long fnv_hash_offset(StgByteArray str, long offset, long len, long hash) {
 +        return fnv_hash(bufSetOffset(str.buf.duplicate(), (int) offset), len, hash);
++    }
++}
+diff --git a/java/eta-0.0.9/Utils.java b/java/eta-0.0.9/Utils.java
+new file mode 100644
+index 0000000..c1c4157
+--- /dev/null
++++ b/java/eta-0.0.9/Utils.java
+@@ -0,0 +1,19 @@
++package eta.hashable;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.ByteArray;
++import eta.runtime.io.MemoryManager;
++
++public class Utils {
++    public static long fnv_hash(long strAddress, long len, long hash) {
++        ByteBuffer str = MemoryManager.getBoundedBuffer(strAddress);
++        while (len-- > 0) {
++            hash = (hash * 16777619) ^ (str.get() & 0xFF);
++        }
++        return hash;
++    }
++
++    public static long fnv_hash_offset(ByteArray strArray, long offset, long len, long hash) {
++        return fnv_hash(strArray.bufferAddress + offset, len, hash);
 +    }
 +}
 -- 

@@ -51,9 +51,10 @@ Library
     CPP-Options:     -DGENERICS
     Other-modules:   Data.Hashable.Generic
 
-  Java-sources: java/Utils.java
-  -- C-sources:
-  --                    cbits/fnv.c
+  if impl(eta >= 0.0.9)
+     Java-sources: java/eta-0.0.9/Utils.java
+  else
+     Java-sources: java/Utils.java
 
   Ghc-options:       -Wall
   if impl(ghc >= 6.8)

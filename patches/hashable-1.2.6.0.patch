@@ -1,14 +1,16 @@
-From 2aa9d5816b8a2a8a1be5b8149ad3ab87f7d043ca Mon Sep 17 00:00:00 2001
+From edf45cb1866e0fa2c3e87ffc6e2b9d3bba4d798d Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Wed, 22 Mar 2017 02:10:14 +0530
+Date: Thu, 20 Jul 2017 15:18:13 -0400
 Subject: [PATCH] Patched
 
 ---
- Data/Hashable/Class.hs |  8 ++++----
- hashable.cabal         |  5 +++--
- java/Utils.java        | 20 ++++++++++++++++++++
- 3 files changed, 27 insertions(+), 6 deletions(-)
+ Data/Hashable/Class.hs    |  8 ++++----
+ hashable.cabal            |  6 ++++--
+ java/Utils.java           | 20 ++++++++++++++++++++
+ java/eta-0.0.9/Utils.java | 19 +++++++++++++++++++
+ 4 files changed, 47 insertions(+), 6 deletions(-)
  create mode 100644 java/Utils.java
+ create mode 100644 java/eta-0.0.9/Utils.java
 
 diff --git a/Data/Hashable/Class.hs b/Data/Hashable/Class.hs
 index f0b4c15..d4cc6d4 100644
@@ -44,18 +46,19 @@ index f0b4c15..d4cc6d4 100644
  
  -- | Combine two given hash values.  'combine' has zero as a left
 diff --git a/hashable.cabal b/hashable.cabal
-index 8629f37..5c186cb 100644
+index f126c54..109c7b9 100644
 --- a/hashable.cabal
 +++ b/hashable.cabal
-@@ -60,8 +60,9 @@ Library
+@@ -59,8 +59,10 @@ Library
      CPP-Options:     -DGENERICS
      Other-modules:   Data.Hashable.Generic
  
 -  C-sources:
 -                     cbits/fnv.c
-+  Java-sources: java/Utils.java
-+  -- C-sources:
-+  --                    cbits/fnv.c
++  if impl(eta >= 0.0.9)
++     Java-sources: java/eta-0.0.9/Utils.java
++  else
++     Java-sources: java/Utils.java
  
    Ghc-options:       -Wall
    if impl(ghc >= 6.8)
@@ -86,6 +89,31 @@ index 0000000..b5c124f
 +    }
 +}
 \ No newline at end of file
+diff --git a/java/eta-0.0.9/Utils.java b/java/eta-0.0.9/Utils.java
+new file mode 100644
+index 0000000..c1c4157
+--- /dev/null
++++ b/java/eta-0.0.9/Utils.java
+@@ -0,0 +1,19 @@
++package eta.hashable;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.ByteArray;
++import eta.runtime.io.MemoryManager;
++
++public class Utils {
++    public static long fnv_hash(long strAddress, long len, long hash) {
++        ByteBuffer str = MemoryManager.getBoundedBuffer(strAddress);
++        while (len-- > 0) {
++            hash = (hash * 16777619) ^ (str.get() & 0xFF);
++        }
++        return hash;
++    }
++
++    public static long fnv_hash_offset(ByteArray strArray, long offset, long len, long hash) {
++        return fnv_hash(strArray.bufferAddress + offset, len, hash);
++    }
++}
 -- 
 2.7.4 (Apple Git-66)
 

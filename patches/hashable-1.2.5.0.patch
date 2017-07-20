@@ -1,17 +1,19 @@
-From dc1a3717365ecb97fefa650ed0464de26a7494e8 Mon Sep 17 00:00:00 2001
+From 6ac9f05e2f67ce38a7acefa2ee016b5a4ff00b00 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 28 Jan 2017 02:42:40 +0530
+Date: Thu, 20 Jul 2017 15:25:05 -0400
 Subject: [PATCH] Patched
 
 ---
- Data/Hashable/Class.hs | 10 ++++------
- hashable.cabal         |  5 +++--
- java/Utils.java        | 20 ++++++++++++++++++++
- 3 files changed, 27 insertions(+), 8 deletions(-)
+ Data/Hashable/Class.hs    |  8 ++++----
+ hashable.cabal            |  6 ++++--
+ java/Utils.java           | 20 ++++++++++++++++++++
+ java/eta-0.0.9/Utils.java | 19 +++++++++++++++++++
+ 4 files changed, 47 insertions(+), 6 deletions(-)
  create mode 100644 java/Utils.java
+ create mode 100644 java/eta-0.0.9/Utils.java
 
 diff --git a/Data/Hashable/Class.hs b/Data/Hashable/Class.hs
-index 8d62626..65429d9 100644
+index 8d62626..c89d3f8 100644
 --- a/Data/Hashable/Class.hs
 +++ b/Data/Hashable/Class.hs
 @@ -620,8 +620,8 @@ instance Hashable TL.Text where
@@ -43,25 +45,20 @@ index 8d62626..65429d9 100644
      :: ByteArray# -> CLong -> CLong -> CLong -> CLong
  
  -- | Combine two given hash values.  'combine' has zero as a left
-@@ -875,5 +875,3 @@ instance Ord1 Hashed where
- instance Show1 Hashed where
-   liftShowsPrec sp _ d (Hashed a _) = showsUnaryWith sp "hashed" d a
- #endif
--
--
 diff --git a/hashable.cabal b/hashable.cabal
-index 01bca0f..003e4a8 100644
+index 01bca0f..58c6d39 100644
 --- a/hashable.cabal
 +++ b/hashable.cabal
-@@ -58,8 +58,9 @@ Library
+@@ -58,8 +58,10 @@ Library
      CPP-Options:     -DGENERICS
      Other-modules:   Data.Hashable.Generic
  
 -  C-sources:
 -                     cbits/fnv.c
-+  Java-sources: java/Utils.java
-+  -- C-sources:
-+  --                    cbits/fnv.c
++  if impl(eta >= 0.0.9)
++     Java-sources: java/eta-0.0.9/Utils.java
++  else
++     Java-sources: java/Utils.java
  
    Ghc-options:       -Wall
    if impl(ghc >= 6.8)
@@ -89,6 +86,31 @@ index 0000000..4e78a75
 +
 +    public static long fnv_hash_offset(StgByteArray str, long offset, long len, long hash) {
 +        return fnv_hash(bufSetOffset(str.buf.duplicate(), (int) offset), len, hash);
++    }
++}
+diff --git a/java/eta-0.0.9/Utils.java b/java/eta-0.0.9/Utils.java
+new file mode 100644
+index 0000000..c1c4157
+--- /dev/null
++++ b/java/eta-0.0.9/Utils.java
+@@ -0,0 +1,19 @@
++package eta.hashable;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.ByteArray;
++import eta.runtime.io.MemoryManager;
++
++public class Utils {
++    public static long fnv_hash(long strAddress, long len, long hash) {
++        ByteBuffer str = MemoryManager.getBoundedBuffer(strAddress);
++        while (len-- > 0) {
++            hash = (hash * 16777619) ^ (str.get() & 0xFF);
++        }
++        return hash;
++    }
++
++    public static long fnv_hash_offset(ByteArray strArray, long offset, long len, long hash) {
++        return fnv_hash(strArray.bufferAddress + offset, len, hash);
 +    }
 +}
 -- 
