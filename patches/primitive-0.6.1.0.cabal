@@ -42,11 +42,10 @@ Library
 
   Ghc-Options: -O2 -Wall
 
-  -- Include-Dirs: cbits
-  -- Install-Includes: primitive-memops.h
-  -- includes: primitive-memops.h
-  -- c-sources: cbits/primitive-memops.c
-  java-sources: java/Utils.java
+  if impl(eta >= 0.0.9)
+    java-sources: java/eta-0.0.9/Utils.java
+  else
+    java-sources: java/Utils.java
   cc-options: -O3 -fomit-frame-pointer -Wall
   if !os(solaris)
       cc-options: -ftree-vectorize

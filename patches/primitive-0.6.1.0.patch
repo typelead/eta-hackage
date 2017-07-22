@@ -1,16 +1,17 @@
-From b21970742525771f38ebcb60c157e5ef22a5ac77 Mon Sep 17 00:00:00 2001
+From 4226792efa17919434a098efb26562437853580c Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Fri, 16 Dec 2016 13:30:44 +0530
+Date: Sat, 22 Jul 2017 12:44:48 -0400
 Subject: [PATCH] Patched
 
 ---
  Data/Primitive/ByteArray.hs           |   2 +-
- Data/Primitive/Internal/Operations.hs |  57 ++++++++---------
- Data/Primitive/MachDeps.hs            |  72 ++++++++++++++++++++-
+ Data/Primitive/Internal/Operations.hs |  56 ++++++++--------
  java/Utils.java                       | 116 ++++++++++++++++++++++++++++++++++
- primitive.cabal                       |  17 ++---
- 5 files changed, 225 insertions(+), 39 deletions(-)
+ java/eta-0.0.9/Utils.java             |  93 +++++++++++++++++++++++++++
+ primitive.cabal                       |  14 ++--
+ 5 files changed, 245 insertions(+), 36 deletions(-)
  create mode 100644 java/Utils.java
+ create mode 100644 java/eta-0.0.9/Utils.java
 
 diff --git a/Data/Primitive/ByteArray.hs b/Data/Primitive/ByteArray.hs
 index 2cce7ae..71bd0a1 100644
@@ -19,20 +20,20 @@ index 2cce7ae..71bd0a1 100644
 @@ -248,7 +248,7 @@ foreign import ccall unsafe "primitive-memops.h hsprimitive_memcpy"
              -> CSize -> IO ()
  #endif
-
+ 
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memmove"
 +foreign import java unsafe "@static eta.primitive.Utils.memmove"
    memmove_mba :: MutableByteArray# s -> CInt
                -> MutableByteArray# s -> CInt
                -> CSize -> IO ()
 diff --git a/Data/Primitive/Internal/Operations.hs b/Data/Primitive/Internal/Operations.hs
-index 091e11f..34c897c 100644
+index 091e11f..ec8ca22 100644
 --- a/Data/Primitive/Internal/Operations.hs
 +++ b/Data/Primitive/Internal/Operations.hs
-@@ -30,61 +30,60 @@ import Data.Primitive.MachDeps (Word64_#, Int64_#)
+@@ -30,61 +30,61 @@ import Data.Primitive.MachDeps (Word64_#, Int64_#)
  import Foreign.C.Types
  import GHC.Prim
-
+ 
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word8"
 +foreign import java unsafe "@static eta.primitive.Utils.memset_ba"
    setWord8Array# :: MutableByteArray# s -> CPtrdiff -> CSize -> Word# -> IO ()
@@ -75,7 +76,7 @@ index 091e11f..34c897c 100644
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Char"
 +foreign import java unsafe "@static eta.primitive.Utils.memset_int_ba"
    setWideCharArray# :: MutableByteArray# s -> CPtrdiff -> CSize -> Char# -> IO ()
-
+ 
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Word8"
 +foreign import java unsafe "@static eta.primitive.Utils.memset"
    setWord8OffAddr# :: Addr# -> CPtrdiff -> CSize -> Word# -> IO ()
@@ -118,90 +119,7 @@ index 091e11f..34c897c 100644
 -foreign import ccall unsafe "primitive-memops.h hsprimitive_memset_Char"
 +foreign import java unsafe "@static eta.primitive.Utils.memset_int"
    setWideCharOffAddr# :: Addr# -> CPtrdiff -> CSize -> Char# -> IO ()
--
-diff --git a/Data/Primitive/MachDeps.hs b/Data/Primitive/MachDeps.hs
-index d36c252..94fcbbf 100644
---- a/Data/Primitive/MachDeps.hs
-+++ b/Data/Primitive/MachDeps.hs
-@@ -12,7 +12,77 @@
-
- module Data.Primitive.MachDeps where
-
--#include "MachDeps.h"
-+#define WORD_SIZE_IN_BITS 32
-+
-+#define ALIGNMENT_CHAR 1
-+#define ALIGNMENT_DOUBLE 8
-+#define ALIGNMENT_FLOAT 4
-+#define ALIGNMENT_INT 4
-+#define ALIGNMENT_LONG 8
-+#define ALIGNMENT_SHORT 2
-+#define ALIGNMENT_UNSIGNED_CHAR 1
-+#define ALIGNMENT_UNSIGNED_INT 4
-+#define ALIGNMENT_UNSIGNED_LONG 8
-+#define ALIGNMENT_UNSIGNED_SHORT 2
-+#define ALIGNMENT_VOID_P 4
-+#define SIZEOF_CHAR 1
-+#define SIZEOF_DOUBLE 8
-+#define SIZEOF_FLOAT 4
-+#define SIZEOF_INT 4
-+#define SIZEOF_LONG 8
-+#define SIZEOF_SHORT 2
-+#define SIZEOF_UNSIGNED_CHAR 1
-+#define SIZEOF_UNSIGNED_INT 4
-+#define SIZEOF_UNSIGNED_LONG 8
-+#define SIZEOF_UNSIGNED_SHORT 2
-+#define SIZEOF_VOID_P 8
-+
-+#define SIZEOF_HSCHAR           SIZEOF_WORD32
-+#define ALIGNMENT_HSCHAR        ALIGNMENT_WORD32
-+
-+#define SIZEOF_HSINT            SIZEOF_VOID_P
-+#define ALIGNMENT_HSINT         ALIGNMENT_VOID_P
-+
-+#define SIZEOF_HSWORD           SIZEOF_VOID_P
-+#define ALIGNMENT_HSWORD        ALIGNMENT_VOID_P
-+
-+#define SIZEOF_HSDOUBLE         SIZEOF_DOUBLE
-+#define ALIGNMENT_HSDOUBLE      ALIGNMENT_DOUBLE
-+
-+#define SIZEOF_HSFLOAT          SIZEOF_FLOAT
-+#define ALIGNMENT_HSFLOAT       ALIGNMENT_FLOAT
-+
-+#define SIZEOF_HSPTR            SIZEOF_VOID_P
-+#define ALIGNMENT_HSPTR         ALIGNMENT_VOID_P
-+
-+#define SIZEOF_HSFUNPTR         SIZEOF_VOID_P
-+#define ALIGNMENT_HSFUNPTR      ALIGNMENT_VOID_P
-+
-+#define SIZEOF_HSSTABLEPTR      SIZEOF_VOID_P
-+#define ALIGNMENT_HSSTABLEPTR   ALIGNMENT_VOID_P
-+
-+#define SIZEOF_INT8             SIZEOF_CHAR
-+#define ALIGNMENT_INT8          ALIGNMENT_CHAR
-+
-+#define SIZEOF_WORD8            SIZEOF_UNSIGNED_CHAR
-+#define ALIGNMENT_WORD8         ALIGNMENT_UNSIGNED_CHAR
-+
-+#define SIZEOF_INT16            SIZEOF_SHORT
-+#define ALIGNMENT_INT16         ALIGNMENT_SHORT
-+
-+#define SIZEOF_WORD16           SIZEOF_UNSIGNED_SHORT
-+#define ALIGNMENT_WORD16        ALIGNMENT_UNSIGNED_SHORT
-+
-+#define SIZEOF_INT32            SIZEOF_INT
-+#define ALIGNMENT_INT32         ALIGNMENT_INT
-+
-+#define SIZEOF_WORD32           SIZEOF_UNSIGNED_INT
-+#define ALIGNMENT_WORD32        ALIGNMENT_UNSIGNED_INT
-+
-+#define SIZEOF_INT64            SIZEOF_LONG
-+#define ALIGNMENT_INT64         ALIGNMENT_LONG
-+#define SIZEOF_WORD64           SIZEOF_UNSIGNED_LONG
-+#define ALIGNMENT_WORD64        ALIGNMENT_UNSIGNED_LONG
-
- import GHC.Prim
-
+ 
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
 index 0000000..3af1423
@@ -324,41 +242,133 @@ index 0000000..3af1423
 +        dest.put(copy);
 +    }
 +}
+diff --git a/java/eta-0.0.9/Utils.java b/java/eta-0.0.9/Utils.java
+new file mode 100644
+index 0000000..a25ffed
+--- /dev/null
++++ b/java/eta-0.0.9/Utils.java
+@@ -0,0 +1,93 @@
++package eta.primitive;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.ByteArray;
++import eta.runtime.io.MemoryManager;
++
++public class Utils {
++    public static void memset(long address, int offset, int n, int val) {
++        eta.base.Utils.c_memset(address + offset, val, n);
++    }
++
++    public static void memset_short(long address, int offset, int n, int val) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(address + 2 * offset);
++        while (n > 0) {
++            buf.putShort((short) val);
++            --n;
++        }
++    }
++
++    public static void memset_int(long address, int offset, int n, int val) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(address + 4 * offset);
++        while (n > 0) {
++            buf.putInt(val);
++            --n;
++        }
++    }
++
++    public static void memset_long(long address, int offset, int n, long val) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(address + 8 * offset);
++        while (n > 0) {
++            buf.putLong(val);
++            --n;
++        }
++    }
++
++    public static void memset_float(long address, int offset, int n, float val) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(address + 4 * offset);
++        while (n > 0) {
++            buf.putFloat(val);
++            --n;
++        }
++    }
++
++    public static void memset_double(long address, int offset, int n, double val) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(address + 8 * offset);
++        while (n > 0) {
++            buf.putDouble(val);
++            --n;
++        }
++    }
++
++    public static void memset_ptr(long address, int offset, int n, long addr) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(address + 8 * offset);
++        while (n > 0) {
++            buf.putLong(addr);
++            --n;
++        }
++    }
++
++    public static void memset_ba(ByteArray closure, int offset, int n, int val) {
++        memset(closure.bufferAddress, offset, n, val);
++    }
++
++    public static void memset_short_ba(ByteArray closure, int offset, int n, int val) {
++        memset_short(closure.bufferAddress, offset, n, val);
++    }
++
++    public static void memset_int_ba(ByteArray closure, int offset, int n, int val) {
++        memset_int(closure.bufferAddress, offset, n, val);
++    }
++
++    public static void memset_long_ba(ByteArray closure, int offset, int n, long val) {
++        memset_long(closure.bufferAddress, offset, n, val);
++    }
++
++    public static void memset_float_ba(ByteArray closure, int offset, int n, float val) {
++        memset_float(closure.bufferAddress, offset, n, val);
++    }
++
++    public static void memset_double_ba(ByteArray closure, int offset, int n, double val) {
++        memset_double(closure.bufferAddress, offset, n, val);
++    }
++
++    public static void memset_ptr_ba(ByteArray closure, int offset, int n, long addr) {
++        memset_ptr(closure.bufferAddress, offset, n, addr);
++    }
++
++    public static void memmove(ByteArray destArray, int destOffset, ByteArray srcArray
++                              ,int srcOffset, int n) {
++        eta.base.Utils.c_memmove(destArray.bufferAddress + destOffset,
++                                 srcArray.bufferAddress  + srcOffset, n);
++    }
++}
 diff --git a/primitive.cabal b/primitive.cabal
-index 232dccc..b6f1f61 100644
+index 232dccc..1d85759 100644
 --- a/primitive.cabal
 +++ b/primitive.cabal
-@@ -36,16 +36,17 @@ Library
+@@ -36,16 +36,16 @@ Library
          Data.Primitive.Internal.Compat
          Data.Primitive.Internal.Operations
-
+ 
 -  Build-Depends: base >= 4.3 && < 4.9
 -               , ghc-prim >= 0.2 && < 0.5
 -               , transformers >= 0.2 && < 0.5
 +  Build-Depends: base >= 4.3 && < 4.10
 +               , ghc-prim >= 0.2 && < 0.6
 +               , transformers >= 0.2 && < 0.6
-
+ 
    Ghc-Options: -O2 -Wall
-
+ 
 -  Include-Dirs: cbits
 -  Install-Includes: primitive-memops.h
 -  includes: primitive-memops.h
 -  c-sources: cbits/primitive-memops.c
-+  -- Include-Dirs: cbits
-+  -- Install-Includes: primitive-memops.h
-+  -- includes: primitive-memops.h
-+  -- c-sources: cbits/primitive-memops.c
-+  java-sources: java/Utils.java
++  if impl(eta >= 0.0.9)
++    java-sources: java/eta-0.0.9/Utils.java
++  else
++    java-sources: java/Utils.java
    cc-options: -O3 -fomit-frame-pointer -Wall
    if !os(solaris)
        cc-options: -ftree-vectorize
-@@ -64,4 +65,4 @@ test-suite test
-
- source-repository head
-   type:     git
--  location: https://github.com/haskell/primitive
-+  location: https://github.com/haskell/primitive
-\ No newline at end of file
---
+-- 
 2.7.4 (Apple Git-66)
+
