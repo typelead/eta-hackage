@@ -181,6 +181,7 @@ These packages are supported by `etlas`.
 - [lca-0.3](https://hackage.haskell.org/package/lca-0.3)
 - [lifted-async-0.9.0](https://hackage.haskell.org/package/lifted-async-0.9.0)
 - [lifted-base >= 0.2.3.8 && <= 0.2.3.10](https://hackage.haskell.org/package/lifted-base-0.2.3.10)
+- [linear-1.20.6](https://hackage.haskell.org/package/linear-1.20.6)
 - [list-extras-0.4.1.4](https://hackage.haskell.org/package/list-extras-0.4.1.4)
 - [logict-0.6.0.2](https://hackage.haskell.org/package/logict-0.6.0.2)
 - [loop-0.3.0](https://hackage.haskell.org/package/loop-0.3.0)

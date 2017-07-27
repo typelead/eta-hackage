@@ -1,0 +1,53 @@
+From ca88ee4fb1e3544d81390624ce8ee1eb5ac127d4 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 26 Jul 2017 23:05:08 -0400
+Subject: [PATCH] Patched
+
+---
+ linear.cabal | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/linear.cabal b/linear.cabal
+index fb47933..75a76e6 100644
+--- a/linear.cabal
++++ b/linear.cabal
+@@ -13,7 +13,7 @@ bug-reports:   http://github.com/ekmett/linear/issues
+ copyright:     Copyright (C) 2012-2015 Edward A. Kmett
+ synopsis:      Linear Algebra
+ description:   Types and combinators for linear algebra on free vector spaces
+-build-type:    Custom
++build-type:    Simple
+ tested-with:   GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC==8.0.2, GHC==8.2.1
+ extra-source-files:
+   .gitignore
+@@ -29,8 +29,8 @@ flag template-haskell
+     You can disable the use of the `template-haskell` package using `-f-template-haskell`.
+     .
+     Disabling this is an unsupported configuration, but it may be useful for accelerating builds in sandboxes for expert users.
+-  default: True
+-  manual: True
++  default: False
++  manual: False
+ 
+ flag herbie
+   description: Enable `herbie`.
+@@ -41,11 +41,11 @@ source-repository head
+   type: git
+   location: https://github.com/ekmett/linear
+ 
+-custom-setup
+-  setup-depends:
+-    base          >= 4 && < 5,
+-    Cabal,
+-    cabal-doctest >= 1 && < 1.1
++-- custom-setup
++--   setup-depends:
++--     base          >= 4 && < 5,
++--     Cabal,
++--     cabal-doctest >= 1 && < 1.1
+ 
+ library
+   build-depends:
+-- 
+2.7.4 (Apple Git-66)
+
