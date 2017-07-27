@@ -1,0 +1,68 @@
+From afb7fa32a9564011c365dc687ce20d551aee2ef2 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 26 Jul 2017 22:58:46 -0400
+Subject: [PATCH] Patched
+
+---
+ bytes.cabal              | 14 +++++++-------
+ src/Data/Bytes/Serial.hs | 12 ++++++++----
+ 2 files changed, 15 insertions(+), 11 deletions(-)
+
+diff --git a/bytes.cabal b/bytes.cabal
+index 98ca056..b463af3 100644
+--- a/bytes.cabal
++++ b/bytes.cabal
+@@ -10,7 +10,7 @@ stability:     experimental
+ homepage:      https://github.com/ekmett/bytes
+ bug-reports:   https://github.com/ekmett/bytes/issues
+ copyright:     Copyright (C) 2013-2015 Edward A. Kmett
+-build-type:    Custom
++build-type:    Simple
+ tested-with:   GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.1
+ synopsis:      Sharing code for serialization between binary and cereal
+ description:   Sharing code for serialization between binary and cereal
+@@ -37,12 +37,12 @@ flag test-doctests
+   default: True
+   manual: True
+ 
+-custom-setup
+-  -- any should do
+-  setup-depends:
+-    base          >= 4.5 && <5,
+-    Cabal         >= 1.14,
+-    cabal-doctest >= 1 && <1.1
++-- custom-setup
++--   -- any should do
++--   setup-depends:
++--     base          >= 4.5 && <5,
++--     Cabal         >= 1.14,
++--     cabal-doctest >= 1 && <1.1
+ 
+ 
+ library
+diff --git a/src/Data/Bytes/Serial.hs b/src/Data/Bytes/Serial.hs
+index fb521d7..63c7b1a 100644
+--- a/src/Data/Bytes/Serial.hs
++++ b/src/Data/Bytes/Serial.hs
+@@ -96,10 +96,14 @@ import System.IO.Unsafe
+ import Numeric.Natural
+ #endif
+ 
+-foreign import ccall floatToWord32 :: Float -> Word32
+-foreign import ccall word32ToFloat :: Word32 -> Float
+-foreign import ccall doubleToWord64 :: Double -> Word64
+-foreign import ccall word64ToDouble :: Word64 -> Double
++foreign import java unsafe "@static java.lang.Float.floatToRawIntBits"
++  floatToWord32 :: Float -> Word32
++foreign import java unsafe "@static java.lang.Float.intBitsToFloat"
++  word32ToFloat :: Word32 -> Float
++foreign import java unsafe "@static java.lang.Double.doubleToRawLongBits"
++  doubleToWord64 :: Double -> Word64
++foreign import java unsafe "@static java.lang.Double.longBitsToDouble"
++  word64ToDouble :: Word64 -> Double
+ 
+ ------------------------------------------------------------------------------
+ -- Endianness-Dependant Serialization
+-- 
+2.7.4 (Apple Git-66)
+
