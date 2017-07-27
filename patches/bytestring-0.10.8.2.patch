@@ -1,6 +1,6 @@
-From c5f1e6daf5b8df78e84155a6144acf57210b9a78 Mon Sep 17 00:00:00 2001
+From 4a4d564c512be254dcfb70f769f71581f149442e Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Wed, 26 Jul 2017 21:04:53 -0400
+Date: Wed, 26 Jul 2017 21:26:04 -0400
 Subject: [PATCH] Patched
 
 ---
@@ -240,7 +240,7 @@ index af0c0bb..88bc0e5 100644
  -- | Encode a single native machine 'Word'. The 'Word's is encoded in host order,
  -- host endian form, for the machine you are on. On a 64 bit machine the 'Word'
 diff --git a/Data/ByteString/Internal.hs b/Data/ByteString/Internal.hs
-index 2565a49..82012ae 100644
+index 031403e..22df068 100644
 --- a/Data/ByteString/Internal.hs
 +++ b/Data/ByteString/Internal.hs
 @@ -54,7 +54,9 @@ module Data.ByteString.Internal (
@@ -268,7 +268,7 @@ index 2565a49..82012ae 100644
  unsafePackLenBytes :: Int -> [Word8] -> ByteString
  unsafePackLenBytes len xs0 =
      unsafeCreate len $ \p -> go p xs0
-@@ -562,32 +564,39 @@ inlinePerformIO = accursedUnutterablePerformIO
+@@ -601,32 +603,39 @@ inlinePerformIO = accursedUnutterablePerformIO
  -- Standard C functions
  --
  
@@ -314,7 +314,7 @@ index 2565a49..82012ae 100644
      :: Ptr Word8 -> Ptr Word8 -> CSize -> IO (Ptr Word8)
  
  memmove :: Ptr Word8 -> Ptr Word8 -> CSize -> IO ()
-@@ -595,8 +604,13 @@ memmove p q s = do c_memmove p q s
+@@ -634,8 +643,13 @@ memmove p q s = do c_memmove p q s
                     return ()
  -}
  
@@ -329,7 +329,7 @@ index 2565a49..82012ae 100644
  
  memset :: Ptr Word8 -> Word8 -> CSize -> IO (Ptr Word8)
  memset p w s = c_memset p (fromIntegral w) s
-@@ -606,17 +620,17 @@ memset p w s = c_memset p (fromIntegral w) s
+@@ -645,17 +659,17 @@ memset p w s = c_memset p (fromIntegral w) s
  -- Uses our C code
  --
  
@@ -353,10 +353,10 @@ index 2565a49..82012ae 100644
 +foreign import java unsafe "@static eta.bytestring.Utils.fps_count" c_count
      :: Ptr Word8 -> CULong -> Word8 -> IO CULong
 diff --git a/Data/ByteString/Short/Internal.hs b/Data/ByteString/Short/Internal.hs
-index 15308d6..cd84866 100644
+index a52c52c..fd186b7 100644
 --- a/Data/ByteString/Short/Internal.hs
 +++ b/Data/ByteString/Short/Internal.hs
-@@ -501,7 +501,7 @@ memcmp_ByteArray :: BA -> BA -> Int -> IO CInt
+@@ -497,7 +497,7 @@ memcmp_ByteArray :: BA -> BA -> Int -> IO CInt
  memcmp_ByteArray (BA# ba1#) (BA# ba2#) len =
    c_memcmp_ByteArray ba1# ba2# (fromIntegral len)
  
@@ -366,7 +366,7 @@ index 15308d6..cd84866 100644
  
  
 diff --git a/Data/ByteString/Unsafe.hs b/Data/ByteString/Unsafe.hs
-index a0a1da8..bea8e3b 100644
+index 782a42d..60f405a 100644
 --- a/Data/ByteString/Unsafe.hs
 +++ b/Data/ByteString/Unsafe.hs
 @@ -217,7 +217,11 @@ unsafePackCStringLen (ptr,len) = do
@@ -394,7 +394,7 @@ index a0a1da8..bea8e3b 100644
  
  -- ---------------------------------------------------------------------
 diff --git a/bytestring.cabal b/bytestring.cabal
-index 5890959..49676c8 100644
+index 53d4edf..490f785 100644
 --- a/bytestring.cabal
 +++ b/bytestring.cabal
 @@ -126,11 +126,10 @@ library

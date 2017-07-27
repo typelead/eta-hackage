@@ -81,6 +81,7 @@ These packages are supported by `etlas`.
 - [bmp-1.2.6.3](https://hackage.haskell.org/package/bmp-1.2.6.3)
 - [Boolean-0.2.3](https://hackage.haskell.org/package/Boolean-0.2.3)
 - [byteable-0.1.1](https://hackage.haskell.org/package/byteable-0.1.1)
+- [bytestring >= 0.10.8.1.0 && <= 0.10.8.2.0](https://hackage.haskell.org/package/bytestring)
 - [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
 - [call-stack-0.1.0](https://hackage.haskell.org/package/call-stack-0.1.0)
 - [carray-0.1.6.6](https://hackage.haskell.org/package/carray-0.1.6.6)
