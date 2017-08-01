@@ -1,0 +1,42 @@
+From 67d5f0df4d9d553a1754564a50a074f90a7116b6 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 31 Jul 2017 23:19:09 -0400
+Subject: [PATCH] Patched
+
+---
+ comonad.cabal | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/comonad.cabal b/comonad.cabal
+index ae33d02..19b9e5d 100644
+--- a/comonad.cabal
++++ b/comonad.cabal
+@@ -13,7 +13,7 @@ copyright:     Copyright (C) 2008-2014 Edward A. Kmett,
+                Copyright (C) 2004-2008 Dave Menendez
+ synopsis:      Comonads
+ description:   Comonads
+-build-type:    Custom
++build-type:    Simple
+ tested-with:   GHC == 7.0.4, GHC == 7.2.2, GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.1
+ extra-source-files:
+   .ghci
+@@ -27,11 +27,11 @@ extra-source-files:
+   HLint.hs
+   Warning.hs
+ 
+-custom-setup
+-  setup-depends:
+-    base          >= 4 && < 5,
+-    Cabal,
+-    cabal-doctest >= 1 && < 1.1
++-- custom-setup
++--   setup-depends:
++--     base          >= 4 && < 5,
++--     Cabal,
++--     cabal-doctest >= 1 && < 1.1
+ 
+ -- You can disable the doctests test suite with -f-test-doctests
+ flag test-doctests
+-- 
+2.7.4 (Apple Git-66)
+
