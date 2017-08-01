@@ -80,6 +80,7 @@ These packages are supported by `etlas`.
 - [bmp-1.2.6.3](https://hackage.haskell.org/package/bmp-1.2.6.3)
 - [Boolean >= 0.2.3 && <= 0.2.4](https://hackage.haskell.org/package/Boolean)
 - [byteable-0.1.1](https://hackage.haskell.org/package/byteable-0.1.1)
+- [byteorder-1.0.4](https://hackage.haskell.org/package/byteorder-1.0.4)
 - [bytes-0.15.3](https://hackage.haskell.org/package/bytes-0.15.3)
 - [bytestring >= 0.10.8.1.0 && <= 0.10.8.2.0](https://hackage.haskell.org/package/bytestring)
 - [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
@@ -174,6 +175,7 @@ These packages are supported by `etlas`.
 - [lazy-io-0.1.0](https://hackage.haskell.org/package/lazy-io-0.1.0)
 - [labeled-tree-1.0.0.0](https://hackage.haskell.org/package/labeled-tree-1.0.0.0)
 - [lens >= 4.15.1 && <= 4.15.3](https://hackage.haskell.org/package/lens-4.15.3)
+- [lens-aeson-1.0.2](https://hackage.haskell.org/package/lens-aeson-1.0.2)
 - [lens-family-1.2.1](https://hackage.haskell.org/package/lens-family-1.2.1)
 - [lens-family-core-1.2.1](https://hackage.haskell.org/package/lens-family-core-1.2.1)
 - [lca-0.3](https://hackage.haskell.org/package/lca-0.3)
@@ -316,6 +318,7 @@ These packages are supported by `etlas`.
 - [wai-3.2.1.1](https://hackage.haskell.org/package/wai-3.2.1.1)
 - [word8-0.1.2](https://hackage.haskell.org/package/word8-0.1.2)
 - [xhtml-3000.2.1](https://hackage.haskell.org/package/xhtml-3000.2.1)
+- [xml-1.3.5](https://hackage.haskell.org/package/xml-1.3.5)
 - [xml-types-0.3.6](https://hackage.haskell.org/package/xml-types-0.3.6)
 - [xmlhtml-0.2.3.5](https://hackage.haskell.org/package/xmlhtml-0.2.3.5)
 

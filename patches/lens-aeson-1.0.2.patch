@@ -1,0 +1,42 @@
+From 315f87ede2640d5ed0f6ebc2f5ca9c49a445c861 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 1 Aug 2017 00:13:53 -0400
+Subject: [PATCH] Patched
+
+---
+ lens-aeson.cabal | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/lens-aeson.cabal b/lens-aeson.cabal
+index d7e770d..5fe0dfd 100644
+--- a/lens-aeson.cabal
++++ b/lens-aeson.cabal
+@@ -12,7 +12,7 @@ bug-reports:   http://github.com/lens/lens-aeson/issues
+ copyright:
+   Copyright (C) 2012 Paul Wilson
+   Copyright (C) 2013 Edward A. Kmett
+-build-type:    Custom
++build-type:    Simple
+ tested-with:   GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC==8.0.2, GHC==8.2.1
+ synopsis:      Law-abiding lenses for aeson
+ description:   Law-abiding lenses for aeson
+@@ -33,11 +33,11 @@ source-repository head
+   type: git
+   location: https://github.com/lens/lens-aeson
+ 
+-custom-setup
+-  setup-depends:
+-    base          >= 4 && < 5,
+-    Cabal,
+-    cabal-doctest >= 1 && < 1.1
++-- custom-setup
++--   setup-depends:
++--     base          >= 4 && < 5,
++--     Cabal,
++--     cabal-doctest >= 1 && < 1.1
+ 
+ -- You can disable the doctests test suite with -f-test-doctests
+ flag test-doctests
+-- 
+2.7.4 (Apple Git-66)
+
