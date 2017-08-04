@@ -3,7 +3,7 @@
 [![Build Status](https://circleci.com/gh/typelead/eta-hackage.svg?style=shield&circle-token=d70d4858668d80ca74fbaf0172c7f270a6b0a4f6)](https://circleci.com/gh/typelead/eta-hackage)
 
 This repository contains a set of patches for particular packages from
-Hackage that cannot be built out-of-the-box with `etlas`. To install a package, you 
+Hackage that cannot be built out-of-the-box with `etlas`. To install a package, you
 have to run the following command:
 
 ```
@@ -60,6 +60,7 @@ These packages are supported by `etlas`.
 - [async-2.1.1.1](https://hackage.haskell.org/package/async-2.1.1.1)
 - [attoparsec >= 0.13.1.0 && <= 0.13.2.0](https://hackage.haskell.org/package/attoparsec)
 - [auto-update-0.1.4](https://hackage.haskell.org/package/auto-update-0.1.4)
+- [avro-0.1.0.1](https://hackage.haskell.org/package/avro-0.1.0.1)
 - [base-compat >= 0.9.1 && <= 0.9.3](https://hackage.haskell.org/package/base-compat)
 - [base-orphans-0.5.4](https://hackage.haskell.org/package/base-orphans-0.5.4)
 - [base-prelude-1.0.1.1](https://hackage.haskell.org/package/base-prelude-1.0.1.1)
@@ -325,21 +326,21 @@ These packages are supported by `etlas`.
 
 ### Unsupported Packages
 
-These packages are heavy on FFI dependencies and don't make sense in the context 
+These packages are heavy on FFI dependencies and don't make sense in the context
 of the JVM, hence no effort will be made to port them.
 - None for now
 
 ### Built-in Packages
-These packages have special meaning in the Eta compiler and hence are provided 
+These packages have special meaning in the Eta compiler and hence are provided
 upon installation.
 - [base-4.8.2.0](https://hackage.haskell.org/package/base-4.8.2.0)
 - [integer-0.5.1.0](https://hackage.haskell.org/package/integer-gmp-0.5.1.0)
   - *NOTE*: Due to the drastic differences between the `Integer` implementations,
-            the public API between the corresponding GHC package is slightly 
+            the public API between the corresponding GHC package is slightly
             different.
 - [ghc-prim-0.4.0.0](https://hackage.haskell.org/package/ghc-prim-0.4.0.0)
   - *NOTE*: Due to the introduction of new primitives for Eta,
-            the public API between the corresponding GHC package is slightly 
+            the public API between the corresponding GHC package is slightly
             different.
 
 ## Contributing
@@ -383,9 +384,9 @@ If you have already forked this repository, then skip to step 3.
    cd somepackage-0.1.2.3/
    ```
 
-2. If the message "Found patch in eta-hackage for somepackage-0.1.2.3" appeared 
+2. If the message "Found patch in eta-hackage for somepackage-0.1.2.3" appeared
    in step 1, skip to step 3.
-   
+
    Otherwise, initialize a Git repository and make an initial commit.
 
    ```
@@ -419,27 +420,27 @@ If you have already forked this repository, then skip to step 3.
    cp somepackage.cabal somepackage-0.1.2.3.cabal
    ```
 
-8. Copy the patch file and the cabal file (if changed) to the `patches` directory 
-   in your local clone of your fork of the `eta-hackage` repository. 
-   
+8. Copy the patch file and the cabal file (if changed) to the `patches` directory
+   in your local clone of your fork of the `eta-hackage` repository.
+
    NOTE: `$YOUR_FORK_PATH` should be replaced with the path to the local clone
          of your forked version of `eta-hackage`.
-         
+
    If the cabal file didn't change:
-   
+
    ```
-   cp somepackage-0.1.2.3.patch $YOUR_FORK_PATH/patches/ 
+   cp somepackage-0.1.2.3.patch $YOUR_FORK_PATH/patches/
    ```
-   
+
    If the cabal file changes:
 
    ```
-   cp somepackage-0.1.2.3.cabal somepackage-0.1.2.3.patch $YOUR_FORK_PATH/patches/ 
+   cp somepackage-0.1.2.3.cabal somepackage-0.1.2.3.patch $YOUR_FORK_PATH/patches/
    ```
-   
+
 9. Update this `README.md` with the package name (in alphabetical order) in the
    **Supported Packages** section in the same format as the other packages.
-   
+
    If there already exists an entry for an older or newer version of the package,
    please consolidate the new versions into the existing entry. You can see the
    `directory` entry as an example.
