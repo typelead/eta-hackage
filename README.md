@@ -136,7 +136,7 @@ These packages are supported by `etlas`.
 - [fmlist-0.9](https://hackage.haskell.org/package/fmlist-0.9)
 - [free-4.12.4](https://hackage.haskell.org/package/free-4.12.4)
 - [garsia-wachs-1.2](https://hackage.haskell.org/package/garsia-wachs-1.2)
-- [generic-deriving >= 1.11.1 && <= 1.11.2](https://hackage.haskell.org/package/generic-deriving-1.11.2)
+- [generic-deriving >= 1.11 && <= 1.11.2](https://hackage.haskell.org/package/generic-deriving-1.11.2)
 - [GenericPretty-1.2.1](https://hackage.haskell.org/package/GenericPretty-1.2.1)
 - [gdiff-1.1](https://hackage.haskell.org/package/gdiff-1.1)
 - [gray-code-0.3.1](https://hackage.haskell.org/package/gray-code-0.3.1)
