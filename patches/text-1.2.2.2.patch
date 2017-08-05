@@ -1,6 +1,6 @@
-From 0145b6c7152bd177cee7abf8e599378cb5ede28e Mon Sep 17 00:00:00 2001
+From 2764598f27f710c565ac5a194496a3b52e3ed342 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 5 Aug 2017 13:07:33 -0400
+Date: Sat, 5 Aug 2017 13:13:58 -0400
 Subject: [PATCH] Patched
 
 ---
@@ -18,7 +18,7 @@ Subject: [PATCH] Patched
  create mode 100644 java/eta-0.0.9/Utils.java
 
 diff --git a/Data/Text.hs b/Data/Text.hs
-index 40c9f8a..fdd723a 100644
+index 6dd4c99..604471f 100644
 --- a/Data/Text.hs
 +++ b/Data/Text.hs
 @@ -1,4 +1,6 @@
@@ -29,7 +29,7 @@ index 40c9f8a..fdd723a 100644
  {-# OPTIONS_GHC -fno-warn-orphans #-}
  #if __GLASGOW_HASKELL__ >= 702
  {-# LANGUAGE Trustworthy #-}
-@@ -244,6 +246,17 @@ import qualified GHC.Exts as Exts
+@@ -245,6 +247,17 @@ import qualified GHC.Exts as Exts
  #if MIN_VERSION_base(4,7,0)
  import Text.Printf (PrintfArg, formatArg, formatString)
  #endif
@@ -47,7 +47,7 @@ index 40c9f8a..fdd723a 100644
  
  -- $strict
  --
-@@ -1750,3 +1763,25 @@ copy (Text arr off len) = Text (A.run go) 0 len
+@@ -1753,3 +1766,25 @@ copy (Text arr off len) = Text (A.run go) 0 len
        marr <- A.new len
        A.copyI marr 0 arr off len
        return marr
@@ -74,7 +74,7 @@ index 40c9f8a..fdd723a 100644
 +          (fp, off, len) = toForeignPtr bs
 +#endif
 diff --git a/Data/Text/Array.hs b/Data/Text/Array.hs
-index 8900958..12cb293 100644
+index fee18c5..5d62727 100644
 --- a/Data/Text/Array.hs
 +++ b/Data/Text/Array.hs
 @@ -54,8 +54,6 @@ if (_k_) < 0 || (_k_) >= (_len_) then error ("Data.Text.Array." ++ (_func_) ++ "
@@ -103,10 +103,10 @@ index 8900958..12cb293 100644
      :: MutableByteArray# s -> CSize -> MutableByteArray# s -> CSize -> CSize
      -> IO ()
 diff --git a/Data/Text/Encoding.hs b/Data/Text/Encoding.hs
-index 7289256..7e34b3e 100644
+index 1db9dd8..2a0f7fd 100644
 --- a/Data/Text/Encoding.hs
 +++ b/Data/Text/Encoding.hs
-@@ -474,17 +474,17 @@ encodeUtf32BE :: Text -> ByteString
+@@ -463,17 +463,17 @@ encodeUtf32BE :: Text -> ByteString
  encodeUtf32BE txt = E.unstream (E.restreamUtf32BE (F.stream txt))
  {-# INLINE encodeUtf32BE #-}
  
@@ -129,7 +129,7 @@ index 7289256..7e34b3e 100644
 +foreign import java unsafe "@static eta.text.Utils.encode_utf8" c_encode_utf8
      :: Ptr (Ptr Word8) -> ByteArray# -> CSize -> CSize -> IO ()
 diff --git a/Data/Text/Lazy.hs b/Data/Text/Lazy.hs
-index 1d1b3f1..2a406bf 100644
+index 7094bcc..98f92a9 100644
 --- a/Data/Text/Lazy.hs
 +++ b/Data/Text/Lazy.hs
 @@ -421,10 +421,12 @@ unpack t = S.unstreamList (stream t)
@@ -155,7 +155,7 @@ index 1d1b3f1..2a406bf 100644
  {-# RULES "LAZY TEXT empty literal"
      unstream (S.streamList (L.map safe []))
 diff --git a/Data/Text/Lazy/Builder/Int.hs b/Data/Text/Lazy/Builder/Int.hs
-index 1cb0651..8e68d92 100644
+index e096f19..17aec5b 100644
 --- a/Data/Text/Lazy/Builder/Int.hs
 +++ b/Data/Text/Lazy/Builder/Int.hs
 @@ -35,7 +35,7 @@ import Control.Monad.ST
@@ -592,10 +592,10 @@ index 0000000..ec89bcf
 +    }
 +}
 diff --git a/text.cabal b/text.cabal
-index a0f2d3b..c60a09f 100644
+index 55ce8a6..6189fbd 100644
 --- a/text.cabal
 +++ b/text.cabal
-@@ -75,7 +75,10 @@ flag integer-simple
+@@ -80,7 +80,10 @@ flag integer-simple
    manual: False
  
  library
@@ -607,7 +607,7 @@ index a0f2d3b..c60a09f 100644
    include-dirs: include
  
    exposed-modules:
-@@ -150,7 +153,7 @@ library
+@@ -156,7 +159,7 @@ library
      build-depends: integer-simple >= 0.1 && < 0.5
    else
      cpp-options: -DINTEGER_GMP
@@ -616,7 +616,7 @@ index a0f2d3b..c60a09f 100644
  
  test-suite tests
    type:           exitcode-stdio-1.0
-@@ -186,7 +189,7 @@ test-suite tests
+@@ -197,7 +200,7 @@ test-suite tests
      build-depends: integer-simple >= 0.1 && < 0.5
    else
      cpp-options: -DINTEGER_GMP

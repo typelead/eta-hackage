@@ -246,6 +246,7 @@ These packages are supported by `etlas`.
 - [primitive-0.6.2.0](https://hackage.haskell.org/package/primitive-0.6.2.0)
 - [profunctors-5.2](https://hackage.haskell.org/package/profunctors-5.2)
 - [protolude-0.1.10](https://hackage.haskell.org/package/protolude-0.1.10)
+- [pure-zlib-0.6](https://hackage.haskell.org/package/pure-zlib-0.6)
 - [queue-0.1.2](https://hackage.haskell.org/package/queue-0.1.2)
 - [QuickCheck >= 2.7.6 && <= 2.10.0.1](https://hackage.haskell.org/package/QuickCheck)
 - [quickcheck-io-0.1.4](https://hackage.haskell.org/package/quickcheck-io-0.1.4)
@@ -291,7 +292,7 @@ These packages are supported by `etlas`.
 - [template-haskell-2.11.0.0](https://hackage.haskell.org/package/template-haskell-2.11.0.0)
 - [terminal-size-0.3.2.1](https://hackage.haskell.org/package/terminal-size-0.3.2.1)
 - [testpack-2.1.3.0](https://hackage.haskell.org/package/testpack-2.1.3.0)
-- [text-1.2.2.1](https://hackage.haskell.org/package/text-1.2.2.1)
+- [text >= 1.2.2.1 && <= 1.2.2.2](https://hackage.haskell.org/package/text)
 - [tf-random-0.5](https://hackage.haskell.org/package/tf-random-0.5)
 - [time >= 1.6.0.1 <= 1.8.0.2](https://hackage.haskell.org/package/time)
 - [time-locale-compat-0.1.1.3](https://hackage.haskell.org/package/time-locale-compat-0.1.1.3)
@@ -399,30 +400,38 @@ If you have already forked this repository, then skip to step 3.
    etlas build
    ```
 
-4. Apply the desired changes and go back to step 3 as long as the build fails.
+4. If the previous version of the package has already been patched, try out:
 
-5. Once the build succeeds, make a commit.
+   ```
+   git apply --ignore-space-change --ignore-whitespace --reject [path-to-path]
+   ```
+   
+   This will work in most cases. If not, resolve the changes.
+   
+5. Otherwise, apply the desired changes and go back to step 3 as long as the build fails.
+
+6. Once the build succeeds, make a commit.
 
    ```
    git add . && git commit -m "Patched"
    ```
 
-6. Create a patch.
+7. Create a patch.
 
    ```
    git format-patch HEAD~ --stdout > somepackage-0.1.2.3.patch
    ```
 
-7. If you have changed the `.cabal` file of the package in your patch, make a copy
+8. If you have changed the `.cabal` file of the package in your patch, make a copy
    and rename it from `somepackage.cabal` to `somepackage-0.1.2.3.cabal`.
 
    ```
    cp somepackage.cabal somepackage-0.1.2.3.cabal
    ```
 
-8. Copy the patch file and the cabal file (if changed) to the `patches` directory
+9. Copy the patch file and the cabal file (if changed) to the `patches` directory
    in your local clone of your fork of the `eta-hackage` repository.
-
+   
    NOTE: `$YOUR_FORK_PATH` should be replaced with the path to the local clone
          of your forked version of `eta-hackage`.
 
@@ -438,14 +447,14 @@ If you have already forked this repository, then skip to step 3.
    cp somepackage-0.1.2.3.cabal somepackage-0.1.2.3.patch $YOUR_FORK_PATH/patches/
    ```
 
-9. Update this `README.md` with the package name (in alphabetical order) in the
-   **Supported Packages** section in the same format as the other packages.
+10. Update this `README.md` with the package name (in alphabetical order) in the
+    **Supported Packages** section in the same format as the other packages.
+   
+    If there already exists an entry for an older or newer version of the package,
+    please consolidate the new versions into the existing entry. You can see the
+    `directory` entry as an example.
 
-   If there already exists an entry for an older or newer version of the package,
-   please consolidate the new versions into the existing entry. You can see the
-   `directory` entry as an example.
-
-10. In your `eta-hackage` repository,
+11. In your `eta-hackage` repository,
 
     ```
     $ git add .
@@ -453,4 +462,4 @@ If you have already forked this repository, then skip to step 3.
     $ git push origin
     ```
 
-11. Submit a pull request to this repository for review.
+12. Submit a pull request to this repository for review.

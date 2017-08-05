@@ -1,5 +1,5 @@
 name:           text
-version:        1.2.2.1
+version:        1.2.2.2
 homepage:       https://github.com/bos/text
 bug-reports:    https://github.com/bos/text/issues
 synopsis:       An efficient packed Unicode text type.
@@ -31,7 +31,7 @@ description:
     the @text-icu@ package:
     <http://hackage.haskell.org/package/text-icu>
 
-license:        BSD3
+license:        BSD2
 license-file:   LICENSE
 author:         Bryan O'Sullivan <bos@serpentine.com>
 maintainer:     Bryan O'Sullivan <bos@serpentine.com>
@@ -63,6 +63,11 @@ extra-source-files:
     tests/cabal.config
     tests/scripts/*.sh
     tests/text-tests.cabal
+
+flag bytestring-builder
+  description: Depend on the bytestring-builder package for backwards compatibility.
+  default: False
+  manual: False
 
 flag developer
   description: operate in developer mode
@@ -136,10 +141,11 @@ library
     deepseq    >= 1.1.0.0,
     ghc-prim   >= 0.2
 
-  if impl(ghc >= 7.7)
-    build-depends: bytestring >= 0.10.4.0
+  if flag(bytestring-builder)
+    build-depends: bytestring         >= 0.9    && < 0.10.4,
+                   bytestring-builder >= 0.10.4
   else
-    build-depends: bytestring >= 0.9
+    build-depends: bytestring         >= 0.10.4
 
   cpp-options: -DHAVE_DEEPSEQ
   ghc-options: -Wall -fwarn-tabs -funbox-strict-fields -O2
@@ -174,15 +180,20 @@ test-suite tests
     array,
     base,
     binary,
-    bytestring,
     deepseq,
     directory,
     ghc-prim,
-    quickcheck-unicode,
+    quickcheck-unicode >= 1.0.1.0,
     random,
     test-framework >= 0.4,
     test-framework-hunit >= 0.2,
     test-framework-quickcheck2 >= 0.2
+
+  if flag(bytestring-builder)
+    build-depends: bytestring         >= 0.9    && < 0.10.4,
+                   bytestring-builder >= 0.10.4
+  else
+    build-depends: bytestring         >= 0.10.4
 
   if flag(integer-simple)
     cpp-options: -DINTEGER_SIMPLE
