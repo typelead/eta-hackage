@@ -294,7 +294,7 @@ These packages are supported by `etlas`.
 - [testpack-2.1.3.0](https://hackage.haskell.org/package/testpack-2.1.3.0)
 - [text >= 1.2.2.1 && <= 1.2.2.2](https://hackage.haskell.org/package/text)
 - [tf-random-0.5](https://hackage.haskell.org/package/tf-random-0.5)
-- [time >= 1.6.0.1 <= 1.8.0.2](https://hackage.haskell.org/package/time)
+- [time >= 1.6.0.1 <= 1.8.0.3](https://hackage.haskell.org/package/time)
 - [time-locale-compat-0.1.1.3](https://hackage.haskell.org/package/time-locale-compat-0.1.1.3)
 - [transformers >= 0.5.2.0 && <= 0.5.4.0](https://hackage.haskell.org/package/transformers)
 - [transformers-base-0.4.4](http://hackage.haskell.org/package/transformers-base-0.4.4)
