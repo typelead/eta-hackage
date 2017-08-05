@@ -1,0 +1,380 @@
+From 00e7ec276bc1ffb5d2bbb2fef9047f4c72c87b23 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sat, 5 Aug 2017 16:41:44 -0400
+Subject: [PATCH] Patched
+
+---
+ lens.cabal                  |  16 +--
+ src/Control/Lens/Wrapped.hs | 308 ++++++++++++++++++++++----------------------
+ 2 files changed, 162 insertions(+), 162 deletions(-)
+
+diff --git a/lens.cabal b/lens.cabal
+index 9318723..67f94cb 100644
+--- a/lens.cabal
++++ b/lens.cabal
+@@ -10,7 +10,7 @@ stability:     provisional
+ homepage:      http://github.com/ekmett/lens/
+ bug-reports:   http://github.com/ekmett/lens/issues
+ copyright:     Copyright (C) 2012-2016 Edward A. Kmett
+-build-type:    Custom
++build-type:    Simple
+ -- build-tools:   cpphs
+ tested-with:   GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.1
+ synopsis:      Lenses, Folds and Traversals
+@@ -113,12 +113,12 @@ source-repository head
+   type: git
+   location: https://github.com/ekmett/lens.git
+ 
+-custom-setup
+-  setup-depends:
+-    Cabal >= 1.10 && <2.1,
+-    base  >= 4.5 && <5,
+-    cabal-doctest >= 1 && <1.1,
+-    filepath
++-- custom-setup
++--   setup-depends:
++--     Cabal >= 1.10 && <2.1,
++--     base  >= 4.5 && <5,
++--     cabal-doctest >= 1 && <1.1,
++--     filepath
+ 
+ -- Enable benchmarking against Neil Mitchell's uniplate library for comparative performance analysis. Defaults to being turned off to avoid
+ -- the extra dependency.
+@@ -304,7 +304,7 @@ library
+   other-modules:
+     Paths_lens
+ 
+-  cpp-options: -traditional
++  -- cpp-options: -traditional
+ 
+   if flag(safe)
+     cpp-options: -DSAFE=1
+diff --git a/src/Control/Lens/Wrapped.hs b/src/Control/Lens/Wrapped.hs
+index 9ea5071..f46a897 100644
+--- a/src/Control/Lens/Wrapped.hs
++++ b/src/Control/Lens/Wrapped.hs
+@@ -909,155 +909,155 @@ failedAssertion (AssertionFailed x) = x
+ 
+ -- * Foreign.C.Types
+ 
+-instance Rewrapped CChar t
+-instance Wrapped CChar where
+-  type Unwrapped CChar = HTYPE_CHAR
+-  _Wrapped' = iso (\(CChar x) -> x) CChar
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CSChar t
+-instance Wrapped CSChar where
+-  type Unwrapped CSChar = HTYPE_SIGNED_CHAR
+-  _Wrapped' = iso (\(CSChar x) -> x) CSChar
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CUChar t
+-instance Wrapped CUChar where
+-  type Unwrapped CUChar = HTYPE_UNSIGNED_CHAR
+-  _Wrapped' = iso (\(CUChar x) -> x) CUChar
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CShort t
+-instance Wrapped CShort where
+-  type Unwrapped CShort = HTYPE_SHORT
+-  _Wrapped' = iso (\(CShort x) -> x) CShort
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CUShort t
+-instance Wrapped CUShort where
+-  type Unwrapped CUShort = HTYPE_UNSIGNED_SHORT
+-  _Wrapped' = iso (\(CUShort x) -> x) CUShort
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CInt t
+-instance Wrapped CInt where
+-  type Unwrapped CInt = HTYPE_INT
+-  _Wrapped' = iso (\(CInt x) -> x) CInt
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CUInt t
+-instance Wrapped CUInt where
+-  type Unwrapped CUInt = HTYPE_UNSIGNED_INT
+-  _Wrapped' = iso (\(CUInt x) -> x) CUInt
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CLong t
+-instance Wrapped CLong where
+-  type Unwrapped CLong = HTYPE_LONG
+-  _Wrapped' = iso (\(CLong x) -> x) CLong
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CULong t
+-instance Wrapped CULong where
+-  type Unwrapped CULong = HTYPE_UNSIGNED_LONG
+-  _Wrapped' = iso (\(CULong x) -> x) CULong
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CLLong t
+-instance Wrapped CLLong where
+-  type Unwrapped CLLong = HTYPE_LONG_LONG
+-  _Wrapped' = iso (\(CLLong x) -> x) CLLong
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CULLong t
+-instance Wrapped CULLong where
+-  type Unwrapped CULLong = HTYPE_UNSIGNED_LONG_LONG
+-  _Wrapped' = iso (\(CULLong x) -> x) CULLong
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CFloat t
+-instance Wrapped CFloat where
+-  type Unwrapped CFloat = HTYPE_FLOAT
+-  _Wrapped' = iso (\(CFloat x) -> x) CFloat
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CDouble t
+-instance Wrapped CDouble where
+-  type Unwrapped CDouble = HTYPE_DOUBLE
+-  _Wrapped' = iso (\(CDouble x) -> x) CDouble
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CPtrdiff t
+-instance Wrapped CPtrdiff where
+-  type Unwrapped CPtrdiff = HTYPE_PTRDIFF_T
+-  _Wrapped' = iso (\(CPtrdiff x) -> x) CPtrdiff
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CSize t
+-instance Wrapped CSize where
+-  type Unwrapped CSize = HTYPE_SIZE_T
+-  _Wrapped' = iso (\(CSize x) -> x) CSize
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CWchar t
+-instance Wrapped CWchar where
+-  type Unwrapped CWchar = HTYPE_WCHAR_T
+-  _Wrapped' = iso (\(CWchar x) -> x) CWchar
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CSigAtomic t
+-instance Wrapped CSigAtomic where
+-  type Unwrapped CSigAtomic = HTYPE_SIG_ATOMIC_T
+-  _Wrapped' = iso (\(CSigAtomic x) -> x) CSigAtomic
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CClock t
+-instance Wrapped CClock where
+-  type Unwrapped CClock = HTYPE_CLOCK_T
+-  _Wrapped' = iso (\(CClock x) -> x) CClock
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CTime t
+-instance Wrapped CTime where
+-  type Unwrapped CTime = HTYPE_TIME_T
+-  _Wrapped' = iso (\(CTime x) -> x) CTime
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CUSeconds t
+-instance Wrapped CUSeconds where
+-  type Unwrapped CUSeconds = HTYPE_USECONDS_T
+-  _Wrapped' = iso (\(CUSeconds x) -> x) CUSeconds
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CSUSeconds t
+-instance Wrapped CSUSeconds where
+-  type Unwrapped CSUSeconds = HTYPE_SUSECONDS_T
+-  _Wrapped' = iso (\(CSUSeconds x) -> x) CSUSeconds
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CIntPtr t
+-instance Wrapped CIntPtr where
+-  type Unwrapped CIntPtr = HTYPE_INTPTR_T
+-  _Wrapped' = iso (\(CIntPtr x) -> x) CIntPtr
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CUIntPtr t
+-instance Wrapped CUIntPtr where
+-  type Unwrapped CUIntPtr = HTYPE_UINTPTR_T
+-  _Wrapped' = iso (\(CUIntPtr x) -> x) CUIntPtr
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CIntMax t
+-instance Wrapped CIntMax where
+-  type Unwrapped CIntMax = HTYPE_INTMAX_T
+-  _Wrapped' = iso (\(CIntMax x) -> x) CIntMax
+-  {-# INLINE _Wrapped' #-}
+-
+-instance Rewrapped CUIntMax t
+-instance Wrapped CUIntMax where
+-  type Unwrapped CUIntMax = HTYPE_UINTMAX_T
+-  _Wrapped' = iso (\(CUIntMax x) -> x) CUIntMax
+-  {-# INLINE _Wrapped' #-}
++-- instance Rewrapped CChar t
++-- instance Wrapped CChar where
++--   type Unwrapped CChar = HTYPE_CHAR
++--   _Wrapped' = iso (\(CChar x) -> x) CChar
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CSChar t
++-- instance Wrapped CSChar where
++--   type Unwrapped CSChar = HTYPE_SIGNED_CHAR
++--   _Wrapped' = iso (\(CSChar x) -> x) CSChar
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CUChar t
++-- instance Wrapped CUChar where
++--   type Unwrapped CUChar = HTYPE_UNSIGNED_CHAR
++--   _Wrapped' = iso (\(CUChar x) -> x) CUChar
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CShort t
++-- instance Wrapped CShort where
++--   type Unwrapped CShort = HTYPE_SHORT
++--   _Wrapped' = iso (\(CShort x) -> x) CShort
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CUShort t
++-- instance Wrapped CUShort where
++--   type Unwrapped CUShort = HTYPE_UNSIGNED_SHORT
++--   _Wrapped' = iso (\(CUShort x) -> x) CUShort
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CInt t
++-- instance Wrapped CInt where
++--   type Unwrapped CInt = HTYPE_INT
++--   _Wrapped' = iso (\(CInt x) -> x) CInt
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CUInt t
++-- instance Wrapped CUInt where
++--   type Unwrapped CUInt = HTYPE_UNSIGNED_INT
++--   _Wrapped' = iso (\(CUInt x) -> x) CUInt
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CLong t
++-- instance Wrapped CLong where
++--   type Unwrapped CLong = HTYPE_LONG
++--   _Wrapped' = iso (\(CLong x) -> x) CLong
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CULong t
++-- instance Wrapped CULong where
++--   type Unwrapped CULong = HTYPE_UNSIGNED_LONG
++--   _Wrapped' = iso (\(CULong x) -> x) CULong
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CLLong t
++-- instance Wrapped CLLong where
++--   type Unwrapped CLLong = HTYPE_LONG_LONG
++--   _Wrapped' = iso (\(CLLong x) -> x) CLLong
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CULLong t
++-- instance Wrapped CULLong where
++--   type Unwrapped CULLong = HTYPE_UNSIGNED_LONG_LONG
++--   _Wrapped' = iso (\(CULLong x) -> x) CULLong
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CFloat t
++-- instance Wrapped CFloat where
++--   type Unwrapped CFloat = HTYPE_FLOAT
++--   _Wrapped' = iso (\(CFloat x) -> x) CFloat
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CDouble t
++-- instance Wrapped CDouble where
++--   type Unwrapped CDouble = HTYPE_DOUBLE
++--   _Wrapped' = iso (\(CDouble x) -> x) CDouble
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CPtrdiff t
++-- instance Wrapped CPtrdiff where
++--   type Unwrapped CPtrdiff = HTYPE_PTRDIFF_T
++--   _Wrapped' = iso (\(CPtrdiff x) -> x) CPtrdiff
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CSize t
++-- instance Wrapped CSize where
++--   type Unwrapped CSize = HTYPE_SIZE_T
++--   _Wrapped' = iso (\(CSize x) -> x) CSize
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CWchar t
++-- instance Wrapped CWchar where
++--   type Unwrapped CWchar = HTYPE_WCHAR_T
++--   _Wrapped' = iso (\(CWchar x) -> x) CWchar
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CSigAtomic t
++-- instance Wrapped CSigAtomic where
++--   type Unwrapped CSigAtomic = HTYPE_SIG_ATOMIC_T
++--   _Wrapped' = iso (\(CSigAtomic x) -> x) CSigAtomic
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CClock t
++-- instance Wrapped CClock where
++--   type Unwrapped CClock = HTYPE_CLOCK_T
++--   _Wrapped' = iso (\(CClock x) -> x) CClock
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CTime t
++-- instance Wrapped CTime where
++--   type Unwrapped CTime = HTYPE_TIME_T
++--   _Wrapped' = iso (\(CTime x) -> x) CTime
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CUSeconds t
++-- instance Wrapped CUSeconds where
++--   type Unwrapped CUSeconds = HTYPE_USECONDS_T
++--   _Wrapped' = iso (\(CUSeconds x) -> x) CUSeconds
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CSUSeconds t
++-- instance Wrapped CSUSeconds where
++--   type Unwrapped CSUSeconds = HTYPE_SUSECONDS_T
++--   _Wrapped' = iso (\(CSUSeconds x) -> x) CSUSeconds
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CIntPtr t
++-- instance Wrapped CIntPtr where
++--   type Unwrapped CIntPtr = HTYPE_INTPTR_T
++--   _Wrapped' = iso (\(CIntPtr x) -> x) CIntPtr
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CUIntPtr t
++-- instance Wrapped CUIntPtr where
++--   type Unwrapped CUIntPtr = HTYPE_UINTPTR_T
++--   _Wrapped' = iso (\(CUIntPtr x) -> x) CUIntPtr
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CIntMax t
++-- instance Wrapped CIntMax where
++--   type Unwrapped CIntMax = HTYPE_INTMAX_T
++--   _Wrapped' = iso (\(CIntMax x) -> x) CIntMax
++--   {-# INLINE _Wrapped' #-}
++
++-- instance Rewrapped CUIntMax t
++-- instance Wrapped CUIntMax where
++--   type Unwrapped CUIntMax = HTYPE_UINTMAX_T
++--   _Wrapped' = iso (\(CUIntMax x) -> x) CUIntMax
++--   {-# INLINE _Wrapped' #-}
+ 
+ -- * GHC.Generics
+ 
+@@ -1197,11 +1197,11 @@ instance Wrapped CRLim where
+   {-# INLINE _Wrapped' #-}
+ #endif
+ 
+-instance Rewrapped Fd t
+-instance Wrapped Fd where
+-  type Unwrapped Fd = CInt
+-  _Wrapped' = iso (\(Fd x) -> x) Fd
+-  {-# INLINE _Wrapped' #-}
++-- instance Rewrapped Fd t
++-- instance Wrapped Fd where
++--   type Unwrapped Fd = Int
++--   _Wrapped' = iso (\(Fd x) -> x) Fd
++--   {-# INLINE _Wrapped' #-}
+ 
+ #if MIN_VERSION_base(4,10,0)
+ instance Rewrapped CBool t
+-- 
+2.7.4 (Apple Git-66)
+
