@@ -1,0 +1,215 @@
+From bb1d9718dba5e5e69cd9c867a9a49b809aed8dee Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 6 Aug 2017 14:22:47 -0400
+Subject: [PATCH] Patched
+
+---
+ src/Generics/Deriving/Enum.hs | 112 +++++++++++++++++++++---------------------
+ 1 file changed, 56 insertions(+), 56 deletions(-)
+
+diff --git a/src/Generics/Deriving/Enum.hs b/src/Generics/Deriving/Enum.hs
+index 2315ff7..2641ae5 100644
+--- a/src/Generics/Deriving/Enum.hs
++++ b/src/Generics/Deriving/Enum.hs
+@@ -240,22 +240,22 @@ instance GEnum CCc where
+   genum = coerce (genum :: [HTYPE_CC_T])
+ #endif
+ 
+-instance GEnum CChar where
+-  genum = coerce (genum :: [HTYPE_CHAR])
++-- instance GEnum CChar where
++--   genum = coerce (genum :: [HTYPE_CHAR])
+ 
+-instance GEnum CClock where
+-  genum = coerce (genum :: [HTYPE_CLOCK_T])
++-- instance GEnum CClock where
++--   genum = coerce (genum :: [HTYPE_CLOCK_T])
+ 
+ #if defined(HTYPE_DEV_T)
+ instance GEnum CDev where
+   genum = coerce (genum :: [HTYPE_DEV_T])
+ #endif
+ 
+-instance GEnum CDouble where
+-  genum = coerce (genum :: [HTYPE_DOUBLE])
++-- instance GEnum CDouble where
++--   genum = coerce (genum :: [HTYPE_DOUBLE])
+ 
+-instance GEnum CFloat where
+-  genum = coerce (genum :: [HTYPE_FLOAT])
++-- instance GEnum CFloat where
++--   genum = coerce (genum :: [HTYPE_FLOAT])
+ 
+ #if defined(HTYPE_GID_T)
+ instance GEnum CGid where
+@@ -267,20 +267,20 @@ instance GEnum CIno where
+   genum = coerce (genum :: [HTYPE_INO_T])
+ #endif
+ 
+-instance GEnum CInt where
+-  genum = coerce (genum :: [HTYPE_INT])
++-- instance GEnum CInt where
++--   genum = coerce (genum :: [HTYPE_INT])
+ 
+-instance GEnum CIntMax where
+-  genum = coerce (genum :: [HTYPE_INTMAX_T])
++-- instance GEnum CIntMax where
++--   genum = coerce (genum :: [HTYPE_INTMAX_T])
+ 
+-instance GEnum CIntPtr where
+-  genum = coerce (genum :: [HTYPE_INTPTR_T])
++-- instance GEnum CIntPtr where
++--   genum = coerce (genum :: [HTYPE_INTPTR_T])
+ 
+-instance GEnum CLLong where
+-  genum = coerce (genum :: [HTYPE_LONG_LONG])
++-- instance GEnum CLLong where
++--   genum = coerce (genum :: [HTYPE_LONG_LONG])
+ 
+-instance GEnum CLong where
+-  genum = coerce (genum :: [HTYPE_LONG])
++-- instance GEnum CLong where
++--   genum = coerce (genum :: [HTYPE_LONG])
+ 
+ #if defined(HTYPE_MODE_T)
+ instance GEnum CMode where
+@@ -310,16 +310,16 @@ instance GEnum CPid where
+   genum = coerce (genum :: [HTYPE_PID_T])
+ #endif
+ 
+-instance GEnum CPtrdiff where
+-  genum = coerce (genum :: [HTYPE_PTRDIFF_T])
++-- instance GEnum CPtrdiff where
++--   genum = coerce (genum :: [HTYPE_PTRDIFF_T])
+ 
+ #if defined(HTYPE_RLIM_T)
+ instance GEnum CRLim where
+   genum = coerce (genum :: [HTYPE_RLIM_T])
+ #endif
+ 
+-instance GEnum CSChar where
+-  genum = coerce (genum :: [HTYPE_SIGNED_CHAR])
++-- instance GEnum CSChar where
++--   genum = coerce (genum :: [HTYPE_SIGNED_CHAR])
+ 
+ #if defined(HTYPE_SPEED_T)
+ instance GEnum CSpeed where
+@@ -327,18 +327,18 @@ instance GEnum CSpeed where
+ #endif
+ 
+ #if MIN_VERSION_base(4,4,0)
+-instance GEnum CSUSeconds where
+-  genum = coerce (genum :: [HTYPE_SUSECONDS_T])
++-- instance GEnum CSUSeconds where
++--   genum = coerce (genum :: [HTYPE_SUSECONDS_T])
+ #endif
+ 
+-instance GEnum CShort where
+-  genum = coerce (genum :: [HTYPE_SHORT])
++-- instance GEnum CShort where
++--   genum = coerce (genum :: [HTYPE_SHORT])
+ 
+-instance GEnum CSigAtomic where
+-  genum = coerce (genum :: [HTYPE_SIG_ATOMIC_T])
++-- instance GEnum CSigAtomic where
++--   genum = coerce (genum :: [HTYPE_SIG_ATOMIC_T])
+ 
+-instance GEnum CSize where
+-  genum = coerce (genum :: [HTYPE_SIZE_T])
++-- instance GEnum CSize where
++--   genum = coerce (genum :: [HTYPE_SIZE_T])
+ 
+ #if defined(HTYPE_SSIZE_T)
+ instance GEnum CSsize where
+@@ -350,42 +350,42 @@ instance GEnum CTcflag where
+   genum = coerce (genum :: [HTYPE_TCFLAG_T])
+ #endif
+ 
+-instance GEnum CTime where
+-  genum = coerce (genum :: [HTYPE_TIME_T])
++-- instance GEnum CTime where
++--   genum = coerce (genum :: [HTYPE_TIME_T])
+ 
+-instance GEnum CUChar where
+-  genum = coerce (genum :: [HTYPE_UNSIGNED_CHAR])
++-- instance GEnum CUChar where
++--   genum = coerce (genum :: [HTYPE_UNSIGNED_CHAR])
+ 
+ #if defined(HTYPE_UID_T)
+ instance GEnum CUid where
+   genum = coerce (genum :: [HTYPE_UID_T])
+ #endif
+ 
+-instance GEnum CUInt where
+-  genum = coerce (genum :: [HTYPE_UNSIGNED_INT])
++-- instance GEnum CUInt where
++--   genum = coerce (genum :: [HTYPE_UNSIGNED_INT])
+ 
+-instance GEnum CUIntMax where
+-  genum = coerce (genum :: [HTYPE_UINTMAX_T])
++-- instance GEnum CUIntMax where
++--   genum = coerce (genum :: [HTYPE_UINTMAX_T])
+ 
+-instance GEnum CUIntPtr where
+-  genum = coerce (genum :: [HTYPE_UINTPTR_T])
++-- instance GEnum CUIntPtr where
++--   genum = coerce (genum :: [HTYPE_UINTPTR_T])
+ 
+-instance GEnum CULLong where
+-  genum = coerce (genum :: [HTYPE_UNSIGNED_LONG_LONG])
++-- instance GEnum CULLong where
++--   genum = coerce (genum :: [HTYPE_UNSIGNED_LONG_LONG])
+ 
+-instance GEnum CULong where
+-  genum = coerce (genum :: [HTYPE_UNSIGNED_LONG])
++-- instance GEnum CULong where
++--   genum = coerce (genum :: [HTYPE_UNSIGNED_LONG])
+ 
+ #if MIN_VERSION_base(4,4,0)
+-instance GEnum CUSeconds where
+-  genum = coerce (genum :: [HTYPE_USECONDS_T])
++-- instance GEnum CUSeconds where
++--   genum = coerce (genum :: [HTYPE_USECONDS_T])
+ #endif
+ 
+-instance GEnum CUShort where
+-  genum = coerce (genum :: [HTYPE_UNSIGNED_SHORT])
++-- instance GEnum CUShort where
++--   genum = coerce (genum :: [HTYPE_UNSIGNED_SHORT])
+ 
+-instance GEnum CWchar where
+-  genum = coerce (genum :: [HTYPE_WCHAR_T])
++-- instance GEnum CWchar where
++--   genum = coerce (genum :: [HTYPE_WCHAR_T])
+ 
+ instance GEnum Double where
+   genum = genumNumUnbounded
+@@ -399,8 +399,8 @@ instance (GEnum a, GEnum b) => GEnum (Either a b) where
+ instance GEnum ExitCode where
+   genum = genumDefault
+ 
+-instance GEnum Fd where
+-  genum = coerce (genum :: [CInt])
++-- instance GEnum Fd where
++--   genum = coerce (genum :: [CInt])
+ 
+ instance GEnum a => GEnum (Monoid.First a) where
+   genum = genumDefault
+@@ -872,10 +872,10 @@ instance GIx ExitCode where
+   index   = indexDefault
+   inRange = inRangeDefault
+ 
+-instance GIx Fd where
+-  range   = rangeEnum
+-  index   = indexIntegral
+-  inRange = inRangeOrd
++-- instance GIx Fd where
++--   range   = rangeEnum
++--   index   = indexIntegral
++--   inRange = inRangeOrd
+ 
+ instance (GEq a, GEnum a, GIx a) => GIx (Monoid.First a) where
+   range   = rangeDefault
+-- 
+2.7.4 (Apple Git-66)
+
