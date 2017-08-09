@@ -1,12 +1,52 @@
-From bb1d9718dba5e5e69cd9c867a9a49b809aed8dee Mon Sep 17 00:00:00 2001
+From 54361def9d5abe7a2bcf61950874deb3a7c6cca5 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sun, 6 Aug 2017 14:22:47 -0400
+Date: Wed, 9 Aug 2017 18:03:27 -0400
 Subject: [PATCH] Patched
 
 ---
+ generic-deriving.cabal        |  18 +++----
  src/Generics/Deriving/Enum.hs | 112 +++++++++++++++++++++---------------------
- 1 file changed, 56 insertions(+), 56 deletions(-)
+ 2 files changed, 65 insertions(+), 65 deletions(-)
 
+diff --git a/generic-deriving.cabal b/generic-deriving.cabal
+index 1c55c26..8e1b12c 100644
+--- a/generic-deriving.cabal
++++ b/generic-deriving.cabal
+@@ -43,7 +43,7 @@ source-repository head
+ flag base-4-9
+   description:          Use base-4.9 or later. This version of base uses a
+                         DataKinds-based encoding of GHC generics metadata.
+-  default:              True
++  default:              False
+ 
+ library
+   hs-source-dirs:       src
+@@ -62,17 +62,17 @@ library
+                         Generics.Deriving.Traversable
+                         Generics.Deriving.Uniplate
+ 
+-                        Generics.Deriving.TH
++                        -- Generics.Deriving.TH
+ 
+   other-modules:        Generics.Deriving.Base.Internal
+-                        Generics.Deriving.TH.Internal
++                        -- Generics.Deriving.TH.Internal
+                         Paths_generic_deriving
+-  if flag(base-4-9)
+-    build-depends:      base >= 4.9 && < 5
+-    other-modules:      Generics.Deriving.TH.Post4'9
+-  else
+-    build-depends:      base >= 4.3 && < 4.9
+-    other-modules:      Generics.Deriving.TH.Pre4'9
++  -- if flag(base-4-9)
++  --   build-depends:      base >= 4.9 && < 5
++  --   other-modules:      Generics.Deriving.TH.Post4'9
++  -- else
++  build-depends:      base >= 4.3 && < 4.9
++    -- other-modules:      Generics.Deriving.TH.Pre4'9
+ 
+   build-depends:        containers       >= 0.1 && < 0.6
+                       , ghc-prim                   < 1
 diff --git a/src/Generics/Deriving/Enum.hs b/src/Generics/Deriving/Enum.hs
 index 2315ff7..2641ae5 100644
 --- a/src/Generics/Deriving/Enum.hs

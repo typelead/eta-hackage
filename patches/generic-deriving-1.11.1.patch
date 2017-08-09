@@ -1,12 +1,207 @@
-From 368cf773fdc2aced778d8cf6e75ff87c62ee0f84 Mon Sep 17 00:00:00 2001
+From 1218762bcb9c1417a82d3e0cd0cefa4b7de5043b Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 31 Dec 2016 14:00:47 +0530
+Date: Wed, 9 Aug 2017 18:10:34 -0400
 Subject: [PATCH] Patched
 
 ---
- src/Generics/Deriving/Enum.hs | 112 +++++++++++++++++++++---------------------
- 1 file changed, 56 insertions(+), 56 deletions(-)
+ generic-deriving.cabal        | 189 +++++++++++++++++++++---------------------
+ src/Generics/Deriving/Enum.hs | 112 ++++++++++++-------------
+ 2 files changed, 151 insertions(+), 150 deletions(-)
 
+diff --git a/generic-deriving.cabal b/generic-deriving.cabal
+index 494a4f1..64eda95 100644
+--- a/generic-deriving.cabal
++++ b/generic-deriving.cabal
+@@ -1,94 +1,95 @@
+-name:                   generic-deriving
+-version:                1.11.1
+-synopsis:               Generic programming library for generalised deriving.
+-description:
+-
+-  This package provides functionality for generalising the deriving mechanism
+-  in Haskell to arbitrary classes. It was first described in the paper:
+-  .
+-  *  /A generic deriving mechanism for Haskell/.
+-     Jose Pedro Magalhaes, Atze Dijkstra, Johan Jeuring, and Andres Loeh.
+-     Haskell'10.
+-  .
+-  The current implementation integrates with the new GHC Generics. See
+-  <http://www.haskell.org/haskellwiki/GHC.Generics> for more information.
+-  Template Haskell code is provided for supporting older GHCs.
+-
+-homepage:               https://github.com/dreixel/generic-deriving
+-bug-reports:            https://github.com/dreixel/generic-deriving/issues
+-category:               Generics
+-copyright:              2011-2013 Universiteit Utrecht, University of Oxford
+-license:                BSD3
+-license-file:           LICENSE
+-author:                 José Pedro Magalhães
+-maintainer:             generics@haskell.org
+-stability:              experimental
+-build-type:             Simple
+-cabal-version:          >= 1.10
+-tested-with:            GHC == 7.0.4
+-                      , GHC == 7.2.2
+-                      , GHC == 7.4.2
+-                      , GHC == 7.6.3
+-                      , GHC == 7.8.4
+-                      , GHC == 7.10.3
+-                      , GHC == 8.0.1
+-extra-source-files:     CHANGELOG.md
+-                      , README.md
+-
+-source-repository head
+-  type: git
+-  location: https://github.com/dreixel/generic-deriving
+-
+-flag base-4-9
+-  description:          Use base-4.9 or later. This version of base uses a
+-                        DataKinds-based encoding of GHC generics metadata.
+-  default:              True
+-
+-library
+-  hs-source-dirs:       src
+-  exposed-modules:      Generics.Deriving
+-                        Generics.Deriving.Base
+-                        Generics.Deriving.Instances
+-                        Generics.Deriving.Copoint
+-                        Generics.Deriving.ConNames
+-                        Generics.Deriving.Enum
+-                        Generics.Deriving.Eq
+-                        Generics.Deriving.Foldable
+-                        Generics.Deriving.Functor
+-                        Generics.Deriving.Monoid
+-                        Generics.Deriving.Semigroup
+-                        Generics.Deriving.Show
+-                        Generics.Deriving.Traversable
+-                        Generics.Deriving.Uniplate
+-
+-                        Generics.Deriving.TH
+-
+-  other-modules:        Generics.Deriving.Base.Internal
+-                        Generics.Deriving.TH.Internal
+-                        Paths_generic_deriving
+-  if flag(base-4-9)
+-    build-depends:      base >= 4.9 && < 5
+-    other-modules:      Generics.Deriving.TH.Post4_9
+-  else
+-    build-depends:      base >= 4.3 && < 4.9
+-    other-modules:      Generics.Deriving.TH.Pre4_9
+-
+-  build-depends:        containers       >= 0.1 && < 0.6
+-                      , ghc-prim                   < 1
+-                      , template-haskell >= 2.4 && < 2.12
+-
+-  default-language:     Haskell2010
+-  ghc-options:          -Wall
+-
+-test-suite spec
+-  type:                 exitcode-stdio-1.0
+-  main-is:              Spec.hs
+-  other-modules:        ExampleSpec
+-                        TypeInTypeSpec
+-  build-depends:        base             >= 4.3  && < 5
+-                      , generic-deriving == 1.11.1
+-                      , hspec            >= 2    && < 3
+-                      , template-haskell >= 2.4  && < 2.12
+-  hs-source-dirs:       tests
+-  default-language:     Haskell2010
+-  ghc-options:          -Wall -threaded -rtsopts
++name:                   generic-deriving
++version:                1.11.1
++x-revision: 1
++synopsis:               Generic programming library for generalised deriving.
++description:
++
++  This package provides functionality for generalising the deriving mechanism
++  in Haskell to arbitrary classes. It was first described in the paper:
++  .
++  *  /A generic deriving mechanism for Haskell/.
++     Jose Pedro Magalhaes, Atze Dijkstra, Johan Jeuring, and Andres Loeh.
++     Haskell'10.
++  .
++  The current implementation integrates with the new GHC Generics. See
++  <http://www.haskell.org/haskellwiki/GHC.Generics> for more information.
++  Template Haskell code is provided for supporting older GHCs.
++
++homepage:               https://github.com/dreixel/generic-deriving
++bug-reports:            https://github.com/dreixel/generic-deriving/issues
++category:               Generics
++copyright:              2011-2013 Universiteit Utrecht, University of Oxford
++license:                BSD3
++license-file:           LICENSE
++author:                 José Pedro Magalhães
++maintainer:             generics@haskell.org
++stability:              experimental
++build-type:             Simple
++cabal-version:          >= 1.10
++tested-with:            GHC == 7.0.4
++                      , GHC == 7.2.2
++                      , GHC == 7.4.2
++                      , GHC == 7.6.3
++                      , GHC == 7.8.4
++                      , GHC == 7.10.3
++                      , GHC == 8.0.1
++extra-source-files:     CHANGELOG.md
++                      , README.md
++
++source-repository head
++  type: git
++  location: https://github.com/dreixel/generic-deriving
++
++flag base-4-9
++  description:          Use base-4.9 or later. This version of base uses a
++                        DataKinds-based encoding of GHC generics metadata.
++  default:              False
++
++library
++  hs-source-dirs:       src
++  exposed-modules:      Generics.Deriving
++                        Generics.Deriving.Base
++                        Generics.Deriving.Instances
++                        Generics.Deriving.Copoint
++                        Generics.Deriving.ConNames
++                        Generics.Deriving.Enum
++                        Generics.Deriving.Eq
++                        Generics.Deriving.Foldable
++                        Generics.Deriving.Functor
++                        Generics.Deriving.Monoid
++                        Generics.Deriving.Semigroup
++                        Generics.Deriving.Show
++                        Generics.Deriving.Traversable
++                        Generics.Deriving.Uniplate
++
++                        -- Generics.Deriving.TH
++
++  other-modules:        Generics.Deriving.Base.Internal
++                        -- Generics.Deriving.TH.Internal
++                        Paths_generic_deriving
++  -- if flag(base-4-9)
++  --   build-depends:      base >= 4.9 && < 5
++  --   other-modules:      Generics.Deriving.TH.Post4_9
++  -- else
++  build-depends:      base >= 4.3 && < 4.9
++    -- other-modules:      Generics.Deriving.TH.Pre4_9
++
++  build-depends:        containers       >= 0.1 && < 0.6
++                      , ghc-prim                   < 1
++                      , template-haskell >= 2.4 && < 2.13
++
++  default-language:     Haskell2010
++  ghc-options:          -Wall
++
++test-suite spec
++  type:                 exitcode-stdio-1.0
++  main-is:              Spec.hs
++  other-modules:        ExampleSpec
++                        TypeInTypeSpec
++  build-depends:        base             >= 4.3  && < 5
++                      , generic-deriving == 1.11.1
++                      , hspec            >= 2    && < 3
++                      , template-haskell >= 2.4  && < 2.12
++  hs-source-dirs:       tests
++  default-language:     Haskell2010
++  ghc-options:          -Wall -threaded -rtsopts
 diff --git a/src/Generics/Deriving/Enum.hs b/src/Generics/Deriving/Enum.hs
 index 2315ff7..2641ae5 100644
 --- a/src/Generics/Deriving/Enum.hs
@@ -14,191 +209,191 @@ index 2315ff7..2641ae5 100644
 @@ -240,22 +240,22 @@ instance GEnum CCc where
    genum = coerce (genum :: [HTYPE_CC_T])
  #endif
-
+ 
 -instance GEnum CChar where
 -  genum = coerce (genum :: [HTYPE_CHAR])
 +-- instance GEnum CChar where
 +--   genum = coerce (genum :: [HTYPE_CHAR])
-
+ 
 -instance GEnum CClock where
 -  genum = coerce (genum :: [HTYPE_CLOCK_T])
 +-- instance GEnum CClock where
 +--   genum = coerce (genum :: [HTYPE_CLOCK_T])
-
+ 
  #if defined(HTYPE_DEV_T)
  instance GEnum CDev where
    genum = coerce (genum :: [HTYPE_DEV_T])
  #endif
-
+ 
 -instance GEnum CDouble where
 -  genum = coerce (genum :: [HTYPE_DOUBLE])
 +-- instance GEnum CDouble where
 +--   genum = coerce (genum :: [HTYPE_DOUBLE])
-
+ 
 -instance GEnum CFloat where
 -  genum = coerce (genum :: [HTYPE_FLOAT])
 +-- instance GEnum CFloat where
 +--   genum = coerce (genum :: [HTYPE_FLOAT])
-
+ 
  #if defined(HTYPE_GID_T)
  instance GEnum CGid where
 @@ -267,20 +267,20 @@ instance GEnum CIno where
    genum = coerce (genum :: [HTYPE_INO_T])
  #endif
-
+ 
 -instance GEnum CInt where
 -  genum = coerce (genum :: [HTYPE_INT])
 +-- instance GEnum CInt where
 +--   genum = coerce (genum :: [HTYPE_INT])
-
+ 
 -instance GEnum CIntMax where
 -  genum = coerce (genum :: [HTYPE_INTMAX_T])
 +-- instance GEnum CIntMax where
 +--   genum = coerce (genum :: [HTYPE_INTMAX_T])
-
+ 
 -instance GEnum CIntPtr where
 -  genum = coerce (genum :: [HTYPE_INTPTR_T])
 +-- instance GEnum CIntPtr where
 +--   genum = coerce (genum :: [HTYPE_INTPTR_T])
-
+ 
 -instance GEnum CLLong where
 -  genum = coerce (genum :: [HTYPE_LONG_LONG])
 +-- instance GEnum CLLong where
 +--   genum = coerce (genum :: [HTYPE_LONG_LONG])
-
+ 
 -instance GEnum CLong where
 -  genum = coerce (genum :: [HTYPE_LONG])
 +-- instance GEnum CLong where
 +--   genum = coerce (genum :: [HTYPE_LONG])
-
+ 
  #if defined(HTYPE_MODE_T)
  instance GEnum CMode where
 @@ -310,16 +310,16 @@ instance GEnum CPid where
    genum = coerce (genum :: [HTYPE_PID_T])
  #endif
-
+ 
 -instance GEnum CPtrdiff where
 -  genum = coerce (genum :: [HTYPE_PTRDIFF_T])
 +-- instance GEnum CPtrdiff where
 +--   genum = coerce (genum :: [HTYPE_PTRDIFF_T])
-
+ 
  #if defined(HTYPE_RLIM_T)
  instance GEnum CRLim where
    genum = coerce (genum :: [HTYPE_RLIM_T])
  #endif
-
+ 
 -instance GEnum CSChar where
 -  genum = coerce (genum :: [HTYPE_SIGNED_CHAR])
 +-- instance GEnum CSChar where
 +--   genum = coerce (genum :: [HTYPE_SIGNED_CHAR])
-
+ 
  #if defined(HTYPE_SPEED_T)
  instance GEnum CSpeed where
 @@ -327,18 +327,18 @@ instance GEnum CSpeed where
  #endif
-
+ 
  #if MIN_VERSION_base(4,4,0)
 -instance GEnum CSUSeconds where
 -  genum = coerce (genum :: [HTYPE_SUSECONDS_T])
 +-- instance GEnum CSUSeconds where
 +--   genum = coerce (genum :: [HTYPE_SUSECONDS_T])
  #endif
-
+ 
 -instance GEnum CShort where
 -  genum = coerce (genum :: [HTYPE_SHORT])
 +-- instance GEnum CShort where
 +--   genum = coerce (genum :: [HTYPE_SHORT])
-
+ 
 -instance GEnum CSigAtomic where
 -  genum = coerce (genum :: [HTYPE_SIG_ATOMIC_T])
 +-- instance GEnum CSigAtomic where
 +--   genum = coerce (genum :: [HTYPE_SIG_ATOMIC_T])
-
+ 
 -instance GEnum CSize where
 -  genum = coerce (genum :: [HTYPE_SIZE_T])
 +-- instance GEnum CSize where
 +--   genum = coerce (genum :: [HTYPE_SIZE_T])
-
+ 
  #if defined(HTYPE_SSIZE_T)
  instance GEnum CSsize where
 @@ -350,42 +350,42 @@ instance GEnum CTcflag where
    genum = coerce (genum :: [HTYPE_TCFLAG_T])
  #endif
-
+ 
 -instance GEnum CTime where
 -  genum = coerce (genum :: [HTYPE_TIME_T])
 +-- instance GEnum CTime where
 +--   genum = coerce (genum :: [HTYPE_TIME_T])
-
+ 
 -instance GEnum CUChar where
 -  genum = coerce (genum :: [HTYPE_UNSIGNED_CHAR])
 +-- instance GEnum CUChar where
 +--   genum = coerce (genum :: [HTYPE_UNSIGNED_CHAR])
-
+ 
  #if defined(HTYPE_UID_T)
  instance GEnum CUid where
    genum = coerce (genum :: [HTYPE_UID_T])
  #endif
-
+ 
 -instance GEnum CUInt where
 -  genum = coerce (genum :: [HTYPE_UNSIGNED_INT])
 +-- instance GEnum CUInt where
 +--   genum = coerce (genum :: [HTYPE_UNSIGNED_INT])
-
+ 
 -instance GEnum CUIntMax where
 -  genum = coerce (genum :: [HTYPE_UINTMAX_T])
 +-- instance GEnum CUIntMax where
 +--   genum = coerce (genum :: [HTYPE_UINTMAX_T])
-
+ 
 -instance GEnum CUIntPtr where
 -  genum = coerce (genum :: [HTYPE_UINTPTR_T])
 +-- instance GEnum CUIntPtr where
 +--   genum = coerce (genum :: [HTYPE_UINTPTR_T])
-
+ 
 -instance GEnum CULLong where
 -  genum = coerce (genum :: [HTYPE_UNSIGNED_LONG_LONG])
 +-- instance GEnum CULLong where
 +--   genum = coerce (genum :: [HTYPE_UNSIGNED_LONG_LONG])
-
+ 
 -instance GEnum CULong where
 -  genum = coerce (genum :: [HTYPE_UNSIGNED_LONG])
 +-- instance GEnum CULong where
 +--   genum = coerce (genum :: [HTYPE_UNSIGNED_LONG])
-
+ 
  #if MIN_VERSION_base(4,4,0)
 -instance GEnum CUSeconds where
 -  genum = coerce (genum :: [HTYPE_USECONDS_T])
 +-- instance GEnum CUSeconds where
 +--   genum = coerce (genum :: [HTYPE_USECONDS_T])
  #endif
-
+ 
 -instance GEnum CUShort where
 -  genum = coerce (genum :: [HTYPE_UNSIGNED_SHORT])
 +-- instance GEnum CUShort where
 +--   genum = coerce (genum :: [HTYPE_UNSIGNED_SHORT])
-
+ 
 -instance GEnum CWchar where
 -  genum = coerce (genum :: [HTYPE_WCHAR_T])
 +-- instance GEnum CWchar where
 +--   genum = coerce (genum :: [HTYPE_WCHAR_T])
-
+ 
  instance GEnum Double where
    genum = genumNumUnbounded
 @@ -399,8 +399,8 @@ instance (GEnum a, GEnum b) => GEnum (Either a b) where
  instance GEnum ExitCode where
    genum = genumDefault
-
+ 
 -instance GEnum Fd where
 -  genum = coerce (genum :: [CInt])
 +-- instance GEnum Fd where
 +--   genum = coerce (genum :: [CInt])
-
+ 
  instance GEnum a => GEnum (Monoid.First a) where
    genum = genumDefault
 @@ -872,10 +872,10 @@ instance GIx ExitCode where
    index   = indexDefault
    inRange = inRangeDefault
-
+ 
 -instance GIx Fd where
 -  range   = rangeEnum
 -  index   = indexIntegral
@@ -207,8 +402,9 @@ index 2315ff7..2641ae5 100644
 +--   range   = rangeEnum
 +--   index   = indexIntegral
 +--   inRange = inRangeOrd
-
+ 
  instance (GEq a, GEnum a, GIx a) => GIx (Monoid.First a) where
    range   = rangeDefault
---
+-- 
 2.7.4 (Apple Git-66)
+
