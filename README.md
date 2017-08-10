@@ -270,7 +270,7 @@ These packages are supported by `etlas`.
 - [servant-docs >= 0.9.1.1 && <= 0.10.0.1](https://hackage.haskell.org/package/servant-docs)
 - [servant-server >= 0.9.1.1 && <= 0.11](https://hackage.haskell.org/package/servant-server)
 - [setenv-0.1.1.3](https://hackage.haskell.org/package/setenv-0.1.1.3)
-- [scientific-0.3.4.9](https://hackage.haskell.org/package/scientific-0.3.4.9)
+- [scientific >= 0.3.4.9 && <= 0.3.5.1](https://hackage.haskell.org/package/scientific)
 - [semigroups >= 0.18.2 && <= 0.18.3](https://hackage.haskell.org/package/semigroups)
 - [semigroupoids >= 5.1 && <= 5.2.1](https://hackage.haskell.org/package/semigroupoids)
 - [silently-1.2.5](https://hackage.haskell.org/package/silently-1.2.5)

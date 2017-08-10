@@ -1,0 +1,34 @@
+From 7795bc9d25914e83f23c288d01df6aa555459b61 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 10 Aug 2017 08:21:17 -0400
+Subject: [PATCH] Patched
+
+---
+ scientific.cabal | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/scientific.cabal b/scientific.cabal
+index 6fc9a94..222011c 100644
+--- a/scientific.cabal
++++ b/scientific.cabal
+@@ -57,7 +57,7 @@ flag bytestring-builder
+ 
+ flag integer-simple
+   description: Use the integer-simple package instead of integer-gmp
+-  default:     False
++  default:     True
+ 
+ library
+   exposed-modules:     Data.ByteString.Builder.Scientific
+@@ -84,7 +84,7 @@ library
+       build-depends: bytestring         >= 0.10.4 && < 0.11
+ 
+   if flag(integer-simple)
+-      build-depends: integer-simple
++      build-depends: integer
+   else
+       build-depends: integer-gmp
+ 
+-- 
+2.7.4 (Apple Git-66)
+
