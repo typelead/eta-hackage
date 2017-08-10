@@ -1,0 +1,34 @@
+From 606b0830fa98b987077d25cbaf396ad959853281 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 10 Aug 2017 08:12:57 -0400
+Subject: [PATCH] Patched
+
+---
+ integer-logarithms.cabal | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/integer-logarithms.cabal b/integer-logarithms.cabal
+index 0d67887..eb93bd5 100644
+--- a/integer-logarithms.cabal
++++ b/integer-logarithms.cabal
+@@ -36,7 +36,7 @@ extra-source-files  : readme.md changelog.md
+ 
+ flag integer-gmp
+   description:  integer-gmp or integer-simple
+-  default:      True
++  default:      False
+   manual:       False
+ 
+ flag check-bounds
+@@ -61,7 +61,7 @@ library
+       integer-gmp < 1.1
+   else
+     build-depends:
+-      integer-simple
++      integer
+ 
+   exposed-modules:
+     Math.NumberTheory.Logarithms
+-- 
+2.7.4 (Apple Git-66)
+

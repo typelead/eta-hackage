@@ -166,6 +166,7 @@ These packages are supported by `etlas`.
 - [http-types-0.9.1](https://hackage.haskell.org/package/http-types-0.9.1)
 - [HUnit >= 1.2.5.2 && <= 1.6.0.0](https://hackage.haskell.org/package/HUnit)
 - [ieee754-0.8.0](https://hackage.haskell.org/package/ieee754-0.8.0)
+- [integer-logarithms-1.0.2](https://hackage.haskell.org/package/integer-logarithms-1.0.2)
 - [integration-0.2.1](https://hackage.haskell.org/package/integration-0.2.1)
 - [interval-1.20160821](https://hackage.haskell.org/package/interval-1.20160821)
 - [iproute-1.7.1](https://hackage.haskell.org/package/iproute-1.7.1)
