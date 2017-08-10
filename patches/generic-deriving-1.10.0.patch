@@ -1,0 +1,251 @@
+From a53ca13e4fe6a0796c31b90721c22fc9f49eb373 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 9 Aug 2017 22:42:48 -0400
+Subject: [PATCH] Patched
+
+---
+ generic-deriving.cabal        |  14 ++---
+ src/Generics/Deriving/Enum.hs | 120 +++++++++++++++++++++---------------------
+ 2 files changed, 67 insertions(+), 67 deletions(-)
+
+diff --git a/generic-deriving.cabal b/generic-deriving.cabal
+index f175a1a..d00c7ad 100644
+--- a/generic-deriving.cabal
++++ b/generic-deriving.cabal
+@@ -56,14 +56,14 @@ library
+                         Generics.Deriving.Traversable
+                         Generics.Deriving.Uniplate
+ 
+-                        Generics.Deriving.TH
++                        -- Generics.Deriving.TH
+ 
+-  other-modules:        Generics.Deriving.TH.Internal
+-                        Paths_generic_deriving
+-  if impl(ghc >= 7.11)
+-    other-modules:      Generics.Deriving.TH.Post711
+-  else
+-    other-modules:      Generics.Deriving.TH.Pre711
++  other-modules:        Paths_generic_deriving
++                        
++  -- if impl(ghc >= 7.11)
++  --   other-modules:      Generics.Deriving.TH.Post711
++  -- else
++  --   other-modules:      Generics.Deriving.TH.Pre711
+ 
+   build-depends:        base < 5
+                       , containers       >= 0.1 && < 0.6
+diff --git a/src/Generics/Deriving/Enum.hs b/src/Generics/Deriving/Enum.hs
+index e29aa1a..62595b4 100644
+--- a/src/Generics/Deriving/Enum.hs
++++ b/src/Generics/Deriving/Enum.hs
+@@ -224,12 +224,12 @@ instance GEnum CCc where
+                              (fromIntegral (maxBound :: HTYPE_CC_T))
+ #endif
+ 
+-instance GEnum CChar where
+-  genum = genumNumBounded
++-- instance GEnum CChar where
++--   genum = genumNumBounded
+ 
+-instance GEnum CClock where
+-  genum = genumNumWithBounds (fromIntegral (minBound :: HTYPE_CLOCK_T))
+-                             (fromIntegral (maxBound :: HTYPE_CLOCK_T))
++-- instance GEnum CClock where
++--   genum = genumNumWithBounds (fromIntegral (minBound :: HTYPE_CLOCK_T))
++--                              (fromIntegral (maxBound :: HTYPE_CLOCK_T))
+ 
+ #if defined(HTYPE_DEV_T)
+ instance GEnum CDev where
+@@ -237,11 +237,11 @@ instance GEnum CDev where
+                              (fromIntegral (maxBound :: HTYPE_DEV_T))
+ #endif
+ 
+-instance GEnum CDouble where
+-  genum = genumNumUnbounded
++-- instance GEnum CDouble where
++--   genum = genumNumUnbounded
+ 
+-instance GEnum CFloat where
+-  genum = genumNumUnbounded
++-- instance GEnum CFloat where
++--   genum = genumNumUnbounded
+ 
+ #if defined(HTYPE_GID_T)
+ instance GEnum CGid where
+@@ -253,20 +253,20 @@ instance GEnum CIno where
+   genum = genumNumBounded
+ #endif
+ 
+-instance GEnum CInt where
+-  genum = genumNumBounded
++-- instance GEnum CInt where
++--   genum = genumNumBounded
+ 
+-instance GEnum CIntMax where
+-  genum = genumNumBounded
++-- instance GEnum CIntMax where
++--   genum = genumNumBounded
+ 
+-instance GEnum CIntPtr where
+-  genum = genumNumBounded
++-- instance GEnum CIntPtr where
++--   genum = genumNumBounded
+ 
+-instance GEnum CLLong where
+-  genum = genumNumBounded
++-- instance GEnum CLLong where
++--   genum = genumNumBounded
+ 
+-instance GEnum CLong where
+-  genum = genumNumBounded
++-- instance GEnum CLong where
++--   genum = genumNumBounded
+ 
+ #if defined(HTYPE_MODE_T)
+ instance GEnum CMode where
+@@ -296,16 +296,16 @@ instance GEnum CPid where
+   genum = genumNumBounded
+ #endif
+ 
+-instance GEnum CPtrdiff where
+-  genum = genumNumBounded
++-- instance GEnum CPtrdiff where
++--   genum = genumNumBounded
+ 
+ #if defined(HTYPE_RLIM_T)
+ instance GEnum CRLim where
+   genum = genumNumBounded
+ #endif
+ 
+-instance GEnum CSChar where
+-  genum = genumNumBounded
++-- instance GEnum CSChar where
++--   genum = genumNumBounded
+ 
+ #if defined(HTYPE_SPEED_T)
+ instance GEnum CSpeed where
+@@ -314,19 +314,19 @@ instance GEnum CSpeed where
+ #endif
+ 
+ #if MIN_VERSION_base(4,4,0)
+-instance GEnum CSUSeconds where
+-  genum = genumNumWithBounds (fromIntegral (minBound :: HTYPE_SUSECONDS_T))
+-                             (fromIntegral (maxBound :: HTYPE_SUSECONDS_T))
++-- instance GEnum CSUSeconds where
++--   genum = genumNumWithBounds (fromIntegral (minBound :: HTYPE_SUSECONDS_T))
++--                              (fromIntegral (maxBound :: HTYPE_SUSECONDS_T))
+ #endif
+ 
+-instance GEnum CShort where
+-  genum = genumNumBounded
++-- instance GEnum CShort where
++--   genum = genumNumBounded
+ 
+-instance GEnum CSigAtomic where
+-  genum = genumNumBounded
++-- instance GEnum CSigAtomic where
++--   genum = genumNumBounded
+ 
+-instance GEnum CSize where
+-  genum = genumNumBounded
++-- instance GEnum CSize where
++--   genum = genumNumBounded
+ 
+ #if defined(HTYPE_SSIZE_T)
+ instance GEnum CSsize where
+@@ -338,44 +338,44 @@ instance GEnum CTcflag where
+   genum = genumNumBounded
+ #endif
+ 
+-instance GEnum CTime where
+-  genum = genumNumWithBounds (fromIntegral (minBound :: HTYPE_TIME_T))
+-                             (fromIntegral (maxBound :: HTYPE_TIME_T))
++-- instance GEnum CTime where
++--   genum = genumNumWithBounds (fromIntegral (minBound :: HTYPE_TIME_T))
++--                              (fromIntegral (maxBound :: HTYPE_TIME_T))
+ 
+-instance GEnum CUChar where
+-  genum = genumNumBounded
++-- instance GEnum CUChar where
++--   genum = genumNumBounded
+ 
+ #if defined(HTYPE_UID_T)
+ instance GEnum CUid where
+   genum = genumNumBounded
+ #endif
+ 
+-instance GEnum CUInt where
+-  genum = genumNumBounded
++-- instance GEnum CUInt where
++--   genum = genumNumBounded
+ 
+-instance GEnum CUIntMax where
+-  genum = genumNumBounded
++-- instance GEnum CUIntMax where
++--   genum = genumNumBounded
+ 
+-instance GEnum CUIntPtr where
+-  genum = genumNumBounded
++-- instance GEnum CUIntPtr where
++--   genum = genumNumBounded
+ 
+-instance GEnum CULLong where
+-  genum = genumNumBounded
++-- instance GEnum CULLong where
++--   genum = genumNumBounded
+ 
+-instance GEnum CULong where
+-  genum = genumNumBounded
++-- instance GEnum CULong where
++--   genum = genumNumBounded
+ 
+ #if MIN_VERSION_base(4,4,0)
+-instance GEnum CUSeconds where
+-  genum = genumNumWithBounds (fromIntegral (minBound :: HTYPE_USECONDS_T))
+-                             (fromIntegral (maxBound :: HTYPE_USECONDS_T))
++-- instance GEnum CUSeconds where
++--   genum = genumNumWithBounds (fromIntegral (minBound :: HTYPE_USECONDS_T))
++--                              (fromIntegral (maxBound :: HTYPE_USECONDS_T))
+ #endif
+ 
+-instance GEnum CUShort where
+-  genum = genumNumBounded
++-- instance GEnum CUShort where
++--   genum = genumNumBounded
+ 
+-instance GEnum CWchar where
+-  genum = genumNumBounded
++-- instance GEnum CWchar where
++--   genum = genumNumBounded
+ 
+ instance GEnum Double where
+   genum = genumNumUnbounded
+@@ -389,8 +389,8 @@ instance (GEnum a, GEnum b) => GEnum (Either a b) where
+ instance GEnum ExitCode where
+   genum = genumDefault
+ 
+-instance GEnum Fd where
+-  genum = genumNumBounded
++-- instance GEnum Fd where
++--   genum = genumNumBounded
+ 
+ instance GEnum a => GEnum (Monoid.First a) where
+   genum = genumDefault
+@@ -856,10 +856,10 @@ instance GIx ExitCode where
+   index   = indexDefault
+   inRange = inRangeDefault
+ 
+-instance GIx Fd where
+-  range   = rangeEnum
+-  index   = indexIntegral
+-  inRange = inRangeOrd
++-- instance GIx Fd where
++--   range   = rangeEnum
++--   index   = indexIntegral
++--   inRange = inRangeOrd
+ 
+ instance (GEq a, GEnum a, GIx a) => GIx (Monoid.First a) where
+   range   = rangeDefault
+-- 
+2.7.4 (Apple Git-66)
+
