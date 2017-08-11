@@ -1,17 +1,18 @@
-From ca88ee4fb1e3544d81390624ce8ee1eb5ac127d4 Mon Sep 17 00:00:00 2001
+From 122fbeeab16ea24216553416926b7ad153949989 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Wed, 26 Jul 2017 23:05:08 -0400
+Date: Fri, 11 Aug 2017 13:22:07 -0400
 Subject: [PATCH] Patched
 
 ---
- linear.cabal | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ linear.cabal            | 16 ++++++++--------
+ src/Linear/Instances.hs |  4 ++++
+ 2 files changed, 12 insertions(+), 8 deletions(-)
 
 diff --git a/linear.cabal b/linear.cabal
-index fb47933..75a76e6 100644
+index 6d11791..94168cd 100644
 --- a/linear.cabal
 +++ b/linear.cabal
-@@ -13,7 +13,7 @@ bug-reports:   http://github.com/ekmett/linear/issues
+@@ -12,7 +12,7 @@ bug-reports:   http://github.com/ekmett/linear/issues
  copyright:     Copyright (C) 2012-2015 Edward A. Kmett
  synopsis:      Linear Algebra
  description:   Types and combinators for linear algebra on free vector spaces
@@ -20,7 +21,7 @@ index fb47933..75a76e6 100644
  tested-with:   GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC==8.0.2, GHC==8.2.1
  extra-source-files:
    .gitignore
-@@ -29,8 +29,8 @@ flag template-haskell
+@@ -28,8 +28,8 @@ flag template-haskell
      You can disable the use of the `template-haskell` package using `-f-template-haskell`.
      .
      Disabling this is an unsupported configuration, but it may be useful for accelerating builds in sandboxes for expert users.
@@ -31,7 +32,7 @@ index fb47933..75a76e6 100644
  
  flag herbie
    description: Enable `herbie`.
-@@ -41,11 +41,11 @@ source-repository head
+@@ -40,11 +40,11 @@ source-repository head
    type: git
    location: https://github.com/ekmett/linear
  
@@ -48,6 +49,39 @@ index fb47933..75a76e6 100644
  
  library
    build-depends:
+diff --git a/src/Linear/Instances.hs b/src/Linear/Instances.hs
+index 734612d..024d72c 100644
+--- a/src/Linear/Instances.hs
++++ b/src/Linear/Instances.hs
+@@ -27,6 +27,7 @@ import Data.Semigroup
+ import Data.Semigroup.Foldable
+ import Data.Semigroup.Traversable
+ 
++#if !MIN_VERSION_semigroupoids(5,2,1)
+ instance (Hashable k, Eq k) => Apply (HashMap k) where
+   (<.>) = HashMap.intersectionWith id
+ 
+@@ -46,6 +47,7 @@ instance Bind Complex where
+     a' :+ _  = f a
+     _  :+ b' = f b
+   {-# INLINE (>>-) #-}
++#endif
+ 
+ instance MonadZip Complex where
+   mzipWith = liftA2
+@@ -53,6 +55,7 @@ instance MonadZip Complex where
+ instance MonadFix Complex where
+   mfix f = (let a :+ _ = f a in a) :+ (let _ :+ a = f a in a)
+ 
++#if !MIN_VERSION_semigroupoids(5,2,1)
+ instance Foldable1 Complex where
+   foldMap1 f (a :+ b) = f a <> f b
+   {-# INLINE foldMap1 #-}
+@@ -60,3 +63,4 @@ instance Foldable1 Complex where
+ instance Traversable1 Complex where
+   traverse1 f (a :+ b) = (:+) <$> f a <.> f b
+   {-# INLINE traverse1 #-}
++#endif
 -- 
 2.7.4 (Apple Git-66)
 
