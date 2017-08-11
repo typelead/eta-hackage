@@ -62,6 +62,9 @@ library
   Buildable:              True
   Extensions:             MultiParamTypeClasses, FunctionalDependencies, BangPatterns, MagicHash, RecursiveDo, NoMonoPatBinds, ForeignFunctionInterface, UnboxedTuples, TypeOperators, FlexibleContexts, ExistentialQuantification, UnliftedFFITypes, TypeSynonymInstances, FlexibleInstances
   GHC-Options:            -Wall -funbox-strict-fields -fspec-constr-count=10 -O2 -fno-warn-orphans
-  Java-Sources:          java/Utils.java
+  if impl(eta >= 0.0.9)
+    Java-Sources:          java/eta-0.0.9/Utils.java
+  else
+    Java-Sources:          java/Utils.java
   if flag(devel)
     ghc-prof-options: -auto-all
