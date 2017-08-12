@@ -320,7 +320,7 @@ These packages are supported by `etlas`.
 - [vinyl-0.5.1.1](https://hackage.haskell.org/package/vinyl-0.5.1.1)
 - [void-0.7.1](https://hackage.haskell.org/package/void-0.7.1)
 - [wai-3.2.1.1](https://hackage.haskell.org/package/wai-3.2.1.1)
-- [word8-0.1.2](https://hackage.haskell.org/package/word8-0.1.2)
+- [word8 >= 0.1.2 && <= 0.1.3](https://hackage.haskell.org/package/word8)
 - [xhtml-3000.2.1](https://hackage.haskell.org/package/xhtml-3000.2.1)
 - [xml-1.3.5](https://hackage.haskell.org/package/xml-1.3.5)
 - [xml-types-0.3.6](https://hackage.haskell.org/package/xml-types-0.3.6)

@@ -1,0 +1,171 @@
+From 706cbf302132cc250c29118c0880620c552ff89e Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sat, 12 Aug 2017 19:56:58 -0400
+Subject: [PATCH] Patched
+
+---
+ Data/Char8.hs | 14 +++++------
+ Data/Word8.hs | 76 +++++++++++++++++++++++++++++------------------------------
+ 2 files changed, 45 insertions(+), 45 deletions(-)
+
+diff --git a/Data/Char8.hs b/Data/Char8.hs
+index 24dba31..fc78f73 100644
+--- a/Data/Char8.hs
++++ b/Data/Char8.hs
+@@ -56,8 +56,8 @@ isLowerCommon c = isLower' c
+ 
+ isLower' :: Char -> Bool
+ isLower' c = isAsciiLower c
+-          || _germandbls <= c && c <= _odieresis
+-          || _oslash     <= c && c <= _ydieresis
++          || _germandbls <= c && c <= _odieresis'
++          || _oslash'    <= c && c <= _ydieresis
+ 
+ isUpper :: Char -> Bool
+ isUpper c = isAsciiUpper c
+@@ -195,10 +195,10 @@ _Odieresis = '\xd6'
+ _Oslash    = '\xd8'
+ _Thorn     = '\xde'
+ 
+-_germandbls, _agrave, _odieresis, _oslash, _thorn, _ydieresis :: Char
++_germandbls, _agrave', _odieresis', _oslash', _thorn', _ydieresis :: Char
+ _germandbls = '\xdf'
+-_agrave     = '\xe0'
+-_odieresis  = '\xf6'
+-_oslash     = '\xf8'
+-_thorn      = '\xfe'
++_agrave'    = '\xe0'
++_odieresis' = '\xf6'
++_oslash'    = '\xf8'
++_thorn'     = '\xfe'
+ _ydieresis  = '\xff'
+diff --git a/Data/Word8.hs b/Data/Word8.hs
+index 9ac495a..2bed13d 100644
+--- a/Data/Word8.hs
++++ b/Data/Word8.hs
+@@ -28,14 +28,14 @@ module Data.Word8 (
+   , _colon, _semicolon, _less, _equal, _greater, _question, _at
+   , _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z
+   , _bracketleft, _backslash, _bracketright, _circum, _underscore, _grave
+-  , _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z
++  , _a', _b', _c', _d', _e', _f', _g', _h', _i', _j', _k', _l', _m', _n', _o', _p', _q', _r', _s', _t', _u', _v', _w', _x', _y', _z'
+   , _braceleft, _bar, _braceright, _tilde, _del
+   -- * Some Latin-1 charactors
+   , _nbsp
+   , _ordfeminine, _softhyphen, _mu, _ordmasculine
+   , _s2, _s3, _s1, _1'4, _1'2, _3'4
+   , _Agrave, _Odieresis, _Oslash, _Thorn
+-  , _germandbls, _agrave, _odieresis, _oslash, _thorn, _ydieresis
++  , _germandbls, _agrave', _odieresis', _oslash', _thorn', _ydieresis
+   ) where
+ 
+ import Data.Word (Word8)
+@@ -77,8 +77,8 @@ isLowerCommon w = isLower' w
+ 
+ isLower' :: Word8 -> Bool
+ isLower' w = isAsciiLower w
+-          || _germandbls <= w && w <= _odieresis
+-          || _oslash     <= w && w <= _ydieresis
++          || _germandbls <= w && w <= _odieresis'
++          || _oslash'    <= w && w <= _ydieresis
+ 
+ isUpper :: Word8 -> Bool
+ isUpper w = isAsciiUpper w
+@@ -106,7 +106,7 @@ isOctDigit w = _0 <= w && w <= _7
+ isHexDigit :: Word8 -> Bool
+ isHexDigit w = isDigit w
+             || _A <= w && w <= _F
+-            || _a <= w && w <= _f
++            || _a' <= w && w <= _f'
+ 
+ isLetter :: Word8 -> Bool
+ isLetter w = isLowerCommon w || isUpper w
+@@ -157,7 +157,7 @@ isAsciiUpper :: Word8 -> Bool
+ isAsciiUpper w = _A <= w && w <= _Z
+ 
+ isAsciiLower :: Word8 -> Bool
+-isAsciiLower w = _a <= w && w <= _z
++isAsciiLower w = _a' <= w && w <= _z'
+ 
+ ----------------------------------------------------------------
+ 
+@@ -262,33 +262,33 @@ _circum       = 0x5e
+ _underscore   = 0x5f
+ _grave        = 0x60
+ 
+-_a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z :: Word8
+-_a = 0x61
+-_b = 0x62
+-_c = 0x63
+-_d = 0x64
+-_e = 0x65
+-_f = 0x66
+-_g = 0x67
+-_h = 0x68
+-_i = 0x69
+-_j = 0x6a
+-_k = 0x6b
+-_l = 0x6c
+-_m = 0x6d
+-_n = 0x6e
+-_o = 0x6f
+-_p = 0x70
+-_q = 0x71
+-_r = 0x72
+-_s = 0x73
+-_t = 0x74
+-_u = 0x75
+-_v = 0x76
+-_w = 0x77
+-_x = 0x78
+-_y = 0x79
+-_z = 0x7a
++_a', _b', _c', _d', _e', _f', _g', _h', _i', _j', _k', _l', _m', _n', _o', _p', _q', _r', _s', _t', _u', _v', _w', _x', _y', _z' :: Word8
++_a' = 0x61
++_b' = 0x62
++_c' = 0x63
++_d' = 0x64
++_e' = 0x65
++_f' = 0x66
++_g' = 0x67
++_h' = 0x68
++_i' = 0x69
++_j' = 0x6a
++_k' = 0x6b
++_l' = 0x6c
++_m' = 0x6d
++_n' = 0x6e
++_o' = 0x6f
++_p' = 0x70
++_q' = 0x71
++_r' = 0x72
++_s' = 0x73
++_t' = 0x74
++_u' = 0x75
++_v' = 0x76
++_w' = 0x77
++_x' = 0x78
++_y' = 0x79
++_z' = 0x7a
+ 
+ _braceleft, _bar, _braceright, _tilde, _del :: Word8
+ _braceleft  = 0x7b
+@@ -320,10 +320,10 @@ _Odieresis = 0xd6
+ _Oslash    = 0xd8
+ _Thorn     = 0xde
+ 
+-_germandbls, _agrave, _odieresis, _oslash, _thorn, _ydieresis :: Word8
++_germandbls, _agrave', _odieresis', _oslash', _thorn', _ydieresis :: Word8
+ _germandbls = 0xdf
+-_agrave     = 0xe0
+-_odieresis  = 0xf6
+-_oslash     = 0xf8
+-_thorn      = 0xfe
++_agrave'    = 0xe0
++_odieresis' = 0xf6
++_oslash'    = 0xf8
++_thorn'     = 0xfe
+ _ydieresis  = 0xff
+-- 
+2.7.4 (Apple Git-66)
+
