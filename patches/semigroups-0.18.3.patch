@@ -1,0 +1,34 @@
+From c0d6fbd00a45f51ee6016b8e9f231c8c6a621771 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 14 Aug 2017 16:50:43 -0400
+Subject: [PATCH] Patched
+
+---
+ src-ghc7/Data/Semigroup.hs | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src-ghc7/Data/Semigroup.hs b/src-ghc7/Data/Semigroup.hs
+index e72427e..d2e2ba5 100644
+--- a/src-ghc7/Data/Semigroup.hs
++++ b/src-ghc7/Data/Semigroup.hs
+@@ -116,7 +116,7 @@ import Control.Monad
+ import Control.Monad.Fix
+ import qualified Data.Monoid as Monoid
+ import Data.List.NonEmpty
+-#if MIN_VERSION_base(4,4,0) && !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS)
++#if MIN_VERSION_base(4,4,0) && !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS) && !defined(ETA_VERSION)
+ import GHC.Event
+ #endif
+ 
+@@ -1212,7 +1212,7 @@ instance Semigroup a => Semigroup (Tagged s a) where
+ instance Semigroup a => Semigroup (IO a) where
+     (<>) = liftA2 (<>)
+ 
+-#if !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS)
++#if !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS) && !defined(ETA_VERSION)
+ # if MIN_VERSION_base(4,4,0)
+ instance Semigroup Event where
+     (<>) = mappend
+-- 
+2.7.4 (Apple Git-66)
+
