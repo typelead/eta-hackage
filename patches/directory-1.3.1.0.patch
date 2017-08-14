@@ -1,15 +1,16 @@
-From 4a7fdcb56a397dd1ab1fa9e2b142b85a959d10df Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Andreas=20L=C3=A4ndle?= <>
-Date: Fri, 19 May 2017 20:29:58 +0200
-Subject: [PATCH] Patched.
+From fdcab3a344e91cce2be5b6fca4cfd6a7e4b33a1c Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 14 Aug 2017 18:11:09 -0400
+Subject: [PATCH] Fixed patch
 
 ---
- System/Directory.hs                 | 769 +++++++++---------------------------
- System/Directory/Internal.hs        |  35 +-
- System/Directory/Internal/Config.hs |   6 +-
- directory.cabal                     |  19 +-
- java/Utils.java                     | 113 ++++++
- 5 files changed, 342 insertions(+), 600 deletions(-)
+ System/Directory.hs                  | 769 +++++++++--------------------------
+ System/Directory/Internal.hs         |  35 +-
+ System/Directory/Internal/Config.hs  |   6 +-
+ System/Directory/Internal/Prelude.hs |   6 +-
+ directory.cabal                      |  19 +-
+ java/Utils.java                      | 113 +++++
+ 6 files changed, 345 insertions(+), 603 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/System/Directory.hs b/System/Directory.hs
@@ -1126,6 +1127,23 @@ index 54d1064..607fe52 100644
  -- contains strange characters, but hopefully no sane OS would ever do that.
 +foreign import java unsafe "@static eta.directory.Utils.isWindows"
 +  isWindows :: Bool
+diff --git a/System/Directory/Internal/Prelude.hs b/System/Directory/Internal/Prelude.hs
+index f128870..2552708 100644
+--- a/System/Directory/Internal/Prelude.hs
++++ b/System/Directory/Internal/Prelude.hs
+@@ -165,9 +165,9 @@ import System.Posix.Internals
+   ( CStat
+   , c_stat
+   , withFilePath
+-  , s_isdir
+-  , sizeof_stat
+-  , st_mode
++  -- , s_isdir
++  -- , sizeof_stat
++  -- , st_mode
+   , st_size
+   )
+ import System.Posix.Types (CMode(..), EpochTime, FileMode)
 diff --git a/directory.cabal b/directory.cabal
 index 3f73c9a..a2f4d61 100644
 --- a/directory.cabal
@@ -1290,5 +1308,5 @@ index 0000000..136828a
 +    }
 +}
 -- 
-2.11.0.windows.3
+2.7.4 (Apple Git-66)
 
