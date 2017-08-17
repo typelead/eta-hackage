@@ -1,0 +1,40 @@
+From c6d684a5a03fbbe60cd1b956109505e1e812fa00 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 16 Aug 2017 13:08:31 -0400
+Subject: [PATCH] Patched
+
+---
+ Control/Concurrent/Lifted.hs | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Control/Concurrent/Lifted.hs b/Control/Concurrent/Lifted.hs
+index 433ef45..7956da0 100644
+--- a/Control/Concurrent/Lifted.hs
++++ b/Control/Concurrent/Lifted.hs
+@@ -91,7 +91,7 @@ import Data.Bool          ( Bool )
+ import Data.Int           ( Int )
+ import Data.Function      ( ($) )
+ import System.IO          ( IO )
+-import System.Posix.Types ( Fd )
++import System.Posix.Types ( Channel )
+ #if MIN_VERSION_base(4,6,0)
+ import Control.Monad      ( (>>=) )
+ import Data.Either        ( Either )
+@@ -229,12 +229,12 @@ threadDelay = liftBase .  C.threadDelay
+ {-# INLINABLE threadDelay #-}
+ 
+ -- | Generalized version of 'C.threadWaitRead'.
+-threadWaitRead :: MonadBase IO m => Fd -> m ()
++threadWaitRead :: MonadBase IO m => Channel -> m ()
+ threadWaitRead = liftBase . C.threadWaitRead
+ {-# INLINABLE threadWaitRead #-}
+ 
+ -- | Generalized version of 'C.threadWaitWrite'.
+-threadWaitWrite :: MonadBase IO m => Fd -> m ()
++threadWaitWrite :: MonadBase IO m => Channel -> m ()
+ threadWaitWrite = liftBase . C.threadWaitWrite
+ {-# INLINABLE threadWaitWrite #-}
+ 
+-- 
+2.7.4 (Apple Git-66)
+

@@ -1,12 +1,13 @@
-From 00e7ec276bc1ffb5d2bbb2fef9047f4c72c87b23 Mon Sep 17 00:00:00 2001
+From 8dd19209ef48e33c625530cb43bc08e2c9615a0f Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 5 Aug 2017 16:41:44 -0400
+Date: Wed, 16 Aug 2017 12:41:19 -0400
 Subject: [PATCH] Patched
 
 ---
  lens.cabal                  |  16 +--
+ src/Control/Lens/Empty.hs   |   4 +-
  src/Control/Lens/Wrapped.hs | 308 ++++++++++++++++++++++----------------------
- 2 files changed, 162 insertions(+), 162 deletions(-)
+ 3 files changed, 164 insertions(+), 164 deletions(-)
 
 diff --git a/lens.cabal b/lens.cabal
 index 9318723..67f94cb 100644
@@ -49,6 +50,28 @@ index 9318723..67f94cb 100644
  
    if flag(safe)
      cpp-options: -DSAFE=1
+diff --git a/src/Control/Lens/Empty.hs b/src/Control/Lens/Empty.hs
+index fdbff30..ba98ba3 100644
+--- a/src/Control/Lens/Empty.hs
++++ b/src/Control/Lens/Empty.hs
+@@ -53,7 +53,7 @@ import Data.Vector as Vector
+ import Data.Vector.Unboxed as Unboxed
+ import Data.Vector.Storable as Storable
+ 
+-#if !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS)
++#if !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS) && !defined(ETA_VERSION)
+ import GHC.Event
+ #endif
+ 
+@@ -77,7 +77,7 @@ instance AsEmpty Ordering
+ instance AsEmpty ()
+ instance AsEmpty Any
+ instance AsEmpty All
+-#if !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS)
++#if !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS) && !defined(ETA_VERSION)
+ instance AsEmpty Event
+ #endif
+ instance (Eq a, Num a) => AsEmpty (Product a)
 diff --git a/src/Control/Lens/Wrapped.hs b/src/Control/Lens/Wrapped.hs
 index 9ea5071..f46a897 100644
 --- a/src/Control/Lens/Wrapped.hs
