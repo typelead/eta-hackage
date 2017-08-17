@@ -1,0 +1,35 @@
+From b455c4a7096e4a75bf4c4d87c20b980b295a3b01 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 17 Aug 2017 01:54:38 -0400
+Subject: [PATCH] Patched
+
+---
+ regex-base.cabal | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/regex-base.cabal b/regex-base.cabal
+index 644a365..4ce51ad 100644
+--- a/regex-base.cabal
++++ b/regex-base.cabal
+@@ -14,7 +14,8 @@ Synopsis:               Replaces/Enhances Text.Regex
+ Description:            Interface API for regex-posix,pcre,parsec,tdfa,dfa
+ Category:               Text
+ Tested-With:            GHC
+-Build-Depends:          base >= 2.0 && < 4.3, mtl
++Build-Type:             Simple
++Build-Depends:          base >= 2.0, mtl, bytestring, array, containers
+ -- Data-Files:
+ -- Extra-Source-Files:
+ -- Extra-Tmp-Files:
+@@ -27,7 +28,7 @@ Buildable:              True
+ -- HS-Source-Dirs:         "."
+ Extensions:             MultiParamTypeClasses, FunctionalDependencies
+ -- GHC-Options:            -Wall -Werror
+-GHC-Options:            -Wall -Werror -O2
++GHC-Options:            -Wall -O2
+ -- GHC-Options:            -Wall -ddump-minimal-GHC
+ -- imports-Prof-Options:       -auto-all
+ -- Hugs-Options:
+-- 
+2.7.4 (Apple Git-66)
+
