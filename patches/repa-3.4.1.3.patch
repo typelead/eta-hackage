@@ -1,0 +1,25 @@
+From c27895fd8fa3748fd84a86d0df829f7190e3986d Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 23 Aug 2017 03:53:09 -0400
+Subject: [PATCH] Patched
+
+---
+ Data/Array/Repa/Stencil/Template.hs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Data/Array/Repa/Stencil/Template.hs b/Data/Array/Repa/Stencil/Template.hs
+index 8695cfc..73c4f5e 100644
+--- a/Data/Array/Repa/Stencil/Template.hs
++++ b/Data/Array/Repa/Stencil/Template.hs
+@@ -75,7 +75,7 @@ makeStencil2'
+ 
+ makeStencil2' sizeX sizeY coeffs
+  = do   ix'             <- newName "ix"
+-        z'              <- [p| Z |]
++        z'              <- undefined -- [p| Z |]
+         coeffs'         <- newName "coeffs"
+ 
+         let fnCoeffs
+-- 
+2.7.4 (Apple Git-66)
+
