@@ -1,6 +1,6 @@
-From 2764598f27f710c565ac5a194496a3b52e3ed342 Mon Sep 17 00:00:00 2001
+From 52d7002cdb39926f15b898db6b7f0a8177cd6f91 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 5 Aug 2017 13:13:58 -0400
+Date: Thu, 24 Aug 2017 17:30:12 -0400
 Subject: [PATCH] Patched
 
 ---
@@ -374,7 +374,7 @@ index 0000000..c9ca012
 +}
 diff --git a/java/eta-0.0.9/Utils.java b/java/eta-0.0.9/Utils.java
 new file mode 100644
-index 0000000..ec89bcf
+index 0000000..b94159e
 --- /dev/null
 +++ b/java/eta-0.0.9/Utils.java
 @@ -0,0 +1,213 @@
@@ -468,7 +468,7 @@ index 0000000..ec89bcf
 +        MemoryManager.putInt(state0, UTF8_ACCEPT);
 +        long codepoint0 = MemoryManager.allocateBuffer(4, false);
 +        MemoryManager.putInt(codepoint0, 0);
-+        long src0 = MemoryManager.allocateBuffer(4, false);
++        long src0 = MemoryManager.allocateBuffer(8, false);
 +        MemoryManager.putLong(src0, src);
 +        long ret = decode_utf8_int(destArray.bufferAddress, destOffset, src0, srcend, codepoint0,
 +                                   state0);
