@@ -113,6 +113,7 @@ These packages are supported by `etlas`.
 - [deepseq-1.4.2.0](https://hackage.haskell.org/package/deepseq-1.4.2.0)
 - [deepseq-generics-0.2.0.0](https://hackage.haskell.org/package/deepseq-generics-0.2.0.0)
 - [diagrams-solve-0.1.1](https://hackage.haskell.org/package/diagrams-solve-0.1.1)
+- [digest 0.0.1.2](https://hackage.haskell.org/package/digest)
 - [directory >= 1.3.0.0 && <= 1.3.10](https://hackage.haskell.org/package/directory)
 - [directory-tree-0.12.1](https://hackage.haskell.org/package/directory-tree-0.12.1)
 - [disjoint-sets-st-0.1](https://hackage.haskell.org/package/disjoint-sets-st-0.1)
