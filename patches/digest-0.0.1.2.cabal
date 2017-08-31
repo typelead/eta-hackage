@@ -40,24 +40,6 @@ library
   else
     build-depends: base < 2.0 || >= 2.2, bytestring >= 0.9
   if impl(eta >= 0.0.9)
-    java-sources: java/eta-0.0.9/Utils.java
-  else
-    java-sources: java/Utils.java
-  ghc-options:     -Wall
-
-executable tests
-  main-is:         trivial.hs
-  hs-source-dirs:  ., testing
-  other-modules:   Data.Digest.CRC32, Data.Digest.Adler32
-  extensions:      CPP, ForeignFunctionInterface
-  build-depends: base < 5
-  if flag(bytestring-in-base)
-    -- bytestring was in base-2.0 and 2.1.1
-    build-depends: base >= 2.0 && < 2.2
-    cpp-options: -DBYTESTRING_IN_BASE
-  else
-    build-depends: base < 2.0 || >= 2.2, bytestring >= 0.9
-  if impl(eta >= 0.0.9)
     java-sources: java/Adler32.java, java/CRC32.java, java/Digest.java, java/eta-0.0.9/Utils.java
   else
     java-sources: java/Adler32.java, java/CRC32.java, java/Digest.java, java/Utils.java
