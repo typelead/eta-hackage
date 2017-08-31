@@ -1,4 +1,4 @@
-From 5761caa56f2e791e6cbdf7d58ce01cd49a767a6b Mon Sep 17 00:00:00 2001
+From adb105b308f9d527c7e9e4785951293479087990 Mon Sep 17 00:00:00 2001
 From: Martin Mauch <martin.mauch@gmail.com>
 Date: Thu, 31 Aug 2017 09:15:39 +0200
 Subject: [PATCH] Patched
@@ -99,7 +99,7 @@ index 980d91c..3639be6 100644
 +foreign import java unsafe "@static eta.digest.Utils.calc_crc32"
 +  c_crc32 :: Word32 -> CString -> Int -> Java c Int64
 diff --git a/digest.cabal b/digest.cabal
-index eaea373..1671fe5 100644
+index eaea373..1581e7e 100644
 --- a/digest.cabal
 +++ b/digest.cabal
 @@ -39,9 +39,8 @@ library
@@ -111,12 +111,11 @@ index eaea373..1671fe5 100644
 -  if !os(windows)
 -    extra-libraries: z
 +  if impl(eta >= 0.0.9)
-+    java-sources: java/eta-0.0.9/Utils.java
++    java-sources: java/Adler32.java, java/CRC32.java, java/Digest.java, java/eta-0.0.9/Utils.java
    else
 -    build-depends: zlib
-+    java-sources: java/Utils.java
++    java-sources: java/Adler32.java, java/CRC32.java, java/Digest.java, java/Utils.java
 +  ghc-options:     -Wall
-\ No newline at end of file
 diff --git a/java/Adler32.java b/java/Adler32.java
 new file mode 100644
 index 0000000..72d8ea8
