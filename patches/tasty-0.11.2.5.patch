@@ -1,0 +1,42 @@
+From 646e8f27d1b56a6aefd090539b0328a4b662fd46 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 4 Sep 2017 11:39:43 -0400
+Subject: [PATCH] Patched
+
+---
+ Test/Tasty/CmdLine.hs | 1 -
+ tasty.cabal           | 6 +++---
+ 2 files changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/Test/Tasty/CmdLine.hs b/Test/Tasty/CmdLine.hs
+index fffe9a3..90286da 100644
+--- a/Test/Tasty/CmdLine.hs
++++ b/Test/Tasty/CmdLine.hs
+@@ -19,7 +19,6 @@ import System.IO
+ -- GHC 7.4 lacks mkWeakThreadId (see #181), and this is not important
+ -- enough to look for an alternative implementation, so we just disable it
+ -- there.
+-#define INSTALL_HANDLERS defined UNIX && MIN_VERSION_base(4,6,0)
+ 
+ #if INSTALL_HANDLERS
+ import Control.Concurrent (mkWeakThreadId, myThreadId)
+diff --git a/tasty.cabal b/tasty.cabal
+index 2953f8b..8e1d44e 100644
+--- a/tasty.cabal
++++ b/tasty.cabal
+@@ -64,9 +64,9 @@ library
+     -- for GHC.Generics
+     build-depends: ghc-prim
+ 
+-  if !os(windows)
+-    build-depends: unix
+-    cpp-options: -DUNIX
++  -- if !os(windows)
++  --   build-depends: unix
++  --   cpp-options: -DUNIX
+ 
+   -- hs-source-dirs:      
+   default-language:    Haskell2010
+-- 
+2.7.4 (Apple Git-66)
+
