@@ -1,0 +1,29 @@
+From 3f68b32ca351a1ea28c1908742bb6425ed73427a Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 4 Sep 2017 11:45:18 -0400
+Subject: [PATCH] Patched
+
+---
+ tasty.cabal | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/tasty.cabal b/tasty.cabal
+index 0fb498d..0023b17 100644
+--- a/tasty.cabal
++++ b/tasty.cabal
+@@ -66,9 +66,9 @@ library
+     -- for GHC.Generics
+     build-depends: ghc-prim
+ 
+-  if !os(windows)
+-    build-depends: unix
+-    cpp-options: -DUNIX
++  -- if !os(windows)
++  --   build-depends: unix
++  --   cpp-options: -DUNIX
+ 
+   -- hs-source-dirs:      
+   default-language:    Haskell2010
+-- 
+2.7.4 (Apple Git-66)
+
