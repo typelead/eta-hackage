@@ -1,0 +1,25 @@
+From cbc8221604ed0948fada36f3e10f8542efedbc83 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 11 Sep 2017 10:33:57 -0400
+Subject: [PATCH] Patched
+
+---
+ hashtables.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/hashtables.cabal b/hashtables.cabal
+index cf83a72..9f9f04b 100644
+--- a/hashtables.cabal
++++ b/hashtables.cabal
+@@ -141,7 +141,7 @@ Flag sse42
+ 
+ Flag portable
+   Description: if on, use only pure Haskell code and no GHC extensions.
+-  Default: False
++  Default: True
+ 
+ 
+ Library
+-- 
+2.7.4 (Apple Git-66)
+
