@@ -63,7 +63,7 @@ These packages are supported by `etlas`.
 - [avro-0.1.0.1](https://hackage.haskell.org/package/avro-0.1.0.1)
 - [base-compat >= 0.9.1 && <= 0.9.3](https://hackage.haskell.org/package/base-compat)
 - [base-orphans-0.5.4](https://hackage.haskell.org/package/base-orphans-0.5.4)
-- [base-prelude-1.0.1.1](https://hackage.haskell.org/package/base-prelude-1.0.1.1)
+- [base-prelude-1.2.0.1](https://hackage.haskell.org/package/base-prelude-1.2.0.1)
 - [base16-bytestring-0.1.1.6](https://hackage.haskell.org/package/base16-bytestring-0.1.1.6)
 - [base64-bytestring-1.0.0.1](https://hackage.haskell.org/package/base64-bytestring-1.0.0.1)
 - [basic-lens-0.0.0](https://hackage.haskell.org/package/basic-lens-0.0.0)

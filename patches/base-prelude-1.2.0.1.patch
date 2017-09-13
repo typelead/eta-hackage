@@ -1,0 +1,29 @@
+From d1aca994675680664e7ca7fa4c0458e2afdd7d27 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 13 Sep 2017 19:06:39 -0400
+Subject: [PATCH] Patched
+
+---
+ library/BasePrelude.hs | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/library/BasePrelude.hs b/library/BasePrelude.hs
+index 76d8f4b..b70322f 100644
+--- a/library/BasePrelude.hs
++++ b/library/BasePrelude.hs
+@@ -70,7 +70,11 @@ import Foreign.Storable as Exports
+ import Foreign.Ptr as Exports
+ import Foreign.ForeignPtr as Exports
+ import Foreign.StablePtr as Exports
+-import GHC.Conc as Exports hiding (withMVar, threadWaitWriteSTM, threadWaitWrite, threadWaitReadSTM, threadWaitRead)
++import GHC.Conc as Exports hiding (withMVar, threadWaitWriteSTM, threadWaitWrite, threadWaitReadSTM, threadWaitRead
++#if ((ETA_VERSION == 9) && (ETA_BUILD_NUMBER >= 2)) || (ETA_VERSION > 9)
++  , threadWaitConnect, threadWaitAccept
++#endif
++  )
+ import GHC.Exts as Exports (lazy, inline, sortWith, groupWith)
+ import GHC.Generics as Exports (Generic)
+ import GHC.IO.Exception as Exports
+-- 
+2.7.4 (Apple Git-66)
+
