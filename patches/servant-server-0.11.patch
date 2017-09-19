@@ -1,17 +1,17 @@
-From 1217a959467305088e9f4561c69947069c61a1ea Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Thu, 8 Jun 2017 13:24:11 +0530
+From 0a0157e8dd35514ab7497c2d5e98ac103b9c7f54 Mon Sep 17 00:00:00 2001
+From: rpeszek <peszeks@gmail.com>
+Date: Mon, 18 Sep 2017 19:41:40 -0600
 Subject: [PATCH] Patched
 
 ---
- servant-server.cabal             | 44 ++++++++++----------
- src/Servant.hs                   |  4 +-
- src/Servant/Utils/StaticFiles.hs | 86 ----------------------------------------
- 3 files changed, 24 insertions(+), 110 deletions(-)
- delete mode 100644 src/Servant/Utils/StaticFiles.hs
+ servant-server.cabal                     | 48 +++++++++++++++--------------
+ src/Servant/Utils/StaticFiles.hs         | 46 ++++++++++++++--------------
+ src/Servant/Utils/StaticFilesWaiPatch.hs | 52 ++++++++++++++++++++++++++++++++
+ 3 files changed, 102 insertions(+), 44 deletions(-)
+ create mode 100644 src/Servant/Utils/StaticFilesWaiPatch.hs
 
 diff --git a/servant-server.cabal b/servant-server.cabal
-index 70445d0..a0b7b60 100644
+index 70445d0..6f90bbf 100644
 --- a/servant-server.cabal
 +++ b/servant-server.cabal
 @@ -19,7 +19,7 @@ author:              Servant Contributors
@@ -40,16 +40,16 @@ index 70445d0..a0b7b60 100644
  
  library
    exposed-modules:
-@@ -49,7 +49,7 @@ library
-     Servant.Server.Internal.Router
+@@ -50,6 +50,8 @@ library
      Servant.Server.Internal.RoutingApplication
      Servant.Server.Internal.ServantErr
--    Servant.Utils.StaticFiles
-+    -- Servant.Utils.StaticFiles
+     Servant.Utils.StaticFiles
++  other-modules:
++    Servant.Utils.StaticFilesWaiPatch
    build-depends:
          base               >= 4.7  && < 4.10
        , base-compat        >= 0.9  && < 0.10
-@@ -78,8 +78,8 @@ library
+@@ -78,10 +80,12 @@ library
        , transformers-base  >= 0.4.4 && < 0.5
        , transformers-compat>= 0.4  && < 0.6
        , wai                >= 3.0  && < 3.3
@@ -58,9 +58,14 @@ index 70445d0..a0b7b60 100644
 +      -- , wai-app-static     >= 3.1  && < 3.2
 +      -- , warp               >= 3.0  && < 3.3
        , word8              >= 0.1  && < 0.2
- 
+-
++-- needed for static files temp patch
++      , directory >= 1.3.1.0 && <= 1.3.1.0
++      , mime-types >=0.1.0.7 && <= 0.1.0.7
    hs-source-dirs: src
-@@ -89,19 +89,19 @@ library
+   default-language: Haskell2010
+   ghc-options: -Wall
+@@ -89,19 +93,19 @@ library
      ghc-options: -Wno-redundant-constraints
    include-dirs: include
  
@@ -93,117 +98,153 @@ index 70445d0..a0b7b60 100644
  
  test-suite spec
    type: exitcode-stdio-1.0
-diff --git a/src/Servant.hs b/src/Servant.hs
-index ed24756..fd7e045 100644
---- a/src/Servant.hs
-+++ b/src/Servant.hs
-@@ -7,7 +7,7 @@ module Servant (
-   module Servant.Server,
-   -- | Utilities on top of the servant core
-   module Servant.Utils.Links,
--  module Servant.Utils.StaticFiles,
-+  -- module Servant.Utils.StaticFiles,
-   -- | Useful re-exports
-   Proxy(..),
-   throwError
-@@ -18,4 +18,4 @@ import           Data.Proxy
- import           Servant.API
- import           Servant.Server
- import           Servant.Utils.Links
--import           Servant.Utils.StaticFiles
-+-- import           Servant.Utils.StaticFiles
 diff --git a/src/Servant/Utils/StaticFiles.hs b/src/Servant/Utils/StaticFiles.hs
-deleted file mode 100644
-index 12fa5e4..0000000
+index 12fa5e4..6b18627 100644
 --- a/src/Servant/Utils/StaticFiles.hs
-+++ /dev/null
-@@ -1,86 +0,0 @@
++++ b/src/Servant/Utils/StaticFiles.hs
+@@ -1,4 +1,4 @@
 -{-# LANGUAGE CPP #-}
---- | This module defines server-side handlers that lets you serve static files.
----
---- The most common needs for a web application are covered by
---- 'serveDirectoryWebApp`, but the other variants allow you to use
---- different `StaticSettings` and 'serveDirectoryWith' even allows you
---- to specify arbitrary 'StaticSettings' to be used for serving static files.
--module Servant.Utils.StaticFiles
++-- {-# LANGUAGE CPP #-}
+ -- | This module defines server-side handlers that lets you serve static files.
+ --
+ -- The most common needs for a web application are covered by
+@@ -6,24 +6,26 @@
+ -- different `StaticSettings` and 'serveDirectoryWith' even allows you
+ -- to specify arbitrary 'StaticSettings' to be used for serving static files.
+ module Servant.Utils.StaticFiles
 -  ( serveDirectoryWebApp
 -  , serveDirectoryWebAppLookup
 -  , serveDirectoryFileServer
 -  , serveDirectoryEmbedded
--  , serveDirectoryWith
--  , -- * Deprecated
--    serveDirectory
--  ) where
--
++ ( --serveDirectoryWebApp
++  -- , serveDirectoryWebAppLookup
++    serveDirectoryFileServer
++  -- , serveDirectoryEmbedded
+   , serveDirectoryWith
+   , -- * Deprecated
+     serveDirectory
+   ) where
+ 
 -import           Data.ByteString                (ByteString)
 -import           Network.Wai.Application.Static
--import           Servant.API.Raw                (Raw)
--import           Servant.Server                 (Server, Tagged (..))
--import           System.FilePath                (addTrailingPathSeparator)
++-- import           Data.ByteString                (ByteString)
++import           Servant.Utils.StaticFilesWaiPatch
++-- import           Network.Wai.Application.Static
+ import           Servant.API.Raw                (Raw)
+ import           Servant.Server                 (Server, Tagged (..))
+ import           System.FilePath                (addTrailingPathSeparator)
 -#if !MIN_VERSION_wai_app_static(3,1,0)
 -import           Filesystem.Path.CurrentOS      (decodeString)
 -#endif
 -import WaiAppStatic.Storage.Filesystem          (ETagLookup)
--
---- | Serve anything under the specified directory as a 'Raw' endpoint.
----
---- @
---- type MyApi = "static" :> Raw
----
---- server :: Server MyApi
---- server = serveDirectoryWebApp "\/var\/www"
---- @
----
---- would capture any request to @\/static\/\<something>@ and look for
---- @\<something>@ under @\/var\/www@.
----
---- It will do its best to guess the MIME type for that file, based on the extension,
---- and send an appropriate /Content-Type/ header if possible.
----
---- If your goal is to serve HTML, CSS and Javascript files that use the rest of the API
---- as a webapp backend, you will most likely not want the static files to be hidden
---- behind a /\/static\// prefix. In that case, remember to put the 'serveDirectoryWebApp'
---- handler in the last position, because /servant/ will try to match the handlers
---- in order.
----
---- Corresponds to the `defaultWebAppSettings` `StaticSettings` value.
++-- #if !MIN_VERSION_wai_app_static(3,1,0)
++-- import           Filesystem.Path.CurrentOS      (decodeString)
++-- #endif
++-- import WaiAppStatic.Storage.Filesystem          (ETagLookup)
++
+ 
+ -- | Serve anything under the specified directory as a 'Raw' endpoint.
+ --
+@@ -47,21 +49,21 @@ import WaiAppStatic.Storage.Filesystem          (ETagLookup)
+ -- in order.
+ --
+ -- Corresponds to the `defaultWebAppSettings` `StaticSettings` value.
 -serveDirectoryWebApp :: FilePath -> Server Raw
 -serveDirectoryWebApp = serveDirectoryWith . defaultWebAppSettings . fixPath
--
---- | Same as 'serveDirectoryWebApp', but uses `defaultFileServerSettings`.
--serveDirectoryFileServer :: FilePath -> Server Raw
--serveDirectoryFileServer = serveDirectoryWith . defaultFileServerSettings . fixPath
--
---- | Same as 'serveDirectoryWebApp', but uses 'webAppSettingsWithLookup'.
++--serveDirectoryWebApp :: FilePath -> Server Raw
++--serveDirectoryWebApp = serveDirectoryWith . defaultWebAppSettings . fixPath
+ 
+ -- | Same as 'serveDirectoryWebApp', but uses `defaultFileServerSettings`.
+ serveDirectoryFileServer :: FilePath -> Server Raw
+ serveDirectoryFileServer = serveDirectoryWith . defaultFileServerSettings . fixPath
+ 
+ -- | Same as 'serveDirectoryWebApp', but uses 'webAppSettingsWithLookup'.
 -serveDirectoryWebAppLookup :: ETagLookup -> FilePath -> Server Raw
 -serveDirectoryWebAppLookup etag =
 -  serveDirectoryWith . flip webAppSettingsWithLookup etag . fixPath
--
---- | Uses 'embeddedSettings'.
++--serveDirectoryWebAppLookup :: ETagLookup -> FilePath -> Server Raw
++--serveDirectoryWebAppLookup etag =
++--  serveDirectoryWith . flip webAppSettingsWithLookup etag . fixPath
+ 
+ -- | Uses 'embeddedSettings'.
 -serveDirectoryEmbedded :: [(FilePath, ByteString)] -> Server Raw
 -serveDirectoryEmbedded files = serveDirectoryWith (embeddedSettings files)
--
---- | Alias for 'staticApp'. Lets you serve a directory
----   with arbitrary 'StaticSettings'. Useful when you want
----   particular settings not covered by the four other
----   variants. This is the most flexible method.
--serveDirectoryWith :: StaticSettings -> Server Raw
--serveDirectoryWith = Tagged . staticApp
--
---- | Same as 'serveDirectoryFileServer'. It used to be the only
----   file serving function in servant pre-0.10 and will be kept
----   around for a few versions, but is deprecated.
--serveDirectory :: FilePath -> Server Raw
--serveDirectory = serveDirectoryFileServer
--{-# DEPRECATED serveDirectory "Use serveDirectoryFileServer instead" #-}
--
--fixPath :: FilePath -> FilePath
--fixPath =
++--serveDirectoryEmbedded :: [(FilePath, ByteString)] -> Server Raw
++--serveDirectoryEmbedded files = serveDirectoryWith (embeddedSettings files)
+ 
+ -- | Alias for 'staticApp'. Lets you serve a directory
+ --   with arbitrary 'StaticSettings'. Useful when you want
+@@ -79,8 +81,8 @@ serveDirectory = serveDirectoryFileServer
+ 
+ fixPath :: FilePath -> FilePath
+ fixPath =
 -#if MIN_VERSION_wai_app_static(3,1,0)
--    addTrailingPathSeparator
++-- #if MIN_VERSION_wai_app_static(3,1,0)
+     addTrailingPathSeparator
 -#else
 -    decodeString . addTrailingPathSeparator
 -#endif
++-- #else
++--    decodeString . addTrailingPathSeparator
++-- #endif
+diff --git a/src/Servant/Utils/StaticFilesWaiPatch.hs b/src/Servant/Utils/StaticFilesWaiPatch.hs
+new file mode 100644
+index 0000000..19b2c19
+--- /dev/null
++++ b/src/Servant/Utils/StaticFilesWaiPatch.hs
+@@ -0,0 +1,52 @@
++-- temp copy of https://hackage.haskell.org/package/wai-app-static-3.1.6.1/docs/Network-Wai-Application-Static.html
++{-# LANGUAGE OverloadedStrings #-}
++
++module Servant.Utils.StaticFilesWaiPatch where
++
++import qualified Network.Wai as W
++import qualified Network.HTTP.Types as H
++import qualified Network.Mime as M
++import Data.Text (Text)
++import qualified Data.Text as T
++import qualified Data.ByteString.Char8 as BS
++import qualified Data.ByteString.Lazy as LBS 
++import System.FilePath (joinPath)
++import qualified Safe as SF
++import qualified System.Directory as DIR
++
++
++data StaticSettings = StaticSettings FilePath
++
++defaultFileServerSettings :: FilePath -- ^ root folder to serve from
++                      -> StaticSettings
++defaultFileServerSettings = StaticSettings
++
++staticApp :: StaticSettings -> W.Application
++staticApp set req = staticAppPieces set (W.pathInfo req) req
++
++staticAppPieces :: StaticSettings -> [Text] -> W.Application
++staticAppPieces (StaticSettings root) pieces _ respond = 
++     let filePath = joinPath $ map T.unpack (T.pack root : pieces)
++         contentType = M.mimeByExt M.defaultMimeMap "application/text" (SF.lastDef "" pieces)
++     in do 
++        fileExists <- regularFileExistsAndIsReadable filePath
++        res <- if fileExists 
++               then do
++                   contentBody <- LBS.readFile filePath
++                   let contentLength = LBS.length contentBody
++                   respond $ W.responseLBS H.status200
++                            [("Content-Type", contentType), 
++                             ("Content-Length", BS.pack $ show $ contentLength)] 
++                            contentBody
++               else 
++                   respond $ W.responseLBS H.status404 
++                            [("Content-Type", "text/plain")] 
++                            "File not found"
++        return res 
++
++regularFileExistsAndIsReadable:: FilePath -> IO Bool
++regularFileExistsAndIsReadable filePath = do
++     exists <- DIR.doesFileExist filePath
++     if exists
++     then fmap DIR.readable $ DIR.getPermissions filePath
++     else return False
 -- 
-2.7.4 (Apple Git-66)
+2.7.1
 
