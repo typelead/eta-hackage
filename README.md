@@ -49,7 +49,7 @@ These packages are supported by `etlas`.
 - [abstract-par-0.3.3](https://hackage.haskell.org/package/abstract-par-0.3.3)
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
 - [adjunctions-4.3](https://hackage.haskell.org/package/adjunctions-4.3)
-- [aeson-1.1.0.0](https://hackage.haskell.org/package/aeson-1.1.0.0)
+- [aeson >= 1.1.0.0 && <= 1.2.2.0](https://hackage.haskell.org/package/aeson)
 - [aeson-pretty >= 0.8.2 && aeson-pretty <= 0.8.5](https://hackage.haskell.org/package/aeson-pretty-0.8.5)
 - [agum-2.6](https://hackage.haskell.org/package/agum-2.6)
 - [ansi-terminal >= 0.6.2.3 && <= 0.6.3.1](https://hackage.haskell.org/package/ansi-terminal)
@@ -467,3 +467,11 @@ If you have already forked this repository, then skip to step 3.
     ```
 
 12. Submit a pull request to this repository for review.
+
+#### Applying an Existing Patch
+
+If you want to apply the patch to an old version of a package to a new version of a package, you can run
+
+```
+git apply --ignore-space-change --ignore-whitespace --reject [location-of-patch]
+```
