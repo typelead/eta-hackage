@@ -85,6 +85,7 @@ These packages are supported by `etlas`.
 - [bytes-0.15.3](https://hackage.haskell.org/package/bytes-0.15.3)
 - [bytestring >= 0.10.8.1.0 && <= 0.10.8.2.0](https://hackage.haskell.org/package/bytestring)
 - [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
+- [bytestring-show-0.3.5.6](https://hackage.haskell.org/package/bytestring-show-0.3.5.6)
 - [call-stack-0.1.0](https://hackage.haskell.org/package/call-stack-0.1.0)
 - [carray-0.1.6.6](https://hackage.haskell.org/package/carray-0.1.6.6)
 - [case-insensitive >= 1.2.0.7 && <= 1.2.0.10](https://hackage.haskell.org/package/case-insensitive)

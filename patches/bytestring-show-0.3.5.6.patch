@@ -1,0 +1,47 @@
+From 86a0efe28a080b037bd1ebd7a20292bdefdc1537 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 24 Sep 2017 20:22:05 -0400
+Subject: [PATCH] Patched
+
+---
+ Text/Show/ByteString/Integer.hs | 4 ++--
+ bytestring-show.cabal           | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Text/Show/ByteString/Integer.hs b/Text/Show/ByteString/Integer.hs
+index e1a30cd..b00d010 100644
+--- a/Text/Show/ByteString/Integer.hs
++++ b/Text/Show/ByteString/Integer.hs
+@@ -19,9 +19,9 @@ import GHC.Base
+ #if   __GLASGOW_HASKELL__ && __GLASGOW_HASKELL__ <  611 && INTEGER_GMP
+ import GHC.Integer.Internals
+ #elif __GLASGOW_HASKELL__ && __GLASGOW_HASKELL__ >= 611 && INTEGER_GMP
+-import GHC.Integer.GMP.Internals
++import GHC.Integer.BigInteger.Internals
+ #elif __GLASGOW_HASKELL__ && INTEGER_SIMPLE
+-import GHC.Integer.Simple.Internals
++import GHC.Integer.BigInteger.Internals
+ #endif
+ 
+ import GHC.Num
+diff --git a/bytestring-show.cabal b/bytestring-show.cabal
+index 630b431..6cc8b35 100644
+--- a/bytestring-show.cabal
++++ b/bytestring-show.cabal
+@@ -34,11 +34,11 @@ library
+ 
+     if flag(integer-simple)
+         cpp-options: -DINTEGER_SIMPLE
+-        build-depends: integer-simple
++        build-depends: integer
+ 
+     if impl(ghc >= 6.11) && !flag(integer-simple)
+         cpp-options: -DINTEGER_GMP
+-        build-depends: integer-gmp >= 0.2
++        build-depends: integer >= 0.2
+ 
+     if impl(ghc >= 6.9) && impl(ghc < 6.11) && !flag(integer-simple)
+         cpp-options: -DINTEGER_GMP
+-- 
+2.7.4 (Apple Git-66)
+
