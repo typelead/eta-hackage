@@ -1,0 +1,237 @@
+From bdbea700d1eb039453d81049f697fd4dbc99182d Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 2 Oct 2017 00:55:25 -0400
+Subject: [PATCH] Patched
+
+---
+ src/URI/ByteString/Types.hs | 114 ++++++++++++++++++++++----------------------
+ uri-bytestring.cabal        |  12 ++---
+ 2 files changed, 63 insertions(+), 63 deletions(-)
+
+diff --git a/src/URI/ByteString/Types.hs b/src/URI/ByteString/Types.hs
+index 11f69d9..0f0a503 100644
+--- a/src/URI/ByteString/Types.hs
++++ b/src/URI/ByteString/Types.hs
+@@ -4,11 +4,11 @@
+ {-# LANGUAGE GADTs                      #-}
+ {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+ {-# LANGUAGE StandaloneDeriving         #-}
+-#ifdef LIFT_COMPAT
+-{-# LANGUAGE TemplateHaskell            #-}
+-#else
+-{-# LANGUAGE DeriveLift                 #-}
+-#endif
++-- #ifdef LIFT_COMPAT
++-- {-# LANGUAGE TemplateHaskell            #-}
++-- #else
++-- {-# LANGUAGE DeriveLift                 #-}
++-- #endif
+ module URI.ByteString.Types where
+ 
+ -------------------------------------------------------------------------------
+@@ -18,37 +18,37 @@ import           Data.Monoid
+ import           Data.Typeable
+ import           Data.Word
+ import           GHC.Generics
+-import           Instances.TH.Lift()
++-- import           Instances.TH.Lift()
+ -------------------------------------------------------------------------------
+ import           Prelude
+ -------------------------------------------------------------------------------
+-#ifdef LIFT_COMPAT
+-import           Language.Haskell.TH.Syntax()
+-import           Language.Haskell.TH.Lift
+-#else
+-import           Language.Haskell.TH.Syntax
+-#endif
++-- #ifdef LIFT_COMPAT
++-- import           Language.Haskell.TH.Syntax()
++-- import           Language.Haskell.TH.Lift
++-- #else
++-- import           Language.Haskell.TH.Syntax
++-- #endif
+ 
+ -- | Required first component to referring to a specification for the
+ -- remainder of the URI's components, e.g. "http" or "https"
+ newtype Scheme = Scheme { schemeBS :: ByteString }
+   deriving (Show, Eq, Generic, Typeable, Ord)
+ 
+-#ifdef LIFT_COMPAT
+-deriveLift ''Scheme
+-#else
+-deriving instance Lift Scheme
+-#endif
++-- #ifdef LIFT_COMPAT
++-- deriveLift ''Scheme
++-- #else
++-- deriving instance Lift Scheme
++-- #endif
+ 
+ -------------------------------------------------------------------------------
+ newtype Host = Host { hostBS :: ByteString }
+   deriving (Show, Eq, Generic, Typeable, Ord)
+ 
+-#ifdef LIFT_COMPAT
+-deriveLift ''Host
+-#else
+-deriving instance Lift Host
+-#endif
++-- #ifdef LIFT_COMPAT
++-- deriveLift ''Host
++-- #else
++-- deriving instance Lift Host
++-- #endif
+ 
+ -------------------------------------------------------------------------------
+ -- | While some libraries have chosen to limit this to a Word16, the
+@@ -56,11 +56,11 @@ deriving instance Lift Host
+ newtype Port = Port { portNumber :: Int }
+   deriving (Show, Eq, Generic, Typeable, Ord)
+ 
+-#ifdef LIFT_COMPAT
+-deriveLift ''Port
+-#else
+-deriving instance Lift Port
+-#endif
++-- #ifdef LIFT_COMPAT
++-- deriveLift ''Port
++-- #else
++-- deriving instance Lift Port
++-- #endif
+ 
+ -------------------------------------------------------------------------------
+ data UserInfo = UserInfo {
+@@ -68,11 +68,11 @@ data UserInfo = UserInfo {
+     , uiPassword :: ByteString
+     } deriving (Show, Eq, Generic, Typeable, Ord)
+ 
+-#ifdef LIFT_COMPAT
+-deriveLift ''UserInfo
+-#else
+-deriving instance Lift UserInfo
+-#endif
++-- #ifdef LIFT_COMPAT
++-- deriveLift ''UserInfo
++-- #else
++-- deriving instance Lift UserInfo
++-- #endif
+ 
+ -------------------------------------------------------------------------------
+ data Authority = Authority {
+@@ -81,39 +81,39 @@ data Authority = Authority {
+     , authorityPort     :: Maybe Port
+     } deriving (Show, Eq, Generic, Typeable, Ord)
+ 
+-#ifdef LIFT_COMPAT
+-deriveLift ''Authority
+-#else
+-deriving instance Lift Authority
+-#endif
++-- #ifdef LIFT_COMPAT
++-- deriveLift ''Authority
++-- #else
++-- deriving instance Lift Authority
++-- #endif
+ 
+ -------------------------------------------------------------------------------
+ newtype Query = Query { queryPairs :: [(ByteString, ByteString)] }
+               deriving (Show, Eq, Monoid, Generic, Typeable, Ord)
+ 
+-#ifdef LIFT_COMPAT
+-deriveLift ''Query
+-#else
+-deriving instance Lift Query
+-#endif
++-- #ifdef LIFT_COMPAT
++-- deriveLift ''Query
++-- #else
++-- deriving instance Lift Query
++-- #endif
+ 
+ -------------------------------------------------------------------------------
+ data Absolute deriving(Typeable)
+ 
+-#ifdef LIFT_COMPAT
+-deriveLift ''Absolute
+-#else
+-deriving instance Lift Absolute
+-#endif
++-- #ifdef LIFT_COMPAT
++-- deriveLift ''Absolute
++-- #else
++-- deriving instance Lift Absolute
++-- #endif
+ 
+ -------------------------------------------------------------------------------
+ data Relative deriving(Typeable)
+ 
+-#ifdef LIFT_COMPAT
+-deriveLift ''Relative
+-#else
+-deriving instance Lift Relative
+-#endif
++-- #ifdef LIFT_COMPAT
++-- deriveLift ''Relative
++-- #else
++-- deriving instance Lift Relative
++-- #endif
+ 
+ -------------------------------------------------------------------------------
+ -- | Note: URI fragment does not include the #
+@@ -134,11 +134,11 @@ deriving instance Show (URIRef a)
+ deriving instance Eq (URIRef a)
+ -- deriving instance Generic (URIRef a)
+ deriving instance Ord (URIRef a)
+-#ifdef LIFT_COMPAT
+-deriveLift ''URIRef
+-#else
+-deriving instance Lift (URIRef a)
+-#endif
++-- #ifdef LIFT_COMPAT
++-- deriveLift ''URIRef
++-- #else
++-- deriving instance Lift (URIRef a)
++-- #endif
+ 
+ #ifdef WITH_TYPEABLE
+ deriving instance Typeable URIRef
+diff --git a/uri-bytestring.cabal b/uri-bytestring.cabal
+index a752778..9ac40f4 100644
+--- a/uri-bytestring.cabal
++++ b/uri-bytestring.cabal
+@@ -31,7 +31,7 @@ flag lib-Werror
+ library
+   exposed-modules:
+     URI.ByteString
+-    URI.ByteString.QQ
++    -- URI.ByteString.QQ
+   other-modules:
+     URI.ByteString.Lens
+     URI.ByteString.Types
+@@ -45,7 +45,7 @@ library
+     , bytestring       >= 0.9.1   && < 0.11
+     , blaze-builder    >= 0.3.0.0 && < 0.5
+     , template-haskell >= 2.9     && < 2.13
+-    , th-lift-instances >= 0.1.8  && < 0.2
++    -- , th-lift-instances >= 0.1.8  && < 0.2
+     , containers
+ 
+   hs-source-dirs:      src
+@@ -54,10 +54,10 @@ library
+   if impl(ghc >= 7.8)
+     cpp-options: -DWITH_TYPEABLE
+ 
+-  if impl(ghc < 8)
+-    cpp-options: -DLIFT_COMPAT
+-    build-depends:
+-      th-lift >= 0.7.5 && < 0.8
++  -- if impl(ghc < 8)
++  --   cpp-options: -DLIFT_COMPAT
++  --   build-depends:
++  --     th-lift >= 0.7.5 && < 0.8
+ 
+   if flag(lib-Werror)
+     ghc-options: -Werror
+-- 
+2.7.4 (Apple Git-66)
+
