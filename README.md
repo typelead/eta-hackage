@@ -49,7 +49,7 @@ These packages are supported by `etlas`.
 - [abstract-par-0.3.3](https://hackage.haskell.org/package/abstract-par-0.3.3)
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
 - [adjunctions-4.3](https://hackage.haskell.org/package/adjunctions-4.3)
-- [aeson >= 1.1.0.0 && <= 1.2.2.0](https://hackage.haskell.org/package/aeson)
+- [aeson >= 1.1.0.0 && <= 1.2.3.0](https://hackage.haskell.org/package/aeson)
 - [aeson-pretty >= 0.8.2 && aeson-pretty <= 0.8.5](https://hackage.haskell.org/package/aeson-pretty-0.8.5)
 - [agum-2.6](https://hackage.haskell.org/package/agum-2.6)
 - [ansi-terminal >= 0.6.2.3 && <= 0.6.3.1](https://hackage.haskell.org/package/ansi-terminal)
