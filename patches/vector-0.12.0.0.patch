@@ -1,0 +1,39 @@
+From aa991c0f57ec887efafc12088f41eef931761f37 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 13 Nov 2017 06:40:14 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Vector.hs | 2 +-
+ vector.cabal   | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Data/Vector.hs b/Data/Vector.hs
+index 21b6196..51df664 100644
+--- a/Data/Vector.hs
++++ b/Data/Vector.hs
+@@ -166,7 +166,7 @@ module Data.Vector (
+ 
+ import qualified Data.Vector.Generic as G
+ import           Data.Vector.Mutable  ( MVector(..) )
+-import           Data.Primitive.Array
++import           Data.Primitive.Array hiding (fromList, fromListN)
+ import qualified Data.Vector.Fusion.Bundle as Bundle
+ 
+ import Control.DeepSeq ( NFData, rnf )
+diff --git a/vector.cabal b/vector.cabal
+index 8f0b57f..de181ba 100644
+--- a/vector.cabal
++++ b/vector.cabal
+@@ -156,7 +156,7 @@ Library
+   if !impl(ghc > 8.0)
+     Build-Depends: semigroups >= 0.18 && < 0.19
+ 
+-  Ghc-Options: -O2 -Wall
++  Ghc-Options: -O2 -Wall -optP--text
+ 
+   if !flag(Wall)
+     Ghc-Options: -fno-warn-orphans
+-- 
+2.7.4 (Apple Git-66)
+
