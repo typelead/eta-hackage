@@ -1,15 +1,15 @@
-From b1d1dfa98cb420a99967c6637e8bb2e56483cdcc Mon Sep 17 00:00:00 2001
-From: Abhiroop Sarkar <asiamgenius@gmail.com>
-Date: Tue, 9 May 2017 12:32:57 +0530
+From e3d2d263672207c9982de425ed1a9639545613b9 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 14 Nov 2017 20:37:47 +0530
 Subject: [PATCH] Patched
 
 ---
- Text/Regex/Posix/Wrap.hs  | 800 ++++++++++++++++++++++++++++++++++++++++++++++
- Text/Regex/Posix/Wrap.hsc | 676 ---------------------------------------
+ Text/Regex/Posix/Wrap.hs  | 804 ++++++++++++++++++++++++++++++++++++++++++++++
+ Text/Regex/Posix/Wrap.hsc | 676 --------------------------------------
  java/MatchDetails.java    |  21 ++
  java/Utils.java           |  59 ++++
- regex-posix.cabal         |   3 +-
- 5 files changed, 882 insertions(+), 677 deletions(-)
+ regex-posix.cabal         |  10 +-
+ 5 files changed, 887 insertions(+), 683 deletions(-)
  create mode 100644 Text/Regex/Posix/Wrap.hs
  delete mode 100644 Text/Regex/Posix/Wrap.hsc
  create mode 100644 java/MatchDetails.java
@@ -17,12 +17,12 @@ Subject: [PATCH] Patched
 
 diff --git a/Text/Regex/Posix/Wrap.hs b/Text/Regex/Posix/Wrap.hs
 new file mode 100644
-index 0000000..a7d8c1b
+index 0000000..a75d798
 --- /dev/null
 +++ b/Text/Regex/Posix/Wrap.hs
-@@ -0,0 +1,800 @@
+@@ -0,0 +1,804 @@
 +{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-+{-# LANGUAGE MagicHash, MultiParamTypeClasses, ScopedTypeVariables, TypeOperators #-}
++{-# LANGUAGE CPP, MagicHash, MultiParamTypeClasses, ScopedTypeVariables, TypeOperators #-}
 +
 +-----------------------------------------------------------------------------
 +-- |
@@ -170,7 +170,11 @@ index 0000000..a7d8c1b
 +import qualified Control.Exception(try,IOException)
 +
 +import Java
++#ifdef HAS_STRINGUTILS
 +import Java.StringUtils(CharSequence)
++#else
++import Java.String(CharSequence)
++#endif
 +
 +try :: IO a -> IO (Either Control.Exception.IOException a)
 +try = Control.Exception.try
@@ -1596,19 +1600,27 @@ index 0000000..5fbbd8d
 +    }
 +}
 diff --git a/regex-posix.cabal b/regex-posix.cabal
-index 8bba3e5..b7a647a 100644
+index 8bba3e5..49afe69 100644
 --- a/regex-posix.cabal
 +++ b/regex-posix.cabal
-@@ -57,7 +57,8 @@ Library
+@@ -57,14 +57,10 @@ Library
        Build-Depends:      regex-base >= 0.93, base < 3.0
        Extensions:         MultiParamTypeClasses, FunctionalDependencies, CPP
  
 -  C-Sources:            c-finalizer/myfree.c
-+  -- C-Sources:            c-finalizer/myfree.c
 +  java-sources:         java/Utils.java java/MatchDetails.java
    Include-Dirs:         c-finalizer
-   if !os(windows)
-     CC-Options:           -DHAVE_REGEX_H
+-  if !os(windows)
+-    CC-Options:           -DHAVE_REGEX_H
+-  else
+-    C-Sources:            cbits/reallocf.c cbits/regcomp.c cbits/regerror.c
+-                          cbits/regexec.c cbits/regfree.c
+-    Include-Dirs:         cbits
++  if impl(eta < 0.0.9.7)
++     cc-options: -DHAS_STRINGUTILS
+ 
+   -- Data-Files:
+   -- Extra-Tmp-Files:
 -- 
-2.4.9 (Apple Git-60)
+2.7.4 (Apple Git-66)
 

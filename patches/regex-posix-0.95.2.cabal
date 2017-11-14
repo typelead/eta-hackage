@@ -57,15 +57,10 @@ Library
       Build-Depends:      regex-base >= 0.93, base < 3.0
       Extensions:         MultiParamTypeClasses, FunctionalDependencies, CPP
 
-  -- C-Sources:            c-finalizer/myfree.c
   java-sources:         java/Utils.java java/MatchDetails.java
   Include-Dirs:         c-finalizer
-  if !os(windows)
-    CC-Options:           -DHAVE_REGEX_H
-  else
-    C-Sources:            cbits/reallocf.c cbits/regcomp.c cbits/regerror.c
-                          cbits/regexec.c cbits/regfree.c
-    Include-Dirs:         cbits
+  if impl(eta < 0.0.9.7)
+     cc-options: -DHAS_STRINGUTILS
 
   -- Data-Files:
   -- Extra-Tmp-Files:

@@ -1,10 +1,10 @@
-From 52d7002cdb39926f15b898db6b7f0a8177cd6f91 Mon Sep 17 00:00:00 2001
+From 30d8c68d7cac1a31c361d8fd89c3f89fa1316d1b Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Thu, 24 Aug 2017 17:30:12 -0400
+Date: Tue, 14 Nov 2017 20:47:53 +0530
 Subject: [PATCH] Patched
 
 ---
- Data/Text.hs                  |  37 +++++++-
+ Data/Text.hs                  |  41 +++++++-
  Data/Text/Array.hs            |   8 +-
  Data/Text/Encoding.hs         |   8 +-
  Data/Text/Lazy.hs             |   5 +-
@@ -12,13 +12,13 @@ Subject: [PATCH] Patched
  Data/Text/Show.hs             |   3 +-
  java/Utils.java               | 178 +++++++++++++++++++++++++++++++++++
  java/eta-0.0.9/Utils.java     | 213 ++++++++++++++++++++++++++++++++++++++++++
- text.cabal                    |   9 +-
- 9 files changed, 447 insertions(+), 16 deletions(-)
+ text.cabal                    |  13 ++-
+ 9 files changed, 455 insertions(+), 16 deletions(-)
  create mode 100644 java/Utils.java
  create mode 100644 java/eta-0.0.9/Utils.java
 
 diff --git a/Data/Text.hs b/Data/Text.hs
-index 6dd4c99..604471f 100644
+index 6dd4c99..279a02c 100644
 --- a/Data/Text.hs
 +++ b/Data/Text.hs
 @@ -1,4 +1,6 @@
@@ -29,13 +29,17 @@ index 6dd4c99..604471f 100644
  {-# OPTIONS_GHC -fno-warn-orphans #-}
  #if __GLASGOW_HASKELL__ >= 702
  {-# LANGUAGE Trustworthy #-}
-@@ -245,6 +247,17 @@ import qualified GHC.Exts as Exts
+@@ -245,6 +247,21 @@ import qualified GHC.Exts as Exts
  #if MIN_VERSION_base(4,7,0)
  import Text.Printf (PrintfArg, formatArg, formatString)
  #endif
 +#if ETA_VERSION >= 9
 +import Java
++#ifdef NO_STRINGUTILS
++import qualified Interop.Java.StringUtils as Str
++#else
 +import qualified Java.StringUtils as Str
++#endif
 +import Data.ByteString.Internal (toForeignPtr)
 +import Foreign.ForeignPtr (withForeignPtr)
 +import Data.Word (Word8)
@@ -47,7 +51,7 @@ index 6dd4c99..604471f 100644
  
  -- $strict
  --
-@@ -1753,3 +1766,25 @@ copy (Text arr off len) = Text (A.run go) 0 len
+@@ -1753,3 +1770,25 @@ copy (Text arr off len) = Text (A.run go) 0 len
        marr <- A.new len
        A.copyI marr 0 arr off len
        return marr
@@ -592,7 +596,7 @@ index 0000000..b94159e
 +    }
 +}
 diff --git a/text.cabal b/text.cabal
-index 55ce8a6..6189fbd 100644
+index 55ce8a6..0c8a40c 100644
 --- a/text.cabal
 +++ b/text.cabal
 @@ -80,7 +80,10 @@ flag integer-simple
@@ -607,7 +611,18 @@ index 55ce8a6..6189fbd 100644
    include-dirs: include
  
    exposed-modules:
-@@ -156,7 +159,7 @@ library
+@@ -138,6 +141,10 @@ library
+     deepseq    >= 1.1.0.0,
+     ghc-prim   >= 0.2
+ 
++  if impl(eta >= 0.0.9.7)
++     build-depends: eta-java-interop
++     cpp-options: -DNO_STRINGUTILS
++
+   if flag(bytestring-builder)
+     build-depends: bytestring         >= 0.9    && < 0.10.4,
+                    bytestring-builder >= 0.10.4
+@@ -156,7 +163,7 @@ library
      build-depends: integer-simple >= 0.1 && < 0.5
    else
      cpp-options: -DINTEGER_GMP
@@ -616,7 +631,7 @@ index 55ce8a6..6189fbd 100644
  
  test-suite tests
    type:           exitcode-stdio-1.0
-@@ -197,7 +200,7 @@ test-suite tests
+@@ -197,7 +204,7 @@ test-suite tests
      build-depends: integer-simple >= 0.1 && < 0.5
    else
      cpp-options: -DINTEGER_GMP

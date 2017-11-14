@@ -141,6 +141,10 @@ library
     deepseq    >= 1.1.0.0,
     ghc-prim   >= 0.2
 
+  if impl(eta >= 0.0.9.7)
+     build-depends: eta-java-interop
+     cpp-options: -DNO_STRINGUTILS
+
   if flag(bytestring-builder)
     build-depends: bytestring         >= 0.9    && < 0.10.4,
                    bytestring-builder >= 0.10.4
