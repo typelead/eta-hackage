@@ -249,6 +249,7 @@ These packages are supported by `etlas`.
 - [prettyclass-1.0.0.0](https://hackage.haskell.org/package/prettyclass-1.0.0.0)
 - [primes-0.2.1.0](https://hackage.haskell.org/package/primes-0.2.1.0)
 - [primitive-0.6.2.0](https://hackage.haskell.org/package/primitive-0.6.2.0)
+- [process-1.6.2.0](https://hackage.haskell.org/package/process-1.6.2.0)
 - [profunctors-5.2](https://hackage.haskell.org/package/profunctors-5.2)
 - [protolude-0.1.10](https://hackage.haskell.org/package/protolude-0.1.10)
 - [pure-zlib-0.6](https://hackage.haskell.org/package/pure-zlib-0.6)

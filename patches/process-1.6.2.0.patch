@@ -1,0 +1,747 @@
+From eede2614cc85e299939cc93f54fe3e0bb2fb2b69 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 30 Nov 2017 22:17:52 +0530
+Subject: [PATCH] Patched
+
+---
+ System/Process.hs           |  75 ++++++--------
+ System/Process/Common.hs    | 100 +++++++++++-------
+ System/Process/Internals.hs |  16 ---
+ System/Process/Posix.hs     | 245 ++++++++++++++++++++++----------------------
+ java/Utils.java             |  41 ++++++++
+ process.cabal               |  21 +---
+ 6 files changed, 260 insertions(+), 238 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/System/Process.hs b/System/Process.hs
+index a8e627a..9b16374 100644
+--- a/System/Process.hs
++++ b/System/Process.hs
+@@ -587,16 +587,15 @@ waitForProcess ph@(ProcessHandle _ delegating_ctlc _) = lockWaitpid $ do
+   case p_ of
+     ClosedHandle e -> return e
+     OpenHandle h  -> do
+-        e <- alloca $ \pret -> do
++        e <- do
+           -- don't hold the MVar while we call c_waitForProcess...
+-          throwErrnoIfMinus1Retry_ "waitForProcess" (allowInterrupt >> c_waitForProcess h pret)
++          code <- allowInterrupt >> c_waitForProcess h
+           modifyProcessHandle ph $ \p_' ->
+             case p_' of
+               ClosedHandle e  -> return (p_', e)
+               OpenExtHandle{} -> return (p_', ExitFailure (-1))
+               OpenHandle ph'  -> do
+                 closePHANDLE ph'
+-                code <- peek pret
+                 let e = if (code == 0)
+                        then ExitSuccess
+                        else (ExitFailure (fromIntegral code))
+@@ -604,15 +603,15 @@ waitForProcess ph@(ProcessHandle _ delegating_ctlc _) = lockWaitpid $ do
+         when delegating_ctlc $
+           endDelegateControlC e
+         return e
+-#if defined(WINDOWS)
+-    OpenExtHandle _ job iocp ->
+-        maybe (ExitFailure (-1)) mkExitCode `fmap` waitForJobCompletion job iocp timeout_Infinite
+-      where mkExitCode code | code == 0 = ExitSuccess
+-                            | otherwise = ExitFailure $ fromIntegral code
+-#else
++-- #if defined(WINDOWS)
++--     OpenExtHandle _ job iocp ->
++--         maybe (ExitFailure (-1)) mkExitCode `fmap` waitForJobCompletion job iocp timeout_Infinite
++--       where mkExitCode code | code == 0 = ExitSuccess
++--                             | otherwise = ExitFailure $ fromIntegral code
++-- #else
+     OpenExtHandle _ _job _iocp ->
+         return $ ExitFailure (-1)
+-#endif
++-- #endif
+   where
+     -- If more than one thread calls `waitpid` at a time, `waitpid` will
+     -- return the exit code to one of them and (-1) to the rest of them,
+@@ -639,20 +638,18 @@ getProcessExitCode ph@(ProcessHandle _ delegating_ctlc _) = tryLockWaitpid $ do
+     case p_ of
+       ClosedHandle e -> return (p_, (Just e, False))
+       open -> do
+-        alloca $ \pExitCode -> do
+-          case getHandle open of
+-            Nothing -> return (p_, (Nothing, False))
+-            Just h  -> do
+-                res <- throwErrnoIfMinus1Retry "getProcessExitCode" $
+-                                        c_getProcessExitCode h pExitCode
+-                code <- peek pExitCode
+-                if res == 0
+-                   then return (p_, (Nothing, False))
+-                   else do
+-                        closePHANDLE h
+-                        let e  | code == 0 = ExitSuccess
+-                               | otherwise = ExitFailure (fromIntegral code)
+-                        return (ClosedHandle e, (Just e, True))
++        case getHandle open of
++          Nothing -> return (p_, (Nothing, False))
++          Just h  -> do
++              code <- c_getProcessExitCode h
++              -- TODO: Is this correct?
++              -- if res == 0
++              --     then return (p_, (Nothing, False))
++              --     else do
++              closePHANDLE h
++              let e | code == 0 = ExitSuccess
++                    | otherwise = ExitFailure (fromIntegral code)
++              return (ClosedHandle e, (Just e, True))
+   case m_e of
+     Just e | was_open && delegating_ctlc -> endDelegateControlC e
+     _                                    -> return ()
+@@ -703,13 +700,9 @@ terminateProcess ph = do
+   withProcessHandle ph $ \p_ ->
+     case p_ of
+       ClosedHandle  _ -> return ()
+-#if defined(WINDOWS)
+-      OpenExtHandle{} -> terminateJob ph 1 >> return ()
+-#else
+       OpenExtHandle{} -> error "terminateProcess with OpenExtHandle should not happen on POSIX."
+-#endif
+       OpenHandle    h -> do
+-        throwErrnoIfMinus1Retry_ "terminateProcess" $ c_terminateProcess h
++        c_terminateProcess h
+         return ()
+         -- does not close the handle, we might want to try terminating it
+         -- again, or get its exit code.
+@@ -718,22 +711,14 @@ terminateProcess ph = do
+ -- ----------------------------------------------------------------------------
+ -- Interface to C bits
+ 
+-foreign import ccall unsafe "terminateProcess"
+-  c_terminateProcess
+-        :: PHANDLE
+-        -> IO CInt
+-
+-foreign import ccall unsafe "getProcessExitCode"
+-  c_getProcessExitCode
+-        :: PHANDLE
+-        -> Ptr CInt
+-        -> IO CInt
+-
+-foreign import ccall interruptible "waitForProcess" -- NB. safe - can block
+-  c_waitForProcess
+-        :: PHANDLE
+-        -> Ptr CInt
+-        -> IO CInt
++foreign import java unsafe "destroy"
++  c_terminateProcess :: PHANDLE -> IO ()
++
++foreign import java unsafe "exitValue"
++  c_getProcessExitCode :: PHANDLE -> IO CInt
++
++foreign import java interruptible "waitFor" -- NB. safe - can block
++  c_waitForProcess :: PHANDLE -> IO CInt
+ 
+ 
+ -- ----------------------------------------------------------------------------
+diff --git a/System/Process/Common.hs b/System/Process/Common.hs
+index b424764..a11c1bc 100644
+--- a/System/Process/Common.hs
++++ b/System/Process/Common.hs
+@@ -1,5 +1,6 @@
+ {-# LANGUAGE CPP #-}
+ {-# LANGUAGE RecordWildCards #-}
++{-# LANGUAGE MagicHash #-}
+ module System.Process.Common
+     ( CreateProcess (..)
+     , CmdSpec (..)
+@@ -9,6 +10,9 @@ module System.Process.Common
+     , ProcRetHandles (..)
+     , withFilePathException
+     , PHANDLE
++    , getInputChannel
++    , getOutputChannel
++    , getErrorChannel
+     , GroupID
+     , UserID
+     , modifyProcessHandle
+@@ -20,12 +24,8 @@ module System.Process.Common
+     , mbPipe
+     , pfdToHandle
+ 
+--- Avoid a warning on Windows
+-#ifdef WINDOWS
+     , CGid (..)
+-#else
+-    , CGid
+-#endif
++    , Redirect
+     ) where
+ 
+ import Control.Concurrent
+@@ -46,26 +46,14 @@ import System.IO.Error
+ import Data.Typeable
+ import GHC.IO.IOMode
+ 
+--- We do a minimal amount of CPP here to provide uniform data types across
+--- Windows and POSIX.
+-#ifdef WINDOWS
+ import Data.Word (Word32)
+-import System.Win32.DebugApi (PHANDLE)
+-#else
+ import System.Posix.Types
+-#endif
++import Java
+ 
+-#ifdef WINDOWS
+--- Define some missing types for Windows compatibility. Note that these values
+--- will never actually be used, as the setuid/setgid system calls are not
+--- applicable on Windows. No value of this type will ever exist.
+ newtype CGid = CGid Word32
+   deriving (Show, Eq)
+ type GroupID = CGid
+ type UserID = CGid
+-#else
+-type PHANDLE = CPid
+-#endif
+ 
+ data CreateProcess = CreateProcess{
+   cmdspec      :: CmdSpec,                 -- ^ Executable & arguments, or shell command.  If 'cwd' is 'Nothing', relative paths are resolved with respect to the current working directory.  If 'cwd' is provided, it is implementation-dependent whether relative paths are resolved with respect to 'cwd' or the current working directory, so absolute paths should be used to ensure portability.
+@@ -202,39 +190,45 @@ withProcessHandle
+         -> IO a
+ withProcessHandle (ProcessHandle m _ _) io = withMVar m io
+ 
+-fd_stdin, fd_stdout, fd_stderr :: FD
++fd_stdin, fd_stdout, fd_stderr :: Int
+ fd_stdin  = 0
+ fd_stdout = 1
+ fd_stderr = 2
+ 
+-mbFd :: String -> FD -> StdStream -> IO FD
+-mbFd _   _std CreatePipe      = return (-1)
+-mbFd _fun std Inherit         = return std
+-mbFd _fn _std NoStream        = return (-2)
+-mbFd fun _std (UseHandle hdl) =
++mbFd :: String -> Int -> StdStream -> IO (Maybe Redirect)
++mbFd _ _ CreatePipe      = return $ Just pIPE
++mbFd _ _ Inherit         = return $ Just iNHERIT
++mbFd _ _ NoStream        = return Nothing
++mbFd fun stdint (UseHandle hdl) =
+   withHandle fun hdl $ \Handle__{haDevice=dev,..} ->
+     case cast dev of
+-      Just fd -> do
++      Just fd
++        | Just path <- FD.fdPath fd -> do
+          -- clear the O_NONBLOCK flag on this FD, if it is set, since
+          -- we're exposing it externally (see #3316)
+          fd' <- FD.setNonBlockingMode fd False
+-         return (Handle__{haDevice=fd',..}, FD.fdFD fd')
++         let redirectFile
++               | stdint == 0 = redirectFromFile
++               | otherwise   = redirectToFile
++         return (Handle__{haDevice=fd',..}, Just $ redirectFile (pathToFile path))
+       Nothing ->
+           ioError (mkIOError illegalOperationErrorType
+                       "createProcess" (Just hdl) Nothing
+                    `ioeSetErrorString` "handle is not a file descriptor")
+ 
+-mbPipe :: StdStream -> Ptr FD -> IOMode -> IO (Maybe Handle)
+-mbPipe CreatePipe pfd  mode = fmap Just (pfdToHandle pfd mode)
+-mbPipe _std      _pfd _mode = return Nothing
+-
+-pfdToHandle :: Ptr FD -> IOMode -> IO Handle
+-pfdToHandle pfd mode = do
+-  fd <- peek pfd
+-  let filepath = "fd:" ++ show fd
+-  (fD,fd_type) <- FD.mkFD (fromIntegral fd) mode
+-                       (Just (Stream,0,0)) -- avoid calling fstat()
+-                       False {-is_socket-}
++mbPipe :: PHANDLE -> StdStream -> Int -> IOMode -> IO (Maybe Handle)
++mbPipe ph CreatePipe stdint mode = fmap Just (pfdToHandle (getCh ph) mode)
++  where getCh
++          | stdint == 0 = getInputChannel
++          | stdint == 1 = getOutputChannel
++          | stdint == 2 = getErrorChannel
++mbPipe _ph _std      _pfd _mode = return Nothing
++
++pfdToHandle :: Channel -> IOMode -> IO Handle
++pfdToHandle fd mode = do
++  let filepath = "fd:"
++  (fD,fd_type) <- FD.mkFD fd Nothing mode
++                       (Just (Stream,undefined)) -- avoid calling fstat()
+                        False {-non-blocking-}
+   fD' <- FD.setNonBlockingMode fD True -- see #3316
+ #if __GLASGOW_HASKELL__ >= 704
+@@ -243,3 +237,35 @@ pfdToHandle pfd mode = do
+   let enc = localeEncoding
+ #endif
+   mkHandleFromFD fD' fd_type filepath mode False {-is_socket-} (Just enc)
++
++-- Foreign functions
++data {-# CLASS "java.lang.ProcessBuilder$Redirect" #-} Redirect
++  = Redirect (Object# Redirect)
++
++data {-# CLASS "java.io.File" #-} File
++  = File (Object# File)
++
++foreign import java unsafe "@static @field java.lang.ProcessBuilder$Redirect.INHERIT"
++  iNHERIT :: Redirect
++
++foreign import java unsafe "@static @field java.lang.ProcessBuilder$Redirect.PIPE"
++  pIPE :: Redirect
++
++foreign import java unsafe "@static java.lang.ProcessBuilder$Redirect.from"
++  redirectFromFile :: File -> Redirect
++
++foreign import java unsafe "@static java.lang.ProcessBuilder$Redirect.to"
++  redirectToFile :: File -> Redirect
++
++foreign import java unsafe "@interface toFile"
++  pathToFile :: Path -> File
++
++data {-# CLASS "java.lang.Process" #-} PHANDLE =
++  PHANDLE (Object# PHANDLE)
++
++foreign import java unsafe "@static eta.process.Utils.getOutputChannel" getOutputChannel
++  :: PHANDLE -> Channel
++foreign import java unsafe "@static eta.process.Utils.getInputChannel" getInputChannel
++  :: PHANDLE -> Channel
++foreign import java unsafe "@static eta.process.Utils.getErrorChannel" getErrorChannel
++  :: PHANDLE -> Channel
+diff --git a/System/Process/Internals.hs b/System/Process/Internals.hs
+index 020390e..aaecaf0 100644
+--- a/System/Process/Internals.hs
++++ b/System/Process/Internals.hs
+@@ -22,11 +22,7 @@
+ module System.Process.Internals (
+     ProcessHandle(..), ProcessHandle__(..),
+     PHANDLE, closePHANDLE, mkProcessHandle,
+-#ifdef WINDOWS
+     CGid(..),
+-#else
+-    CGid,
+-#endif
+     GroupID,
+     UserID,
+     modifyProcessHandle, withProcessHandle,
+@@ -39,14 +35,6 @@ module System.Process.Internals (
+     endDelegateControlC,
+     stopDelegateControlC,
+     unwrapHandles,
+-#ifdef WINDOWS
+-    terminateJob,
+-    waitForJobCompletion,
+-    timeout_Infinite,
+-#else
+-    pPrPr_disableITimers, c_execvpe,
+-    ignoreSignal, defaultSignal,
+-#endif
+     withFilePathException, withCEnvironment,
+     translate,
+     createPipe,
+@@ -62,11 +50,7 @@ import System.Posix.Internals (FD)
+ 
+ import System.Process.Common
+ 
+-#ifdef WINDOWS
+-import System.Process.Windows
+-#else
+ import System.Process.Posix
+-#endif
+ 
+ -- ----------------------------------------------------------------------------
+ -- | This function is almost identical to
+diff --git a/System/Process/Posix.hs b/System/Process/Posix.hs
+index 5432f41..28af8f0 100644
+--- a/System/Process/Posix.hs
++++ b/System/Process/Posix.hs
+@@ -1,5 +1,8 @@
+ {-# LANGUAGE BangPatterns #-}
+ {-# LANGUAGE CPP #-}
++{-# LANGUAGE MagicHash #-}
++{-# LANGUAGE TypeFamilies #-}
++{-# LANGUAGE DataKinds #-}
+ module System.Process.Posix
+     ( mkProcessHandle
+     , translateInternal
+@@ -12,8 +15,6 @@ module System.Process.Posix
+     , isDefaultSignal
+     , ignoreSignal
+     , defaultSignal
+-    , c_execvpe
+-    , pPrPr_disableITimers
+     , createPipeInternal
+     , createPipeInternalFd
+     , interruptProcessGroupOfInternal
+@@ -31,19 +32,15 @@ import System.IO.Unsafe
+ import Control.Monad
+ import Data.Char
+ import System.IO
+-import System.Posix.Process.Internals ( pPrPr_disableITimers, c_execvpe )
+ import System.Posix.Types
+ 
+ import System.Posix.Internals
+ import GHC.IO.Exception
+-import System.Posix.Signals as Sig
+-import qualified System.Posix.IO as Posix
+-import System.Posix.Process (getProcessGroupIDOf)
++import qualified GHC.IO.Handle.FD as FD
+ 
+ import System.Process.Common hiding (mb_delegate_ctlc)
+-
+-#include "HsProcessConfig.h"
+-#include "processFlags.h"
++import Java
++import Java.Collections
+ 
+ mkProcessHandle :: PHANDLE -> Bool -> IO ProcessHandle
+ mkProcessHandle p mb_delegate_ctlc = do
+@@ -119,18 +116,14 @@ createProcess_Internal fun
+                                   child_user = mb_child_user }
+  = do
+   let (cmd,args) = commandToProcess cmdsp
+-  withFilePathException cmd $
+-   alloca $ \ pfdStdInput  ->
+-   alloca $ \ pfdStdOutput ->
+-   alloca $ \ pfdStdError  ->
+-   alloca $ \ pFailedDoing ->
+-   maybeWith withCEnvironment mb_env $ \pEnv ->
+-   maybeWith withFilePath mb_cwd $ \pWorkDir ->
+-   maybeWith with mb_child_group $ \pChildGroup ->
+-   maybeWith with mb_child_user $ \pChildUser ->
+-   withMany withFilePath (cmd:args) $ \cstrs ->
+-   withArray0 nullPtr cstrs $ \pargs -> do
+-
++      pargs = toJava (map toJava (cmd:args) :: [JString])
++      pWorkDir = mb_cwd
++      pEnv = fmap (toJava
++                   . map (\(s1,s2) -> (toJava s1 :: JString, toJava s2 :: JString)))
++                  mb_env
++  -- TODO: Handle this exception
++  -- withFilePathException cmd $
++  id $ do
+      fdin  <- mbFd fun fd_stdin  mb_stdin
+      fdout <- mbFd fun fd_stdout mb_stdout
+      fderr <- mbFd fun fd_stderr mb_stderr
+@@ -145,26 +138,17 @@ createProcess_Internal fun
+      proc_handle <- withMVar runInteractiveProcess_lock $ \_ ->
+                          c_runInteractiveProcess pargs pWorkDir pEnv
+                                 fdin fdout fderr
+-                                pfdStdInput pfdStdOutput pfdStdError
+-                                pChildGroup pChildUser
+-                                (if mb_delegate_ctlc then 1 else 0)
+-                                ((if mb_close_fds then RUN_PROCESS_IN_CLOSE_FDS else 0)
+-                                .|.(if mb_create_group then RUN_PROCESS_IN_NEW_GROUP else 0)
+-                                .|.(if mb_detach_console then RUN_PROCESS_DETACHED else 0)
+-                                .|.(if mb_create_new_console then RUN_PROCESS_NEW_CONSOLE else 0)
+-                                .|.(if mb_new_session then RUN_PROCESS_NEW_SESSION else 0))
+-                                pFailedDoing
+-
+-     when (proc_handle == -1) $ do
+-         cFailedDoing <- peek pFailedDoing
+-         failedDoing <- peekCString cFailedDoing
+-         when mb_delegate_ctlc
+-           stopDelegateControlC
+-         throwErrno (fun ++ ": " ++ failedDoing)
+-
+-     hndStdInput  <- mbPipe mb_stdin  pfdStdInput  WriteMode
+-     hndStdOutput <- mbPipe mb_stdout pfdStdOutput ReadMode
+-     hndStdError  <- mbPipe mb_stderr pfdStdError  ReadMode
++                                -- TODO: Handle these options
++                                -- (if mb_delegate_ctlc then 1 else 0)
++                                -- ((if mb_close_fds then RUN_PROCESS_IN_CLOSE_FDS else 0)
++                                -- .|.(if mb_create_group then RUN_PROCESS_IN_NEW_GROUP else 0)
++                                -- .|.(if mb_detach_console then RUN_PROCESS_DETACHED else 0)
++                                -- .|.(if mb_create_new_console then RUN_PROCESS_NEW_CONSOLE else 0)
++                                -- .|.(if mb_new_session then RUN_PROCESS_NEW_SESSION else 0))
++
++     hndStdInput  <- mbPipe proc_handle mb_stdin  fd_stdin  WriteMode
++     hndStdOutput <- mbPipe proc_handle mb_stdout fd_stdout ReadMode
++     hndStdError  <- mbPipe proc_handle mb_stderr fd_stderr ReadMode
+ 
+      ph <- mkProcessHandle proc_handle mb_delegate_ctlc
+      return ProcRetHandles { hStdInput    = hndStdInput
+@@ -195,109 +179,124 @@ runInteractiveProcess_lock = unsafePerformIO $ newMVar ()
+ -- restore when the last one has finished.
+ 
+ {-# NOINLINE runInteractiveProcess_delegate_ctlc #-}
+-runInteractiveProcess_delegate_ctlc :: MVar (Maybe (Int, Sig.Handler, Sig.Handler))
++-- runInteractiveProcess_delegate_ctlc :: MVar (Maybe (Int, Sig.Handler, Sig.Handler))
++runInteractiveProcess_delegate_ctlc :: MVar (Maybe Int)
+ runInteractiveProcess_delegate_ctlc = unsafePerformIO $ newMVar Nothing
+ 
+ startDelegateControlC :: IO ()
+-startDelegateControlC =
+-    modifyMVar_ runInteractiveProcess_delegate_ctlc $ \delegating -> do
+-      case delegating of
+-        Nothing -> do
+-          -- We're going to ignore ^C in the parent while there are any
+-          -- processes using ^C delegation.
+-          --
+-          -- If another thread runs another process without using
+-          -- delegation while we're doing this then it will inherit the
+-          -- ignore ^C status.
+-          old_int  <- installHandler sigINT  Ignore Nothing
+-          old_quit <- installHandler sigQUIT Ignore Nothing
+-          return (Just (1, old_int, old_quit))
+-
+-        Just (count, old_int, old_quit) -> do
+-          -- If we're already doing it, just increment the count
+-          let !count' = count + 1
+-          return (Just (count', old_int, old_quit))
++startDelegateControlC = return ()
++    -- modifyMVar_ runInteractiveProcess_delegate_ctlc $ \delegating -> do
++    --   case delegating of
++    --     Nothing -> do
++    --       -- We're going to ignore ^C in the parent while there are any
++    --       -- processes using ^C delegation.
++    --       --
++    --       -- If another thread runs another process without using
++    --       -- delegation while we're doing this then it will inherit the
++    --       -- ignore ^C status.
++    --       old_int  <- installHandler sigINT  Ignore Nothing
++    --       old_quit <- installHandler sigQUIT Ignore Nothing
++    --       return (Just (1, old_int, old_quit))
++
++    --     Just (count, old_int, old_quit) -> do
++    --       -- If we're already doing it, just increment the count
++    --       let !count' = count + 1
++    --       return (Just (count', old_int, old_quit))
+ 
+ stopDelegateControlC :: IO ()
+-stopDelegateControlC =
+-    modifyMVar_ runInteractiveProcess_delegate_ctlc $ \delegating -> do
+-      case delegating of
+-        Just (1, old_int, old_quit) -> do
+-          -- Last process, so restore the old signal handlers
+-          _ <- installHandler sigINT  old_int  Nothing
+-          _ <- installHandler sigQUIT old_quit Nothing
+-          return Nothing
+-
+-        Just (count, old_int, old_quit) -> do
+-          -- Not the last, just decrement the count
+-          let !count' = count - 1
+-          return (Just (count', old_int, old_quit))
+-
+-        Nothing -> return Nothing -- should be impossible
++stopDelegateControlC = return ()
++    -- modifyMVar_ runInteractiveProcess_delegate_ctlc $ \delegating -> do
++    --   case delegating of
++    --     Just (1, old_int, old_quit) -> do
++    --       -- Last process, so restore the old signal handlers
++    --       _ <- installHandler sigINT  old_int  Nothing
++    --       _ <- installHandler sigQUIT old_quit Nothing
++    --       return Nothing
++
++    --     Just (count, old_int, old_quit) -> do
++    --       -- Not the last, just decrement the count
++    --       let !count' = count - 1
++    --       return (Just (count', old_int, old_quit))
++
++    --     Nothing -> return Nothing -- should be impossible
+ 
+ endDelegateControlC :: ExitCode -> IO ()
+-endDelegateControlC exitCode = do
+-    stopDelegateControlC
+-
+-    -- And if the process did die due to SIGINT or SIGQUIT then
+-    -- we throw our equivalent exception here (synchronously).
+-    --
+-    -- An alternative design would be to throw to the main thread, as the
+-    -- normal signal handler does. But since we can be sync here, we do so.
+-    -- It allows the code locally to catch it and do something.
+-    case exitCode of
+-      ExitFailure n | isSigIntQuit n -> throwIO UserInterrupt
+-      _                              -> return ()
+-  where
+-    isSigIntQuit n = sig == sigINT || sig == sigQUIT
+-      where
+-        sig = fromIntegral (-n)
+-
+-foreign import ccall unsafe "runInteractiveProcess"
++endDelegateControlC exitCode = return ()
++  --   stopDelegateControlC
++
++  --   -- And if the process did die due to SIGINT or SIGQUIT then
++  --   -- we throw our equivalent exception here (synchronously).
++  --   --
++  --   -- An alternative design would be to throw to the main thread, as the
++  --   -- normal signal handler does. But since we can be sync here, we do so.
++  --   -- It allows the code locally to catch it and do something.
++  --   case exitCode of
++  --     ExitFailure n | isSigIntQuit n -> throwIO UserInterrupt
++  --     _                              -> return ()
++  -- where
++  --   isSigIntQuit n = sig == sigINT || sig == sigQUIT
++  --     where
++  --       sig = fromIntegral (-n)
++
++foreign import java unsafe "@static eta.process.Utils.runInteractiveProcess"
+   c_runInteractiveProcess
+-        ::  Ptr CString
+-        -> CString
+-        -> Ptr CString
+-        -> FD
+-        -> FD
+-        -> FD
+-        -> Ptr FD
+-        -> Ptr FD
+-        -> Ptr FD
+-        -> Ptr CGid
+-        -> Ptr CUid
+-        -> CInt                         -- reset child's SIGINT & SIGQUIT handlers
+-        -> CInt                         -- flags
+-        -> Ptr CString
++        :: JStringArray
++        -> Maybe String
++        -> Maybe (Map JString JString)
++        -> Maybe Redirect
++        -> Maybe Redirect
++        -> Maybe Redirect
+         -> IO PHANDLE
+ 
+ ignoreSignal, defaultSignal :: CLong
+-ignoreSignal  = CONST_SIG_IGN
+-defaultSignal = CONST_SIG_DFL
++ignoreSignal  = undefined
++defaultSignal = undefined
+ 
+ isDefaultSignal :: CLong -> Bool
+ isDefaultSignal = (== defaultSignal)
+ 
+ createPipeInternal :: IO (Handle, Handle)
+ createPipeInternal = do
+-    (readfd, writefd) <- Posix.createPipe
+-    readh <- Posix.fdToHandle readfd
+-    writeh <- Posix.fdToHandle writefd
++    p <- createPipe
++    let readfd  = superCast (pipeSource p)
++        writefd = superCast (pipeSink   p)
++    readh  <- FD.fdToHandle readfd
++    writeh <- FD.fdToHandle writefd
+     return (readh, writeh)
+ 
++-- TODO: Implement
+ createPipeInternalFd :: IO (FD, FD)
+-createPipeInternalFd = do
+-   (Fd readfd, Fd writefd) <- Posix.createPipe
+-   return (readfd, writefd)
++createPipeInternalFd = undefined
++
++data {-# CLASS "java.nio.channels.Pipe" #-} Pipe = Pipe (Object# Pipe)
++
++data {-# CLASS "java.nio.channels.Pipe$SourceChannel" #-} SourceChannel = SourceChannel (Object# SourceChannel)
++  deriving Class
++
++type instance Inherits SourceChannel = '[Channel]
++
++data {-# CLASS "java.nio.channels.Pipe$SinkChannel" #-} SinkChannel = SinkChannel (Object# SinkChannel)
++  deriving Class
++
++type instance Inherits SinkChannel = '[Channel]
++
++foreign import java unsafe "@static java.nio.channels.Pipe.open" createPipe
++  :: IO Pipe
++
++foreign import java unsafe "source" pipeSource
++  :: Pipe -> SourceChannel
++
++foreign import java unsafe "sink" pipeSink
++  :: Pipe -> SinkChannel
+ 
+ interruptProcessGroupOfInternal
+     :: ProcessHandle    -- ^ A process in the process group
+     -> IO ()
+-interruptProcessGroupOfInternal ph = do
+-    withProcessHandle ph $ \p_ -> do
+-        case p_ of
+-            OpenExtHandle{} -> return ()
+-            ClosedHandle  _ -> return ()
+-            OpenHandle    h -> do
+-                pgid <- getProcessGroupIDOf h
+-                signalProcessGroup sigINT pgid
++interruptProcessGroupOfInternal _ph = return ()
++    -- withProcessHandle ph $ \p_ -> do
++    --     case p_ of
++    --         OpenExtHandle{} -> return ()
++    --         ClosedHandle  _ -> return ()
++    --         OpenHandle    h -> do
++    --             pgid <- getProcessGroupIDOf h
++    --             signalProcessGroup sigINT pgid
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..1946844
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,41 @@
++package eta.process;
++
++import java.io.File;
++import java.io.IOException;
++import java.util.Map;
++import java.nio.channels.Channel;
++import java.nio.channels.Channels;
++import static java.lang.ProcessBuilder.Redirect;
++
++public class Utils {
++    public static Process runInteractiveProcess
++        (String[] cmdArgs, String cwd, Map<String, String> env, Redirect stdin, Redirect stdout, Redirect stderr) throws IOException {
++        ProcessBuilder pb =
++            new ProcessBuilder()
++            .command(cmdArgs)
++            .redirectInput(stdin)
++            .redirectOutput(stdout)
++            .redirectError(stderr);
++
++        if (cwd != null) {
++            pb.directory(new File(cwd));
++        }
++        Map<String, String> baseEnv = pb.environment();
++        if (env != null) {
++            baseEnv.putAll(env);
++        }
++        return pb.start();
++    }
++
++    public static Channel getInputChannel(Process p) {
++        return Channels.newChannel(p.getOutputStream());
++    }
++
++    public static Channel getOutputChannel(Process p) {
++        return Channels.newChannel(p.getInputStream());
++    }
++
++    public static Channel getErrorChannel(Process p) {
++        return Channels.newChannel(p.getErrorStream());
++    }
++}
+diff --git a/process.cabal b/process.cabal
+index 8c65205..9c223d1 100644
+--- a/process.cabal
++++ b/process.cabal
+@@ -53,24 +53,11 @@ library
+         System.Cmd
+         System.Process
+         System.Process.Internals
+-    other-modules: System.Process.Common
+-    if os(windows)
+-        other-modules: System.Process.Windows
+-        build-depends: Win32 >=2.2 && < 2.7
+-        extra-libraries: kernel32
+-        cpp-options: -DWINDOWS
+-    else
+-        other-modules: System.Process.Posix
+-        build-depends: unix >= 2.5 && < 2.8
++    other-modules:
++        System.Process.Common
++        System.Process.Posix
+ 
+-    c-sources:
+-        cbits/runProcess.c
+-    include-dirs: include
+-    includes:
+-        runProcess.h
+-    install-includes:
+-        runProcess.h
+-        processFlags.h
++    java-sources: java/Utils.java
+ 
+     ghc-options: -Wall
+ 
+-- 
+2.7.4 (Apple Git-66)
+
