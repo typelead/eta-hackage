@@ -1,16 +1,16 @@
-From fdcab3a344e91cce2be5b6fca4cfd6a7e4b33a1c Mon Sep 17 00:00:00 2001
+From 670bd805d344ed939c3ed6b47e3769f6c1d82f2f Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 14 Aug 2017 18:11:09 -0400
-Subject: [PATCH] Fixed patch
+Date: Fri, 1 Dec 2017 23:49:23 +0530
+Subject: [PATCH] Patched
 
 ---
  System/Directory.hs                  | 769 +++++++++--------------------------
  System/Directory/Internal.hs         |  35 +-
  System/Directory/Internal/Config.hs  |   6 +-
  System/Directory/Internal/Prelude.hs |   6 +-
- directory.cabal                      |  19 +-
+ directory.cabal                      |  17 +-
  java/Utils.java                      | 113 +++++
- 6 files changed, 345 insertions(+), 603 deletions(-)
+ 6 files changed, 344 insertions(+), 602 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/System/Directory.hs b/System/Directory.hs
@@ -1145,7 +1145,7 @@ index f128870..2552708 100644
    )
  import System.Posix.Types (CMode(..), EpochTime, FileMode)
 diff --git a/directory.cabal b/directory.cabal
-index 3f73c9a..a2f4d61 100644
+index 3f73c9a..217ed50 100644
 --- a/directory.cabal
 +++ b/directory.cabal
 @@ -10,7 +10,7 @@ description:
@@ -1162,11 +1162,10 @@ index 3f73c9a..a2f4d61 100644
          System.Directory.Internal.Prelude
      other-modules:
 -        System.Directory.Internal.C_utimensat
--        System.Directory.Internal.Config
++        -- System.Directory.Internal.C_utimensat
+         System.Directory.Internal.Config
 -        System.Directory.Internal.Posix
 -        System.Directory.Internal.Windows
-+        -- System.Directory.Internal.C_utimensat
-+        -- System.Directory.Internal.Config
 +        -- System.Directory.Internal.Posix
 +        -- System.Directory.Internal.Windows
  
@@ -1190,7 +1189,7 @@ index 3f73c9a..a2f4d61 100644
  
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..136828a
+index 0000000..5a7eb6a
 --- /dev/null
 +++ b/java/Utils.java
 @@ -0,0 +1,113 @@
@@ -1295,7 +1294,7 @@ index 0000000..136828a
 +        Files.copy(source, dest, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
 +    }
 +
-+    private static boolean isWindows() {
++    public static boolean isWindows() {
 +        return System.getProperty("os.name").startsWith("Windows");
 +    }
 +
