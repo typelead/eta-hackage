@@ -1,0 +1,72 @@
+From deebf7128f4d0ff37070f3695a5fdd8db6b1265a Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 6 Dec 2017 18:40:14 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Attoparsec/ByteString/Lazy.hs | 18 ++++++++++++++----
+ attoparsec.cabal                   |  2 ++
+ 2 files changed, 16 insertions(+), 4 deletions(-)
+
+diff --git a/Data/Attoparsec/ByteString/Lazy.hs b/Data/Attoparsec/ByteString/Lazy.hs
+index fabdf3d..d51fbf4 100644
+--- a/Data/Attoparsec/ByteString/Lazy.hs
++++ b/Data/Attoparsec/ByteString/Lazy.hs
+@@ -41,6 +41,9 @@ module Data.Attoparsec.ByteString.Lazy
+ 
+ import Control.DeepSeq (NFData(rnf))
+ import Data.ByteString.Lazy.Internal (ByteString(..), chunk)
++#ifdef HAS_TRAMPOLINE
++import qualified Data.Function as F
++#endif
+ import Data.List (intercalate)
+ import qualified Data.ByteString as B
+ import qualified Data.Attoparsec.ByteString as A
+@@ -49,6 +52,13 @@ import Data.Attoparsec.ByteString
+     hiding (IResult(..), Result, eitherResult, maybeResult,
+             parse, parseWith, parseTest)
+ 
++trampoline :: a -> a
++#ifdef HAS_TRAMPOLINE
++trampoline = F.trampoline
++#elif
++trampoline = id
++#endif
++
+ -- | The result of a parse.
+ data Result r = Fail ByteString [String] String
+               -- ^ The parse failed.  The 'ByteString' is the input
+@@ -86,13 +96,13 @@ instance Functor Result where
+ -- | Run a parser and return its result.
+ parse :: A.Parser a -> ByteString -> Result a
+ parse p s = case s of
+-              Chunk x xs -> go (A.parse p x) xs
+-              empty      -> go (A.parse p B.empty) empty
++              Chunk x xs -> go (trampoline $ A.parse p x) xs
++              empty      -> go (trampoline $ A.parse p B.empty) empty
+   where
+     go (T.Fail x stk msg) ys      = Fail (chunk x ys) stk msg
+     go (T.Done x r) ys            = Done (chunk x ys) r
+-    go (T.Partial k) (Chunk y ys) = go (k y) ys
+-    go (T.Partial k) empty        = go (k B.empty) empty
++    go (T.Partial k) (Chunk y ys) = go (trampoline $ k y) ys
++    go (T.Partial k) empty        = go (trampoline $ k B.empty) empty
+ 
+ -- | Run a parser and print its result to standard output.
+ parseTest :: (Show a) => A.Parser a -> ByteString -> IO ()
+diff --git a/attoparsec.cabal b/attoparsec.cabal
+index 4eef160..cea45a8 100644
+--- a/attoparsec.cabal
++++ b/attoparsec.cabal
+@@ -54,6 +54,8 @@ library
+     -- Data.Semigroup && Control.Monad.Fail are available in base-4.9+
+     build-depends: fail == 4.9.*,
+                    semigroups >=0.16.1 && <0.19
++  if impl(eta >= 0.0.9.7)
++    cpp-options: -DHAS_TRAMPOLINE
+ 
+   exposed-modules: Data.Attoparsec
+                    Data.Attoparsec.ByteString
+-- 
+2.7.4 (Apple Git-66)
+
