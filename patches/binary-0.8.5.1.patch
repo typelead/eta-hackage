@@ -1,0 +1,60 @@
+From 5f091a5f453ba38709f9866d5bf482c261a749ce Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 7 Dec 2017 14:13:14 +0530
+Subject: [PATCH] Patched
+
+---
+ binary.cabal                    |  3 +++
+ src/Data/Binary/Get/Internal.hs | 13 ++++++++++++-
+ 2 files changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/binary.cabal b/binary.cabal
+index aa1561c..4a6d3df 100644
+--- a/binary.cabal
++++ b/binary.cabal
+@@ -49,6 +49,9 @@ library
+ 
+   ghc-options:     -O2 -Wall -fliberate-case-threshold=1000
+ 
++  if impl(eta >= 0.0.9.7)
++     cpp-options: -DHAS_TRAMPOLINE
++
+   if impl(ghc >= 8.0)
+     ghc-options: -Wcompat -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
+ 
+diff --git a/src/Data/Binary/Get/Internal.hs b/src/Data/Binary/Get/Internal.hs
+index c2ebcff..cbfe48b 100644
+--- a/src/Data/Binary/Get/Internal.hs
++++ b/src/Data/Binary/Get/Internal.hs
+@@ -52,8 +52,19 @@ import Control.Monad
+ import qualified Control.Monad.Fail as Fail
+ #endif
+ 
++#ifdef HAS_TRAMPOLINE
++import qualified Data.Function as F
++#endif
++
+ import Data.Binary.Internal ( accursedUnutterablePerformIO )
+ 
++trampoline :: a -> a
++#ifdef HAS_TRAMPOLINE
++trampoline = F.trampoline
++#elif
++trampoline = id
++#endif
++
+ -- Kolmodin 20100427: at zurihac we discussed of having partial take a
+ -- "Maybe ByteString" and implemented it in this way.
+ -- The reasoning was that you could accidently provide an empty bytestring,
+@@ -237,7 +248,7 @@ withInputChunks initS consume onSucc onFail = go initS []
+           (runCont (onFail (reverse acc')) B.empty ks)
+           (\str' -> runCont (go state' acc') str' ks)
+       Right (want,rest) -> do
+-        ks rest (onSucc (reverse (want:acc)))
++        trampoline $ ks rest (onSucc (reverse (want:acc)))
+ 
+ failOnEOF :: [B.ByteString] -> Get a
+ failOnEOF bs = C $ \_ _ -> Fail (B.concat bs) "not enough bytes"
+-- 
+2.7.4 (Apple Git-66)
+
