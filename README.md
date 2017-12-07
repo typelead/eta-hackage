@@ -330,6 +330,7 @@ These packages are supported by `etlas`.
 - [xml-1.3.5](https://hackage.haskell.org/package/xml-1.3.5)
 - [xml-types-0.3.6](https://hackage.haskell.org/package/xml-types-0.3.6)
 - [xmlhtml-0.2.3.5](https://hackage.haskell.org/package/xmlhtml-0.2.3.5)
+- [zlib-0.6.1.2](https://hackage.haskell.org/package/zlib-0.6.1.2)
 
 ### Unsupported Packages
 
