@@ -1,0 +1,500 @@
+From 01ffd141dc3d461cf129d6079fa5b850b43511be Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 8 Dec 2017 13:34:33 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Memory/Internal/CompatPrim64.hs |   3 +-
+ Data/Memory/MemMap/Posix.hs          | 220 ++++++++++++++++++++++++++++++++++
+ Data/Memory/MemMap/Posix.hsc         | 222 -----------------------------------
+ Data/Memory/PtrMethods.hs            |   4 +-
+ 4 files changed, 223 insertions(+), 226 deletions(-)
+ create mode 100644 Data/Memory/MemMap/Posix.hs
+ delete mode 100644 Data/Memory/MemMap/Posix.hsc
+
+diff --git a/Data/Memory/Internal/CompatPrim64.hs b/Data/Memory/Internal/CompatPrim64.hs
+index b6d2bd7..4c96049 100644
+--- a/Data/Memory/Internal/CompatPrim64.hs
++++ b/Data/Memory/Internal/CompatPrim64.hs
+@@ -148,8 +148,7 @@ w64# :: Word# -> Word# -> Word# -> Word64#
+ w64# w _ _ = w
+ 
+ #elif WORD_SIZE_IN_BITS == 32
+-import GHC.IntWord64
+-import GHC.Prim (Word#)
++import GHC.Prim
+ 
+ timesWord64# :: Word64# -> Word64# -> Word64#
+ timesWord64# a b =
+diff --git a/Data/Memory/MemMap/Posix.hs b/Data/Memory/MemMap/Posix.hs
+new file mode 100644
+index 0000000..7f69078
+--- /dev/null
++++ b/Data/Memory/MemMap/Posix.hs
+@@ -0,0 +1,220 @@
++-----------------------------------------------------------------------------
++-- |
++-- Module      :  Data.Memory.MemMap.Posix
++-- Copyright   :  (c) Vincent Hanquez 2014
++-- License     :  BSD-style
++--
++-- Maintainer  :  Vincent Hanquez
++-- Stability   :  provisional
++-- Portability :  non-portable (requires POSIX)
++--
++-- Functions defined by the POSIX standards for manipulating memory maps
++--
++-- When a function that calls an underlying POSIX function fails, the errno
++-- code is converted to an 'IOError' using 'Foreign.C.Error.errnoToIOError'.
++-- For a list of which errno codes may be generated, consult the POSIX
++-- documentation for the underlying function.
++--
++-----------------------------------------------------------------------------
++
++{-# LANGUAGE ForeignFunctionInterface #-}
++{-# LANGUAGE CPP #-}
++module Data.Memory.MemMap.Posix
++    ( memoryMap
++    , memoryUnmap
++    , memoryAdvise
++    , memoryLock
++    , memoryUnlock
++    , memoryProtect
++    , memorySync
++    -- * Flags types
++    , MemoryMapFlag(..)
++    , MemoryProtection(..)
++    , MemoryAdvice(..)
++    , MemorySyncFlag(..)
++    -- * system page size
++    , sysconfPageSize
++    ) where
++
++import System.Posix.Types
++import Foreign.Ptr
++import Foreign.C.Types
++import Foreign.C.Error
++import Data.Bits
++
++c_mmap :: Ptr a -> CSize -> CInt -> CInt -> CInt -> COff -> IO (Ptr a)
++c_mmap = undefined
++
++c_munmap :: Ptr a -> CSize -> IO CInt
++c_munmap = undefined
++
++#if defined(POSIX_MADV_NORMAL)
++c_madvise :: Ptr a -> CSize -> CInt -> IO CInt
++c_madvise = undefined
++#else
++c_madvise :: Ptr a -> CSize -> CInt -> IO CInt
++c_madvise = undefined
++#endif
++
++c_msync :: Ptr a -> CSize -> CInt -> IO CInt
++c_msync = undefined
++
++c_mprotect :: Ptr a -> CSize -> CInt -> IO CInt
++c_mprotect = undefined
++
++#ifndef __HAIKU__
++c_mlock :: Ptr a -> CSize -> IO CInt
++c_mlock = undefined
++#else
++c_mlock :: Ptr a -> CSize -> IO CInt
++c_mlock _ _ = return (-1)
++#endif
++
++#ifndef __HAIKU__
++c_munlock :: Ptr a -> CSize -> IO CInt
++c_munlock = undefined
++#else
++c_munlock :: Ptr a -> CSize -> IO CInt
++c_munlock _ _ = return (-1)
++#endif
++
++c_sysconf :: CInt -> CLong
++c_sysconf = undefined
++
++-- | Mapping flag
++data MemoryMapFlag =
++      MemoryMapShared  -- ^ memory changes are shared between process
++    | MemoryMapPrivate -- ^ memory changes are private to process
++    deriving (Show,Read,Eq)
++
++-- | Memory protection
++data MemoryProtection =
++      MemoryProtectionNone
++    | MemoryProtectionRead
++    | MemoryProtectionWrite
++    | MemoryProtectionExecute
++    deriving (Show,Read,Eq)
++
++-- | Advice to put on memory.
++--
++-- only define the posix one.
++data MemoryAdvice =
++      MemoryAdviceNormal     -- ^ no specific advice, the default.
++    | MemoryAdviceRandom     -- ^ Expect page references in random order. No readahead should occur.
++    | MemoryAdviceSequential -- ^ Expect page references in sequential order. Page should be readahead aggressively.
++    | MemoryAdviceWillNeed   -- ^ Expect access in the near future. Probably a good idea to readahead early
++    | MemoryAdviceDontNeed   -- ^ Do not expect access in the near future.
++    deriving (Show,Read,Eq)
++
++-- | Memory synchronization flags
++data MemorySyncFlag =
++      MemorySyncAsync      -- ^ perform asynchronous write.
++    | MemorySyncSync       -- ^ perform synchronous write.
++    | MemorySyncInvalidate -- ^ invalidate cache data.
++    deriving (Show,Read,Eq)
++
++cvalueOfMemoryProts :: [MemoryProtection] -> CInt
++cvalueOfMemoryProts = undefined -- foldl (.|.) 0 . map toProt
++--   where toProt :: MemoryProtection -> CInt
++--         toProt MemoryProtectionNone    = (#const PROT_NONE)
++--         toProt MemoryProtectionRead    = (#const PROT_READ)
++--         toProt MemoryProtectionWrite   = (#const PROT_WRITE)
++--         toProt MemoryProtectionExecute = (#const PROT_EXEC)
++
++cvalueOfMemorySync :: [MemorySyncFlag] -> CInt
++cvalueOfMemorySync = undefined -- foldl (.|.) 0 . map toSync
++--   where toSync MemorySyncAsync      = (#const MS_ASYNC)
++--         toSync MemorySyncSync       = (#const MS_SYNC)
++--         toSync MemorySyncInvalidate = (#const MS_INVALIDATE)
++
++-- | Map pages of memory.
++--
++-- If fd is present, this memory will represent the file associated.
++-- Otherwise, the memory will be an anonymous mapping.
++--
++-- use 'mmap'
++memoryMap :: Maybe (Ptr a)      -- ^ The address to map to if MapFixed is used.
++          -> CSize              -- ^ The length of the mapping
++          -> [MemoryProtection] -- ^ the memory protection associated with the mapping
++          -> MemoryMapFlag      -- ^ 
++          -> Maybe Fd
++          -> COff
++          -> IO (Ptr a)
++memoryMap initPtr sz prots flag mfd off =
++  undefined
++--     throwErrnoIf (== m1ptr) "mmap" (c_mmap (maybe nullPtr id initPtr) sz cprot cflags fd off)
++--   where m1ptr  = nullPtr `plusPtr` (-1)
++--         fd     = maybe (-1) (\(Fd v) -> v) mfd
++--         cprot  = cvalueOfMemoryProts prots
++--         cflags = maybe cMapAnon (const 0) mfd
++--              .|. maybe 0 (const cMapFixed) initPtr
++--              .|. toMapFlag flag
++
++-- #ifdef __APPLE__
++--         cMapAnon  = (#const MAP_ANON)
++-- #else
++--         cMapAnon  = (#const MAP_ANONYMOUS)
++-- #endif
++--         cMapFixed = (#const MAP_FIXED)
++
++--         toMapFlag MemoryMapShared  = (#const MAP_SHARED)
++--         toMapFlag MemoryMapPrivate = (#const MAP_PRIVATE)
++
++-- | Unmap pages of memory
++--
++-- use 'munmap'
++memoryUnmap :: Ptr a -> CSize -> IO ()
++memoryUnmap ptr sz = throwErrnoIfMinus1_ "munmap" (c_munmap ptr sz)
++
++-- | give advice to the operating system about use of memory
++--
++-- call 'madvise'
++memoryAdvise :: Ptr a -> CSize -> MemoryAdvice -> IO ()
++memoryAdvise ptr sz adv = throwErrnoIfMinus1_ "madvise" (c_madvise ptr sz cadv)
++  where cadv = undefined -- toAdvice adv
++-- #if defined(POSIX_MADV_NORMAL)
++--         toAdvice MemoryAdviceNormal = (#const POSIX_MADV_NORMAL)
++--         toAdvice MemoryAdviceRandom = (#const POSIX_MADV_RANDOM)
++--         toAdvice MemoryAdviceSequential = (#const POSIX_MADV_SEQUENTIAL)
++--         toAdvice MemoryAdviceWillNeed = (#const POSIX_MADV_WILLNEED)
++--         toAdvice MemoryAdviceDontNeed = (#const POSIX_MADV_DONTNEED)
++-- #else
++--         toAdvice MemoryAdviceNormal = (#const MADV_NORMAL)
++--         toAdvice MemoryAdviceRandom = (#const MADV_RANDOM)
++--         toAdvice MemoryAdviceSequential = (#const MADV_SEQUENTIAL)
++--         toAdvice MemoryAdviceWillNeed = (#const MADV_WILLNEED)
++--         toAdvice MemoryAdviceDontNeed = (#const MADV_DONTNEED)
++-- #endif
++
++-- | lock a range of process address space
++--
++-- call 'mlock'
++memoryLock :: Ptr a -> CSize -> IO ()
++memoryLock ptr sz = throwErrnoIfMinus1_ "mlock" (c_mlock ptr sz)
++
++-- | unlock a range of process address space
++--
++-- call 'munlock'
++memoryUnlock :: Ptr a -> CSize -> IO ()
++memoryUnlock ptr sz = throwErrnoIfMinus1_ "munlock" (c_munlock ptr sz)
++
++-- | set protection of memory mapping
++--
++-- call 'mprotect'
++memoryProtect :: Ptr a -> CSize -> [MemoryProtection] -> IO ()
++memoryProtect ptr sz prots = throwErrnoIfMinus1_ "mprotect" (c_mprotect ptr sz cprot)
++  where cprot = cvalueOfMemoryProts prots
++
++-- | memorySync synchronize memory with physical storage.
++--
++-- On an anonymous mapping this function doesn't have any effect.
++-- call 'msync'
++memorySync :: Ptr a -> CSize -> [MemorySyncFlag] -> IO ()
++memorySync ptr sz flags = throwErrnoIfMinus1_ "msync" (c_msync ptr sz cflags)
++  where cflags = cvalueOfMemorySync flags
++
++-- | Return the operating system page size.
++-- 
++-- call 'sysconf'
++sysconfPageSize :: Int
++sysconfPageSize = undefined -- fromIntegral $ c_sysconf (#const _SC_PAGESIZE)
+diff --git a/Data/Memory/MemMap/Posix.hsc b/Data/Memory/MemMap/Posix.hsc
+deleted file mode 100644
+index 16bc246..0000000
+--- a/Data/Memory/MemMap/Posix.hsc
++++ /dev/null
+@@ -1,222 +0,0 @@
+------------------------------------------------------------------------------
+--- |
+--- Module      :  Data.Memory.MemMap.Posix
+--- Copyright   :  (c) Vincent Hanquez 2014
+--- License     :  BSD-style
+---
+--- Maintainer  :  Vincent Hanquez
+--- Stability   :  provisional
+--- Portability :  non-portable (requires POSIX)
+---
+--- Functions defined by the POSIX standards for manipulating memory maps
+---
+--- When a function that calls an underlying POSIX function fails, the errno
+--- code is converted to an 'IOError' using 'Foreign.C.Error.errnoToIOError'.
+--- For a list of which errno codes may be generated, consult the POSIX
+--- documentation for the underlying function.
+---
+------------------------------------------------------------------------------
+-
+-#include <sys/mman.h>
+-#include <unistd.h>
+-
+-{-# LANGUAGE ForeignFunctionInterface #-}
+-{-# LANGUAGE CPP #-}
+-module Data.Memory.MemMap.Posix
+-    ( memoryMap
+-    , memoryUnmap
+-    , memoryAdvise
+-    , memoryLock
+-    , memoryUnlock
+-    , memoryProtect
+-    , memorySync
+-    -- * Flags types
+-    , MemoryMapFlag(..)
+-    , MemoryProtection(..)
+-    , MemoryAdvice(..)
+-    , MemorySyncFlag(..)
+-    -- * system page size
+-    , sysconfPageSize
+-    ) where
+-
+-import System.Posix.Types
+-import Foreign.Ptr
+-import Foreign.C.Types
+-import Foreign.C.Error
+-import Data.Bits
+-
+-foreign import ccall unsafe "mmap"
+-    c_mmap :: Ptr a -> CSize -> CInt -> CInt -> CInt -> COff -> IO (Ptr a)
+-
+-foreign import ccall unsafe "munmap"
+-    c_munmap :: Ptr a -> CSize -> IO CInt
+-
+-#if defined(POSIX_MADV_NORMAL)
+-foreign import ccall unsafe "posix_madvise"
+-    c_madvise :: Ptr a -> CSize -> CInt -> IO CInt
+-#else
+-foreign import ccall unsafe "madvise"
+-    c_madvise :: Ptr a -> CSize -> CInt -> IO CInt
+-#endif
+-
+-foreign import ccall unsafe "msync"
+-    c_msync :: Ptr a -> CSize -> CInt -> IO CInt
+-
+-foreign import ccall unsafe "mprotect"
+-    c_mprotect :: Ptr a -> CSize -> CInt -> IO CInt
+-
+-#ifndef __HAIKU__
+-foreign import ccall unsafe "mlock"
+-    c_mlock :: Ptr a -> CSize -> IO CInt
+-#else
+-c_mlock :: Ptr a -> CSize -> IO CInt
+-c_mlock _ _ = return (-1)
+-#endif
+-
+-#ifndef __HAIKU__
+-foreign import ccall unsafe "munlock"
+-    c_munlock :: Ptr a -> CSize -> IO CInt
+-#else
+-c_munlock :: Ptr a -> CSize -> IO CInt
+-c_munlock _ _ = return (-1)
+-#endif
+-
+-foreign import ccall unsafe "sysconf"
+-    c_sysconf :: CInt -> CLong
+-
+--- | Mapping flag
+-data MemoryMapFlag =
+-      MemoryMapShared  -- ^ memory changes are shared between process
+-    | MemoryMapPrivate -- ^ memory changes are private to process
+-    deriving (Show,Read,Eq)
+-
+--- | Memory protection
+-data MemoryProtection =
+-      MemoryProtectionNone
+-    | MemoryProtectionRead
+-    | MemoryProtectionWrite
+-    | MemoryProtectionExecute
+-    deriving (Show,Read,Eq)
+-
+--- | Advice to put on memory.
+---
+--- only define the posix one.
+-data MemoryAdvice =
+-      MemoryAdviceNormal     -- ^ no specific advice, the default.
+-    | MemoryAdviceRandom     -- ^ Expect page references in random order. No readahead should occur.
+-    | MemoryAdviceSequential -- ^ Expect page references in sequential order. Page should be readahead aggressively.
+-    | MemoryAdviceWillNeed   -- ^ Expect access in the near future. Probably a good idea to readahead early
+-    | MemoryAdviceDontNeed   -- ^ Do not expect access in the near future.
+-    deriving (Show,Read,Eq)
+-
+--- | Memory synchronization flags
+-data MemorySyncFlag =
+-      MemorySyncAsync      -- ^ perform asynchronous write.
+-    | MemorySyncSync       -- ^ perform synchronous write.
+-    | MemorySyncInvalidate -- ^ invalidate cache data.
+-    deriving (Show,Read,Eq)
+-
+-cvalueOfMemoryProts :: [MemoryProtection] -> CInt
+-cvalueOfMemoryProts = foldl (.|.) 0 . map toProt
+-  where toProt :: MemoryProtection -> CInt
+-        toProt MemoryProtectionNone    = (#const PROT_NONE)
+-        toProt MemoryProtectionRead    = (#const PROT_READ)
+-        toProt MemoryProtectionWrite   = (#const PROT_WRITE)
+-        toProt MemoryProtectionExecute = (#const PROT_EXEC)
+-
+-cvalueOfMemorySync :: [MemorySyncFlag] -> CInt
+-cvalueOfMemorySync = foldl (.|.) 0 . map toSync
+-  where toSync MemorySyncAsync      = (#const MS_ASYNC)
+-        toSync MemorySyncSync       = (#const MS_SYNC)
+-        toSync MemorySyncInvalidate = (#const MS_INVALIDATE)
+-
+--- | Map pages of memory.
+---
+--- If fd is present, this memory will represent the file associated.
+--- Otherwise, the memory will be an anonymous mapping.
+---
+--- use 'mmap'
+-memoryMap :: Maybe (Ptr a)      -- ^ The address to map to if MapFixed is used.
+-          -> CSize              -- ^ The length of the mapping
+-          -> [MemoryProtection] -- ^ the memory protection associated with the mapping
+-          -> MemoryMapFlag      -- ^ 
+-          -> Maybe Fd
+-          -> COff
+-          -> IO (Ptr a)
+-memoryMap initPtr sz prots flag mfd off =
+-    throwErrnoIf (== m1ptr) "mmap" (c_mmap (maybe nullPtr id initPtr) sz cprot cflags fd off)
+-  where m1ptr  = nullPtr `plusPtr` (-1)
+-        fd     = maybe (-1) (\(Fd v) -> v) mfd
+-        cprot  = cvalueOfMemoryProts prots
+-        cflags = maybe cMapAnon (const 0) mfd
+-             .|. maybe 0 (const cMapFixed) initPtr
+-             .|. toMapFlag flag
+-
+-#ifdef __APPLE__
+-        cMapAnon  = (#const MAP_ANON)
+-#else
+-        cMapAnon  = (#const MAP_ANONYMOUS)
+-#endif
+-        cMapFixed = (#const MAP_FIXED)
+-
+-        toMapFlag MemoryMapShared  = (#const MAP_SHARED)
+-        toMapFlag MemoryMapPrivate = (#const MAP_PRIVATE)
+-
+--- | Unmap pages of memory
+---
+--- use 'munmap'
+-memoryUnmap :: Ptr a -> CSize -> IO ()
+-memoryUnmap ptr sz = throwErrnoIfMinus1_ "munmap" (c_munmap ptr sz)
+-
+--- | give advice to the operating system about use of memory
+---
+--- call 'madvise'
+-memoryAdvise :: Ptr a -> CSize -> MemoryAdvice -> IO ()
+-memoryAdvise ptr sz adv = throwErrnoIfMinus1_ "madvise" (c_madvise ptr sz cadv)
+-  where cadv = toAdvice adv
+-#if defined(POSIX_MADV_NORMAL)
+-        toAdvice MemoryAdviceNormal = (#const POSIX_MADV_NORMAL)
+-        toAdvice MemoryAdviceRandom = (#const POSIX_MADV_RANDOM)
+-        toAdvice MemoryAdviceSequential = (#const POSIX_MADV_SEQUENTIAL)
+-        toAdvice MemoryAdviceWillNeed = (#const POSIX_MADV_WILLNEED)
+-        toAdvice MemoryAdviceDontNeed = (#const POSIX_MADV_DONTNEED)
+-#else
+-        toAdvice MemoryAdviceNormal = (#const MADV_NORMAL)
+-        toAdvice MemoryAdviceRandom = (#const MADV_RANDOM)
+-        toAdvice MemoryAdviceSequential = (#const MADV_SEQUENTIAL)
+-        toAdvice MemoryAdviceWillNeed = (#const MADV_WILLNEED)
+-        toAdvice MemoryAdviceDontNeed = (#const MADV_DONTNEED)
+-#endif
+-
+--- | lock a range of process address space
+---
+--- call 'mlock'
+-memoryLock :: Ptr a -> CSize -> IO ()
+-memoryLock ptr sz = throwErrnoIfMinus1_ "mlock" (c_mlock ptr sz)
+-
+--- | unlock a range of process address space
+---
+--- call 'munlock'
+-memoryUnlock :: Ptr a -> CSize -> IO ()
+-memoryUnlock ptr sz = throwErrnoIfMinus1_ "munlock" (c_munlock ptr sz)
+-
+--- | set protection of memory mapping
+---
+--- call 'mprotect'
+-memoryProtect :: Ptr a -> CSize -> [MemoryProtection] -> IO ()
+-memoryProtect ptr sz prots = throwErrnoIfMinus1_ "mprotect" (c_mprotect ptr sz cprot)
+-  where cprot = cvalueOfMemoryProts prots
+-
+--- | memorySync synchronize memory with physical storage.
+---
+--- On an anonymous mapping this function doesn't have any effect.
+--- call 'msync'
+-memorySync :: Ptr a -> CSize -> [MemorySyncFlag] -> IO ()
+-memorySync ptr sz flags = throwErrnoIfMinus1_ "msync" (c_msync ptr sz cflags)
+-  where cflags = cvalueOfMemorySync flags
+-
+--- | Return the operating system page size.
+--- 
+--- call 'sysconf'
+-sysconfPageSize :: Int
+-sysconfPageSize = fromIntegral $ c_sysconf (#const _SC_PAGESIZE)
+diff --git a/Data/Memory/PtrMethods.hs b/Data/Memory/PtrMethods.hs
+index 51cb89a..967c397 100644
+--- a/Data/Memory/PtrMethods.hs
++++ b/Data/Memory/PtrMethods.hs
+@@ -106,8 +106,8 @@ memConstEqual p1 p2 n = loop 0 0
+             e <- xor <$> peekByteOff p1 i <*> (peekByteOff p2 i :: IO Word8)
+             loop (i+1) (acc .|. e)
+ 
+-foreign import ccall unsafe "memset"
++foreign import java unsafe "@static eta.base.Utils.c_memset"
+     c_memset :: Ptr Word8 -> Word8 -> CSize -> IO ()
+ 
+-foreign import ccall unsafe "memcpy"
++foreign import java unsafe "@static eta.base.Utils.c_memcpy"
+     c_memcpy :: Ptr Word8 -> Ptr Word8 -> CSize -> IO ()
+-- 
+2.7.4 (Apple Git-66)
+
