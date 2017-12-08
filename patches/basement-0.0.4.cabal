@@ -1,0 +1,144 @@
+name:                basement
+version:             0.0.4
+synopsis:            Foundation scrap box of array & string
+description:         Foundation most basic primitives without any dependencies
+homepage:            https://github.com/haskell-foundation/foundation#readme
+license:             BSD3
+license-file:        LICENSE
+copyright:           2015-2017 Vincent Hanquez <vincent@snarc.org>
+                     2017      Foundation Maintainers
+maintainer:          vincent@snarc.org
+copyright:           Vincent Hanquez
+category:            Web
+build-type:          Simple
+homepage:            https://github.com/haskell-foundation/foundation
+bug-reports:         https://github.com/haskell-foundation/foundation/issues
+cabal-version:       >=1.10
+tested-with:         GHC==8.2.1, GHC==8.0.2, GHC==7.10.3
+extra-source-files:  cbits/*.h
+
+source-repository head
+  type: git
+  location: https://github.com/haskell-foundation/foundation.git
+
+library
+  hs-source-dirs:    .
+  exposed-modules:   
+                     Basement.Imports
+
+                     Basement.Base16
+                     Basement.Bindings.Memory
+                     Basement.Endianness
+                     Basement.Environment
+                     Basement.PrimType
+
+                     Basement.Exception
+                     Basement.From
+
+                     Basement.Types.Char7
+                     Basement.Types.OffsetSize
+                     Basement.Types.Ptr
+                     Basement.Types.AsciiString
+                     Basement.Types.Word128
+                     Basement.Types.Word256
+                     Basement.Monad
+                     Basement.MutableBuilder
+                     Basement.FinalPtr
+
+                     Basement.Nat
+
+                     -- Extended Types
+                     Basement.BoxedArray
+                     Basement.Block
+                     Basement.Block.Mutable
+                     Basement.UArray
+                     Basement.UArray.Mutable
+                     Basement.String
+                     Basement.NonEmpty
+                     
+                     -- Utils
+                     Basement.NormalForm
+                     Basement.These
+
+                     -- Terminal
+                     Basement.Terminal
+                     Basement.Terminal.ANSI
+
+                     -- numeric stuff
+                     Basement.IntegralConv
+                     Basement.Floating
+                     Basement.Numerical.Number
+                     Basement.Numerical.Additive
+                     Basement.Numerical.Subtractive
+                     Basement.Numerical.Multiplicative
+                     Basement.Bounded
+
+                     -- compat / base redefinition
+                     Basement.Compat.Base
+                     Basement.Compat.Bifunctor
+                     Basement.Compat.CallStack
+                     Basement.Compat.ExtList
+                     Basement.Compat.IsList
+                     Basement.Compat.Identity
+                     Basement.Compat.Primitive
+                     Basement.Compat.PrimTypes
+                     Basement.Compat.MonadTrans
+                     Basement.Compat.Semigroup
+                     Basement.Compat.Natural
+                     Basement.Compat.NumLiteral
+                     Basement.Compat.Typeable
+  if impl(ghc >= 8.0)
+    exposed-modules: Basement.BlockN
+                   , Basement.Sized.Block
+                   , Basement.Sized.UVect
+                   , Basement.Sized.Vect
+  if impl(ghc >= 7.10)
+    exposed-modules:
+                     Basement.Sized.List
+
+  other-modules:
+                     Basement.Error
+                     Basement.Show
+                     Basement.Runtime
+
+                     Basement.Alg.Class
+                     Basement.Alg.Mutable
+                     Basement.Alg.PrimArray
+
+                     Basement.Alg.Native.Prim
+                     Basement.Alg.Native.UTF8
+                     Basement.Alg.Native.String
+
+                     Basement.Alg.Foreign.Prim
+                     Basement.Alg.Foreign.UTF8
+                     Basement.Alg.Foreign.String
+
+                     Basement.Numerical.Conversion
+
+                     Basement.Block.Base
+
+                     Basement.UTF8.Base
+                     Basement.UTF8.Helper
+                     Basement.UTF8.Table
+                     Basement.UTF8.Types
+
+                     Basement.UArray.Base
+
+                     Basement.String.Encoding.Encoding
+                     Basement.String.Encoding.UTF16
+                     Basement.String.Encoding.UTF32
+                     Basement.String.Encoding.ASCII7
+                     Basement.String.Encoding.ISO_8859_1
+
+                     Basement.Terminal.Size
+
+
+  build-depends:       base >= 4.7 && < 5
+                     , ghc-prim
+
+  default-language:    Haskell2010
+  default-extensions: NoImplicitPrelude
+                      RebindableSyntax
+                      TypeFamilies
+                      BangPatterns
+                      DeriveDataTypeable
