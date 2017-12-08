@@ -61,6 +61,7 @@ These packages are supported by `etlas`.
 - [attoparsec >= 0.13.1.0 && <= 0.13.2.0](https://hackage.haskell.org/package/attoparsec)
 - [auto-update-0.1.4](https://hackage.haskell.org/package/auto-update-0.1.4)
 - [avro >= 0.1.0.1 && <= 0.2.0.0](https://hackage.haskell.org/package/avro-0.1.0.1)
+- [basement-0.0.4](https://hackage.haskell.org/package/basement-0.0.4)
 - [base-compat >= 0.9.1 && <= 0.9.3](https://hackage.haskell.org/package/base-compat)
 - [base-orphans-0.5.4](https://hackage.haskell.org/package/base-orphans-0.5.4)
 - [base-prelude-1.2.0.1](https://hackage.haskell.org/package/base-prelude-1.2.0.1)
