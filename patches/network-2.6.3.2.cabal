@@ -45,40 +45,29 @@ tested-with:   GHC == 7.8.4, GHC == 7.10.1, GHC == 7.10.2, GHC == 8.0.1, GHC == 
 
 library
   exposed-modules:
-    -- Network
-    -- Network.BSD
+    Network
     Network.Socket
-    -- Network.Socket.ByteString
-    -- Network.Socket.ByteString.Lazy
-    -- Network.Socket.Internal
+    Network.Socket.ByteString
+    Network.Socket.ByteString.Lazy
+    Network.Socket.Internal
   other-modules:
-    -- Network.Socket.ByteString.Internal
+    Network.Socket.ByteString.Internal
+    Network.Socket.ByteString.Lazy.Windows
     Network.Socket.Types
-
-  -- if !os(windows)
-  --   other-modules:
-  --     Network.Socket.ByteString.IOVec
-  --     Network.Socket.ByteString.Lazy.Posix
-  --     Network.Socket.ByteString.MsgHdr
-  -- if os(windows)
-  --   other-modules:
-  --     Network.Socket.ByteString.Lazy.Windows
 
   build-depends:
     base >= 3 && < 5,
     bytestring < 0.11
 
-  -- if !os(windows)
-  --   build-depends:
-  --     unix >= 2
-
   extensions:
-    CPP, DeriveDataTypeable, ForeignFunctionInterface, TypeSynonymInstances
-  -- include-dirs: include
-  -- includes: HsNet.h
-  -- install-includes: HsNet.h HsNetworkConfig.h
-  java-sources: java/Utils.java
-  ghc-options: -Wall -fwarn-tabs
+    CPP, DeriveDataTypeable, ForeignFunctionInterface, TypeSynonymInstances,
+    MagicHash, TypeOperators, DataKinds, TypeFamilies, MultiParamTypeClasses
+
+  include-dirs: include
+  includes: HsNet.h
+  if impl(eta >= 0.0.9.2)
+    java-sources: java/Utils.java
+  ghc-options: -Wall -fwarn-tabs -optP--text
 
 test-suite simple
   hs-source-dirs: tests
