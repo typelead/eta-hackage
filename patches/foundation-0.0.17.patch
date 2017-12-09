@@ -1,6 +1,6 @@
-From dbde73da35e0bc0aa1b7695f0da9ac54086d9462 Mon Sep 17 00:00:00 2001
+From 4efbc65e827eec619a66c57e4829683ca96ce295 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Fri, 8 Dec 2017 13:32:09 +0530
+Date: Sat, 9 Dec 2017 13:26:34 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -1904,15 +1904,15 @@ index 9a343e4..e86c922 100644
  
  -- | Simple one-time measurement of time & other metrics spent in a function
 diff --git a/foundation.cabal b/foundation.cabal
-index c63fff8..637b975 100644
+index 4507b87..a219633 100644
 --- a/foundation.cabal
 +++ b/foundation.cabal
-@@ -192,6 +192,7 @@ library
+@@ -191,6 +191,7 @@ library
                        TypeFamilies
                        BangPatterns
                        DeriveDataTypeable
 +                      CPP
-   build-depends:     base >= 4.8 && < 5
+   build-depends:     base >= 4.7 && < 5
                     , basement == 0.0.4
                     , ghc-prim
 -- 
