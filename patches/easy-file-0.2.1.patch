@@ -1,0 +1,109 @@
+From de519ef86c820db38ce0a3cc91a8133c3948bccc Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 10 Dec 2017 06:45:54 +0530
+Subject: [PATCH] Patched
+
+---
+ System/EasyFile/Missing.hs | 26 +++++++++++++-------------
+ easy-file.cabal            |  7 +++----
+ 2 files changed, 16 insertions(+), 17 deletions(-)
+
+diff --git a/System/EasyFile/Missing.hs b/System/EasyFile/Missing.hs
+index c238365..fdc7d8f 100644
+--- a/System/EasyFile/Missing.hs
++++ b/System/EasyFile/Missing.hs
+@@ -8,14 +8,14 @@ import Control.Applicative
+ import Data.Time
+ import Data.Time.Clock.POSIX
+ import Data.Word (Word64)
+-#if defined(mingw32_HOST_OS) || defined(__MINGW32__)
+-import Control.Exception
+-import System.Win32.File
+-import System.Win32.Time
+-#else
+-import System.Posix.Files
++-- #if defined(mingw32_HOST_OS) || defined(__MINGW32__)
++-- import Control.Exception
++-- import System.Win32.File
++-- import System.Win32.Time
++-- #else
++-- import System.Posix.Files
+ import System.Posix.Types
+-#endif
++-- #endif
+ 
+ ----------------------------------------------------------------
+ 
+@@ -27,7 +27,7 @@ isSymlink :: FilePath -> IO Bool
+ #if defined(mingw32_HOST_OS) || defined(__MINGW32__)
+ isSymlink _ = return False
+ #else
+-isSymlink file = isSymbolicLink <$> getSymbolicLinkStatus file
++isSymlink file = error "isSymlink: Not implemented yet."
+ #endif
+ 
+ {-|
+@@ -37,7 +37,7 @@ getLinkCount :: FilePath -> IO (Maybe Int)
+ #if defined(mingw32_HOST_OS) || defined(__MINGW32__)
+ getLinkCount _ = return Nothing
+ #else
+-getLinkCount file = Just . fromIntegral . linkCount <$> getFileStatus file
++getLinkCount file = error "getLinkCount: Not implemented yet."
+ #endif
+ 
+ {-|
+@@ -77,7 +77,7 @@ getChangeTime :: FilePath -> IO (Maybe UTCTime)
+ #if defined(mingw32_HOST_OS) || defined(__MINGW32__)
+ getChangeTime _ = return Nothing
+ #else
+-getChangeTime file = Just . epochTimeToUTCTime . statusChangeTime <$> getFileStatus file
++getChangeTime file = error "getChangeTime: Not implemented yet."
+ #endif
+ 
+ {-|
+@@ -96,7 +96,7 @@ getModificationTime :: FilePath -> IO UTCTime
+ #if defined(mingw32_HOST_OS) || defined(__MINGW32__)
+ getModificationTime file = writeTime <$> fileTime file
+ #else
+-getModificationTime file = epochTimeToUTCTime . modificationTime <$> getFileStatus file
++getModificationTime file = error "getModificationTime: Not implemented yet."
+ #endif
+ 
+ {-
+@@ -112,7 +112,7 @@ getAccessTime :: FilePath -> IO UTCTime
+ #if defined(mingw32_HOST_OS) || defined(__MINGW32__)
+ getAccessTime file = accessTime <$> fileTime file
+ #else
+-getAccessTime file = epochTimeToUTCTime . accessTime <$> getFileStatus file
++getAccessTime file = error "getAccessTime: Not implemented yet."
+ #endif
+ 
+ ----------------------------------------------------------------
+@@ -161,5 +161,5 @@ getFileSize file = bracket setup teardown body
+     teardown = closeHandle
+     body fh = fromIntegral . bhfiSize <$> getFileInformationByHandle fh
+ #else
+-getFileSize file = fromIntegral . fileSize <$> getFileStatus file
++getFileSize file = error "getFileSize: Not implemented yet."
+ #endif
+diff --git a/easy-file.cabal b/easy-file.cabal
+index a2e7cd6..8e7d7a9 100644
+--- a/easy-file.cabal
++++ b/easy-file.cabal
+@@ -18,10 +18,9 @@ Library
+                         System.EasyFile.Directory
+                         System.EasyFile.Missing
+   Build-Depends:        base >= 4 && < 5
+-  if os(windows)
+-    Build-Depends:      Win32, time, directory, filepath
+-  else
+-    Build-Depends:      unix, time, directory, filepath
++                      , time
++                      , directory
++                      , filepath
+ 
+ Source-Repository head
+   Type:                 git
+-- 
+2.7.4 (Apple Git-66)
+
