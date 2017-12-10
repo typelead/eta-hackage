@@ -1,0 +1,308 @@
+From 5c7bf09355353d206d011773d88c1248ecefc81b Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 10 Dec 2017 07:05:23 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/UnixTime/Conv.hs   | 16 +++++------
+ Data/UnixTime/Sys.hs    | 32 ++++++++++++++++++++++
+ Data/UnixTime/Sys.hsc   | 31 ---------------------
+ Data/UnixTime/Types.hs  | 69 +++++++++++++++++++++++++++++++++++++++++++++++
+ Data/UnixTime/Types.hsc | 72 -------------------------------------------------
+ unix-time.cabal         |  5 +---
+ 6 files changed, 110 insertions(+), 115 deletions(-)
+ create mode 100644 Data/UnixTime/Sys.hs
+ delete mode 100644 Data/UnixTime/Sys.hsc
+ create mode 100644 Data/UnixTime/Types.hs
+ delete mode 100644 Data/UnixTime/Types.hsc
+
+diff --git a/Data/UnixTime/Conv.hs b/Data/UnixTime/Conv.hs
+index 76f2da6..3c263e5 100644
+--- a/Data/UnixTime/Conv.hs
++++ b/Data/UnixTime/Conv.hs
+@@ -22,17 +22,17 @@ import System.Time (ClockTime(..))
+ -- $setup
+ -- >>> import Data.Function (on)
+ 
+-foreign import ccall unsafe "c_parse_unix_time"
+-        c_parse_unix_time :: CString -> CString -> IO CTime
++c_parse_unix_time :: CString -> CString -> IO CTime
++c_parse_unix_time = error "c_parse_unix_time: Not implemented yet."
+ 
+-foreign import ccall unsafe "c_parse_unix_time_gmt"
+-        c_parse_unix_time_gmt :: CString -> CString -> IO CTime
++c_parse_unix_time_gmt :: CString -> CString -> IO CTime
++c_parse_unix_time_gmt = error "c_parse_unix_time_gmt: Not implemented yet."
+ 
+-foreign import ccall unsafe "c_format_unix_time"
+-        c_format_unix_time :: CString -> CTime -> CString -> CInt -> IO CSize
++c_format_unix_time :: CString -> CTime -> CString -> CInt -> IO CSize
++c_format_unix_time = error "c_format_unix_time: Not implemented yet."
+ 
+-foreign import ccall unsafe "c_format_unix_time_gmt"
+-        c_format_unix_time_gmt :: CString -> CTime -> CString -> CInt -> IO CSize
++c_format_unix_time_gmt :: CString -> CTime -> CString -> CInt -> IO CSize
++c_format_unix_time_gmt = error "c_format_unix_time_gmt: Not implemented yet."
+ 
+ ----------------------------------------------------------------
+ 
+diff --git a/Data/UnixTime/Sys.hs b/Data/UnixTime/Sys.hs
+new file mode 100644
+index 0000000..f8c94ea
+--- /dev/null
++++ b/Data/UnixTime/Sys.hs
+@@ -0,0 +1,32 @@
++{-# LANGUAGE CPP, ForeignFunctionInterface #-}
++
++module Data.UnixTime.Sys (getUnixTime) where
++
++import Data.UnixTime.Types
++import Foreign.C.Error
++import Foreign.C.Types
++import Foreign.Marshal.Alloc
++import Foreign.Ptr
++import Foreign.Storable
++
++-- from System.Time
++
++#include <time.h>
++#include <sys/time.h>
++
++type CTimeVal = ()
++type CTimeZone = ()
++
++c_gettimeofday :: Ptr CTimeVal -> Ptr CTimeZone -> IO CInt
++c_gettimeofday = error "c_gettimeofday: Not implemented yet."
++
++-- |
++-- Getting 'UnixTime' from OS.
++
++getUnixTime :: IO UnixTime
++getUnixTime = error "getUnixTime: Not implemented yet"
++  -- allocaBytes (#const sizeof(struct timeval)) $ \ p_timeval -> do
++  --   throwErrnoIfMinus1_ "getClockTime" $ c_gettimeofday p_timeval nullPtr
++  --   -- sec  <- (#peek struct timeval,tv_sec)  p_timeval
++  --   -- usec <- (#peek struct timeval,tv_usec) p_timeval
++  --   return $ UnixTime sec usec
+diff --git a/Data/UnixTime/Sys.hsc b/Data/UnixTime/Sys.hsc
+deleted file mode 100644
+index 500efad..0000000
+--- a/Data/UnixTime/Sys.hsc
++++ /dev/null
+@@ -1,31 +0,0 @@
+-{-# LANGUAGE ForeignFunctionInterface #-}
+-
+-module Data.UnixTime.Sys (getUnixTime) where
+-
+-import Data.UnixTime.Types
+-import Foreign.C.Error
+-import Foreign.C.Types
+-import Foreign.Marshal.Alloc
+-import Foreign.Ptr
+-import Foreign.Storable
+-
+--- from System.Time
+-
+-#include <time.h>
+-#include <sys/time.h>
+-
+-type CTimeVal = ()
+-type CTimeZone = ()
+-
+-foreign import ccall unsafe "gettimeofday"
+-    c_gettimeofday :: Ptr CTimeVal -> Ptr CTimeZone -> IO CInt
+-
+--- |
+--- Getting 'UnixTime' from OS.
+-
+-getUnixTime :: IO UnixTime
+-getUnixTime = allocaBytes (#const sizeof(struct timeval)) $ \ p_timeval -> do
+-    throwErrnoIfMinus1_ "getClockTime" $ c_gettimeofday p_timeval nullPtr
+-    sec  <- (#peek struct timeval,tv_sec)  p_timeval
+-    usec <- (#peek struct timeval,tv_usec) p_timeval
+-    return $ UnixTime sec usec
+diff --git a/Data/UnixTime/Types.hs b/Data/UnixTime/Types.hs
+new file mode 100644
+index 0000000..fb706b6
+--- /dev/null
++++ b/Data/UnixTime/Types.hs
+@@ -0,0 +1,69 @@
++{-# LANGUAGE CPP #-}
++module Data.UnixTime.Types where
++
++import Control.Applicative ((<$>), (<*>))
++import Data.ByteString
++import Data.ByteString.Char8 ()
++import Data.Int
++import Foreign.C.Types
++import Foreign.Storable
++#if __GLASGOW_HASKELL__ >= 704
++import Data.Binary
++#endif
++
++#include <sys/time.h>
++
++-- |
++-- Data structure for Unix time.
++--
++-- Please note that this uses GHC-derived 'Eq' and 'Ord' instances.
++-- Notably
++--
++-- >>> UnixTime 1 0 > UnixTime 0 999999999
++-- True
++--
++-- You should instead use 'UnixDiffTime' along with its helpers such
++-- as 'Data.UnixTime.microSecondsToUnixDiffTime' which will ensure
++-- that such unusual values are never created.
++data UnixTime = UnixTime {
++    -- | Seconds from 1st Jan 1970
++    utSeconds :: {-# UNPACK #-} !CTime
++    -- | Micro seconds (i.e. 10^(-6))
++  , utMicroSeconds :: {-# UNPACK #-} !Int32
++  } deriving (Eq,Ord,Show)
++
++instance Storable UnixTime where
++    sizeOf _    = undefined
++    alignment _ = undefined
++    peek ptr    = undefined
++    poke ptr ut = undefined
++
++#if __GLASGOW_HASKELL__ >= 704
++instance Binary UnixTime where
++        put (UnixTime (CTime sec) msec) = do
++            put sec
++            put msec
++        get = UnixTime <$> (CTime `fmap` get) <*> get
++#endif
++
++-- |
++-- Format of the strptime()/strftime() style.
++type Format = ByteString
++
++-- |
++-- Data structure for UnixTime diff.
++--
++-- It is up to the user to ensure that @'udtMicroSeconds' < 1000000@.
++-- Helpers such as 'Data.UnixTime.microSecondsToUnixDiffTime' can help
++-- you to create valid values. For example, it's a mistake to use
++-- 'Data.Text.addUnixDiffTime' with a value @UnixDiffTime 0 9999999@
++-- as it will produce an incorrect value back. You should instead use
++-- functions such as 'Data.UnixTime.microSecondsToUnixDiffTime' to
++-- create values that are in-range. This avoids any gotchas when then
++-- doing comparisons.
++data UnixDiffTime = UnixDiffTime {
++    -- | Seconds from 1st Jan 1970
++    udtSeconds :: {-# UNPACK #-} !CTime
++    -- | Micro seconds (i.e. 10^(-6))
++  , udtMicroSeconds :: {-# UNPACK #-} !Int32
++  } deriving (Eq,Ord,Show)
+diff --git a/Data/UnixTime/Types.hsc b/Data/UnixTime/Types.hsc
+deleted file mode 100644
+index 605320a..0000000
+--- a/Data/UnixTime/Types.hsc
++++ /dev/null
+@@ -1,72 +0,0 @@
+-module Data.UnixTime.Types where
+-
+-import Control.Applicative ((<$>), (<*>))
+-import Data.ByteString
+-import Data.ByteString.Char8 ()
+-import Data.Int
+-import Foreign.C.Types
+-import Foreign.Storable
+-#if __GLASGOW_HASKELL__ >= 704
+-import Data.Binary
+-#endif
+-
+-#include <sys/time.h>
+-
+--- |
+--- Data structure for Unix time.
+---
+--- Please note that this uses GHC-derived 'Eq' and 'Ord' instances.
+--- Notably
+---
+--- >>> UnixTime 1 0 > UnixTime 0 999999999
+--- True
+---
+--- You should instead use 'UnixDiffTime' along with its helpers such
+--- as 'Data.UnixTime.microSecondsToUnixDiffTime' which will ensure
+--- that such unusual values are never created.
+-data UnixTime = UnixTime {
+-    -- | Seconds from 1st Jan 1970
+-    utSeconds :: {-# UNPACK #-} !CTime
+-    -- | Micro seconds (i.e. 10^(-6))
+-  , utMicroSeconds :: {-# UNPACK #-} !Int32
+-  } deriving (Eq,Ord,Show)
+-
+-instance Storable UnixTime where
+-    sizeOf _    = (#size struct timeval)
+-    alignment _ = (#const offsetof(struct {char x__; struct timeval (y__); }, y__))
+-    peek ptr    = UnixTime
+-            <$> (#peek struct timeval, tv_sec)  ptr
+-            <*> (#peek struct timeval, tv_usec) ptr
+-    poke ptr ut = do
+-            (#poke struct timeval, tv_sec)  ptr (utSeconds ut)
+-            (#poke struct timeval, tv_usec) ptr (utMicroSeconds ut)
+-
+-#if __GLASGOW_HASKELL__ >= 704
+-instance Binary UnixTime where
+-        put (UnixTime (CTime sec) msec) = do
+-            put sec
+-            put msec
+-        get = UnixTime <$> (CTime `fmap` get) <*> get
+-#endif
+-
+--- |
+--- Format of the strptime()/strftime() style.
+-type Format = ByteString
+-
+--- |
+--- Data structure for UnixTime diff.
+---
+--- It is up to the user to ensure that @'udtMicroSeconds' < 1000000@.
+--- Helpers such as 'Data.UnixTime.microSecondsToUnixDiffTime' can help
+--- you to create valid values. For example, it's a mistake to use
+--- 'Data.Text.addUnixDiffTime' with a value @UnixDiffTime 0 9999999@
+--- as it will produce an incorrect value back. You should instead use
+--- functions such as 'Data.UnixTime.microSecondsToUnixDiffTime' to
+--- create values that are in-range. This avoids any gotchas when then
+--- doing comparisons.
+-data UnixDiffTime = UnixDiffTime {
+-    -- | Seconds from 1st Jan 1970
+-    udtSeconds :: {-# UNPACK #-} !CTime
+-    -- | Micro seconds (i.e. 10^(-6))
+-  , udtMicroSeconds :: {-# UNPACK #-} !Int32
+-  } deriving (Eq,Ord,Show)
+diff --git a/unix-time.cabal b/unix-time.cabal
+index fef94bc..4f0ea6c 100644
+--- a/unix-time.cabal
++++ b/unix-time.cabal
+@@ -8,15 +8,13 @@ Synopsis:               Unix time parser/formatter and utilities
+ Description:            Fast parser\/formatter\/utilities for Unix time
+ Category:               Data
+ Cabal-Version:          >= 1.10
+-Build-Type:             Configure
++Build-Type:             Simple
+ Extra-Source-Files:     cbits/conv.c cbits/config.h.in configure configure.ac
+ Extra-Tmp-Files:        config.log config.status autom4te.cache cbits/config.h
+ 
+ Library
+   Default-Language:     Haskell2010
+   GHC-Options:          -Wall
+-  if impl(ghc >= 7.8)
+-    CC-Options:         -fPIC
+   Exposed-Modules:      Data.UnixTime
+   Other-Modules:        Data.UnixTime.Conv
+                         Data.UnixTime.Diff
+@@ -26,7 +24,6 @@ Library
+                       , bytestring
+                       , old-time
+                       , binary
+-  C-Sources:            cbits/conv.c
+ 
+ Test-Suite doctest
+   Type:                 exitcode-stdio-1.0
+-- 
+2.7.4 (Apple Git-66)
+
