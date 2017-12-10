@@ -131,6 +131,7 @@ These packages are supported by `etlas`.
 - [exceptions-0.8.3](https://hackage.haskell.org/package/exceptions-0.8.3)
 - [extra-1.5.2](https://hackage.haskell.org/package/extra)
 - [fail-4.9.0.0](https://hackage.haskell.org/package/fail-4.9.0.0)
+- [fast-logger-2.4.10](https://hackage.haskell.org/package/fast-logger-2.4.10)
 - [fast-math-1.0.2](https://hackage.haskell.org/package/fast-math-1.0.2)
 - [fibonacci-0.2.0.1](https://hackage.haskell.org/package/fibonacci-0.2.0.1)
 - [fingertree-0.1.1.0](https://hackage.haskell.org/package/fingertree-0.1.1.0)
