@@ -107,6 +107,7 @@ These packages are supported by `etlas`.
 - [contravariant-1.4](https://hackage.haskell.org/package/contravariant-1.4)
 - [control-monad-omega-0.3.1](https://hackage.haskell.org/package/control-monad-omega-0.3.1)
 - [convertible-1.1.1.0](https://hackage.haskell.org/package/convertible-1.1.1.0)
+- [cryptonite-0.24](https://hackage.haskell.org/package/cryptonite-0.24)
 - [data-default-0.7.1.1](https://hackage.haskell.org/package/data-default-0.7.1.1)
 - [data-default-class-0.1.2.0](https://hackage.haskell.org/package/data-default-class-0.1.2.0)
 - [data-default-instances-containers-0.0.1](https://hackage.haskell.org/package/data-default-instances-containers-0.0.1)

@@ -1,0 +1,2401 @@
+From 8d3ff5a3f9691b54c0a29cf5fe5ab3a2da490f66 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 11 Dec 2017 13:56:58 +0530
+Subject: [PATCH] Patched
+
+---
+ Crypto/Cipher/AES/Primitive.hs  |  80 ++++++++++++------------
+ Crypto/Cipher/ChaCha.hs         |  20 +++---
+ Crypto/Cipher/RC4.hs            |  22 +++----
+ Crypto/Cipher/Salsa.hs          |  12 ++--
+ Crypto/Cipher/XSalsa.hs         |   4 +-
+ Crypto/Hash.hs                  |  24 ++++----
+ Crypto/Hash/Blake2.hs           | 108 ++++++++++++++++-----------------
+ Crypto/Hash/Blake2b.hs          |  47 +++++---------
+ Crypto/Hash/Blake2bp.hs         |  22 +++----
+ Crypto/Hash/Blake2s.hs          |  39 ++++++------
+ Crypto/Hash/Blake2sp.hs         |  30 +++++----
+ Crypto/Hash/IO.hs               |  29 +++------
+ Crypto/Hash/Keccak.hs           |  39 ++++--------
+ Crypto/Hash/MD2.hs              |  19 +++---
+ Crypto/Hash/MD4.hs              |  19 +++---
+ Crypto/Hash/MD5.hs              |  23 ++++---
+ Crypto/Hash/RIPEMD160.hs        |  19 +++---
+ Crypto/Hash/SHA1.hs             |  19 +++---
+ Crypto/Hash/SHA224.hs           |  23 ++++---
+ Crypto/Hash/SHA256.hs           |  23 ++++---
+ Crypto/Hash/SHA3.hs             |  38 ++++--------
+ Crypto/Hash/SHA384.hs           |  23 ++++---
+ Crypto/Hash/SHA512.hs           |  23 ++++---
+ Crypto/Hash/SHA512t.hs          |  35 +++++------
+ Crypto/Hash/SHAKE.hs            |  46 +++++++-------
+ Crypto/Hash/Skein256.hs         |  39 ++++++------
+ Crypto/Hash/Skein512.hs         |  58 ++++++++----------
+ Crypto/Hash/Tiger.hs            |  22 +++----
+ Crypto/Hash/Types.hs            |  49 ++++++++++++---
+ Crypto/Hash/Whirlpool.hs        |  22 +++----
+ Crypto/KDF/Argon2.hs            |  16 ++---
+ Crypto/KDF/PBKDF2.hs            |  12 ++--
+ Crypto/KDF/Scrypt.hs            |   4 +-
+ Crypto/MAC/Poly1305.hs          |  57 +++++++++--------
+ Crypto/PubKey/Curve25519.hs     |   4 +-
+ Crypto/PubKey/Curve448.hs       |  14 ++---
+ Crypto/PubKey/ECC/P256.hs       |  79 ++++++++++++------------
+ Crypto/PubKey/Ed25519.hs        |  38 ++++++------
+ Crypto/PubKey/Ed448.hs          |  12 ++--
+ Crypto/Random/Entropy/RDRand.hs |   8 +--
+ cryptonite.cabal                | 131 +++-------------------------------------
+ java/Utils.java                 |  82 +++++++++++++++++++++++++
+ 42 files changed, 674 insertions(+), 759 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Crypto/Cipher/AES/Primitive.hs b/Crypto/Cipher/AES/Primitive.hs
+index 5e26174..ec51b8d 100644
+--- a/Crypto/Cipher/AES/Primitive.hs
++++ b/Crypto/Cipher/AES/Primitive.hs
+@@ -448,63 +448,63 @@ ocbFinish ctx ocb taglen = AuthTag $ B.take taglen computeTag
+                         withOCBKeyAndCopySt ctx ocb (c_aes_ocb_finish (castPtr t)) >> return ()
+ 
+ ------------------------------------------------------------------------
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_initkey"
+-    c_aes_init :: Ptr AES -> CString -> CUInt -> IO ()
++c_aes_init :: Ptr AES -> CString -> CUInt -> IO ()
++c_aes_init = error "c_aes_init: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_encrypt_ecb"
+-    c_aes_encrypt_ecb :: CString -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_encrypt_ecb :: CString -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_encrypt_ecb = error "c_aes_encrypt_ecb: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_decrypt_ecb"
+-    c_aes_decrypt_ecb :: CString -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_decrypt_ecb :: CString -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_decrypt_ecb = error "c_aes_decrypt_ecb: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_encrypt_cbc"
+-    c_aes_encrypt_cbc :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
++c_aes_encrypt_cbc :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
++c_aes_encrypt_cbc = error "c_aes_encrypt_cbc: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_decrypt_cbc"
+-    c_aes_decrypt_cbc :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
++c_aes_decrypt_cbc :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
++c_aes_decrypt_cbc = error "c_aes_decrypt_cbc: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_encrypt_xts"
+-    c_aes_encrypt_xts :: CString -> Ptr AES -> Ptr AES -> Ptr Word8 -> CUInt -> CString -> CUInt -> IO ()
++c_aes_encrypt_xts :: CString -> Ptr AES -> Ptr AES -> Ptr Word8 -> CUInt -> CString -> CUInt -> IO ()
++c_aes_encrypt_xts = error "c_aes_encrypt_xts: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_decrypt_xts"
+-    c_aes_decrypt_xts :: CString -> Ptr AES -> Ptr AES -> Ptr Word8 -> CUInt -> CString -> CUInt -> IO ()
++c_aes_decrypt_xts :: CString -> Ptr AES -> Ptr AES -> Ptr Word8 -> CUInt -> CString -> CUInt -> IO ()
++c_aes_decrypt_xts = error "c_aes_decrypt_xts: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_gen_ctr"
+-    c_aes_gen_ctr :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
++c_aes_gen_ctr :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
++c_aes_gen_ctr = error "c_aes_gen_ctr: Not implemented yet."
+ 
+-foreign import ccall unsafe "cryptonite_aes.h cryptonite_aes_gen_ctr_cont"
+-    c_aes_gen_ctr_cont :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
++c_aes_gen_ctr_cont :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
++c_aes_gen_ctr_cont = error "c_aes_gen_ctr_cont: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_encrypt_ctr"
+-    c_aes_encrypt_ctr :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
++c_aes_encrypt_ctr :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
++c_aes_encrypt_ctr = error "c_aes_encrypt_ctr: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_gcm_init"
+-    c_aes_gcm_init :: Ptr AESGCM -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
++c_aes_gcm_init :: Ptr AESGCM -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
++c_aes_gcm_init = error "c_aes_gcm_init: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_gcm_aad"
+-    c_aes_gcm_aad :: Ptr AESGCM -> CString -> CUInt -> IO ()
++c_aes_gcm_aad :: Ptr AESGCM -> CString -> CUInt -> IO ()
++c_aes_gcm_aad = error "c_aes_gcm_aad: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_gcm_encrypt"
+-    c_aes_gcm_encrypt :: CString -> Ptr AESGCM -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_gcm_encrypt :: CString -> Ptr AESGCM -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_gcm_encrypt = error "c_aes_gcm_encrypt: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_gcm_decrypt"
+-    c_aes_gcm_decrypt :: CString -> Ptr AESGCM -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_gcm_decrypt :: CString -> Ptr AESGCM -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_gcm_decrypt = error "c_aes_gcm_decrypt: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_gcm_finish"
+-    c_aes_gcm_finish :: CString -> Ptr AESGCM -> Ptr AES -> IO ()
++c_aes_gcm_finish :: CString -> Ptr AESGCM -> Ptr AES -> IO ()
++c_aes_gcm_finish = error "c_aes_gcm_finish: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_ocb_init"
+-    c_aes_ocb_init :: Ptr AESOCB -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
++c_aes_ocb_init :: Ptr AESOCB -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
++c_aes_ocb_init = error "c_aes_ocb_init: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_ocb_aad"
+-    c_aes_ocb_aad :: Ptr AESOCB -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_ocb_aad :: Ptr AESOCB -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_ocb_aad = error "c_aes_ocb_aad: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_ocb_encrypt"
+-    c_aes_ocb_encrypt :: CString -> Ptr AESOCB -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_ocb_encrypt :: CString -> Ptr AESOCB -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_ocb_encrypt = error "c_aes_ocb_encrypt: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_ocb_decrypt"
+-    c_aes_ocb_decrypt :: CString -> Ptr AESOCB -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_ocb_decrypt :: CString -> Ptr AESOCB -> Ptr AES -> CString -> CUInt -> IO ()
++c_aes_ocb_decrypt = error "c_aes_ocb_decrypt: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_ocb_finish"
+-    c_aes_ocb_finish :: CString -> Ptr AESOCB -> Ptr AES -> IO ()
++c_aes_ocb_finish :: CString -> Ptr AESOCB -> Ptr AES -> IO ()
++c_aes_ocb_finish = error "c_aes_ocb_finish: Not implemented yet."
+ 
+diff --git a/Crypto/Cipher/ChaCha.hs b/Crypto/Cipher/ChaCha.hs
+index 5e85b7b..95e9b31 100644
+--- a/Crypto/Cipher/ChaCha.hs
++++ b/Crypto/Cipher/ChaCha.hs
+@@ -109,18 +109,18 @@ generateSimple (StateSimple prevSt) nbBytes = unsafeDoIO $ do
+             ccryptonite_chacha_random 8 dstPtr stPtr (fromIntegral nbBytes)
+     return (output, StateSimple newSt)
+ 
+-foreign import ccall "cryptonite_chacha_init_core"
+-    ccryptonite_chacha_init_core :: Ptr StateSimple -> Int -> Ptr Word8 -> Int -> Ptr Word8 -> IO ()
++ccryptonite_chacha_init_core :: Ptr StateSimple -> Int -> Ptr Word8 -> Int -> Ptr Word8 -> IO ()
++ccryptonite_chacha_init_core = error "ccryptonite_chacha_init_core: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_chacha_init"
+-    ccryptonite_chacha_init :: Ptr State -> Int -> Int -> Ptr Word8 -> Int -> Ptr Word8 -> IO ()
++ccryptonite_chacha_init :: Ptr State -> Int -> Int -> Ptr Word8 -> Int -> Ptr Word8 -> IO ()
++ccryptonite_chacha_init = error "ccryptonite_chacha_init: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_chacha_combine"
+-    ccryptonite_chacha_combine :: Ptr Word8 -> Ptr State -> Ptr Word8 -> CUInt -> IO ()
++ccryptonite_chacha_combine :: Ptr Word8 -> Ptr State -> Ptr Word8 -> CUInt -> IO ()
++ccryptonite_chacha_combine = error "ccryptonite_chacha_combine: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_chacha_generate"
+-    ccryptonite_chacha_generate :: Ptr Word8 -> Ptr State -> CUInt -> IO ()
++ccryptonite_chacha_generate :: Ptr Word8 -> Ptr State -> CUInt -> IO ()
++ccryptonite_chacha_generate = error "ccryptonite_chacha_generate: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_chacha_random"
+-    ccryptonite_chacha_random :: Int -> Ptr Word8 -> Ptr StateSimple -> CUInt -> IO ()
++ccryptonite_chacha_random :: Int -> Ptr Word8 -> Ptr StateSimple -> CUInt -> IO ()
++ccryptonite_chacha_random = error "ccryptonite_chacha_random: Not implemented yet."
+ 
+diff --git a/Crypto/Cipher/RC4.hs b/Crypto/Cipher/RC4.hs
+index a0aa92a..2f1b9a1 100644
+--- a/Crypto/Cipher/RC4.hs
++++ b/Crypto/Cipher/RC4.hs
+@@ -34,18 +34,18 @@ newtype State = State ScrubbedBytes
+     deriving (ByteArrayAccess,NFData)
+ 
+ -- | C Call for initializing the encryptor
+-foreign import ccall unsafe "cryptonite_rc4.h cryptonite_rc4_init"
+-    c_rc4_init :: Ptr Word8 -- ^ The rc4 key
+-               -> Word32    -- ^ The key length
+-               -> Ptr State -- ^ The context
+-               -> IO ()
++c_rc4_init :: Ptr Word8 -- ^ The rc4 key
++            -> Word32    -- ^ The key length
++            -> Ptr State -- ^ The context
++            -> IO ()
++c_rc4_init = error "c_rc4_init: Not implemented yet."
+ 
+-foreign import ccall unsafe "cryptonite_rc4.h cryptonite_rc4_combine"
+-    c_rc4_combine :: Ptr State        -- ^ Pointer to the permutation
+-                  -> Ptr Word8      -- ^ Pointer to the clear text
+-                  -> Word32         -- ^ Length of the clear text
+-                  -> Ptr Word8      -- ^ Output buffer
+-                  -> IO ()
++c_rc4_combine :: Ptr State        -- ^ Pointer to the permutation
++              -> Ptr Word8      -- ^ Pointer to the clear text
++              -> Word32         -- ^ Length of the clear text
++              -> Ptr Word8      -- ^ Output buffer
++              -> IO ()
++c_rc4_combine = error "c_rc4_combine: Not implemented yet."
+ 
+ -- | RC4 context initialization.
+ --
+diff --git a/Crypto/Cipher/Salsa.hs b/Crypto/Cipher/Salsa.hs
+index b6b188b..1d989b0 100644
+--- a/Crypto/Cipher/Salsa.hs
++++ b/Crypto/Cipher/Salsa.hs
+@@ -73,11 +73,11 @@ generate prevSt@(State prevStMem) len
+                 ccryptonite_salsa_generate dstPtr ctx (fromIntegral len)
+         return (out, State st)
+ 
+-foreign import ccall "cryptonite_salsa_init"
+-    ccryptonite_salsa_init :: Ptr State -> Int -> Int -> Ptr Word8 -> Int -> Ptr Word8 -> IO ()
++ccryptonite_salsa_init :: Ptr State -> Int -> Int -> Ptr Word8 -> Int -> Ptr Word8 -> IO ()
++ccryptonite_salsa_init = error "ccryptonite_salsa_init: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_salsa_combine"
+-    ccryptonite_salsa_combine :: Ptr Word8 -> Ptr State -> Ptr Word8 -> CUInt -> IO ()
++ccryptonite_salsa_combine :: Ptr Word8 -> Ptr State -> Ptr Word8 -> CUInt -> IO ()
++ccryptonite_salsa_combine = error "ccryptonite_salsa_combine: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_salsa_generate"
+-    ccryptonite_salsa_generate :: Ptr Word8 -> Ptr State -> CUInt -> IO ()
++ccryptonite_salsa_generate :: Ptr Word8 -> Ptr State -> CUInt -> IO ()
++ccryptonite_salsa_generate = error "ccryptonite_salsa_generate: Not implemented yet."
+diff --git a/Crypto/Cipher/XSalsa.hs b/Crypto/Cipher/XSalsa.hs
+index 494760e..c4626d3 100644
+--- a/Crypto/Cipher/XSalsa.hs
++++ b/Crypto/Cipher/XSalsa.hs
+@@ -46,5 +46,5 @@ initialize nbRounds key nonce
+   where kLen     = B.length key
+         nonceLen = B.length nonce
+ 
+-foreign import ccall "cryptonite_xsalsa_init"
+-    ccryptonite_xsalsa_init :: Ptr State -> Int -> Int -> Ptr Word8 -> Int -> Ptr Word8 -> IO ()
++ccryptonite_xsalsa_init :: Ptr State -> Int -> Int -> Ptr Word8 -> Int -> Ptr Word8 -> IO ()
++ccryptonite_xsalsa_init = error "ccryptonite_xsalsa_init: Not implemented yet."
+diff --git a/Crypto/Hash.hs b/Crypto/Hash.hs
+index cd08a6a..58b88e1 100644
+--- a/Crypto/Hash.hs
++++ b/Crypto/Hash.hs
+@@ -48,6 +48,7 @@ import           Foreign.Ptr (Ptr)
+ import           Crypto.Internal.ByteArray (ByteArrayAccess)
+ import qualified Crypto.Internal.ByteArray as B
+ import qualified Data.ByteString.Lazy as L
++import System.IO.Unsafe
+ 
+ -- | Hash a strict bytestring into a digest.
+ hash :: (ByteArrayAccess ba, HashAlgorithm a) => ba -> Digest a
+@@ -58,15 +59,14 @@ hashlazy :: HashAlgorithm a => L.ByteString -> Digest a
+ hashlazy lbs = hashFinalize $ hashUpdates hashInit (L.toChunks lbs)
+ 
+ -- | Initialize a new context for this hash algorithm
+-hashInit :: forall a . HashAlgorithm a => Context a
+-hashInit = Context $ B.allocAndFreeze (hashInternalContextSize (undefined :: a)) $ \(ptr :: Ptr (Context a)) ->
+-    hashInternalInit ptr
++hashInit :: forall a. HashAlgorithm a => Context a
++hashInit = unsafeDupablePerformIO hashInternalInit
+ 
+ -- | run hashUpdates on one single bytestring and return the updated context.
+-hashUpdate :: (ByteArrayAccess ba, HashAlgorithm a) => Context a -> ba -> Context a
+-hashUpdate ctx b
+-    | B.null b  = ctx
+-    | otherwise = hashUpdates ctx [b]
++hashUpdate :: forall a ba. (ByteArrayAccess ba, HashAlgorithm a) => Context a -> ba -> Context a
++hashUpdate c b
++    | B.null b  = c
++    | otherwise = hashUpdates c [b]
+ 
+ -- | Update the context with a list of strict bytestring,
+ -- and return a new context with the updates.
+@@ -76,8 +76,10 @@ hashUpdates :: forall a ba . (HashAlgorithm a, ByteArrayAccess ba)
+             -> Context a
+ hashUpdates c l
+     | null ls   = c
+-    | otherwise = Context $ B.copyAndFreeze c $ \(ctx :: Ptr (Context a)) ->
+-        mapM_ (\b -> B.withByteArray b $ \d -> hashInternalUpdate ctx d (fromIntegral $ B.length b)) ls
++    | otherwise = unsafePerformIO $ do
++      mapM_ (\b -> B.withByteArray b $ \d ->
++                hashInternalUpdate c d (fromIntegral $ B.length b)) ls
++      return c
+   where
+     ls = filter (not . B.null) l
+ 
+@@ -87,11 +89,11 @@ hashFinalize :: forall a . HashAlgorithm a
+              -> Digest a
+ hashFinalize !c =
+     Digest $ B.allocAndFreeze (hashDigestSize (undefined :: a)) $ \(dig :: Ptr (Digest a)) -> do
+-        ((!_) :: B.Bytes) <- B.copy c $ \(ctx :: Ptr (Context a)) -> hashInternalFinalize ctx dig
++        !_ <- hashInternalFinalize c dig
+         return ()
+ 
+ -- | Initialize a new context for a specified hash algorithm
+-hashInitWith :: HashAlgorithm alg => alg -> Context alg
++hashInitWith :: forall alg. HashAlgorithm alg => alg -> Context alg
+ hashInitWith _ = hashInit
+ 
+ -- | Run the 'hash' function but takes an explicit hash algorithm parameter
+diff --git a/Crypto/Hash/Blake2.hs b/Crypto/Hash/Blake2.hs
+index 74a3d14..200b1e6 100644
+--- a/Crypto/Hash/Blake2.hs
++++ b/Crypto/Hash/Blake2.hs
+@@ -63,22 +63,21 @@ data Blake2s (bitlen :: Nat) = Blake2s
+ instance (IsDivisibleBy8 bitlen, KnownNat bitlen, IsAtLeast bitlen 8, IsAtMost bitlen 256)
+       => HashAlgorithm (Blake2s bitlen)
+       where
+-    type HashBlockSize           (Blake2s bitlen) = 64
+-    type HashDigestSize          (Blake2s bitlen) = Div8 bitlen
+-    type HashInternalContextSize (Blake2s bitlen) = 185
++    type HashBlockSize  (Blake2s bitlen) = 64
++    type HashDigestSize (Blake2s bitlen) = Div8 bitlen
+     hashBlockSize  _          = 64
+     hashDigestSize _          = byteLen (Proxy :: Proxy bitlen)
+-    hashInternalContextSize _ = 185
+-    hashInternalInit p        = c_blake2s_init p (integralNatVal (Proxy :: Proxy bitlen))
+-    hashInternalUpdate        = c_blake2s_update
+-    hashInternalFinalize p    = c_blake2s_finalize p (integralNatVal (Proxy :: Proxy bitlen))
+-
+-foreign import ccall unsafe "cryptonite_blake2s_init"
+-    c_blake2s_init :: Ptr (Context a) -> Word32 -> IO ()
+-foreign import ccall "cryptonite_blake2s_update"
+-    c_blake2s_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
+-foreign import ccall unsafe "cryptonite_blake2s_finalize"
+-    c_blake2s_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++    hashInternalInit          = error "Blake2s_N: Not implemented yet."
++    hashInternalUpdate        = error "Blake2s_N: Not implemented yet."
++    hashInternalFinalize      = error "Blake2s_N: Not implemented yet."
++    hashInternalReset         = error "Blake2s_N: Not implemented yet."
++
++c_blake2s_init :: Ptr (Context a) -> Word32 -> IO ()
++c_blake2s_init = error "c_blake2s_init: Not implemented yet."
++c_blake2s_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++c_blake2s_update = error "c_blake2s_update: Not implemented yet."
++c_blake2s_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++c_blake2s_finalize = error "c_blake2s_finalize: Not implemented yet."
+ 
+ -- | Fast cryptographic hash.
+ --
+@@ -98,22 +97,23 @@ data Blake2b (bitlen :: Nat) = Blake2b
+ instance (IsDivisibleBy8 bitlen, KnownNat bitlen, IsAtLeast bitlen 8, IsAtMost bitlen 512)
+       => HashAlgorithm (Blake2b bitlen)
+       where
+-    type HashBlockSize           (Blake2b bitlen) = 128
+-    type HashDigestSize          (Blake2b bitlen) = Div8 bitlen
+-    type HashInternalContextSize (Blake2b bitlen) = 361
++    type HashBlockSize  (Blake2b bitlen) = 128
++    type HashDigestSize (Blake2b bitlen) = Div8 bitlen
+     hashBlockSize  _          = 128
+     hashDigestSize _          = byteLen (Proxy :: Proxy bitlen)
+-    hashInternalContextSize _ = 361
+-    hashInternalInit p        = c_blake2b_init p (integralNatVal (Proxy :: Proxy bitlen))
+-    hashInternalUpdate        = c_blake2b_update
+-    hashInternalFinalize p    = c_blake2b_finalize p (integralNatVal (Proxy :: Proxy bitlen))
+-
+-foreign import ccall unsafe "cryptonite_blake2b_init"
+-    c_blake2b_init :: Ptr (Context a) -> Word32 -> IO ()
+-foreign import ccall "cryptonite_blake2b_update"
+-    c_blake2b_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
+-foreign import ccall unsafe "cryptonite_blake2b_finalize"
+-    c_blake2b_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++    hashInternalInit          = c_blake2b_init (integralNatVal (Proxy :: Proxy bitlen))
++
++data {-# CLASS "org.bouncycastle.crypto.digests.Blake2bDigest" #-}
++  Blake2bDigest = Blake2bDigest (Object# Blake2bDigest)
++  deriving Class
++
++type instance Inherits Blake2bDigest = '[JDigest]
++
++c_blake2b_init :: Word32 -> IO (Context a)
++c_blake2b_init = fmap toContext . c_blake2b_init'
++
++foreign import java unsafe "@new"
++    c_blake2b_init' :: Word32 -> IO Blake2bDigest
+ 
+ data Blake2sp (bitlen :: Nat) = Blake2sp
+   deriving (Show, Typeable)
+@@ -121,22 +121,21 @@ data Blake2sp (bitlen :: Nat) = Blake2sp
+ instance (IsDivisibleBy8 bitlen, KnownNat bitlen, IsAtLeast bitlen 8, IsAtMost bitlen 256)
+       => HashAlgorithm (Blake2sp bitlen)
+       where
+-    type HashBlockSize           (Blake2sp bitlen) = 64
+-    type HashDigestSize          (Blake2sp bitlen) = Div8 bitlen
+-    type HashInternalContextSize (Blake2sp bitlen) = 2185
++    type HashBlockSize  (Blake2sp bitlen) = 64
++    type HashDigestSize (Blake2sp bitlen) = Div8 bitlen
+     hashBlockSize  _          = 64
+     hashDigestSize _          = byteLen (Proxy :: Proxy bitlen)
+-    hashInternalContextSize _ = 2185
+-    hashInternalInit p        = c_blake2sp_init p (integralNatVal (Proxy :: Proxy bitlen))
+-    hashInternalUpdate        = c_blake2sp_update
+-    hashInternalFinalize p    = c_blake2sp_finalize p (integralNatVal (Proxy :: Proxy bitlen))
+-
+-foreign import ccall unsafe "cryptonite_blake2sp_init"
+-    c_blake2sp_init :: Ptr (Context a) -> Word32 -> IO ()
+-foreign import ccall "cryptonite_blake2sp_update"
+-    c_blake2sp_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
+-foreign import ccall unsafe "cryptonite_blake2sp_finalize"
+-    c_blake2sp_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++    hashInternalInit          = error "Blake2sp_N: Not implemented yet."
++    hashInternalUpdate        = error "Blake2sp_N: Not implemented yet."
++    hashInternalFinalize      = error "Blake2sp_N: Not implemented yet."
++    hashInternalReset         = error "Blake2sp_N: Not implemented yet."
++
++c_blake2sp_init :: Ptr (Context a) -> Word32 -> IO ()
++c_blake2sp_init = error "c_blake2sp_init: Not implemented yet."
++c_blake2sp_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++c_blake2sp_update = error "c_blake2sp_update: Not implemented yet."
++c_blake2sp_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++c_blake2sp_finalize = error "c_blake2sp_finalize: Not implemented yet."
+ 
+ data Blake2bp (bitlen :: Nat) = Blake2bp
+   deriving (Show, Typeable)
+@@ -146,18 +145,17 @@ instance (IsDivisibleBy8 bitlen, KnownNat bitlen, IsAtLeast bitlen 8, IsAtMost b
+       where
+     type HashBlockSize           (Blake2bp bitlen) = 128
+     type HashDigestSize          (Blake2bp bitlen) = Div8 bitlen
+-    type HashInternalContextSize (Blake2bp bitlen) = 2325
+     hashBlockSize  _          = 128
+     hashDigestSize _          = byteLen (Proxy :: Proxy bitlen)
+-    hashInternalContextSize _ = 2325
+-    hashInternalInit p        = c_blake2bp_init p (integralNatVal (Proxy :: Proxy bitlen))
+-    hashInternalUpdate        = c_blake2bp_update
+-    hashInternalFinalize p    = c_blake2bp_finalize p (integralNatVal (Proxy :: Proxy bitlen))
+-
+-
+-foreign import ccall unsafe "cryptonite_blake2bp_init"
+-    c_blake2bp_init :: Ptr (Context a) -> Word32 -> IO ()
+-foreign import ccall "cryptonite_blake2bp_update"
+-    c_blake2bp_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
+-foreign import ccall unsafe "cryptonite_blake2bp_finalize"
+-    c_blake2bp_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++    hashInternalInit          = error "Blake2bp_N: Not implemented yet."
++    hashInternalUpdate        = error "Blake2bp_N: Not implemented yet."
++    hashInternalFinalize      = error "Blake2bp_N: Not implemented yet."
++    hashInternalReset         = error "Blake2bp_N: Not implemented yet."
++
++
++c_blake2bp_init :: Ptr (Context a) -> Word32 -> IO ()
++c_blake2bp_init = error "c_blake2bp_init: Not implemented yet."
++c_blake2bp_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++c_blake2bp_update = error "c_blake2bp_update: Not implemented yet."
++c_blake2bp_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++c_blake2bp_finalize = error "c_blake2bp_finalize: Not implemented yet."
+diff --git a/Crypto/Hash/Blake2b.hs b/Crypto/Hash/Blake2b.hs
+index b20fdc4..029bbb2 100644
+--- a/Crypto/Hash/Blake2b.hs
++++ b/Crypto/Hash/Blake2b.hs
+@@ -30,13 +30,9 @@ data Blake2b_160 = Blake2b_160
+ instance HashAlgorithm Blake2b_160 where
+     type HashBlockSize           Blake2b_160 = 128
+     type HashDigestSize          Blake2b_160 = 20
+-    type HashInternalContextSize Blake2b_160 = 361
+     hashBlockSize  _          = 128
+     hashDigestSize _          = 20
+-    hashInternalContextSize _ = 361
+-    hashInternalInit p        = c_blake2b_init p 160
+-    hashInternalUpdate        = c_blake2b_update
+-    hashInternalFinalize p    = c_blake2b_finalize p 160
++    hashInternalInit          = c_blake2b_init 160
+ 
+ -- | Blake2b (224 bits) cryptographic hash algorithm
+ data Blake2b_224 = Blake2b_224
+@@ -45,13 +41,12 @@ data Blake2b_224 = Blake2b_224
+ instance HashAlgorithm Blake2b_224 where
+     type HashBlockSize           Blake2b_224 = 128
+     type HashDigestSize          Blake2b_224 = 28
+-    type HashInternalContextSize Blake2b_224 = 361
+     hashBlockSize  _          = 128
+     hashDigestSize _          = 28
+-    hashInternalContextSize _ = 361
+-    hashInternalInit p        = c_blake2b_init p 224
+-    hashInternalUpdate        = c_blake2b_update
+-    hashInternalFinalize p    = c_blake2b_finalize p 224
++    hashInternalInit          = error "Blake2b_224: Not implemented yet."
++    hashInternalUpdate        = error "Blake2b_224: Not implemented yet."
++    hashInternalFinalize      = error "Blake2b_224: Not implemented yet."
++    hashInternalReset         = error "Blake2b_224: Not implemented yet."
+ 
+ -- | Blake2b (256 bits) cryptographic hash algorithm
+ data Blake2b_256 = Blake2b_256
+@@ -60,13 +55,9 @@ data Blake2b_256 = Blake2b_256
+ instance HashAlgorithm Blake2b_256 where
+     type HashBlockSize           Blake2b_256 = 128
+     type HashDigestSize          Blake2b_256 = 32
+-    type HashInternalContextSize Blake2b_256 = 361
+     hashBlockSize  _          = 128
+     hashDigestSize _          = 32
+-    hashInternalContextSize _ = 361
+-    hashInternalInit p        = c_blake2b_init p 256
+-    hashInternalUpdate        = c_blake2b_update
+-    hashInternalFinalize p    = c_blake2b_finalize p 256
++    hashInternalInit          = c_blake2b_init 256
+ 
+ -- | Blake2b (384 bits) cryptographic hash algorithm
+ data Blake2b_384 = Blake2b_384
+@@ -75,13 +66,9 @@ data Blake2b_384 = Blake2b_384
+ instance HashAlgorithm Blake2b_384 where
+     type HashBlockSize           Blake2b_384 = 128
+     type HashDigestSize          Blake2b_384 = 48
+-    type HashInternalContextSize Blake2b_384 = 361
+     hashBlockSize  _          = 128
+     hashDigestSize _          = 48
+-    hashInternalContextSize _ = 361
+-    hashInternalInit p        = c_blake2b_init p 384
+-    hashInternalUpdate        = c_blake2b_update
+-    hashInternalFinalize p    = c_blake2b_finalize p 384
++    hashInternalInit          = c_blake2b_init 384
+ 
+ -- | Blake2b (512 bits) cryptographic hash algorithm
+ data Blake2b_512 = Blake2b_512
+@@ -90,20 +77,18 @@ data Blake2b_512 = Blake2b_512
+ instance HashAlgorithm Blake2b_512 where
+     type HashBlockSize           Blake2b_512 = 128
+     type HashDigestSize          Blake2b_512 = 64
+-    type HashInternalContextSize Blake2b_512 = 361
+     hashBlockSize  _          = 128
+     hashDigestSize _          = 64
+-    hashInternalContextSize _ = 361
+-    hashInternalInit p        = c_blake2b_init p 512
+-    hashInternalUpdate        = c_blake2b_update
+-    hashInternalFinalize p    = c_blake2b_finalize p 512
++    hashInternalInit          = c_blake2b_init 512
+ 
++data {-# CLASS "org.bouncycastle.crypto.digests.Blake2bDigest" #-}
++  Blake2bDigest = Blake2bDigest (Object# Blake2bDigest)
++  deriving Class
+ 
+-foreign import ccall unsafe "cryptonite_blake2b_init"
+-    c_blake2b_init :: Ptr (Context a) -> Word32 -> IO ()
++type instance Inherits Blake2bDigest = '[JDigest]
+ 
+-foreign import ccall "cryptonite_blake2b_update"
+-    c_blake2b_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++c_blake2b_init :: Word32 -> IO (Context a)
++c_blake2b_init = fmap toContext . c_blake2b_init'
+ 
+-foreign import ccall unsafe "cryptonite_blake2b_finalize"
+-    c_blake2b_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++foreign import java unsafe "@new"
++    c_blake2b_init' :: Word32 -> IO Blake2bDigest
+diff --git a/Crypto/Hash/Blake2bp.hs b/Crypto/Hash/Blake2bp.hs
+index 7a555d9..2367e83 100644
+--- a/Crypto/Hash/Blake2bp.hs
++++ b/Crypto/Hash/Blake2bp.hs
+@@ -30,20 +30,18 @@ data Blake2bp_512 = Blake2bp_512
+ instance HashAlgorithm Blake2bp_512 where
+     type HashBlockSize           Blake2bp_512 = 128
+     type HashDigestSize          Blake2bp_512 = 64
+-    type HashInternalContextSize Blake2bp_512 = 2325
+     hashBlockSize  _          = 128
+     hashDigestSize _          = 64
+-    hashInternalContextSize _ = 2325
+-    hashInternalInit p        = c_blake2sp_init p 512
+-    hashInternalUpdate        = c_blake2sp_update
+-    hashInternalFinalize p    = c_blake2sp_finalize p 512
++    hashInternalInit          = undefined
++    hashInternalUpdate        = undefined
++    hashInternalFinalize      = undefined
++    hashInternalReset         = undefined
+ 
++c_blake2sp_init :: Ptr (Context a) -> Word32 -> IO ()
++c_blake2sp_init = error "c_blake2sp_init: Not implemented yet."
+ 
+-foreign import ccall unsafe "cryptonite_blake2sp_init"
+-    c_blake2sp_init :: Ptr (Context a) -> Word32 -> IO ()
++c_blake2sp_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++c_blake2sp_update = error "c_blake2sp_update: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_blake2sp_update"
+-    c_blake2sp_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
+-
+-foreign import ccall unsafe "cryptonite_blake2sp_finalize"
+-    c_blake2sp_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++c_blake2sp_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++c_blake2sp_finalize = error "c_blake2sp_finalize: Not implemented yet."
+diff --git a/Crypto/Hash/Blake2s.hs b/Crypto/Hash/Blake2s.hs
+index 3f1e62b..47310ef 100644
+--- a/Crypto/Hash/Blake2s.hs
++++ b/Crypto/Hash/Blake2s.hs
+@@ -30,13 +30,12 @@ data Blake2s_160 = Blake2s_160
+ instance HashAlgorithm Blake2s_160 where
+     type HashBlockSize           Blake2s_160 = 64
+     type HashDigestSize          Blake2s_160 = 20
+-    type HashInternalContextSize Blake2s_160 = 185
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 20
+-    hashInternalContextSize _ = 185
+-    hashInternalInit p        = c_blake2s_init p 160
+-    hashInternalUpdate        = c_blake2s_update
+-    hashInternalFinalize p    = c_blake2s_finalize p 160
++    hashInternalInit          = error "Blake2s_160: Not implemented yet"
++    hashInternalUpdate        = error "Blake2s_160: Not implemented yet"
++    hashInternalFinalize      = error "Blake2s_160: Not implemented yet"
++    hashInternalReset         = error "Blake2s_160: Not implemented yet"
+ 
+ -- | Blake2s (224 bits) cryptographic hash algorithm
+ data Blake2s_224 = Blake2s_224
+@@ -45,13 +44,12 @@ data Blake2s_224 = Blake2s_224
+ instance HashAlgorithm Blake2s_224 where
+     type HashBlockSize           Blake2s_224 = 64
+     type HashDigestSize          Blake2s_224 = 28
+-    type HashInternalContextSize Blake2s_224 = 185
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 28
+-    hashInternalContextSize _ = 185
+-    hashInternalInit p        = c_blake2s_init p 224
+-    hashInternalUpdate        = c_blake2s_update
+-    hashInternalFinalize p    = c_blake2s_finalize p 224
++    hashInternalInit          = error "Blake2s_224: Not implemented yet"
++    hashInternalUpdate        = error "Blake2s_224: Not implemented yet"
++    hashInternalFinalize      = error "Blake2s_224: Not implemented yet"
++    hashInternalReset         = error "Blake2s_224: Not implemented yet"
+ 
+ -- | Blake2s (256 bits) cryptographic hash algorithm
+ data Blake2s_256 = Blake2s_256
+@@ -60,20 +58,19 @@ data Blake2s_256 = Blake2s_256
+ instance HashAlgorithm Blake2s_256 where
+     type HashBlockSize           Blake2s_256 = 64
+     type HashDigestSize          Blake2s_256 = 32
+-    type HashInternalContextSize Blake2s_256 = 185
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 32
+-    hashInternalContextSize _ = 185
+-    hashInternalInit p        = c_blake2s_init p 256
+-    hashInternalUpdate        = c_blake2s_update
+-    hashInternalFinalize p    = c_blake2s_finalize p 256
++    hashInternalInit          = error "Blake2s_256: Not implemented yet."
++    hashInternalUpdate        = error "Blake2s_256: Not implemented yet."
++    hashInternalFinalize      = error "Blake2s_256: Not implemented yet."
++    hashInternalReset         = error "Blake2s_256: Not implemented yet."
+ 
+ 
+-foreign import ccall unsafe "cryptonite_blake2s_init"
+-    c_blake2s_init :: Ptr (Context a) -> Word32 -> IO ()
++c_blake2s_init :: Ptr (Context a) -> Word32 -> IO ()
++c_blake2s_init = error "c_blake2s_init: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_blake2s_update"
+-    c_blake2s_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++c_blake2s_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++c_blake2s_update = error "c_blake2s_update: Not implemented yet."
+ 
+-foreign import ccall unsafe "cryptonite_blake2s_finalize"
+-    c_blake2s_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++c_blake2s_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++c_blake2s_finalize = error "c_blake2s_finalize: Not implemented yet."
+diff --git a/Crypto/Hash/Blake2sp.hs b/Crypto/Hash/Blake2sp.hs
+index 2aaa041..04139d1 100644
+--- a/Crypto/Hash/Blake2sp.hs
++++ b/Crypto/Hash/Blake2sp.hs
+@@ -30,13 +30,12 @@ data Blake2sp_224 = Blake2sp_224
+ instance HashAlgorithm Blake2sp_224 where
+     type HashBlockSize           Blake2sp_224 = 64
+     type HashDigestSize          Blake2sp_224 = 28
+-    type HashInternalContextSize Blake2sp_224 = 2185
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 28
+-    hashInternalContextSize _ = 2185
+-    hashInternalInit p        = c_blake2sp_init p 224
+-    hashInternalUpdate        = c_blake2sp_update
+-    hashInternalFinalize p    = c_blake2sp_finalize p 224
++    hashInternalInit          = undefined
++    hashInternalUpdate        = undefined
++    hashInternalFinalize      = undefined
++    hashInternalReset         = undefined
+ 
+ -- | Blake2sp (256 bits) cryptographic hash algorithm
+ data Blake2sp_256 = Blake2sp_256
+@@ -45,20 +44,19 @@ data Blake2sp_256 = Blake2sp_256
+ instance HashAlgorithm Blake2sp_256 where
+     type HashBlockSize           Blake2sp_256 = 64
+     type HashDigestSize          Blake2sp_256 = 32
+-    type HashInternalContextSize Blake2sp_256 = 2185
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 32
+-    hashInternalContextSize _ = 2185
+-    hashInternalInit p        = c_blake2sp_init p 256
+-    hashInternalUpdate        = c_blake2sp_update
+-    hashInternalFinalize p    = c_blake2sp_finalize p 256
++    hashInternalInit          = undefined
++    hashInternalUpdate        = undefined
++    hashInternalFinalize      = undefined
++    hashInternalReset         = undefined
+ 
+ 
+-foreign import ccall unsafe "cryptonite_blake2sp_init"
+-    c_blake2sp_init :: Ptr (Context a) -> Word32 -> IO ()
++c_blake2sp_init :: Ptr (Context a) -> Word32 -> IO ()
++c_blake2sp_init = error "c_blake2sp_init: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_blake2sp_update"
+-    c_blake2sp_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++c_blake2sp_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++c_blake2sp_update = error "c_blake2sp_update: Not implemented yet."
+ 
+-foreign import ccall unsafe "cryptonite_blake2sp_finalize"
+-    c_blake2sp_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++c_blake2sp_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++c_blake2sp_finalize = error "c_blake2sp_finalize: Not implemented yet."
+diff --git a/Crypto/Hash/IO.hs b/Crypto/Hash/IO.hs
+index 91cb0f7..091a0b2 100644
+--- a/Crypto/Hash/IO.hs
++++ b/Crypto/Hash/IO.hs
+@@ -12,7 +12,6 @@
+ module Crypto.Hash.IO
+     ( HashAlgorithm(..)
+     , MutableContext
+-    , hashMutableInit
+     , hashMutableInitWith
+     , hashMutableUpdate
+     , hashMutableFinalize
+@@ -24,17 +23,13 @@ import qualified Crypto.Internal.ByteArray as B
+ import           Foreign.Ptr
+ 
+ -- | A Mutable hash context
+-newtype MutableContext a = MutableContext B.Bytes
+-    deriving (B.ByteArrayAccess)
++newtype MutableContext a = MutableContext { freezeMC :: Context a }
+ 
+ -- | Create a new mutable hash context.
+ --
+ -- the algorithm used is automatically determined from the return constraint.
+ hashMutableInit :: HashAlgorithm alg => IO (MutableContext alg)
+-hashMutableInit = doInit undefined B.alloc
+-  where
+-        doInit :: HashAlgorithm a => a -> (Int -> (Ptr (Context a) -> IO ()) -> IO B.Bytes) -> IO (MutableContext a)
+-        doInit alg alloc = MutableContext `fmap` alloc (hashInternalContextSize alg) hashInternalInit
++hashMutableInit = fmap MutableContext hashInternalInit
+ 
+ -- | Create a new mutable hash context.
+ --
+@@ -44,22 +39,16 @@ hashMutableInitWith _ = hashMutableInit
+ 
+ -- | Update a mutable hash context in place
+ hashMutableUpdate :: (B.ByteArrayAccess ba, HashAlgorithm a) => MutableContext a -> ba -> IO ()
+-hashMutableUpdate mc dat = doUpdate mc (B.withByteArray mc)
+-  where doUpdate :: HashAlgorithm a => MutableContext a -> ((Ptr (Context a) -> IO ()) -> IO ()) -> IO ()
+-        doUpdate _ withCtx =
+-            withCtx             $ \ctx ->
+-            B.withByteArray dat $ \d   ->
+-                hashInternalUpdate ctx d (fromIntegral $ B.length dat)
++hashMutableUpdate mc dat =
++  B.withByteArray dat $ \d -> hashInternalUpdate (freezeMC mc) d (fromIntegral $ B.length dat)
+ 
+ -- | Finalize a mutable hash context and compute a digest
+-hashMutableFinalize :: forall a . HashAlgorithm a => MutableContext a -> IO (Digest a)
++hashMutableFinalize :: forall a. HashAlgorithm a => MutableContext a -> IO (Digest a)
+ hashMutableFinalize mc = do
+-    b <- B.alloc (hashDigestSize (undefined :: a)) $ \dig -> B.withByteArray mc $ \(ctx :: Ptr (Context a)) -> hashInternalFinalize ctx dig
++    b <- B.alloc (hashDigestSize (undefined :: a)) $ \dig ->
++      hashInternalFinalize (freezeMC mc) dig
+     return $ Digest b
+ 
+ -- | Reset the mutable context to the initial state of the hash
+-hashMutableReset :: HashAlgorithm a => MutableContext a -> IO ()
+-hashMutableReset mc = doReset mc (B.withByteArray mc)
+-  where
+-    doReset :: HashAlgorithm a => MutableContext a -> ((Ptr (Context a) -> IO ()) -> IO ()) -> IO ()
+-    doReset _ withCtx = withCtx hashInternalInit
++hashMutableReset :: forall a. HashAlgorithm a => MutableContext a -> IO ()
++hashMutableReset = hashInternalReset . freezeMC
+diff --git a/Crypto/Hash/Keccak.hs b/Crypto/Hash/Keccak.hs
+index c7bab21..3d1a2c6 100644
+--- a/Crypto/Hash/Keccak.hs
++++ b/Crypto/Hash/Keccak.hs
+@@ -30,13 +30,9 @@ data Keccak_224 = Keccak_224
+ instance HashAlgorithm Keccak_224 where
+     type HashBlockSize           Keccak_224 = 144
+     type HashDigestSize          Keccak_224 = 28
+-    type HashInternalContextSize Keccak_224 = 352
+     hashBlockSize  _          = 144
+     hashDigestSize _          = 28
+-    hashInternalContextSize _ = 352
+-    hashInternalInit p        = c_keccak_init p 224
+-    hashInternalUpdate        = c_keccak_update
+-    hashInternalFinalize p    = c_keccak_finalize p 224
++    hashInternalInit          = c_keccak_init 224
+ 
+ -- | Keccak (256 bits) cryptographic hash algorithm
+ data Keccak_256 = Keccak_256
+@@ -45,13 +41,9 @@ data Keccak_256 = Keccak_256
+ instance HashAlgorithm Keccak_256 where
+     type HashBlockSize           Keccak_256 = 136
+     type HashDigestSize          Keccak_256 = 32
+-    type HashInternalContextSize Keccak_256 = 344
+     hashBlockSize  _          = 136
+     hashDigestSize _          = 32
+-    hashInternalContextSize _ = 344
+-    hashInternalInit p        = c_keccak_init p 256
+-    hashInternalUpdate        = c_keccak_update
+-    hashInternalFinalize p    = c_keccak_finalize p 256
++    hashInternalInit          = c_keccak_init 256
+ 
+ -- | Keccak (384 bits) cryptographic hash algorithm
+ data Keccak_384 = Keccak_384
+@@ -60,13 +52,9 @@ data Keccak_384 = Keccak_384
+ instance HashAlgorithm Keccak_384 where
+     type HashBlockSize           Keccak_384 = 104
+     type HashDigestSize          Keccak_384 = 48
+-    type HashInternalContextSize Keccak_384 = 312
+     hashBlockSize  _          = 104
+     hashDigestSize _          = 48
+-    hashInternalContextSize _ = 312
+-    hashInternalInit p        = c_keccak_init p 384
+-    hashInternalUpdate        = c_keccak_update
+-    hashInternalFinalize p    = c_keccak_finalize p 384
++    hashInternalInit          = c_keccak_init 384
+ 
+ -- | Keccak (512 bits) cryptographic hash algorithm
+ data Keccak_512 = Keccak_512
+@@ -75,20 +63,19 @@ data Keccak_512 = Keccak_512
+ instance HashAlgorithm Keccak_512 where
+     type HashBlockSize           Keccak_512 = 72
+     type HashDigestSize          Keccak_512 = 64
+-    type HashInternalContextSize Keccak_512 = 280
+     hashBlockSize  _          = 72
+     hashDigestSize _          = 64
+-    hashInternalContextSize _ = 280
+-    hashInternalInit p        = c_keccak_init p 512
+-    hashInternalUpdate        = c_keccak_update
+-    hashInternalFinalize p    = c_keccak_finalize p 512
++    hashInternalInit          = c_keccak_init 512
+ 
+ 
+-foreign import ccall unsafe "cryptonite_keccak_init"
+-    c_keccak_init :: Ptr (Context a) -> Word32 -> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.KeccakDigest" #-} KeccakDigest =
++  KeccakDigest (Object# KeccakDigest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_keccak_update"
+-    c_keccak_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits KeccakDigest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_keccak_finalize"
+-    c_keccak_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++c_keccak_init :: Word32 -> IO (Context a)
++c_keccak_init = fmap toContext . c_keccak_init'
++
++foreign import java unsafe "@new"
++    c_keccak_init' :: Word32 -> IO KeccakDigest
+diff --git a/Crypto/Hash/MD2.hs b/Crypto/Hash/MD2.hs
+index fe83fd4..a9bd51d 100644
+--- a/Crypto/Hash/MD2.hs
++++ b/Crypto/Hash/MD2.hs
+@@ -27,19 +27,18 @@ data MD2 = MD2
+ instance HashAlgorithm MD2 where
+     type HashBlockSize           MD2 = 16
+     type HashDigestSize          MD2 = 16
+-    type HashInternalContextSize MD2 = 96
+     hashBlockSize  _          = 16
+     hashDigestSize _          = 16
+-    hashInternalContextSize _ = 96
+     hashInternalInit          = c_md2_init
+-    hashInternalUpdate        = c_md2_update
+-    hashInternalFinalize      = c_md2_finalize
+ 
+-foreign import ccall unsafe "cryptonite_md2_init"
+-    c_md2_init :: Ptr (Context a)-> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.MD2Digest" #-} MD2Digest =
++  MD2Digest (Object# MD2Digest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_md2_update"
+-    c_md2_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits MD2Digest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_md2_finalize"
+-    c_md2_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
++c_md2_init :: IO (Context a)
++c_md2_init = fmap toContext c_md2_init'
++
++foreign import java unsafe "@new"
++    c_md2_init' :: IO MD2Digest
+diff --git a/Crypto/Hash/MD4.hs b/Crypto/Hash/MD4.hs
+index b0f09b4..7ffe381 100644
+--- a/Crypto/Hash/MD4.hs
++++ b/Crypto/Hash/MD4.hs
+@@ -27,19 +27,18 @@ data MD4 = MD4
+ instance HashAlgorithm MD4 where
+     type HashBlockSize           MD4 = 64
+     type HashDigestSize          MD4 = 16
+-    type HashInternalContextSize MD4 = 96
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 16
+-    hashInternalContextSize _ = 96
+     hashInternalInit          = c_md4_init
+-    hashInternalUpdate        = c_md4_update
+-    hashInternalFinalize      = c_md4_finalize
+ 
+-foreign import ccall unsafe "cryptonite_md4_init"
+-    c_md4_init :: Ptr (Context a)-> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.MD4Digest" #-} MD4Digest =
++  MD4Digest (Object# MD4Digest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_md4_update"
+-    c_md4_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits MD4Digest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_md4_finalize"
+-    c_md4_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
++c_md4_init :: IO (Context a)
++c_md4_init = fmap toContext c_md4_init'
++
++foreign import java unsafe "@new"
++    c_md4_init' :: IO MD4Digest
+diff --git a/Crypto/Hash/MD5.hs b/Crypto/Hash/MD5.hs
+index 143b5bb..7909acd 100644
+--- a/Crypto/Hash/MD5.hs
++++ b/Crypto/Hash/MD5.hs
+@@ -25,21 +25,20 @@ data MD5 = MD5
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm MD5 where
+-    type HashBlockSize           MD5 = 64
+-    type HashDigestSize          MD5 = 16
+-    type HashInternalContextSize MD5 = 96
++    type HashBlockSize  MD5 = 64
++    type HashDigestSize MD5 = 16
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 16
+-    hashInternalContextSize _ = 96
+     hashInternalInit          = c_md5_init
+-    hashInternalUpdate        = c_md5_update
+-    hashInternalFinalize      = c_md5_finalize
+ 
+-foreign import ccall unsafe "cryptonite_md5_init"
+-    c_md5_init :: Ptr (Context a)-> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.MD5Digest" #-} MD5Digest =
++  MD5Digest (Object# MD5Digest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_md5_update"
+-    c_md5_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits MD5Digest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_md5_finalize"
+-    c_md5_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
++c_md5_init :: IO (Context a)
++c_md5_init = fmap toContext c_md5_init'
++
++foreign import java unsafe "@new"
++    c_md5_init' :: IO MD5Digest
+diff --git a/Crypto/Hash/RIPEMD160.hs b/Crypto/Hash/RIPEMD160.hs
+index 96c0ec6..dcdc2da 100644
+--- a/Crypto/Hash/RIPEMD160.hs
++++ b/Crypto/Hash/RIPEMD160.hs
+@@ -27,19 +27,18 @@ data RIPEMD160 = RIPEMD160
+ instance HashAlgorithm RIPEMD160 where
+     type HashBlockSize           RIPEMD160 = 64
+     type HashDigestSize          RIPEMD160 = 20
+-    type HashInternalContextSize RIPEMD160 = 128
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 20
+-    hashInternalContextSize _ = 128
+     hashInternalInit          = c_ripemd160_init
+-    hashInternalUpdate        = c_ripemd160_update
+-    hashInternalFinalize      = c_ripemd160_finalize
+ 
+-foreign import ccall unsafe "cryptonite_ripemd160_init"
+-    c_ripemd160_init :: Ptr (Context a)-> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.RIPEMD160Digest" #-} RIPEMD160Digest =
++  RIPEMD160Digest (Object# RIPEMD160Digest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_ripemd160_update"
+-    c_ripemd160_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits RIPEMD160Digest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_ripemd160_finalize"
+-    c_ripemd160_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
++c_ripemd160_init :: IO (Context a)
++c_ripemd160_init = fmap toContext c_ripemd160_init'
++
++foreign import java unsafe "@new"
++    c_ripemd160_init' :: IO RIPEMD160Digest
+diff --git a/Crypto/Hash/SHA1.hs b/Crypto/Hash/SHA1.hs
+index e0e1de5..4e4f483 100644
+--- a/Crypto/Hash/SHA1.hs
++++ b/Crypto/Hash/SHA1.hs
+@@ -27,19 +27,18 @@ data SHA1 = SHA1
+ instance HashAlgorithm SHA1 where
+     type HashBlockSize           SHA1 = 64
+     type HashDigestSize          SHA1 = 20
+-    type HashInternalContextSize SHA1 = 96
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 20
+-    hashInternalContextSize _ = 96
+     hashInternalInit          = c_sha1_init
+-    hashInternalUpdate        = c_sha1_update
+-    hashInternalFinalize      = c_sha1_finalize
+ 
+-foreign import ccall unsafe "cryptonite_sha1_init"
+-    c_sha1_init :: Ptr (Context a)-> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.SHA1Digest" #-} SHA1Digest =
++  SHA1Digest (Object# SHA1Digest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_sha1_update"
+-    c_sha1_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits SHA1Digest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_sha1_finalize"
+-    c_sha1_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
++c_sha1_init :: IO (Context a)
++c_sha1_init = fmap toContext c_sha1_init'
++
++foreign import java unsafe "@new"
++    c_sha1_init' :: IO SHA1Digest
+diff --git a/Crypto/Hash/SHA224.hs b/Crypto/Hash/SHA224.hs
+index a19ebba..328b3cc 100644
+--- a/Crypto/Hash/SHA224.hs
++++ b/Crypto/Hash/SHA224.hs
+@@ -25,21 +25,20 @@ data SHA224 = SHA224
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm SHA224 where
+-    type HashBlockSize           SHA224 = 64
+-    type HashDigestSize          SHA224 = 28
+-    type HashInternalContextSize SHA224 = 192
++    type HashBlockSize  SHA224 = 64
++    type HashDigestSize SHA224 = 28
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 28
+-    hashInternalContextSize _ = 192
+     hashInternalInit          = c_sha224_init
+-    hashInternalUpdate        = c_sha224_update
+-    hashInternalFinalize      = c_sha224_finalize
+ 
+-foreign import ccall unsafe "cryptonite_sha224_init"
+-    c_sha224_init :: Ptr (Context a)-> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.SHA224Digest" #-} SHA224Digest =
++  SHA224Digest (Object# SHA224Digest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_sha224_update"
+-    c_sha224_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits SHA224Digest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_sha224_finalize"
+-    c_sha224_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
++c_sha224_init :: IO (Context a)
++c_sha224_init = fmap toContext c_sha224_init'
++
++foreign import java unsafe "@new"
++    c_sha224_init' :: IO SHA224Digest
+diff --git a/Crypto/Hash/SHA256.hs b/Crypto/Hash/SHA256.hs
+index 1b6ea92..0068c4b 100644
+--- a/Crypto/Hash/SHA256.hs
++++ b/Crypto/Hash/SHA256.hs
+@@ -25,21 +25,20 @@ data SHA256 = SHA256
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm SHA256 where
+-    type HashBlockSize           SHA256 = 64
+-    type HashDigestSize          SHA256 = 32
+-    type HashInternalContextSize SHA256 = 192
++    type HashBlockSize  SHA256 = 64
++    type HashDigestSize SHA256 = 32
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 32
+-    hashInternalContextSize _ = 192
+     hashInternalInit          = c_sha256_init
+-    hashInternalUpdate        = c_sha256_update
+-    hashInternalFinalize      = c_sha256_finalize
+ 
+-foreign import ccall unsafe "cryptonite_sha256_init"
+-    c_sha256_init :: Ptr (Context a)-> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.SHA256Digest" #-} SHA256Digest =
++  SHA256Digest (Object# SHA256Digest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_sha256_update"
+-    c_sha256_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits SHA256Digest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_sha256_finalize"
+-    c_sha256_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
++c_sha256_init :: IO (Context a)
++c_sha256_init = fmap toContext c_sha256_init'
++
++foreign import java unsafe "@new"
++    c_sha256_init' :: IO SHA256Digest
+diff --git a/Crypto/Hash/SHA3.hs b/Crypto/Hash/SHA3.hs
+index a067d04..ba8a841 100644
+--- a/Crypto/Hash/SHA3.hs
++++ b/Crypto/Hash/SHA3.hs
+@@ -30,13 +30,9 @@ data SHA3_224 = SHA3_224
+ instance HashAlgorithm SHA3_224 where
+     type HashBlockSize           SHA3_224 = 144
+     type HashDigestSize          SHA3_224 = 28
+-    type HashInternalContextSize SHA3_224 = 352
+     hashBlockSize  _          = 144
+     hashDigestSize _          = 28
+-    hashInternalContextSize _ = 352
+-    hashInternalInit p        = c_sha3_init p 224
+-    hashInternalUpdate        = c_sha3_update
+-    hashInternalFinalize p    = c_sha3_finalize p 224
++    hashInternalInit          = c_sha3_init 224
+ 
+ -- | SHA3 (256 bits) cryptographic hash algorithm
+ data SHA3_256 = SHA3_256
+@@ -45,13 +41,9 @@ data SHA3_256 = SHA3_256
+ instance HashAlgorithm SHA3_256 where
+     type HashBlockSize           SHA3_256 = 136
+     type HashDigestSize          SHA3_256 = 32
+-    type HashInternalContextSize SHA3_256 = 344
+     hashBlockSize  _          = 136
+     hashDigestSize _          = 32
+-    hashInternalContextSize _ = 344
+-    hashInternalInit p        = c_sha3_init p 256
+-    hashInternalUpdate        = c_sha3_update
+-    hashInternalFinalize p    = c_sha3_finalize p 256
++    hashInternalInit          = c_sha3_init 256
+ 
+ -- | SHA3 (384 bits) cryptographic hash algorithm
+ data SHA3_384 = SHA3_384
+@@ -60,13 +52,9 @@ data SHA3_384 = SHA3_384
+ instance HashAlgorithm SHA3_384 where
+     type HashBlockSize           SHA3_384 = 104
+     type HashDigestSize          SHA3_384 = 48
+-    type HashInternalContextSize SHA3_384 = 312
+     hashBlockSize  _          = 104
+     hashDigestSize _          = 48
+-    hashInternalContextSize _ = 312
+-    hashInternalInit p        = c_sha3_init p 384
+-    hashInternalUpdate        = c_sha3_update
+-    hashInternalFinalize p    = c_sha3_finalize p 384
++    hashInternalInit          = c_sha3_init 384
+ 
+ -- | SHA3 (512 bits) cryptographic hash algorithm
+ data SHA3_512 = SHA3_512
+@@ -75,20 +63,18 @@ data SHA3_512 = SHA3_512
+ instance HashAlgorithm SHA3_512 where
+     type HashBlockSize           SHA3_512 = 72
+     type HashDigestSize          SHA3_512 = 64
+-    type HashInternalContextSize SHA3_512 = 280
+     hashBlockSize  _          = 72
+     hashDigestSize _          = 64
+-    hashInternalContextSize _ = 280
+-    hashInternalInit p        = c_sha3_init p 512
+-    hashInternalUpdate        = c_sha3_update
+-    hashInternalFinalize p    = c_sha3_finalize p 512
++    hashInternalInit          = c_sha3_init 512
+ 
++data {-# CLASS "org.bouncycastle.crypto.digests.SHA3Digest" #-} SHA3Digest =
++  SHA3Digest (Object# SHA3Digest)
++  deriving Class
+ 
+-foreign import ccall unsafe "cryptonite_sha3_init"
+-    c_sha3_init :: Ptr (Context a) -> Word32 -> IO ()
++type instance Inherits SHA3Digest = '[JDigest]
+ 
+-foreign import ccall "cryptonite_sha3_update"
+-    c_sha3_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++c_sha3_init :: Word32 -> IO (Context a)
++c_sha3_init = fmap toContext . c_sha3_init'
+ 
+-foreign import ccall unsafe "cryptonite_sha3_finalize"
+-    c_sha3_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++foreign import java unsafe "@new"
++    c_sha3_init' :: Word32 -> IO SHA3Digest
+diff --git a/Crypto/Hash/SHA384.hs b/Crypto/Hash/SHA384.hs
+index b5194f4..b70a9da 100644
+--- a/Crypto/Hash/SHA384.hs
++++ b/Crypto/Hash/SHA384.hs
+@@ -25,21 +25,20 @@ data SHA384 = SHA384
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm SHA384 where
+-    type HashBlockSize           SHA384 = 128
+-    type HashDigestSize          SHA384 = 48
+-    type HashInternalContextSize SHA384 = 256
++    type HashBlockSize  SHA384 = 128
++    type HashDigestSize SHA384 = 48
+     hashBlockSize  _          = 128
+     hashDigestSize _          = 48
+-    hashInternalContextSize _ = 256
+     hashInternalInit          = c_sha384_init
+-    hashInternalUpdate        = c_sha384_update
+-    hashInternalFinalize      = c_sha384_finalize
+ 
+-foreign import ccall unsafe "cryptonite_sha384_init"
+-    c_sha384_init :: Ptr (Context a)-> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.SHA384Digest" #-} SHA384Digest =
++  SHA384Digest (Object# SHA384Digest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_sha384_update"
+-    c_sha384_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits SHA384Digest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_sha384_finalize"
+-    c_sha384_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
++c_sha384_init :: IO (Context a)
++c_sha384_init = fmap toContext c_sha384_init'
++
++foreign import java unsafe "@new"
++    c_sha384_init' :: IO SHA384Digest
+diff --git a/Crypto/Hash/SHA512.hs b/Crypto/Hash/SHA512.hs
+index 71583b6..5df7a18 100644
+--- a/Crypto/Hash/SHA512.hs
++++ b/Crypto/Hash/SHA512.hs
+@@ -25,21 +25,20 @@ data SHA512 = SHA512
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm SHA512 where
+-    type HashBlockSize           SHA512 = 128
+-    type HashDigestSize          SHA512 = 64
+-    type HashInternalContextSize SHA512 = 256
++    type HashBlockSize  SHA512 = 128
++    type HashDigestSize SHA512 = 64
+     hashBlockSize  _          = 128
+     hashDigestSize _          = 64
+-    hashInternalContextSize _ = 256
+     hashInternalInit          = c_sha512_init
+-    hashInternalUpdate        = c_sha512_update
+-    hashInternalFinalize      = c_sha512_finalize
+ 
+-foreign import ccall unsafe "cryptonite_sha512_init"
+-    c_sha512_init :: Ptr (Context a)-> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.SHA512Digest" #-} SHA512Digest =
++  SHA512Digest (Object# SHA512Digest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_sha512_update"
+-    c_sha512_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits SHA512Digest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_sha512_finalize"
+-    c_sha512_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
++c_sha512_init :: IO (Context a)
++c_sha512_init = fmap toContext c_sha512_init'
++
++foreign import java unsafe "@new"
++    c_sha512_init' :: IO SHA512Digest
+diff --git a/Crypto/Hash/SHA512t.hs b/Crypto/Hash/SHA512t.hs
+index 850adf0..f2b95d5 100644
+--- a/Crypto/Hash/SHA512t.hs
++++ b/Crypto/Hash/SHA512t.hs
+@@ -28,37 +28,32 @@ data SHA512t_224 = SHA512t_224
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm SHA512t_224 where
+-    type HashBlockSize           SHA512t_224 = 128
+-    type HashDigestSize          SHA512t_224 = 28
+-    type HashInternalContextSize SHA512t_224 = 256
++    type HashBlockSize  SHA512t_224 = 128
++    type HashDigestSize SHA512t_224 = 28
+     hashBlockSize  _          = 128
+     hashDigestSize _          = 28
+-    hashInternalContextSize _ = 256
+-    hashInternalInit p        = c_sha512t_init p 224
+-    hashInternalUpdate        = c_sha512t_update
+-    hashInternalFinalize p    = c_sha512t_finalize p 224
++    hashInternalInit          = c_sha512t_init 224
+ 
+ -- | SHA512t (256 bits) cryptographic hash algorithm
+ data SHA512t_256 = SHA512t_256
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm SHA512t_256 where
+-    type HashBlockSize           SHA512t_256 = 128
+-    type HashDigestSize          SHA512t_256 = 32
+-    type HashInternalContextSize SHA512t_256 = 256
++    type HashBlockSize  SHA512t_256 = 128
++    type HashDigestSize SHA512t_256 = 32
+     hashBlockSize  _          = 128
+     hashDigestSize _          = 32
+-    hashInternalContextSize _ = 256
+-    hashInternalInit p        = c_sha512t_init p 256
+-    hashInternalUpdate        = c_sha512t_update
+-    hashInternalFinalize p    = c_sha512t_finalize p 256
++    hashInternalInit          = c_sha512t_init 256
+ 
+ 
+-foreign import ccall unsafe "cryptonite_sha512t_init"
+-    c_sha512t_init :: Ptr (Context a) -> Word32 -> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.SHA512tDigest" #-} SHA512tDigest =
++  SHA512tDigest (Object# SHA512tDigest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_sha512t_update"
+-    c_sha512t_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits SHA512tDigest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_sha512t_finalize"
+-    c_sha512t_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++c_sha512t_init :: Word32 -> IO (Context a)
++c_sha512t_init = fmap toContext . c_sha512t_init'
++
++foreign import java unsafe "@new"
++    c_sha512t_init' :: Word32 -> IO SHA512tDigest
+diff --git a/Crypto/Hash/SHAKE.hs b/Crypto/Hash/SHAKE.hs
+index c26d6ac..c12307f 100644
+--- a/Crypto/Hash/SHAKE.hs
++++ b/Crypto/Hash/SHAKE.hs
+@@ -41,14 +41,11 @@ data SHAKE128 (bitlen :: Nat) = SHAKE128
+     deriving (Show, Typeable)
+ 
+ instance (IsDivisibleBy8 bitlen, KnownNat bitlen) => HashAlgorithm (SHAKE128 bitlen) where
+-    type HashBlockSize           (SHAKE128 bitlen)  = 168
+-    type HashDigestSize          (SHAKE128 bitlen) = Div8 bitlen
+-    type HashInternalContextSize (SHAKE128 bitlen) = 376
++    type HashBlockSize  (SHAKE128 bitlen)  = 168
++    type HashDigestSize (SHAKE128 bitlen) = Div8 bitlen
+     hashBlockSize  _          = 168
+     hashDigestSize _          = byteLen (Proxy :: Proxy bitlen)
+-    hashInternalContextSize _ = 376
+-    hashInternalInit p        = c_sha3_init p 128
+-    hashInternalUpdate        = c_sha3_update
++    hashInternalInit          = c_sha3_init 128
+     hashInternalFinalize      = shakeFinalizeOutput (Proxy :: Proxy bitlen)
+ 
+ -- | SHAKE256 (256 bits) extendable output function.  Supports an arbitrary
+@@ -62,33 +59,34 @@ data SHAKE256 (bitlen :: Nat) = SHAKE256
+     deriving (Show, Typeable)
+ 
+ instance (IsDivisibleBy8 bitlen, KnownNat bitlen) => HashAlgorithm (SHAKE256 bitlen) where
+-    type HashBlockSize           (SHAKE256 bitlen) = 136
+-    type HashDigestSize          (SHAKE256 bitlen) = Div8 bitlen
+-    type HashInternalContextSize (SHAKE256 bitlen) = 344
++    type HashBlockSize  (SHAKE256 bitlen) = 136
++    type HashDigestSize (SHAKE256 bitlen) = Div8 bitlen
+     hashBlockSize  _          = 136
+     hashDigestSize _          = byteLen (Proxy :: Proxy bitlen)
+-    hashInternalContextSize _ = 344
+-    hashInternalInit p        = c_sha3_init p 256
+-    hashInternalUpdate        = c_sha3_update
++    hashInternalInit          = c_sha3_init 256
+     hashInternalFinalize      = shakeFinalizeOutput (Proxy :: Proxy bitlen)
+ 
+ shakeFinalizeOutput :: (IsDivisibleBy8 bitlen, KnownNat bitlen)
+                     => proxy bitlen
+-                    -> Ptr (Context a)
++                    -> Context a
+                     -> Ptr (Digest a)
+                     -> IO ()
+-shakeFinalizeOutput d ctx dig = do
+-    c_sha3_finalize_shake ctx
+-    c_sha3_output ctx dig (byteLen d)
++shakeFinalizeOutput d ctx dig = c_sha3_output ctx dig (byteLen d)
+ 
+-foreign import ccall unsafe "cryptonite_sha3_init"
+-    c_sha3_init :: Ptr (Context a) -> Word32 -> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.SHAKEDigest" #-} SHAKEDigest =
++  SHAKEDigest (Object# SHAKEDigest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_sha3_update"
+-    c_sha3_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits SHAKEDigest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_sha3_finalize_shake"
+-    c_sha3_finalize_shake :: Ptr (Context a) -> IO ()
++c_sha3_init :: Word32 -> IO (Context a)
++c_sha3_init = fmap toContext . c_sha3_init'
+ 
+-foreign import ccall unsafe "cryptonite_sha3_output"
+-    c_sha3_output :: Ptr (Context a) -> Ptr (Digest a) -> Word32 -> IO ()
++c_sha3_output :: Context a -> Ptr (Digest a) -> Word32 -> IO ()
++c_sha3_output = c_sha3_output' . fromContext
++
++foreign import java unsafe "@new"
++    c_sha3_init' :: Word32 -> IO SHAKEDigest
++
++foreign import java unsafe "@static eta.cryptonite.Utils.shake_output"
++    c_sha3_output' :: SHAKEDigest -> Ptr (Digest a) -> Word32 -> IO ()
+diff --git a/Crypto/Hash/Skein256.hs b/Crypto/Hash/Skein256.hs
+index 8d61a98..c62ae30 100644
+--- a/Crypto/Hash/Skein256.hs
++++ b/Crypto/Hash/Skein256.hs
+@@ -28,37 +28,36 @@ data Skein256_224 = Skein256_224
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm Skein256_224 where
+-    type HashBlockSize           Skein256_224 = 32
+-    type HashDigestSize          Skein256_224 = 28
+-    type HashInternalContextSize Skein256_224 = 96
++    type HashBlockSize  Skein256_224 = 32
++    type HashDigestSize Skein256_224 = 28
+     hashBlockSize  _          = 32
+     hashDigestSize _          = 28
+-    hashInternalContextSize _ = 96
+-    hashInternalInit p        = c_skein256_init p 224
+-    hashInternalUpdate        = c_skein256_update
+-    hashInternalFinalize p    = c_skein256_finalize p 224
++    hashInternalInit          = c_skein_init 224
+ 
+ -- | Skein256 (256 bits) cryptographic hash algorithm
+ data Skein256_256 = Skein256_256
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm Skein256_256 where
+-    type HashBlockSize           Skein256_256 = 32
+-    type HashDigestSize          Skein256_256 = 32
+-    type HashInternalContextSize Skein256_256 = 96
++    type HashBlockSize  Skein256_256 = 32
++    type HashDigestSize Skein256_256 = 32
+     hashBlockSize  _          = 32
+     hashDigestSize _          = 32
+-    hashInternalContextSize _ = 96
+-    hashInternalInit p        = c_skein256_init p 256
+-    hashInternalUpdate        = c_skein256_update
+-    hashInternalFinalize p    = c_skein256_finalize p 256
++    hashInternalInit          = c_skein_init 256
+ 
++data {-# CLASS "org.bouncycastle.crypto.digests.SkeinDigest" #-} SkeinDigest =
++  SkeinDigest (Object# SkeinDigest)
++  deriving Class
+ 
+-foreign import ccall unsafe "cryptonite_skein256_init"
+-    c_skein256_init :: Ptr (Context a) -> Word32 -> IO ()
++type instance Inherits SkeinDigest = '[JDigest]
+ 
+-foreign import ccall "cryptonite_skein256_update"
+-    c_skein256_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++c_skein_init :: Word32 -> IO (Context a)
++c_skein_init = fmap toContext . c_skein_init' skein256
++
++foreign import java unsafe
++  "@static @field org.bouncycastle.crypto.digests.SkeinDigest.SKEIN_256"
++  skein256 :: Int
++
++foreign import java unsafe "@new"
++    c_skein_init' :: Int -> Word32 -> IO SkeinDigest
+ 
+-foreign import ccall unsafe "cryptonite_skein256_finalize"
+-    c_skein256_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
+diff --git a/Crypto/Hash/Skein512.hs b/Crypto/Hash/Skein512.hs
+index d97365f..f51de57 100644
+--- a/Crypto/Hash/Skein512.hs
++++ b/Crypto/Hash/Skein512.hs
+@@ -28,67 +28,57 @@ data Skein512_224 = Skein512_224
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm Skein512_224 where
+-    type HashBlockSize           Skein512_224 = 64
+-    type HashDigestSize          Skein512_224 = 28
+-    type HashInternalContextSize Skein512_224 = 160
++    type HashBlockSize  Skein512_224 = 64
++    type HashDigestSize Skein512_224 = 28
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 28
+-    hashInternalContextSize _ = 160
+-    hashInternalInit p        = c_skein512_init p 224
+-    hashInternalUpdate        = c_skein512_update
+-    hashInternalFinalize p    = c_skein512_finalize p 224
++    hashInternalInit          = c_skein512_init 224
+ 
+ -- | Skein512 (256 bits) cryptographic hash algorithm
+ data Skein512_256 = Skein512_256
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm Skein512_256 where
+-    type HashBlockSize           Skein512_256 = 64
+-    type HashDigestSize          Skein512_256 = 32
+-    type HashInternalContextSize Skein512_256 = 160
++    type HashBlockSize  Skein512_256 = 64
++    type HashDigestSize Skein512_256 = 32
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 32
+-    hashInternalContextSize _ = 160
+-    hashInternalInit p        = c_skein512_init p 256
+-    hashInternalUpdate        = c_skein512_update
+-    hashInternalFinalize p    = c_skein512_finalize p 256
++    hashInternalInit          = c_skein512_init 256
+ 
+ -- | Skein512 (384 bits) cryptographic hash algorithm
+ data Skein512_384 = Skein512_384
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm Skein512_384 where
+-    type HashBlockSize           Skein512_384 = 64
+-    type HashDigestSize          Skein512_384 = 48
+-    type HashInternalContextSize Skein512_384 = 160
++    type HashBlockSize  Skein512_384 = 64
++    type HashDigestSize Skein512_384 = 48
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 48
+-    hashInternalContextSize _ = 160
+-    hashInternalInit p        = c_skein512_init p 384
+-    hashInternalUpdate        = c_skein512_update
+-    hashInternalFinalize p    = c_skein512_finalize p 384
++    hashInternalInit          = c_skein512_init 384
+ 
+ -- | Skein512 (512 bits) cryptographic hash algorithm
+ data Skein512_512 = Skein512_512
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm Skein512_512 where
+-    type HashBlockSize           Skein512_512 = 64
+-    type HashDigestSize          Skein512_512 = 64
+-    type HashInternalContextSize Skein512_512 = 160
++    type HashBlockSize  Skein512_512 = 64
++    type HashDigestSize Skein512_512 = 64
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 64
+-    hashInternalContextSize _ = 160
+-    hashInternalInit p        = c_skein512_init p 512
+-    hashInternalUpdate        = c_skein512_update
+-    hashInternalFinalize p    = c_skein512_finalize p 512
++    hashInternalInit          = c_skein512_init 512
+ 
++data {-# CLASS "org.bouncycastle.crypto.digests.SkeinDigest" #-} SkeinDigest =
++  SkeinDigest (Object# SkeinDigest)
++  deriving Class
+ 
+-foreign import ccall unsafe "cryptonite_skein512_init"
+-    c_skein512_init :: Ptr (Context a) -> Word32 -> IO ()
++type instance Inherits SkeinDigest = '[JDigest]
+ 
+-foreign import ccall "cryptonite_skein512_update"
+-    c_skein512_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++c_skein512_init :: Word32 -> IO (Context a)
++c_skein512_init = fmap toContext . c_skein512_init' skein512
+ 
+-foreign import ccall unsafe "cryptonite_skein512_finalize"
+-    c_skein512_finalize :: Ptr (Context a) -> Word32 -> Ptr (Digest a) -> IO ()
++foreign import java unsafe
++  "@static @field org.bouncycastle.crypto.digests.SkeinDigest.SKEIN_512"
++  skein512 :: Int
++
++foreign import java unsafe "@new"
++    c_skein512_init' :: Int -> Word32 -> IO SkeinDigest
+diff --git a/Crypto/Hash/Tiger.hs b/Crypto/Hash/Tiger.hs
+index 4822f81..4b41f2c 100644
+--- a/Crypto/Hash/Tiger.hs
++++ b/Crypto/Hash/Tiger.hs
+@@ -25,21 +25,17 @@ data Tiger = Tiger
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm Tiger where
+-    type HashBlockSize           Tiger = 64
+-    type HashDigestSize          Tiger = 24
+-    type HashInternalContextSize Tiger = 96
++    type HashBlockSize  Tiger = 64
++    type HashDigestSize Tiger = 24
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 24
+-    hashInternalContextSize _ = 96
+-    hashInternalInit          = c_tiger_init
+-    hashInternalUpdate        = c_tiger_update
+-    hashInternalFinalize      = c_tiger_finalize
++    hashInternalInit          = fmap toContext c_tiger_init
+ 
+-foreign import ccall unsafe "cryptonite_tiger_init"
+-    c_tiger_init :: Ptr (Context a)-> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.TigerDigest" #-} TigerDigest =
++  TigerDigest (Object# TigerDigest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_tiger_update"
+-    c_tiger_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits TigerDigest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_tiger_finalize"
+-    c_tiger_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
++foreign import java unsafe "@new"
++    c_tiger_init :: IO TigerDigest
+diff --git a/Crypto/Hash/Types.hs b/Crypto/Hash/Types.hs
+index 9f088a5..bb537b1 100644
+--- a/Crypto/Hash/Types.hs
++++ b/Crypto/Hash/Types.hs
+@@ -9,11 +9,21 @@
+ --
+ {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+ {-# LANGUAGE DataKinds #-}
++{-# LANGUAGE DefaultSignatures #-}
++{-# LANGUAGE FlexibleContexts #-}
+ {-# LANGUAGE TypeFamilies #-}
++{-# LANGUAGE TypeOperators #-}
++{-# LANGUAGE ScopedTypeVariables #-}
+ module Crypto.Hash.Types
+     ( HashAlgorithm(..)
+     , Context(..)
++    , toContext
++    , fromContext
+     , Digest(..)
++    , Object#
++    , JDigest
++    , Inherits
++    , Class
+     ) where
+ 
+ import           Crypto.Internal.Imports
+@@ -23,6 +33,9 @@ import           Foreign.Ptr (Ptr)
+ import qualified Foundation.Array as F
+ import qualified Foundation       as F
+ import           GHC.TypeLits (Nat)
++import           GHC.Base (Object#)
++import           Data.Proxy (Proxy(..))
++import           Java
+ 
+ -- | Class representing hashing algorithms.
+ --
+@@ -34,23 +47,26 @@ class HashAlgorithm a where
+     type HashBlockSize a :: Nat
+     -- | Associated type for the digest size of the hash algorithm
+     type HashDigestSize a :: Nat
+-    -- | Associated type for the internal context size of the hash algorithm
+-    type HashInternalContextSize a :: Nat
+ 
+     -- | Get the block size of a hash algorithm
+     hashBlockSize           :: a -> Int
+     -- | Get the digest size of a hash algorithm
+     hashDigestSize          :: a -> Int
+     -- | Get the size of the context used for a hash algorithm
+-    hashInternalContextSize :: a -> Int
+     --hashAlgorithmFromProxy  :: Proxy a -> a
+ 
+     -- | Initialize a context pointer to the initial state of a hash algorithm
+-    hashInternalInit     :: Ptr (Context a) -> IO ()
++    hashInternalInit     :: IO (Context a)
+     -- | Update the context with some raw data
+-    hashInternalUpdate   :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++    hashInternalUpdate   :: Context a -> Ptr Word8 -> Word32 -> IO ()
++    hashInternalUpdate   = digest_update
+     -- | Finalize the context and set the digest raw memory to the right value
+-    hashInternalFinalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
++    hashInternalFinalize :: Context a -> Ptr (Digest a) -> IO ()
++    hashInternalFinalize = digest_finalize
++    -- | Reset the context
++    hashInternalReset    :: Context a -> IO ()
++    hashInternalReset    = digest_reset
++
+ 
+ {-
+ hashContextGetAlgorithm :: HashAlgorithm a => Context a -> a
+@@ -58,8 +74,7 @@ hashContextGetAlgorithm = undefined
+ -}
+ 
+ -- | Represent a context for a given hash algorithm.
+-newtype Context a = Context Bytes
+-    deriving (ByteArrayAccess,NFData)
++newtype Context a = Context { unContext :: JDigest }
+ 
+ -- | Represent a digest for a given hash algorithm.
+ newtype Digest a = Digest (F.UArray Word8)
+@@ -71,3 +86,21 @@ instance NFData (Digest a) where
+ instance Show (Digest a) where
+     show (Digest bs) = map (toEnum . fromIntegral)
+                      $ B.unpack (B.convertToBase B.Base16 bs :: Bytes)
++
++data {-# CLASS "org.bouncycastle.crypto.Digest" #-} JDigest = JDigest (Object# JDigest)
++  deriving Class
++
++foreign import java unsafe "@static eta.cryptonite.Utils.digest_update"
++  digest_update   :: Context a -> Ptr Word8 -> Word32 -> IO ()
++
++foreign import java unsafe "@static eta.cryptonite.Utils.digest_finalize"
++  digest_finalize :: Context a -> Ptr (Digest a) -> IO ()
++
++foreign import java unsafe "@static eta.cryptonite.Utils.digest_reset"
++  digest_reset    :: Context a  -> IO ()
++
++toContext :: (a <: JDigest) => a -> Context b
++toContext = Context . superCast
++
++fromContext :: (a <: JDigest) => Context b -> a
++fromContext = unsafeCast . unContext
+diff --git a/Crypto/Hash/Whirlpool.hs b/Crypto/Hash/Whirlpool.hs
+index 32f99a6..a632147 100644
+--- a/Crypto/Hash/Whirlpool.hs
++++ b/Crypto/Hash/Whirlpool.hs
+@@ -25,21 +25,17 @@ data Whirlpool = Whirlpool
+     deriving (Show,Data,Typeable)
+ 
+ instance HashAlgorithm Whirlpool where
+-    type HashBlockSize           Whirlpool = 64
+-    type HashDigestSize          Whirlpool = 64
+-    type HashInternalContextSize Whirlpool = 168
++    type HashBlockSize  Whirlpool = 64
++    type HashDigestSize Whirlpool = 64
+     hashBlockSize  _          = 64
+     hashDigestSize _          = 64
+-    hashInternalContextSize _ = 168
+-    hashInternalInit          = c_whirlpool_init
+-    hashInternalUpdate        = c_whirlpool_update
+-    hashInternalFinalize      = c_whirlpool_finalize
++    hashInternalInit          = fmap toContext c_whirlpool_init
+ 
+-foreign import ccall unsafe "cryptonite_whirlpool_init"
+-    c_whirlpool_init :: Ptr (Context a)-> IO ()
++data {-# CLASS "org.bouncycastle.crypto.digests.WhirlpoolDigest" #-}
++  WhirlpoolDigest = WhirlpoolDigest (Object# WhirlpoolDigest)
++  deriving Class
+ 
+-foreign import ccall "cryptonite_whirlpool_update"
+-    c_whirlpool_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
++type instance Inherits WhirlpoolDigest = '[JDigest]
+ 
+-foreign import ccall unsafe "cryptonite_whirlpool_finalize"
+-    c_whirlpool_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
++foreign import java unsafe "@new"
++    c_whirlpool_init :: IO WhirlpoolDigest
+diff --git a/Crypto/KDF/Argon2.hs b/Crypto/KDF/Argon2.hs
+index f9fa02a..88e347c 100644
+--- a/Crypto/KDF/Argon2.hs
++++ b/Crypto/KDF/Argon2.hs
+@@ -147,11 +147,11 @@ cOfVariant Argon2id = 2
+ csizeOfInt :: Int -> CSize
+ csizeOfInt = fromIntegral
+ 
+-foreign import ccall unsafe "cryptonite_argon2_hash"
+-    argon2_hash :: Word32 -> Word32 -> Word32
+-                -> Ptr Pass -> CSize
+-                -> Ptr Salt -> CSize
+-                -> Ptr HashOut -> CSize
+-                -> CVariant
+-                -> CVersion
+-                -> IO CInt
++argon2_hash :: Word32 -> Word32 -> Word32
++            -> Ptr Pass -> CSize
++            -> Ptr Salt -> CSize
++            -> Ptr HashOut -> CSize
++            -> CVariant
++            -> CVersion
++            -> IO CInt
++argon2_hash = error "argon2_hash: Not implemented yet."
+diff --git a/Crypto/KDF/PBKDF2.hs b/Crypto/KDF/PBKDF2.hs
+index b18cc1a..44e7aef 100644
+--- a/Crypto/KDF/PBKDF2.hs
++++ b/Crypto/KDF/PBKDF2.hs
+@@ -153,23 +153,23 @@ fastPBKDF2_SHA512 params password salt =
+             outPtr (fromIntegral $ outputLength params)
+ 
+ 
+-foreign import ccall unsafe "cryptonite_pbkdf2.h cryptonite_fastpbkdf2_hmac_sha1"
+-    c_cryptonite_fastpbkdf2_hmac_sha1 :: Ptr Word8 -> CSize
++c_cryptonite_fastpbkdf2_hmac_sha1 :: Ptr Word8 -> CSize
+                                       -> Ptr Word8 -> CSize
+                                       -> CUInt
+                                       -> Ptr Word8 -> CSize
+                                       -> IO ()
++c_cryptonite_fastpbkdf2_hmac_sha1 = error "c_cryptonite_fastpbkdf2_hmac_sha1: Not implemented yet."
+ 
+-foreign import ccall unsafe "cryptonite_pbkdf2.h cryptonite_fastpbkdf2_hmac_sha256"
+-    c_cryptonite_fastpbkdf2_hmac_sha256 :: Ptr Word8 -> CSize
++c_cryptonite_fastpbkdf2_hmac_sha256 :: Ptr Word8 -> CSize
+                                         -> Ptr Word8 -> CSize
+                                         -> CUInt
+                                         -> Ptr Word8 -> CSize
+                                         -> IO ()
++c_cryptonite_fastpbkdf2_hmac_sha256 = error "c_cryptonite_fastpbkdf2_hmac_sha256: Not implemented yet."
+ 
+-foreign import ccall unsafe "cryptonite_pbkdf2.h cryptonite_fastpbkdf2_hmac_sha512"
+-    c_cryptonite_fastpbkdf2_hmac_sha512 :: Ptr Word8 -> CSize
++c_cryptonite_fastpbkdf2_hmac_sha512 :: Ptr Word8 -> CSize
+                                         -> Ptr Word8 -> CSize
+                                         -> CUInt
+                                         -> Ptr Word8 -> CSize
+                                         -> IO ()
++c_cryptonite_fastpbkdf2_hmac_sha512 = error "c_cryptonite_fastpbkdf2_hmac_sha512: Not implemented yet."
+diff --git a/Crypto/KDF/Scrypt.hs b/Crypto/KDF/Scrypt.hs
+index 7eec1d6..04c491c 100644
+--- a/Crypto/KDF/Scrypt.hs
++++ b/Crypto/KDF/Scrypt.hs
+@@ -35,8 +35,8 @@ data Parameters = Parameters
+     , outputLength :: Int    -- ^ the number of bytes to generate out of Scrypt
+     }
+ 
+-foreign import ccall "cryptonite_scrypt_smix"
+-    ccryptonite_scrypt_smix :: Ptr Word8 -> Word32 -> Word64 -> Ptr Word8 -> Ptr Word8 -> IO ()
++ccryptonite_scrypt_smix :: Ptr Word8 -> Word32 -> Word64 -> Ptr Word8 -> Ptr Word8 -> IO ()
++ccryptonite_scrypt_smix = error "ccryptonite_scrypt_smix: Not implemented yet."
+ 
+ -- | Generate the scrypt key derivation data
+ generate :: (ByteArrayAccess password, ByteArrayAccess salt, ByteArray output)
+diff --git a/Crypto/MAC/Poly1305.hs b/Crypto/MAC/Poly1305.hs
+index 196f985..37039b0 100644
+--- a/Crypto/MAC/Poly1305.hs
++++ b/Crypto/MAC/Poly1305.hs
+@@ -31,15 +31,19 @@ import           Crypto.Internal.ByteArray (ByteArrayAccess, ScrubbedBytes, Byte
+ import qualified Crypto.Internal.ByteArray as B
+ import           Crypto.Internal.DeepSeq
+ import           Crypto.Error
++import System.IO.Unsafe
++import Java
+ 
+ -- | Poly1305 State
+-newtype State = State ScrubbedBytes
+-    deriving (ByteArrayAccess)
++newtype State = State Poly1305
+ 
+ -- | Poly1305 State. use State instead of Ctx
+ type Ctx = State
+ {-# DEPRECATED Ctx "use Poly1305 State instead" #-}
+ 
++data {-# CLASS "org.bouncycastle.crypto.macs.Poly1305" #-} Poly1305
++  = Poly1305 (Object# Poly1305)
++
+ -- | Poly1305 Auth
+ newtype Auth = Auth Bytes
+     deriving (ByteArrayAccess,NFData)
+@@ -52,14 +56,17 @@ authTag b
+ instance Eq Auth where
+     (Auth a1) == (Auth a2) = B.constEq a1 a2
+ 
+-foreign import ccall unsafe "cryptonite_poly1305.h cryptonite_poly1305_init"
+-    c_poly1305_init :: Ptr State -> Ptr Word8 -> IO ()
++foreign import java unsafe "@static eta.cryptonite.Utils.poly1305_init"
++    c_poly1305_init :: Ptr Word8 -> IO Poly1305
++
++foreign import java "@static eta.cryptonite.Utils.poly1305_update"
++    c_poly1305_update :: Poly1305 -> Ptr Word8 -> CUInt -> IO ()
+ 
+-foreign import ccall "cryptonite_poly1305.h cryptonite_poly1305_update"
+-    c_poly1305_update :: Ptr State -> Ptr Word8 -> CUInt -> IO ()
++foreign import java unsafe "@static eta.cryptonite.Utils.poly1305_finalize"
++    c_poly1305_finalize :: Poly1305 -> Ptr Word8 -> IO ()
+ 
+-foreign import ccall unsafe "cryptonite_poly1305.h cryptonite_poly1305_finalize"
+-    c_poly1305_finalize :: Ptr Word8 -> Ptr State -> IO ()
++foreign import java unsafe "@static eta.cryptonite.Utils.poly1305_clone"
++    c_poly1305_clone :: Poly1305 -> IO Poly1305
+ 
+ -- | initialize a Poly1305 context
+ initialize :: ByteArrayAccess key
+@@ -67,21 +74,25 @@ initialize :: ByteArrayAccess key
+            -> CryptoFailable State
+ initialize key
+     | B.length key /= 32 = CryptoFailed $ CryptoError_MacKeyInvalid
+-    | otherwise          = CryptoPassed $ State $ B.allocAndFreeze 84 $ \ctxPtr ->
+-        B.withByteArray key $ \keyPtr ->
+-            c_poly1305_init (castPtr ctxPtr) keyPtr
++    | otherwise          = CryptoPassed $ State $
++      unsafePerformIO $ B.withByteArray key c_poly1305_init
+ {-# NOINLINE initialize #-}
+ 
+ -- | update a context with a bytestring
+ update :: ByteArrayAccess ba => State -> ba -> State
+-update (State prevCtx) d = State $ B.copyAndFreeze prevCtx $ \ctxPtr ->
+-    B.withByteArray d $ \dataPtr ->
+-        c_poly1305_update (castPtr ctxPtr) dataPtr (fromIntegral $ B.length d)
++update (State prevCtx) d = State $ unsafePerformIO $ do
++  ctxPtr <- c_poly1305_clone prevCtx
++  B.withByteArray d $ \dataPtr ->
++    c_poly1305_update ctxPtr dataPtr (fromIntegral $ B.length d)
++  return ctxPtr
+ {-# NOINLINE update #-}
+ 
+ -- | updates a context with multiples bytestring
+ updates :: ByteArrayAccess ba => State -> [ba] -> State
+-updates (State prevCtx) d = State $ B.copyAndFreeze prevCtx (loop d)
++updates (State prevCtx) d = State $ unsafePerformIO $ do
++  ctxPtr <- c_poly1305_clone prevCtx
++  loop d ctxPtr
++  return ctxPtr
+   where loop []     _      = return ()
+         loop (x:xs) ctxPtr = do
+             B.withByteArray x $ \dataPtr -> c_poly1305_update ctxPtr dataPtr (fromIntegral $ B.length x)
+@@ -91,21 +102,19 @@ updates (State prevCtx) d = State $ B.copyAndFreeze prevCtx (loop d)
+ -- | finalize the context into a digest bytestring
+ finalize :: State -> Auth
+ finalize (State prevCtx) = Auth $ B.allocAndFreeze 16 $ \dst -> do
+-    _ <- B.copy prevCtx (\ctxPtr -> c_poly1305_finalize dst (castPtr ctxPtr)) :: IO ScrubbedBytes
+-    return ()
++    ctxPtr <- c_poly1305_clone prevCtx
++    c_poly1305_finalize ctxPtr dst
+ {-# NOINLINE finalize #-}
+ 
+ -- | One-pass authorization creation
+ auth :: (ByteArrayAccess key, ByteArrayAccess ba) => key -> ba -> Auth
+ auth key d
+     | B.length key /= 32 = error "Poly1305: key length expected 32 bytes"
+-    | otherwise          = Auth $ B.allocAndFreeze 16 $ \dst -> do
+-        _ <- B.alloc 84 (onCtx dst) :: IO ScrubbedBytes
+-        return ()
++    | otherwise          = Auth $ B.allocAndFreeze 16 onCtx
+   where
+-        onCtx dst ctxPtr =
++        onCtx dst =
+             B.withByteArray key $ \keyPtr -> do
+-                c_poly1305_init (castPtr ctxPtr) keyPtr
++                ctx <- c_poly1305_init keyPtr
+                 B.withByteArray d $ \dataPtr ->
+-                    c_poly1305_update (castPtr ctxPtr) dataPtr (fromIntegral $ B.length d)
+-                c_poly1305_finalize dst (castPtr ctxPtr)
++                    c_poly1305_update ctx dataPtr (fromIntegral $ B.length d)
++                c_poly1305_finalize ctx dst
+diff --git a/Crypto/PubKey/Curve25519.hs b/Crypto/PubKey/Curve25519.hs
+index e3416c8..bec09ec 100644
+--- a/Crypto/PubKey/Curve25519.hs
++++ b/Crypto/PubKey/Curve25519.hs
+@@ -126,8 +126,8 @@ generateSecretKey = tweakToSecretKey <$> getRandomBytes 32
+     modifyByte :: Ptr Word8 -> Int -> (Word8 -> Word8) -> IO ()
+     modifyByte p n f = peekByteOff p n >>= pokeByteOff p n . f
+ 
+-foreign import ccall "cryptonite_curve25519_donna"
+-    ccryptonite_curve25519 :: Ptr Word8 -- ^ public
++ccryptonite_curve25519 :: Ptr Word8 -- ^ public
+                            -> Ptr Word8 -- ^ secret
+                            -> Ptr Word8 -- ^ basepoint
+                            -> IO ()
++ccryptonite_curve25519 = error "ccryptonite_curve25519: Not implemented yet."
+diff --git a/Crypto/PubKey/Curve448.hs b/Crypto/PubKey/Curve448.hs
+index 95feaf3..8793ce6 100644
+--- a/Crypto/PubKey/Curve448.hs
++++ b/Crypto/PubKey/Curve448.hs
+@@ -106,13 +106,13 @@ generateSecretKey = SecretKey <$> getRandomBytes x448_bytes
+ x448_bytes :: Int
+ x448_bytes = 448 `quot` 8
+ 
+-foreign import ccall "cryptonite_decaf_x448"
+-    decaf_x448 :: Ptr Word8 -- ^ public
+-               -> Ptr Word8 -- ^ basepoint
+-               -> Ptr Word8 -- ^ secret
+-               -> IO ()
++decaf_x448 :: Ptr Word8 -- ^ public
++           -> Ptr Word8 -- ^ basepoint
++           -> Ptr Word8 -- ^ secret
++           -> IO ()
++decaf_x448 = error "decaf_x448: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_decaf_x448_derive_public_key"
+-    decaf_x448_derive_public_key :: Ptr Word8 -- ^ public
++decaf_x448_derive_public_key :: Ptr Word8 -- ^ public
+                                  -> Ptr Word8 -- ^ secret
+                                  -> IO ()
++decaf_x448_derive_public_key = error "decaf_x448_derive_public_key: Not implemented yet."
+diff --git a/Crypto/PubKey/ECC/P256.hs b/Crypto/PubKey/ECC/P256.hs
+index 1409c91..0accde9 100644
+--- a/Crypto/PubKey/ECC/P256.hs
++++ b/Crypto/PubKey/ECC/P256.hs
+@@ -332,58 +332,59 @@ allocTempScrubbed n f = ignoreSnd <$> B.allocRet n f
+ ------------------------------------------------------------------------
+ -- Foreign bindings
+ ------------------------------------------------------------------------
+-foreign import ccall "&cryptonite_SECP256r1_n"
+-    ccryptonite_SECP256r1_n :: Ptr P256Scalar
+-foreign import ccall "&cryptonite_SECP256r1_p"
+-    ccryptonite_SECP256r1_p :: Ptr P256Scalar
+-foreign import ccall "&cryptonite_SECP256r1_b"
+-    ccryptonite_SECP256r1_b :: Ptr P256Scalar
+-
+-foreign import ccall "cryptonite_p256_init"
+-    ccryptonite_p256_init :: Ptr P256Scalar -> IO ()
+-foreign import ccall "cryptonite_p256_is_zero"
+-    ccryptonite_p256_is_zero :: Ptr P256Scalar -> IO CInt
+-foreign import ccall "cryptonite_p256_clear"
+-    ccryptonite_p256_clear :: Ptr P256Scalar -> IO ()
+-foreign import ccall "cryptonite_p256_add"
+-    ccryptonite_p256_add :: Ptr P256Scalar -> Ptr P256Scalar -> Ptr P256Scalar -> IO CInt
+-foreign import ccall "cryptonite_p256_add_d"
+-    ccryptonite_p256_add_d :: Ptr P256Scalar -> P256Digit -> Ptr P256Scalar -> IO CInt
+-foreign import ccall "cryptonite_p256_sub"
+-    ccryptonite_p256_sub :: Ptr P256Scalar -> Ptr P256Scalar -> Ptr P256Scalar -> IO CInt
+-foreign import ccall "cryptonite_p256_cmp"
+-    ccryptonite_p256_cmp :: Ptr P256Scalar -> Ptr P256Scalar -> IO CInt
+-foreign import ccall "cryptonite_p256_mod"
+-    ccryptonite_p256_mod :: Ptr P256Scalar -> Ptr P256Scalar -> Ptr P256Scalar -> IO ()
+-foreign import ccall "cryptonite_p256_modmul"
+-    ccryptonite_p256_modmul :: Ptr P256Scalar -> Ptr P256Scalar -> P256Digit -> Ptr P256Scalar -> Ptr P256Scalar -> IO ()
++ccryptonite_SECP256r1_n :: Ptr P256Scalar
++ccryptonite_SECP256r1_n = error "ccryptonite_SECP256r1_n: Not implemented yet."
++ccryptonite_SECP256r1_p :: Ptr P256Scalar
++ccryptonite_SECP256r1_p = error "ccryptonite_SECP256r1_p: Not implemented yet."
++ccryptonite_SECP256r1_b :: Ptr P256Scalar
++ccryptonite_SECP256r1_b = error "ccryptonite_SECP256r1_b: Not implemented yet."
++
++ccryptonite_p256_init :: Ptr P256Scalar -> IO ()
++ccryptonite_p256_init = error "ccryptonite_p256_init: Not implemented yet."
++ccryptonite_p256_is_zero :: Ptr P256Scalar -> IO CInt
++ccryptonite_p256_is_zero = error "ccryptonite_p256_is_zero: Not implemented yet."
++ccryptonite_p256_clear :: Ptr P256Scalar -> IO ()
++ccryptonite_p256_clear = error "ccryptonite_p256_clear: Not implemented yet."
++ccryptonite_p256_add :: Ptr P256Scalar -> Ptr P256Scalar -> Ptr P256Scalar -> IO CInt
++ccryptonite_p256_add = error "ccryptonite_p256_add: Not implemented yet."
++ccryptonite_p256_add_d :: Ptr P256Scalar -> P256Digit -> Ptr P256Scalar -> IO CInt
++ccryptonite_p256_add_d = error "ccryptonite_p256_add_d: Not implemented yet."
++ccryptonite_p256_sub :: Ptr P256Scalar -> Ptr P256Scalar -> Ptr P256Scalar -> IO CInt
++ccryptonite_p256_sub = error "ccryptonite_p256_sub: Not implemented yet."
++ccryptonite_p256_cmp :: Ptr P256Scalar -> Ptr P256Scalar -> IO CInt
++ccryptonite_p256_cmp = error "ccryptonite_p256_cmp: Not implemented yet."
++ccryptonite_p256_mod :: Ptr P256Scalar -> Ptr P256Scalar -> Ptr P256Scalar -> IO ()
++ccryptonite_p256_mod = error "ccryptonite_p256_mod: Not implemented yet."
++ccryptonite_p256_modmul :: Ptr P256Scalar -> Ptr P256Scalar -> P256Digit -> Ptr P256Scalar -> Ptr P256Scalar -> IO ()
++ccryptonite_p256_modmul = error "ccryptonite_p256_modmul: Not implemented yet."
+ --foreign import ccall "cryptonite_p256_modinv"
+ --    ccryptonite_p256_modinv :: Ptr P256Scalar -> Ptr P256Scalar -> Ptr P256Scalar -> IO ()
+-foreign import ccall "cryptonite_p256_modinv_vartime"
+-    ccryptonite_p256_modinv_vartime :: Ptr P256Scalar -> Ptr P256Scalar -> Ptr P256Scalar -> IO ()
+-foreign import ccall "cryptonite_p256_base_point_mul"
+-    ccryptonite_p256_basepoint_mul :: Ptr P256Scalar
++ccryptonite_p256_modinv_vartime :: Ptr P256Scalar -> Ptr P256Scalar -> Ptr P256Scalar -> IO ()
++ccryptonite_p256_modinv_vartime = error "ccryptonite_p256_modinv_vartime: Not implemented yet."
++ccryptonite_p256_basepoint_mul :: Ptr P256Scalar
+                                    -> Ptr P256X -> Ptr P256Y
+                                    -> IO ()
++ccryptonite_p256_basepoint_mul = error "ccryptonite_p256_basepoint_mul: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_p256e_point_add"
+-    ccryptonite_p256e_point_add :: Ptr P256X -> Ptr P256Y
++ccryptonite_p256e_point_add :: Ptr P256X -> Ptr P256Y
+                                 -> Ptr P256X -> Ptr P256Y
+                                 -> Ptr P256X -> Ptr P256Y
+                                 -> IO ()
++ccryptonite_p256e_point_add = error "ccryptonite_p256e_point_add: Not implemented yet."
+ 
+ -- compute (out_x,out,y) = n1 * G + n2 * (in_x,in_y)
+-foreign import ccall "cryptonite_p256_points_mul_vartime"
+-    ccryptonite_p256_points_mul_vartime :: Ptr P256Scalar -- n1
++ccryptonite_p256_points_mul_vartime :: Ptr P256Scalar -- n1
+                                         -> Ptr P256Scalar -- n2
+                                         -> Ptr P256X -> Ptr P256Y -- in_{x,y}
+                                         -> Ptr P256X -> Ptr P256Y -- out_{x,y}
+                                         -> IO ()
+-foreign import ccall "cryptonite_p256_is_valid_point"
+-    ccryptonite_p256_is_valid_point :: Ptr P256X -> Ptr P256Y -> IO CInt
++ccryptonite_p256_points_mul_vartime = error "ccryptonite_p256_points_mul_vartime: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_p256_to_bin"
+-    ccryptonite_p256_to_bin :: Ptr P256Scalar -> Ptr Word8 -> IO ()
++ccryptonite_p256_is_valid_point :: Ptr P256X -> Ptr P256Y -> IO CInt
++ccryptonite_p256_is_valid_point = error "ccryptonite_p256_is_valid_point: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_p256_from_bin"
+-    ccryptonite_p256_from_bin :: Ptr Word8 -> Ptr P256Scalar -> IO ()
++ccryptonite_p256_to_bin :: Ptr P256Scalar -> Ptr Word8 -> IO ()
++ccryptonite_p256_to_bin = error "ccryptonite_p256_to_bin: Not implemented yet."
++
++ccryptonite_p256_from_bin :: Ptr Word8 -> Ptr P256Scalar -> IO ()
++ccryptonite_p256_from_bin = error "ccryptonite_p256_from_bin: Not implemented yet."
+diff --git a/Crypto/PubKey/Ed25519.hs b/Crypto/PubKey/Ed25519.hs
+index 9656e56..68e5f02 100644
+--- a/Crypto/PubKey/Ed25519.hs
++++ b/Crypto/PubKey/Ed25519.hs
+@@ -129,22 +129,22 @@ secretKeySize = 32
+ signatureSize :: Int
+ signatureSize = 64
+ 
+-foreign import ccall "cryptonite_ed25519_publickey"
+-    ccryptonite_ed25519_publickey :: Ptr SecretKey -- secret key
+-                                  -> Ptr PublicKey -- public key
+-                                  -> IO ()
+-
+-foreign import ccall "cryptonite_ed25519_sign_open"
+-    ccryptonite_ed25519_sign_open :: Ptr Word8     -- message
+-                                  -> CSize         -- message len
+-                                  -> Ptr PublicKey -- public
+-                                  -> Ptr Signature -- signature
+-                                  -> IO CInt
+-
+-foreign import ccall "cryptonite_ed25519_sign"
+-    ccryptonite_ed25519_sign :: Ptr Word8     -- message
+-                             -> CSize         -- message len
+-                             -> Ptr SecretKey -- secret
+-                             -> Ptr PublicKey -- public
+-                             -> Ptr Signature -- signature
+-                             -> IO ()
++ccryptonite_ed25519_publickey :: Ptr SecretKey -- secret key
++                              -> Ptr PublicKey -- public key
++                              -> IO ()
++ccryptonite_ed25519_publickey = error "ccryptonite_ed25519_publickey: Not implemented yet."
++
++ccryptonite_ed25519_sign_open :: Ptr Word8     -- message
++                              -> CSize         -- message len
++                              -> Ptr PublicKey -- public
++                              -> Ptr Signature -- signature
++                              -> IO CInt
++ccryptonite_ed25519_sign_open = error "ccryptonite_ed25519_sign_open: Not implemented yet."
++
++ccryptonite_ed25519_sign :: Ptr Word8     -- message
++                          -> CSize         -- message len
++                          -> Ptr SecretKey -- secret
++                          -> Ptr PublicKey -- public
++                          -> Ptr Signature -- signature
++                          -> IO ()
++ccryptonite_ed25519_sign = error "ccryptonite_ed25519_sign: Not implemented yet. "
+diff --git a/Crypto/PubKey/Ed448.hs b/Crypto/PubKey/Ed448.hs
+index 726f61b..75fdb44 100644
+--- a/Crypto/PubKey/Ed448.hs
++++ b/Crypto/PubKey/Ed448.hs
+@@ -136,13 +136,12 @@ signatureSize = 114
+ no_context :: Ptr Word8
+ no_context = nullPtr -- not supported yet
+ 
+-foreign import ccall "cryptonite_decaf_ed448_derive_public_key"
+-    decaf_ed448_derive_public_key :: Ptr PublicKey -- public key
++decaf_ed448_derive_public_key :: Ptr PublicKey -- public key
+                                   -> Ptr SecretKey -- secret key
+                                   -> IO ()
++decaf_ed448_derive_public_key = error "decaf_ed448_derive_public_key: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_decaf_ed448_sign"
+-    decaf_ed448_sign :: Ptr Signature -- signature
++decaf_ed448_sign :: Ptr Signature -- signature
+                      -> Ptr SecretKey -- secret
+                      -> Ptr PublicKey -- public
+                      -> Ptr Word8     -- message
+@@ -151,9 +150,9 @@ foreign import ccall "cryptonite_decaf_ed448_sign"
+                      -> Ptr Word8     -- context
+                      -> Word8         -- context len
+                      -> IO ()
++decaf_ed448_sign = error "decaf_ed448_sign: Not implemented yet."
+ 
+-foreign import ccall "cryptonite_decaf_ed448_verify"
+-    decaf_ed448_verify :: Ptr Signature -- signature
++decaf_ed448_verify :: Ptr Signature -- signature
+                        -> Ptr PublicKey -- public
+                        -> Ptr Word8     -- message
+                        -> CSize         -- message len
+@@ -161,3 +160,4 @@ foreign import ccall "cryptonite_decaf_ed448_verify"
+                        -> Ptr Word8     -- context
+                        -> Word8         -- context len
+                        -> IO CInt
++decaf_ed448_verify = error "decaf_ed448_verify: Not implemented yet."
+diff --git a/Crypto/Random/Entropy/RDRand.hs b/Crypto/Random/Entropy/RDRand.hs
+index d3d3866..905e100 100644
+--- a/Crypto/Random/Entropy/RDRand.hs
++++ b/Crypto/Random/Entropy/RDRand.hs
+@@ -15,11 +15,11 @@ import Foreign.C.Types
+ import Data.Word (Word8)
+ import Crypto.Random.Entropy.Source
+ 
+-foreign import ccall unsafe "cryptonite_cpu_has_rdrand"
+-   c_cpu_has_rdrand :: IO CInt
++c_cpu_has_rdrand :: IO CInt
++c_cpu_has_rdrand = error "c_cpu_has_rdrand: Not implemented yet."
+ 
+-foreign import ccall unsafe "cryptonite_get_rand_bytes"
+-  c_get_rand_bytes :: Ptr Word8 -> CInt -> IO CInt
++c_get_rand_bytes :: Ptr Word8 -> CInt -> IO CInt
++c_get_rand_bytes = error "c_get_rand_bytes: Not implemented yet."
+ 
+ -- | fake handle to Intel RDRand entropy cpu instruction
+ data RDRand = RDRand
+diff --git a/cryptonite.cabal b/cryptonite.cabal
+index 7f91e61..a1563d8 100644
+--- a/cryptonite.cabal
++++ b/cryptonite.cabal
+@@ -216,6 +216,10 @@ Library
+                      Crypto.Internal.Imports
+                      Crypto.Internal.Words
+                      Crypto.Internal.WordArray
++  default-extensions:  MagicHash
++                       TypeFamilies
++                       DataKinds
++                       MultiParamTypeClasses
+   if impl(ghc >= 7.8)
+     Other-modules:   Crypto.Hash.SHAKE
+                      Crypto.Hash.Blake2
+@@ -225,138 +229,19 @@ Library
+                    , memory >= 0.14.5
+                    , foundation >= 0.0.8
+                    , ghc-prim
++  maven-depends:     org.bouncycastle:bcprov-jdk15on:1.58
+   ghc-options:       -Wall -fwarn-tabs -optc-O3 -fno-warn-unused-imports
++  java-sources:      java/Utils.java
+   default-language:  Haskell2010
+-  cc-options:        -std=gnu99
+-  if flag(old_toolchain_inliner)
+-    cc-options:      -fgnu89-inline
+-  C-sources:         cbits/cryptonite_chacha.c
+-                   , cbits/cryptonite_salsa.c
+-                   , cbits/cryptonite_xsalsa.c
+-                   , cbits/cryptonite_rc4.c
+-                   , cbits/cryptonite_cpu.c
+-                   , cbits/ed25519/ed25519.c
+-                   , cbits/p256/p256.c
+-                   , cbits/p256/p256_ec.c
+-                   , cbits/cryptonite_blake2s.c
+-                   , cbits/cryptonite_blake2sp.c
+-                   , cbits/cryptonite_blake2b.c
+-                   , cbits/cryptonite_blake2bp.c
+-                   , cbits/cryptonite_poly1305.c
+-                   , cbits/cryptonite_sha1.c
+-                   , cbits/cryptonite_sha256.c
+-                   , cbits/cryptonite_sha512.c
+-                   , cbits/cryptonite_sha3.c
+-                   , cbits/cryptonite_md2.c
+-                   , cbits/cryptonite_md4.c
+-                   , cbits/cryptonite_md5.c
+-                   , cbits/cryptonite_ripemd.c
+-                   , cbits/cryptonite_skein256.c
+-                   , cbits/cryptonite_skein512.c
+-                   , cbits/cryptonite_tiger.c
+-                   , cbits/cryptonite_whirlpool.c
+-                   , cbits/cryptonite_scrypt.c
+-                   , cbits/cryptonite_pbkdf2.c
+-  include-dirs:      cbits
+-                   , cbits/ed25519
+-                   , cbits/decaf/include
+-                   , cbits/decaf/p448
+ 
+-  if arch(x86_64)
+-    C-sources:         cbits/decaf/p448/arch_ref64/f_impl.c
+-                     , cbits/decaf/p448/f_generic.c
+-                     , cbits/decaf/p448/f_arithmetic.c
+-                     , cbits/decaf/utils.c
+-                     , cbits/decaf/ed448goldilocks/scalar.c
+-                     , cbits/decaf/ed448goldilocks/decaf_tables.c
+-                     , cbits/decaf/ed448goldilocks/decaf.c
+-                     , cbits/decaf/ed448goldilocks/eddsa.c
+-
+-    include-dirs:      cbits/decaf/include/arch_ref64
+-                     , cbits/decaf/p448/arch_ref64
+-  else
+-    C-sources:         cbits/decaf/p448/arch_32/f_impl.c
+-                     , cbits/decaf/p448/f_generic.c
+-                     , cbits/decaf/p448/f_arithmetic.c
+-                     , cbits/decaf/utils.c
+-                     , cbits/decaf/ed448goldilocks/scalar.c
+-                     , cbits/decaf/ed448goldilocks/decaf_tables.c
+-                     , cbits/decaf/ed448goldilocks/decaf.c
+-                     , cbits/decaf/ed448goldilocks/eddsa.c
+-
+-    include-dirs:      cbits/decaf/include/arch_32
+-                     , cbits/decaf/p448/arch_32
+-
+-  if arch(x86_64)
+-    C-sources: cbits/curve25519/curve25519-donna-c64.c
+-  else
+-    C-sources: cbits/curve25519/curve25519-donna.c
+-
+-  -- FIXME armel or mispel is also little endian.
+-  -- might be a good idea to also add a runtime autodetect mode.
+-  -- ARCH_ENDIAN_UNKNOWN
+-  if (arch(i386) || arch(x86_64))
+-    CPP-options: -DARCH_IS_LITTLE_ENDIAN
+-
+-  if arch(i386)
+-    CPP-options: -DARCH_X86
+-
+-  if arch(x86_64)
+-    CPP-options: -DARCH_X86_64
+-
+-  if flag(support_rdrand) && (arch(i386) || arch(x86_64)) && !os(windows)
+-    CPP-options:    -DSUPPORT_RDRAND
+-    Other-modules:  Crypto.Random.Entropy.RDRand
+-    c-sources:      cbits/cryptonite_rdrand.c
+-
+-  if flag(support_aesni) && (os(linux) || os(freebsd) || os(osx)) && (arch(i386) || arch(x86_64))
+-    CC-options:     -mssse3 -maes -DWITH_AESNI
+-    if flag(support_pclmuldq)
+-       CC-options:  -msse4.1 -mpclmul -DWITH_PCLMUL
+-    C-sources:       cbits/aes/x86ni.c
+-                   , cbits/aes/generic.c
+-                   , cbits/aes/gf.c
+-                   , cbits/cryptonite_aes.c
+-  else
+-    C-sources:       cbits/aes/generic.c
+-                   , cbits/aes/gf.c
+-                   , cbits/cryptonite_aes.c
+-
+-  if arch(x86_64) || flag(support_sse)
+-    C-sources:      cbits/blake2/sse/blake2s.c
+-                  , cbits/blake2/sse/blake2sp.c
+-                  , cbits/blake2/sse/blake2b.c
+-                  , cbits/blake2/sse/blake2bp.c
+-    include-dirs: cbits/blake2/sse
+-  else
+-    C-sources:      cbits/blake2/ref/blake2s-ref.c
+-                  , cbits/blake2/ref/blake2sp-ref.c
+-                  , cbits/blake2/ref/blake2b-ref.c
+-                  , cbits/blake2/ref/blake2bp-ref.c
+-    include-dirs: cbits/blake2/ref
+-
+-  if arch(x86_64) || flag(support_sse)
+-    CPP-options:    -DSUPPORT_SSE
+-
+-  C-sources:      cbits/argon2/argon2.c
+-  include-dirs:   cbits/argon2
+-
+-  if os(windows)
+-    cpp-options:    -DWINDOWS
+-    Build-Depends:  Win32
+-    Other-modules:  Crypto.Random.Entropy.Windows
+-    extra-libraries: advapi32
+-  else
+-    Other-modules:  Crypto.Random.Entropy.Unix
++  Other-modules:  Crypto.Random.Entropy.Unix
+ 
+   if impl(ghc) && flag(integer-gmp)
+-    Build-depends:   integer-gmp
++    Build-depends:   integer
+ 
+   if flag(support_deepseq)
+     CPP-options:     -DWITH_DEEPSEQ_SUPPORT
+     Build-depends:   deepseq
+-  if flag(check_alignment)
+-    cc-options:     -DWITH_ASSERT_ALIGNMENT
+ 
+ Test-Suite test-cryptonite
+   type:              exitcode-stdio-1.0
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..bbbfb54
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,82 @@
++package eta.cryptonite;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.MemoryManager;
++import org.bouncycastle.crypto.Digest;
++import org.bouncycastle.crypto.digests.Blake2bDigest;
++import org.bouncycastle.crypto.digests.KeccakDigest;
++import org.bouncycastle.crypto.digests.MD2Digest;
++import org.bouncycastle.crypto.digests.MD4Digest;
++import org.bouncycastle.crypto.digests.MD5Digest;
++import org.bouncycastle.crypto.digests.RIPEMD160Digest;
++import org.bouncycastle.crypto.digests.SHA1Digest;
++import org.bouncycastle.crypto.digests.SHA224Digest;
++import org.bouncycastle.crypto.digests.SHA256Digest;
++import org.bouncycastle.crypto.digests.SHA3Digest;
++import org.bouncycastle.crypto.digests.SHA384Digest;
++import org.bouncycastle.crypto.digests.SHA512Digest;
++import org.bouncycastle.crypto.digests.SHA512tDigest;
++import org.bouncycastle.crypto.digests.SHAKEDigest;
++import org.bouncycastle.crypto.digests.SkeinDigest;
++import org.bouncycastle.crypto.digests.TigerDigest;
++import org.bouncycastle.crypto.digests.WhirlpoolDigest;
++
++import org.bouncycastle.crypto.params.KeyParameter;
++import org.bouncycastle.crypto.macs.Poly1305;
++
++public class Utils {
++    private static byte[] getBuffer(long ptr, int size) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(ptr);
++        byte[] bytes = new byte[size];
++        buf.get(bytes);
++        return bytes;
++    }
++
++    public static void digest_update(Digest digest, long ptr, int size) {
++        digest.update(getBuffer(ptr, size), 0, size);
++    }
++
++    public static void digest_finalize(Digest digest, long ptr) {
++        int digestSize = digest.getDigestSize();
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(ptr);
++        byte[] bytes = new byte[digestSize];
++        digest.doFinal(bytes, 0);
++        buf.put(bytes);
++    }
++
++    public static void digest_reset(Digest digest) {
++        digest.reset();
++    }
++
++    public static void shake_output(SHAKEDigest digest, long ptr, int size) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(ptr);
++        byte[] bytes = new byte[size];
++        digest.doFinal(bytes, 0, size);
++        buf.put(bytes);
++    }
++
++
++    public static Poly1305 poly1305_init(long ptr) {
++        byte[] keyBytes = getBuffer(ptr, 32);
++        Poly1305 poly = new Poly1305();
++        poly.init(new KeyParameter(keyBytes));
++        return poly;
++    }
++
++    public static void poly1305_update(Poly1305 poly, long ptr, int size) {
++        poly.update(getBuffer(ptr, size), 0, size);
++    }
++
++    public static void poly1305_finalize(Poly1305 poly, long ptr) {
++        int macSize = poly.getMacSize();
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(ptr);
++        byte[] bytes = new byte[macSize];
++        poly.doFinal(bytes, 0);
++        buf.put(bytes);
++    }
++
++    public static Poly1305 poly1305_clone(Poly1305 poly) {
++        // TODO: Find a way to clone properly
++        return poly;
++    }
++}
+-- 
+2.10.1 (Apple Git-78)
+
