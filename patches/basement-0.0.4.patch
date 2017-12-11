@@ -1,11 +1,11 @@
-From 6a52b0497ab70549e40b663070b11881da69ef44 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Fri, 8 Dec 2017 12:03:23 +0530
+From 12f8a38d97f41701abc0e443d677fe836afe8c8f Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 11 Dec 2017 13:55:15 +0530
 Subject: [PATCH] Patched
 
 ---
  Basement/Bindings/Memory.hs      |  12 +--
- Basement/Block.hs                |   6 +-
+ Basement/Block.hs                |  10 +-
  Basement/Compat/Primitive.hs     |  27 +++---
  Basement/Numerical/Additive.hs   |   4 -
  Basement/Numerical/Conversion.hs |   4 -
@@ -16,7 +16,7 @@ Subject: [PATCH] Patched
  Basement/Types/OffsetSize.hs     |   4 -
  basement.cabal                   |  10 --
  java/Utils.java                  |  62 +++++++++++++
- 12 files changed, 283 insertions(+), 240 deletions(-)
+ 12 files changed, 287 insertions(+), 240 deletions(-)
  create mode 100644 Basement/Terminal/Size.hs
  delete mode 100644 Basement/Terminal/Size.hsc
  create mode 100644 java/Utils.java
@@ -53,20 +53,24 @@ index cc823d0..d8014e5 100644
 +foreign import java unsafe "@static eta.basement.Utils.findbyte_ptr" sysHsMemFindByteAddr ::
      Addr# -> Offset Word8 -> Offset Word8 -> Word8 -> Offset Word8
 diff --git a/Basement/Block.hs b/Basement/Block.hs
-index 616b0ab..bafb030 100644
+index 616b0ab..a078e59 100644
 --- a/Basement/Block.hs
 +++ b/Basement/Block.hs
-@@ -116,10 +116,12 @@ create n initializer
+@@ -116,10 +116,16 @@ create n initializer
          unsafeFreeze mb
  
  isPinned :: Block ty -> PinnedStatus
 -isPinned (Block ba) = toPinnedStatus# (compatIsByteArrayPinned# ba)
-+isPinned (Block ba) = error "isPinned: Not implemented yet"
++isPinned (Block ba) = Pinned
++  -- TODO: Implemented properly
++  -- error "isPinned: Not implemented yet"
 +  -- toPinnedStatus# (compatIsByteArrayPinned# ba)
  
  isMutablePinned :: MutableBlock s ty -> PinnedStatus
 -isMutablePinned (MutableBlock mba) = toPinnedStatus# (compatIsMutableByteArrayPinned# mba)
-+isMutablePinned (MutableBlock mba) = error "isMutablePinned: Not implemented yet"
++isMutablePinned (MutableBlock mba) = Pinned
++  -- TODO: Implement properly
++  -- error "isMutablePinned: Not implemented yet"
 +  -- toPinnedStatus# (compatIsMutableByteArrayPinned# mba)
  
  singleton :: PrimType ty => ty -> Block ty
@@ -693,5 +697,5 @@ index 0000000..342fa61
 +    }
 +}
 -- 
-2.7.4 (Apple Git-66)
+2.10.1 (Apple Git-78)
 
