@@ -1,0 +1,26 @@
+From 04a93e7abcc03d108cbff05e31efd32876b1bb48 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 12 Dec 2017 17:04:29 +0530
+Subject: [PATCH] Patched
+
+---
+ typed-process.cabal | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/typed-process.cabal b/typed-process.cabal
+index 45f7673..47fe824 100644
+--- a/typed-process.cabal
++++ b/typed-process.cabal
+@@ -36,8 +36,7 @@ library
+     , process >=1.2
+     , stm
+     , transformers
+-  if os(windows)
+-    cpp-options: -DWINDOWS
++  cpp-options: -DWINDOWS
+   exposed-modules:
+       System.Process.Typed
+   other-modules:
+-- 
+2.7.4 (Apple Git-66)
+
