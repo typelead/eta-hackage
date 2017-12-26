@@ -216,7 +216,7 @@ These packages are supported by `etlas`.
 - [matrix-0.3.5.0](https://hackage.haskell.org/package/matrix-0.3.5.0)
 - [map-syntax-0.2.0.1](https://hackage.haskell.org/package/map-syntax-0.2.0.1)
 - [meldable-heap-2.0.3](https://hackage.haskell.org/package/meldable-heap-2.0.3)
-- [memory-0.14.10](https://hackage.haskell.org/package/memory-0.14.10)
+- [memory >= 0.14.10 && <= 0.14.11](https://hackage.haskell.org/package/memory)
 - [MemoTrie-0.6.8](https://hackage.haskell.org/package/MemoTrie-0.6.8)
 - [mfsolve-0.3.2.0](https://hackage.haskell.org/package/mfsolve-0.3.2.0)
 - [microlens >= 0.4.7.0 && <= 0.4.8.0](https://hackage.haskell.org/package/microlens)
