@@ -1,6 +1,6 @@
-From 5f091a5f453ba38709f9866d5bf482c261a749ce Mon Sep 17 00:00:00 2001
+From 44972f1df7b98dd7b3321a6260d43df444e3cd39 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Thu, 7 Dec 2017 14:13:14 +0530
+Date: Tue, 26 Dec 2017 19:30:56 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -23,7 +23,7 @@ index aa1561c..4a6d3df 100644
      ghc-options: -Wcompat -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
  
 diff --git a/src/Data/Binary/Get/Internal.hs b/src/Data/Binary/Get/Internal.hs
-index c2ebcff..cbfe48b 100644
+index c2ebcff..bbcbc35 100644
 --- a/src/Data/Binary/Get/Internal.hs
 +++ b/src/Data/Binary/Get/Internal.hs
 @@ -52,8 +52,19 @@ import Control.Monad
@@ -39,7 +39,7 @@ index c2ebcff..cbfe48b 100644
 +trampoline :: a -> a
 +#ifdef HAS_TRAMPOLINE
 +trampoline = F.trampoline
-+#elif
++#else
 +trampoline = id
 +#endif
 +
