@@ -44,7 +44,7 @@ index 46ec9f1..1027bb4 100644
 +trampoline :: a -> a
 +#ifdef HAS_TRAMPOLINE
 +trampoline = F.trampoline
-+#elif
++#else
 +trampoline = id
 +#endif
 +
