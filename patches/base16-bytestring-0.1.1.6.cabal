@@ -26,9 +26,13 @@ library
     bytestring >= 0.9,
     ghc-prim
 
+  if impl(eta >= 0.0.9.7)
+    cpp-options: -DPRIM_STRING
+  else
+    java-sources: java/Utils.java
+
   ghc-options: -Wall -funbox-strict-fields
   ghc-prof-options: -auto-all
-  java-sources: java/Utils.java
 
 source-repository head
   type:     git
