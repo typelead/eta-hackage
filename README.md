@@ -100,6 +100,7 @@ These packages are supported by `etlas`.
 - [circle-packing-0.1.0.6](https://hackage.haskell.org/package/circle-packing-0.1.0.6)
 - [chunked-data-0.3.0](https://hackage.haskell.org/package/chunked-data-0.3.0)
 - [clock-0.7.2](https://hackage.haskell.org/package/clock-0.7.2)
+- [cmdargs-0.10.18](https://hackage.haskell.org/package/cmdargs-0.10.18)
 - [code-page-0.1.3](https://hackage.haskell.org/package/code-page-0.1.3)
 - [colour-2.3.3](https://hackage.haskell.org/package/colour-2.3.3)
 - [comonad-5](https://hackage.haskell.org/package/comonad-5)
