@@ -1,0 +1,31 @@
+From fedffe3d964d1f741ff28eaf211b483524aa2972 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sat, 6 Jan 2018 15:44:45 +0530
+Subject: [PATCH] Patched
+
+---
+ code-page.cabal | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/code-page.cabal b/code-page.cabal
+index f85f434..d9c0ab7 100644
+--- a/code-page.cabal
++++ b/code-page.cabal
+@@ -36,14 +36,7 @@ source-repository head
+ 
+ library
+   exposed-modules:     System.IO.CodePage
+-                       System.Win32.CodePage
+   build-depends:       base >= 4.3 && < 5
+-  build-tools:         hsc2hs
+-  if os(windows)
+-    include-dirs:      include
+-    includes:          windows_cconv.h
+-    cpp-options:       "-DWINDOWS"
+-    build-depends:     Win32
+ 
+   hs-source-dirs:      src
+   default-language:    Haskell2010
+-- 
+2.7.4 (Apple Git-66)
+
