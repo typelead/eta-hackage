@@ -1,0 +1,143 @@
+From bdc2530a41f73d9851f8a156460ca80282ad45b6 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 9 Jan 2018 00:05:34 +0530
+Subject: [PATCH] Patched
+
+---
+ java/Utils.java                 | 78 +++++++++++++++++++++++++++++++++++++++++
+ src/Data/Text/Short/Internal.hs |  6 ++--
+ text-short.cabal                |  2 +-
+ 3 files changed, 82 insertions(+), 4 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..d4ce8ae
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,78 @@
++package eta.textshort;
++
++import java.nio.ByteBuffer;
++
++import eta.runtime.io.ByteArray;
++import eta.runtime.io.MemoryManager;
++
++public class Utils {
++
++    public int length(ByteArray byteArr, int n) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(byteArr.bufferAddress);
++        int i = 0, l = 0;
++        for (; i < n; i++) {
++            if ((buf.get() & 0xC0) != 0x80) {
++                l++;
++            }
++        }
++        return l;
++    }
++
++    public int isValidUtf8(ByteArray byteArr, int n) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(byteArr.bufferAddress);
++        int i = 0;
++        while (i++ < n) {
++            int b0 = buf.get() & 0xFF;
++            if ((b0 & 0x80) == 0) continue;
++
++            if ((b0 & 0xE0) == 0xC0) {
++                if ((b0 & 0x1E) == 0) return 1;
++                if (i >= n) return 2;
++                i++;
++                if ((buf.get() & 0xC0) != 0x80) return 1;
++                continue;
++            }
++
++            if ((b0 & 0xF0) == 0xE0) {
++                if ((i + 1) >= n) return 2;
++                i++;
++                int b1 = buf.get() & 0xFF;
++                if ((b1 & 0xC0) != 0x80) return 1;
++                if (((b0 & 0x0F) | (b1 & 0x20)) == 0) return 1;
++                if ((b0 == 0xED) && ((b1 & 0x20) != 0)) return 1;
++                i++;
++                if ((buf.get() & 0xC0) != 0x80) return 1;
++                continue;
++            }
++
++            if ((b0 & 0xF8) == 0xF0) {
++                if ((i + 2) >= n) return 2;
++                i++;
++                int b1 = buf.get() & 0xFF;
++                if ((b1 & 0xC0) != 0x80) return 1;
++                if (((b0 & 0x07) | (b1 & 0x30)) == 0) return 1;
++                if (b0 > 0xF4) return 1;
++                if ((b0 == 0xF4) && ((b1 & 0x30) != 0)) return 1;
++                i++;
++                if ((buf.get() & 0xC0) != 0x80) return 1;
++                i++;
++                if ((buf.get() & 0xC0) != 0x80) return 1;
++                continue;
++            }
++            return 1;
++        }
++        return 0;
++    }
++
++    public int isASCII(ByteArray byteArr, int n) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(byteArr.bufferAddress);
++        int i = 0;
++        for (; i < n; i++) {
++            if ((buf.get() & 0x80) != 0) {
++                return i;
++            }
++        }
++        return i;
++    }
++
++}
+diff --git a/src/Data/Text/Short/Internal.hs b/src/Data/Text/Short/Internal.hs
+index a6a912f..e362c18 100644
+--- a/src/Data/Text/Short/Internal.hs
++++ b/src/Data/Text/Short/Internal.hs
+@@ -111,7 +111,7 @@ null = BSS.null . toShortByteString
+ length :: ShortText -> Int
+ length st = fromIntegral $ unsafePerformIO (c_text_short_length (toByteArray# st) (toCSize st))
+ 
+-foreign import ccall unsafe "hs_text_short_length" c_text_short_length :: ByteArray# -> CSize -> IO CSize
++foreign import java unsafe "@static eta.textshort.Utils.length" c_text_short_length :: ByteArray# -> CSize -> IO CSize
+ 
+ -- | \(\mathcal{O}(n)\) Test whether 'ShortText' contains only ASCII code-points (i.e. only U+0000 through U+007F).
+ isAscii :: ShortText -> Bool
+@@ -119,7 +119,7 @@ isAscii st = (== sz) $ unsafePerformIO (c_text_short_is_ascii (toByteArray# st)
+   where
+     sz = toCSize st
+ 
+-foreign import ccall unsafe "hs_text_short_is_ascii" c_text_short_is_ascii :: ByteArray# -> CSize -> IO CSize
++foreign import java unsafe "@static eta.textshort.Utils.isASCII" c_text_short_is_ascii :: ByteArray# -> CSize -> IO CSize
+ 
+ ----------------------------------------------------------------------------
+ 
+@@ -238,7 +238,7 @@ encodeStringShort te = BSS.toShort . encodeString te
+ isValidUtf8 :: ShortText -> Bool
+ isValidUtf8 st = (==0) $ unsafePerformIO (c_text_short_is_valid_utf8 (toByteArray# st) (toCSize st))
+ 
+-foreign import ccall unsafe "hs_text_short_is_valid_utf8" c_text_short_is_valid_utf8 :: ByteArray# -> CSize -> IO CInt
++foreign import java unsafe "@static eta.textshort.Utils.isValidUtf8" c_text_short_is_valid_utf8 :: ByteArray# -> CSize -> IO CInt
+ 
+ {- TODO:
+ {-# RULES "ShortText strlit" forall s . fromString (unpackCString# s) = fromAddr# #-}
+diff --git a/text-short.cabal b/text-short.cabal
+index 94a4cce..f53b61e 100644
+--- a/text-short.cabal
++++ b/text-short.cabal
+@@ -48,7 +48,7 @@ library
+                      , Trustworthy
+                      , Unsafe
+ 
+-  c-sources: cbits/cbits.c
++  java-sources: java/Utils.java
+   ghc-options: -Wall
+ 
+ test-suite tests
+-- 
+2.7.4 (Apple Git-66)
+
