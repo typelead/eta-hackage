@@ -95,7 +95,7 @@ These packages are supported by `etlas`.
 - [call-stack-0.1.0](https://hackage.haskell.org/package/call-stack-0.1.0)
 - [carray-0.1.6.6](https://hackage.haskell.org/package/carray-0.1.6.6)
 - [case-insensitive >= 1.2.0.7 && <= 1.2.0.10](https://hackage.haskell.org/package/case-insensitive)
-- [cassava-0.4.5.1](https://hackage.haskell.org/package/cassava-0.4.5.1)
+- [cassava >= 0.4.5.1 && <= 0.5.1.0](https://hackage.haskell.org/package/cassava)
 - [cereal-0.5.4.0](https://hackage.haskell.org/package/cereal-0.5.4.0)
 - [circle-packing-0.1.0.6](https://hackage.haskell.org/package/circle-packing-0.1.0.6)
 - [chunked-data-0.3.0](https://hackage.haskell.org/package/chunked-data-0.3.0)
