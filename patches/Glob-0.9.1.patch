@@ -1,0 +1,97 @@
+From a192bb6af5864ab7ab51ef6855e1d780ce0c4c7c Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 8 Jan 2018 10:53:41 +0530
+Subject: [PATCH] Patched
+
+---
+ Glob.cabal                    |  4 +---
+ System/FilePath/Glob/Utils.hs | 23 +++++------------------
+ java/Utils.java               | 12 ++++++++++++
+ 3 files changed, 18 insertions(+), 21 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Glob.cabal b/Glob.cabal
+index 2754cf2..b74ecf4 100644
+--- a/Glob.cabal
++++ b/Glob.cabal
+@@ -32,13 +32,11 @@ Library
+                 , filepath     >= 1.1 && < 1.5
+                 , transformers >= 0.2 && < 0.6
+                 , transformers-compat >= 0.3 && < 0.6
++   Java-Sources:  java/Utils.java
+ 
+    if impl(ghc < 8.0)
+       Build-Depends: semigroups >= 0.18 && < 0.19
+ 
+-   if os(windows)
+-      Build-Depends: Win32 == 2.*
+-
+    Exposed-Modules: System.FilePath.Glob
+                     System.FilePath.Glob.Primitive
+    Other-Modules:   System.FilePath.Glob.Base
+diff --git a/System/FilePath/Glob/Utils.hs b/System/FilePath/Glob/Utils.hs
+index 3f0446e..90da9a1 100644
+--- a/System/FilePath/Glob/Utils.hs
++++ b/System/FilePath/Glob/Utils.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE CPP #-}
++{-# LANGUAGE CPP, ForeignFunctionInterface #-}
+ -- File created: 2008-10-10 13:40:35
+ 
+ module System.FilePath.Glob.Utils
+@@ -27,12 +27,6 @@ import System.IO.Unsafe (unsafeInterleaveIO)
+ import Data.Bits          ((.&.))
+ import System.Win32.Types (withTString)
+ import System.Win32.File  (c_GetFileAttributes, fILE_ATTRIBUTE_DIRECTORY)
+-#else
+-import Foreign.C.String      (withCString)
+-import Foreign.Marshal.Alloc (allocaBytes)
+-import System.FilePath
+-   (isDrive, dropTrailingPathSeparator, addTrailingPathSeparator)
+-import System.Posix.Internals (sizeof_stat, lstat, s_isdir, st_mode)
+ #endif
+ 
+ inRange :: Ord a => (a,a) -> a -> Bool
+@@ -112,17 +106,10 @@ doesDirectoryExist = flip withTString $ \s -> do
+    a <- c_GetFileAttributes s
+    return (a /= 0xffffffff && a.&.fILE_ATTRIBUTE_DIRECTORY /= 0)
+ #else
+-doesDirectoryExist s =
+-   allocaBytes sizeof_stat $ \p ->
+-      withCString
+-         (if isDrive s
+-             then addTrailingPathSeparator s
+-             else dropTrailingPathSeparator s)
+-         $ \c -> do
+-            st <- lstat c p
+-            if st == 0
+-               then fmap s_isdir (st_mode p)
+-               else return False
++doesDirectoryExist = doesDirectoryExist'
++
++foreign import java unsafe "@static eta.glob.Utils.doesDirectoryExist"
++  doesDirectoryExist' :: FilePath -> IO Bool
+ #endif
+ 
+ getRecursiveContents :: FilePath -> IO (DList FilePath)
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..6aa50ca
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,12 @@
++package eta.glob;
++
++import java.io.IOException;
++import java.nio.file.Files;
++import java.nio.file.Paths;
++import java.nio.file.attribute.BasicFileAttributes;
++
++public class Utils {
++    public boolean doesDirectoryExist(String path) throws IOException {
++        return Files.readAttributes(Paths.get(path), BasicFileAttributes.class).isDirectory();
++    }
++}
+-- 
+2.7.4 (Apple Git-66)
+

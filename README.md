@@ -159,7 +159,7 @@ These packages are supported by `etlas`.
 - [gdiff-1.1](https://hackage.haskell.org/package/gdiff-1.1)
 - [gray-code-0.3.1](https://hackage.haskell.org/package/gray-code-0.3.1)
 - [ghc-boot-th-8.0.1](https://hackage.haskell.org/package/ghc-boot-th-8.0.1)
-- [Glob-0.7.14](https://hackage.haskell.org/package/Glob-0.7.14)
+- [Glob >= 0.7.14 && <= 0.9.1](https://hackage.haskell.org/package/Glob)
 - [graph-matchings-0.1.0.0](https://hackage.haskell.org/package/graph-matchings-0.1.0.0)
 - [graph-wrapper-0.2.5.1](https://hackage.haskell.org/package/graph-wrapper-0.2.5.1)
 - [groups-0.4.0.0](https://hackage.haskell.org/package/groups-0.4.0.0)
