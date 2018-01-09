@@ -1,0 +1,32 @@
+From a0b418adc28c92b4b61a4ec5c8e69fb7c7c15ce5 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 9 Jan 2018 18:12:00 +0530
+Subject: [PATCH] Patched
+
+---
+ wai-logger.cabal | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/wai-logger.cabal b/wai-logger.cabal
+index 550552c..6df572d 100644
+--- a/wai-logger.cabal
++++ b/wai-logger.cabal
+@@ -26,13 +26,9 @@ Library
+                       , http-types
+                       , network
+                       , wai >= 2.0.0
+-  if os(windows)
+-      Cpp-Options:      -DWINDOWS
+-      Build-Depends:    time
++                      , time
+                       , old-locale
+-  else
+-      Build-Depends:    unix
+-                      , unix-time >= 0.2.2
++  Cpp-Options:      -DWINDOWS
+ 
+ Test-Suite doctest
+   Type:                 exitcode-stdio-1.0
+-- 
+2.7.4 (Apple Git-66)
+
