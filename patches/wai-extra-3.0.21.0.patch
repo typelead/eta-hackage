@@ -1,0 +1,109 @@
+From 0dbca4d3bde17e2d92abd84b714d9e67871cf4a7 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 9 Jan 2018 18:27:19 +0530
+Subject: [PATCH] Patched
+
+---
+ Network/Wai/Handler/CGI.hs           |  7 -------
+ Network/Wai/Middleware/StreamFile.hs |  8 +++-----
+ java/Utils.java                      | 11 +++++++++++
+ wai-extra.cabal                      | 10 +++-------
+ 4 files changed, 17 insertions(+), 19 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Network/Wai/Handler/CGI.hs b/Network/Wai/Handler/CGI.hs
+index 6c2a991..30b950e 100644
+--- a/Network/Wai/Handler/CGI.hs
++++ b/Network/Wai/Handler/CGI.hs
+@@ -33,14 +33,7 @@ import qualified Data.Streaming.Blaze as Blaze
+ import Data.Function (fix)
+ import Control.Monad (unless, void)
+ 
+-#if WINDOWS
+ import System.Environment (getEnvironment)
+-#else
+-import qualified System.Posix.Env.ByteString as Env
+-
+-getEnvironment :: IO [(String, String)]
+-getEnvironment = map (B.unpack *** B.unpack) `fmap` Env.getEnvironment
+-#endif
+ 
+ safeRead :: Read a => a -> String -> a
+ safeRead d s =
+diff --git a/Network/Wai/Middleware/StreamFile.hs b/Network/Wai/Middleware/StreamFile.hs
+index ee52880..0c05e3a 100644
+--- a/Network/Wai/Middleware/StreamFile.hs
++++ b/Network/Wai/Middleware/StreamFile.hs
+@@ -4,11 +4,11 @@
+ module Network.Wai.Middleware.StreamFile
+     (streamFile) where
+ 
++import Data.Int(Int64)
+ import Network.Wai (responseStream)
+ import Network.Wai.Internal
+ import Network.Wai (Middleware, responseToStream)
+ import qualified Data.ByteString.Char8 as S8
+-import System.PosixCompat (getFileStatus, fileSize, FileOffset)
+ import Network.HTTP.Types (hContentLength)
+ 
+ -- |Convert ResponseFile type responses into ResponseStream type
+@@ -37,7 +37,5 @@ streamFile app env sendResponse = app env $ \res ->
+                sendResponse $ responseStream s hs' body
+       _ -> sendResponse res
+ 
+-getFileSize :: FilePath -> IO FileOffset
+-getFileSize path = do
+-    stat <- getFileStatus path
+-    return (fileSize stat)
++foreign import java unsafe "@static eta.wai_extra.Utils.getFileSize"
++  getFileSize :: FilePath -> IO Int64
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..16fb5fd
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,11 @@
++package eta.wai_extra;
++
++import java.io.IOException;
++import java.nio.file.Paths;
++import java.nio.file.Files;
++
++public class Utils {
++    public long getFileSize(String path) throws IOException {
++        return Files.size(Paths.get(path));
++    }
++}
+diff --git a/wai-extra.cabal b/wai-extra.cabal
+index 8eda0e9..d8b34a4 100644
+--- a/wai-extra.cabal
++++ b/wai-extra.cabal
+@@ -112,22 +112,18 @@ Library
+                    , lifted-base               >= 0.1.2
+                    , deepseq
+                    , streaming-commons
+-                   , unix-compat
++                   -- , unix-compat
+                    , cookie
+                    , vault
+                    , zlib
+                    , aeson
+                    , iproute
+ 
+-  if os(windows)
+-      cpp-options:   -DWINDOWS
+-  else
+-      build-depends: unix
+-
+   default-extensions:        OverloadedStrings
++  java-sources: java/Utils.java
+ 
+   Exposed-modules:   Network.Wai.Handler.CGI
+-                     Network.Wai.Handler.SCGI
++                     -- Network.Wai.Handler.SCGI
+                      Network.Wai.Header
+                      Network.Wai.Middleware.AcceptOverride
+                      Network.Wai.Middleware.AddHeaders
+-- 
+2.7.4 (Apple Git-66)
+

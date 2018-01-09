@@ -365,6 +365,7 @@ These packages are supported by `etlas`.
 - [vinyl-0.5.1.1](https://hackage.haskell.org/package/vinyl-0.5.1.1)
 - [void >= 0.7.1 && <= 0.7.2](https://hackage.haskell.org/package/void)
 - [wai-3.2.1.1](https://hackage.haskell.org/package/wai-3.2.1.1)
+- [wai-extra-3.0.21.0](https://hackage.haskell.org/package/wai-extra-3.0.21.0)
 - [wai-logger-2.3.1](https://hackage.haskell.org/package/wai-logger-2.3.1)
 - [word8 >= 0.1.2 && <= 0.1.3](https://hackage.haskell.org/package/word8)
 - [x509-1.7.2](https://hackage.haskell.org/package/x509-1.7.2)
