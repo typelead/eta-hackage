@@ -1,0 +1,2411 @@
+From 606531aefa85a3120995a1b7de9b7500692be994 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 10 Jan 2018 16:39:27 +0530
+Subject: [PATCH] Patched
+
+---
+ Foundation/Foreign/MemoryMap/Posix.hs   | 250 +++++++++++++++++++++
+ Foundation/Foreign/MemoryMap/Posix.hsc  | 251 ---------------------
+ Foundation/Network/HostName.hs          | 169 ++++++++++++++
+ Foundation/Random/ChaChaDRG.hs          |  17 +-
+ Foundation/System/Bindings/Hs.hs        |   5 +-
+ Foundation/System/Bindings/Linux.hs     | 108 +++++++++
+ Foundation/System/Bindings/Linux.hsc    | 108 ---------
+ Foundation/System/Bindings/Macos.hs     |  33 +++
+ Foundation/System/Bindings/Macos.hsc    |  40 ----
+ Foundation/System/Bindings/Network.hs   |  39 ++++
+ Foundation/System/Bindings/Network.hsc  |  46 ----
+ Foundation/System/Bindings/Posix.hs     | 375 +++++++++++++++++++++++++++++++
+ Foundation/System/Bindings/Posix.hsc    | 381 --------------------------------
+ Foundation/System/Bindings/PosixDef.hs  |  25 +++
+ Foundation/System/Bindings/PosixDef.hsc |  24 --
+ Foundation/System/Bindings/Time.hs      | 122 ++++++++++
+ Foundation/System/Bindings/Time.hsc     | 126 -----------
+ Foundation/System/Entropy/Unix.hs       |   4 +-
+ Foundation/System/Entropy/Windows.hs    |  12 +-
+ Foundation/Timing.hs                    |  13 +-
+ foundation.cabal                        |  25 +--
+ 21 files changed, 1153 insertions(+), 1020 deletions(-)
+ create mode 100644 Foundation/Foreign/MemoryMap/Posix.hs
+ delete mode 100644 Foundation/Foreign/MemoryMap/Posix.hsc
+ create mode 100644 Foundation/Network/HostName.hs
+ create mode 100644 Foundation/System/Bindings/Linux.hs
+ delete mode 100644 Foundation/System/Bindings/Linux.hsc
+ create mode 100644 Foundation/System/Bindings/Macos.hs
+ delete mode 100644 Foundation/System/Bindings/Macos.hsc
+ create mode 100644 Foundation/System/Bindings/Network.hs
+ delete mode 100644 Foundation/System/Bindings/Network.hsc
+ create mode 100644 Foundation/System/Bindings/Posix.hs
+ delete mode 100644 Foundation/System/Bindings/Posix.hsc
+ create mode 100644 Foundation/System/Bindings/PosixDef.hs
+ delete mode 100644 Foundation/System/Bindings/PosixDef.hsc
+ create mode 100644 Foundation/System/Bindings/Time.hs
+ delete mode 100644 Foundation/System/Bindings/Time.hsc
+
+diff --git a/Foundation/Foreign/MemoryMap/Posix.hs b/Foundation/Foreign/MemoryMap/Posix.hs
+new file mode 100644
+index 0000000..1114571
+--- /dev/null
++++ b/Foundation/Foreign/MemoryMap/Posix.hs
+@@ -0,0 +1,250 @@
++-----------------------------------------------------------------------------
++-- |
++-- Module      :  Foundation.Foreign.MemoryMap.Posix
++-- Copyright   :  (c) Vincent Hanquez 2014
++-- License     :  BSD-style
++--
++-- Maintainer  :  Vincent Hanquez
++-- Stability   :  provisional
++-- Portability :  non-portable (requires POSIX)
++--
++-- Functions defined by the POSIX standards for manipulating memory maps
++--
++-- When a function that calls an underlying POSIX function fails, the errno
++-- code is converted to an 'IOError' using 'Foreign.C.Error.errnoToIOError'.
++-- For a list of which errno codes may be generated, consult the POSIX
++-- documentation for the underlying function.
++--
++-----------------------------------------------------------------------------
++
++{-# LANGUAGE ForeignFunctionInterface #-}
++{-# LANGUAGE CPP #-}
++module Foundation.Foreign.MemoryMap.Posix
++    ( memoryMap
++    , memoryUnmap
++    , memoryAdvise
++    , memoryLock
++    , memoryUnlock
++    , memoryProtect
++    , memorySync
++    -- * Flags types
++    , MemoryMapFlag(..)
++    , MemoryProtection(..)
++    , MemoryAdvice(..)
++    , MemorySyncFlag(..)
++    -- * system page size
++    , sysconfPageSize
++    -- * High level
++    , fileMapRead
++    ) where
++
++import Basement.Compat.Base
++import Basement.Types.OffsetSize
++import System.Posix.Types
++import Foreign.Ptr
++import Foreign.C.Types
++import Foreign.C.Error
++import Data.Bits
++
++import Foundation.Collection.Foldable
++import Foundation.VFS
++import qualified Prelude (fromIntegral)
++import Foundation.Foreign.MemoryMap.Types
++import Control.Exception
++
++import           GHC.IO.FD
++import           GHC.IO.IOMode
++import qualified GHC.IO.Device as IO
++
++c_mmap :: Ptr a -> CSize -> CInt -> CInt -> CInt -> COff -> IO (Ptr a)
++c_mmap = error "c_mmap: Not implemented yet."
++
++c_munmap :: Ptr a -> CSize -> IO CInt
++c_munmap = error "c_munmap: Not implemented yet."
++
++#if defined(POSIX_MADV_NORMAL)
++c_madvise :: Ptr a -> CSize -> CInt -> IO CInt
++c_madvise = error "c_madvise: Not implemented yet."
++#else
++c_madvise :: Ptr a -> CSize -> CInt -> IO CInt
++c_madvise = error "c_madvise: Not implemented yet."
++#endif
++
++c_msync :: Ptr a -> CSize -> CInt -> IO CInt
++c_msync = error "c_msync: Not implemented yet."
++
++c_mprotect :: Ptr a -> CSize -> CInt -> IO CInt
++c_mprotect = error "c_mprotect: Not implemented yet."
++
++#ifndef __HAIKU__
++c_mlock :: Ptr a -> CSize -> IO CInt
++c_mlock = error "c_mlock: Not implemented yet."
++#else
++c_mlock :: Ptr a -> CSize -> IO CInt
++c_mlock _ _ = return (-1)
++#endif
++
++#ifndef __HAIKU__
++c_munlock :: Ptr a -> CSize -> IO CInt
++c_munlock = error "c_munlock: Not implemented yet."
++#else
++c_munlock :: Ptr a -> CSize -> IO CInt
++c_munlock _ _ = return (-1)
++#endif
++
++c_sysconf :: CInt -> CLong
++c_sysconf = error "c_sysconf: Not implemented yet."
++
++-- | Mapping flag
++data MemoryMapFlag =
++      MemoryMapShared  -- ^ memory changes are shared between process
++    | MemoryMapPrivate -- ^ memory changes are private to process
++    deriving (Show,Eq)
++
++-- | Memory protection
++data MemoryProtection =
++      MemoryProtectionNone
++    | MemoryProtectionRead
++    | MemoryProtectionWrite
++    | MemoryProtectionExecute
++    deriving (Show,Eq)
++
++-- | Advice to put on memory.
++--
++-- only define the posix one.
++data MemoryAdvice =
++      MemoryAdviceNormal     -- ^ no specific advice, the default.
++    | MemoryAdviceRandom     -- ^ Expect page references in random order. No readahead should occur.
++    | MemoryAdviceSequential -- ^ Expect page references in sequential order. Page should be readahead aggressively.
++    | MemoryAdviceWillNeed   -- ^ Expect access in the near future. Probably a good idea to readahead early
++    | MemoryAdviceDontNeed   -- ^ Do not expect access in the near future.
++    deriving (Show,Eq)
++
++-- | Memory synchronization flags
++data MemorySyncFlag =
++      MemorySyncAsync      -- ^ perform asynchronous write.
++    | MemorySyncSync       -- ^ perform synchronous write.
++    | MemorySyncInvalidate -- ^ invalidate cache data.
++    deriving (Show,Eq)
++
++cvalueOfMemoryProts :: [MemoryProtection] -> CInt
++cvalueOfMemoryProts = foldl' (.|.) 0 . fmap toProt
++  where toProt :: MemoryProtection -> CInt
++        toProt MemoryProtectionNone    = error "toProt: Not implemented yet."
++        toProt MemoryProtectionRead    = error "toProt: Not implemented yet."
++        toProt MemoryProtectionWrite   = error "toProt: Not implemented yet."
++        toProt MemoryProtectionExecute = error "toProt: Not implemented yet."
++
++cvalueOfMemorySync :: [MemorySyncFlag] -> CInt
++cvalueOfMemorySync = foldl' (.|.) 0 . fmap toSync
++  where toSync MemorySyncAsync      = error "toSync: Not implemented yet."
++        toSync MemorySyncSync       = error "toSync: Not implemented yet."
++        toSync MemorySyncInvalidate = error "toSync: Not implemented yet."
++
++-- | Map pages of memory.
++--
++-- If fd is present, this memory will represent the file associated.
++-- Otherwise, the memory will be an anonymous mapping.
++--
++-- use 'mmap'
++memoryMap :: Maybe (Ptr a)      -- ^ The address to map to if MapFixed is used.
++          -> CSize              -- ^ The length of the mapping
++          -> [MemoryProtection] -- ^ the memory protection associated with the mapping
++          -> MemoryMapFlag      -- ^
++          -> Maybe Fd
++          -> COff
++          -> IO (Ptr a)
++memoryMap initPtr sz prots flag mfd off =
++  undefined
++    -- throwErrnoIf (== m1ptr) "mmap" (c_mmap (maybe nullPtr id initPtr) sz cprot cflags fd off)
++  -- where m1ptr  = nullPtr `plusPtr` (-1)
++  --       fd     = maybe (-1) (\(Fd v) -> v) mfd
++  --       cprot  = cvalueOfMemoryProts prots
++  --       cflags = maybe cMapAnon (const 0) mfd
++  --            .|. maybe 0 (const cMapFixed) initPtr
++  --            .|. toMapFlag flag
++
++-- #ifdef __APPLE__
++--         cMapAnon  = error "cMapAnon: Not implemented yet."
++-- #else
++--         cMapAnon  = error "cMapAnon: Not implemented yet."
++-- #endif
++--         cMapFixed = error "cMapFixed: Not implemented yet."
++
++--         toMapFlag MemoryMapShared  = error "toMapFlag: Not implemented yet."
++--         toMapFlag MemoryMapPrivate = error "toMapFlag: Not implemented yet."
++
++-- | Unmap pages of memory
++--
++-- use 'munmap'
++memoryUnmap :: Ptr a -> CSize -> IO ()
++memoryUnmap ptr sz = throwErrnoIfMinus1_ "munmap" (c_munmap ptr sz)
++
++-- | give advice to the operating system about use of memory
++--
++-- call 'madvise'
++memoryAdvise :: Ptr a -> CSize -> MemoryAdvice -> IO ()
++memoryAdvise ptr sz adv = throwErrnoIfMinus1_ "madvise" (c_madvise ptr sz cadv)
++  where cadv = toAdvice adv
++#if defined(POSIX_MADV_NORMAL)
++        toAdvice MemoryAdviceNormal = error "toAdvice: Not implemented yet."
++        toAdvice MemoryAdviceRandom = error "toAdvice: Not implemented yet."
++        toAdvice MemoryAdviceSequential = error "toAdvice: Not implemented yet."
++        toAdvice MemoryAdviceWillNeed = error "toAdvice: Not implemented yet."
++        toAdvice MemoryAdviceDontNeed = error "toAdvice: Not implemented yet."
++#else
++        toAdvice MemoryAdviceNormal = error "toAdvice: Not implemented yet."
++        toAdvice MemoryAdviceRandom = error "toAdvice: Not implemented yet."
++        toAdvice MemoryAdviceSequential = error "toAdvice: Not implemented yet."
++        toAdvice MemoryAdviceWillNeed = error "toAdvice: Not implemented yet."
++        toAdvice MemoryAdviceDontNeed = error "toAdvice: Not implemented yet."
++#endif
++
++-- | lock a range of process address space
++--
++-- call 'mlock'
++memoryLock :: Ptr a -> CSize -> IO ()
++memoryLock ptr sz = throwErrnoIfMinus1_ "mlock" (c_mlock ptr sz)
++
++-- | unlock a range of process address space
++--
++-- call 'munlock'
++memoryUnlock :: Ptr a -> CSize -> IO ()
++memoryUnlock ptr sz = throwErrnoIfMinus1_ "munlock" (c_munlock ptr sz)
++
++-- | set protection of memory mapping
++--
++-- call 'mprotect'
++memoryProtect :: Ptr a -> CSize -> [MemoryProtection] -> IO ()
++memoryProtect ptr sz prots = throwErrnoIfMinus1_ "mprotect" (c_mprotect ptr sz cprot)
++  where cprot = cvalueOfMemoryProts prots
++
++-- | memorySync synchronize memory with physical storage.
++--
++-- On an anonymous mapping this function does not have any effect.
++-- call 'msync'
++memorySync :: Ptr a -> CSize -> [MemorySyncFlag] -> IO ()
++memorySync ptr sz flags = throwErrnoIfMinus1_ "msync" (c_msync ptr sz cflags)
++  where cflags = cvalueOfMemorySync flags
++
++-- | Return the operating system page size.
++--
++-- call 'sysconf'
++sysconfPageSize :: Int
++sysconfPageSize = error "sysconfPageSize: Not implemented yet."
++
++--------------------------------------------------------------------------------
++
++fileSizeToCSize :: FileSize -> CSize
++fileSizeToCSize (FileSize sz) = Prelude.fromIntegral sz
++
++fileSizeFromInteger :: Integer -> FileSize
++fileSizeFromInteger = FileSize . Prelude.fromIntegral
++
++fileMapRead :: FileMapReadF
++fileMapRead fp = bracket (openFile (filePathToLString fp) ReadMode True) (IO.close . fst) $ \(fd,_) -> do
++    sz   <- fileSizeFromInteger `fmap` IO.getSize fd
++    let csz = fileSizeToCSize sz
++    p <- undefined
++    -- p    <- memoryMap Nothing csz [MemoryProtectionRead] MemoryMapPrivate (Just $ Fd $ fdFD fd) 0
++    return $ FileMapping p sz (memoryUnmap p csz)
+diff --git a/Foundation/Foreign/MemoryMap/Posix.hsc b/Foundation/Foreign/MemoryMap/Posix.hsc
+deleted file mode 100644
+index 47e7a93..0000000
+--- a/Foundation/Foreign/MemoryMap/Posix.hsc
++++ /dev/null
+@@ -1,251 +0,0 @@
+------------------------------------------------------------------------------
+--- |
+--- Module      :  Foundation.Foreign.MemoryMap.Posix
+--- Copyright   :  (c) Vincent Hanquez 2014
+--- License     :  BSD-style
+---
+--- Maintainer  :  Vincent Hanquez
+--- Stability   :  provisional
+--- Portability :  non-portable (requires POSIX)
+---
+--- Functions defined by the POSIX standards for manipulating memory maps
+---
+--- When a function that calls an underlying POSIX function fails, the errno
+--- code is converted to an 'IOError' using 'Foreign.C.Error.errnoToIOError'.
+--- For a list of which errno codes may be generated, consult the POSIX
+--- documentation for the underlying function.
+---
+------------------------------------------------------------------------------
+-
+-#include <sys/mman.h>
+-#include <unistd.h>
+-
+-{-# LANGUAGE ForeignFunctionInterface #-}
+-{-# LANGUAGE CPP #-}
+-module Foundation.Foreign.MemoryMap.Posix
+-    ( memoryMap
+-    , memoryUnmap
+-    , memoryAdvise
+-    , memoryLock
+-    , memoryUnlock
+-    , memoryProtect
+-    , memorySync
+-    -- * Flags types
+-    , MemoryMapFlag(..)
+-    , MemoryProtection(..)
+-    , MemoryAdvice(..)
+-    , MemorySyncFlag(..)
+-    -- * system page size
+-    , sysconfPageSize
+-    -- * High level
+-    , fileMapRead
+-    ) where
+-
+-import Basement.Compat.Base
+-import Basement.Compat.C.Types
+-import Basement.Types.OffsetSize
+-import System.Posix.Types
+-import Foreign.Ptr
+-import Foreign.C.Error
+-import Data.Bits
+-
+-import Foundation.Collection.Foldable
+-import Foundation.VFS
+-import qualified Prelude (fromIntegral)
+-import Foundation.Foreign.MemoryMap.Types
+-import Control.Exception
+-
+-import           GHC.IO.FD
+-import           GHC.IO.IOMode
+-import qualified GHC.IO.Device as IO
+-
+-foreign import ccall unsafe "mmap"
+-    c_mmap :: Ptr a -> CSize -> CInt -> CInt -> CInt -> COff -> IO (Ptr a)
+-
+-foreign import ccall unsafe "munmap"
+-    c_munmap :: Ptr a -> CSize -> IO CInt
+-
+-#if defined(POSIX_MADV_NORMAL)
+-foreign import ccall unsafe "posix_madvise"
+-    c_madvise :: Ptr a -> CSize -> CInt -> IO CInt
+-#else
+-foreign import ccall unsafe "madvise"
+-    c_madvise :: Ptr a -> CSize -> CInt -> IO CInt
+-#endif
+-
+-foreign import ccall unsafe "msync"
+-    c_msync :: Ptr a -> CSize -> CInt -> IO CInt
+-
+-foreign import ccall unsafe "mprotect"
+-    c_mprotect :: Ptr a -> CSize -> CInt -> IO CInt
+-
+-#ifndef __HAIKU__
+-foreign import ccall unsafe "mlock"
+-    c_mlock :: Ptr a -> CSize -> IO CInt
+-#else
+-c_mlock :: Ptr a -> CSize -> IO CInt
+-c_mlock _ _ = return (-1)
+-#endif
+-
+-#ifndef __HAIKU__
+-foreign import ccall unsafe "munlock"
+-    c_munlock :: Ptr a -> CSize -> IO CInt
+-#else
+-c_munlock :: Ptr a -> CSize -> IO CInt
+-c_munlock _ _ = return (-1)
+-#endif
+-
+-foreign import ccall unsafe "sysconf"
+-    c_sysconf :: CInt -> CLong
+-
+--- | Mapping flag
+-data MemoryMapFlag =
+-      MemoryMapShared  -- ^ memory changes are shared between process
+-    | MemoryMapPrivate -- ^ memory changes are private to process
+-    deriving (Show,Eq)
+-
+--- | Memory protection
+-data MemoryProtection =
+-      MemoryProtectionNone
+-    | MemoryProtectionRead
+-    | MemoryProtectionWrite
+-    | MemoryProtectionExecute
+-    deriving (Show,Eq)
+-
+--- | Advice to put on memory.
+---
+--- only define the posix one.
+-data MemoryAdvice =
+-      MemoryAdviceNormal     -- ^ no specific advice, the default.
+-    | MemoryAdviceRandom     -- ^ Expect page references in random order. No readahead should occur.
+-    | MemoryAdviceSequential -- ^ Expect page references in sequential order. Page should be readahead aggressively.
+-    | MemoryAdviceWillNeed   -- ^ Expect access in the near future. Probably a good idea to readahead early
+-    | MemoryAdviceDontNeed   -- ^ Do not expect access in the near future.
+-    deriving (Show,Eq)
+-
+--- | Memory synchronization flags
+-data MemorySyncFlag =
+-      MemorySyncAsync      -- ^ perform asynchronous write.
+-    | MemorySyncSync       -- ^ perform synchronous write.
+-    | MemorySyncInvalidate -- ^ invalidate cache data.
+-    deriving (Show,Eq)
+-
+-cvalueOfMemoryProts :: [MemoryProtection] -> CInt
+-cvalueOfMemoryProts = foldl' (.|.) 0 . fmap toProt
+-  where toProt :: MemoryProtection -> CInt
+-        toProt MemoryProtectionNone    = (#const PROT_NONE)
+-        toProt MemoryProtectionRead    = (#const PROT_READ)
+-        toProt MemoryProtectionWrite   = (#const PROT_WRITE)
+-        toProt MemoryProtectionExecute = (#const PROT_EXEC)
+-
+-cvalueOfMemorySync :: [MemorySyncFlag] -> CInt
+-cvalueOfMemorySync = foldl' (.|.) 0 . fmap toSync
+-  where toSync MemorySyncAsync      = (#const MS_ASYNC)
+-        toSync MemorySyncSync       = (#const MS_SYNC)
+-        toSync MemorySyncInvalidate = (#const MS_INVALIDATE)
+-
+--- | Map pages of memory.
+---
+--- If fd is present, this memory will represent the file associated.
+--- Otherwise, the memory will be an anonymous mapping.
+---
+--- use 'mmap'
+-memoryMap :: Maybe (Ptr a)      -- ^ The address to map to if MapFixed is used.
+-          -> CSize              -- ^ The length of the mapping
+-          -> [MemoryProtection] -- ^ the memory protection associated with the mapping
+-          -> MemoryMapFlag      -- ^
+-          -> Maybe Fd
+-          -> COff
+-          -> IO (Ptr a)
+-memoryMap initPtr sz prots flag mfd off =
+-    throwErrnoIf (== m1ptr) "mmap" (c_mmap (maybe nullPtr id initPtr) sz cprot cflags fd off)
+-  where m1ptr  = nullPtr `plusPtr` (-1)
+-        fd     = maybe (-1) (\(Fd v) -> v) mfd
+-        cprot  = cvalueOfMemoryProts prots
+-        cflags = maybe cMapAnon (const 0) mfd
+-             .|. maybe 0 (const cMapFixed) initPtr
+-             .|. toMapFlag flag
+-
+-#ifdef __APPLE__
+-        cMapAnon  = (#const MAP_ANON)
+-#else
+-        cMapAnon  = (#const MAP_ANONYMOUS)
+-#endif
+-        cMapFixed = (#const MAP_FIXED)
+-
+-        toMapFlag MemoryMapShared  = (#const MAP_SHARED)
+-        toMapFlag MemoryMapPrivate = (#const MAP_PRIVATE)
+-
+--- | Unmap pages of memory
+---
+--- use 'munmap'
+-memoryUnmap :: Ptr a -> CSize -> IO ()
+-memoryUnmap ptr sz = throwErrnoIfMinus1_ "munmap" (c_munmap ptr sz)
+-
+--- | give advice to the operating system about use of memory
+---
+--- call 'madvise'
+-memoryAdvise :: Ptr a -> CSize -> MemoryAdvice -> IO ()
+-memoryAdvise ptr sz adv = throwErrnoIfMinus1_ "madvise" (c_madvise ptr sz cadv)
+-  where cadv = toAdvice adv
+-#if defined(POSIX_MADV_NORMAL)
+-        toAdvice MemoryAdviceNormal = (#const POSIX_MADV_NORMAL)
+-        toAdvice MemoryAdviceRandom = (#const POSIX_MADV_RANDOM)
+-        toAdvice MemoryAdviceSequential = (#const POSIX_MADV_SEQUENTIAL)
+-        toAdvice MemoryAdviceWillNeed = (#const POSIX_MADV_WILLNEED)
+-        toAdvice MemoryAdviceDontNeed = (#const POSIX_MADV_DONTNEED)
+-#else
+-        toAdvice MemoryAdviceNormal = (#const MADV_NORMAL)
+-        toAdvice MemoryAdviceRandom = (#const MADV_RANDOM)
+-        toAdvice MemoryAdviceSequential = (#const MADV_SEQUENTIAL)
+-        toAdvice MemoryAdviceWillNeed = (#const MADV_WILLNEED)
+-        toAdvice MemoryAdviceDontNeed = (#const MADV_DONTNEED)
+-#endif
+-
+--- | lock a range of process address space
+---
+--- call 'mlock'
+-memoryLock :: Ptr a -> CSize -> IO ()
+-memoryLock ptr sz = throwErrnoIfMinus1_ "mlock" (c_mlock ptr sz)
+-
+--- | unlock a range of process address space
+---
+--- call 'munlock'
+-memoryUnlock :: Ptr a -> CSize -> IO ()
+-memoryUnlock ptr sz = throwErrnoIfMinus1_ "munlock" (c_munlock ptr sz)
+-
+--- | set protection of memory mapping
+---
+--- call 'mprotect'
+-memoryProtect :: Ptr a -> CSize -> [MemoryProtection] -> IO ()
+-memoryProtect ptr sz prots = throwErrnoIfMinus1_ "mprotect" (c_mprotect ptr sz cprot)
+-  where cprot = cvalueOfMemoryProts prots
+-
+--- | memorySync synchronize memory with physical storage.
+---
+--- On an anonymous mapping this function does not have any effect.
+--- call 'msync'
+-memorySync :: Ptr a -> CSize -> [MemorySyncFlag] -> IO ()
+-memorySync ptr sz flags = throwErrnoIfMinus1_ "msync" (c_msync ptr sz cflags)
+-  where cflags = cvalueOfMemorySync flags
+-
+--- | Return the operating system page size.
+---
+--- call 'sysconf'
+-sysconfPageSize :: Int
+-sysconfPageSize = Prelude.fromIntegral $ c_sysconf (#const _SC_PAGESIZE)
+-
+---------------------------------------------------------------------------------
+-
+-fileSizeToCSize :: FileSize -> CSize
+-fileSizeToCSize (FileSize sz) = Prelude.fromIntegral sz
+-
+-fileSizeFromInteger :: Integer -> FileSize
+-fileSizeFromInteger = FileSize . Prelude.fromIntegral
+-
+-fileMapRead :: FileMapReadF
+-fileMapRead fp = bracket (openFile (filePathToLString fp) ReadMode True) (IO.close . fst) $ \(fd,_) -> do
+-    sz   <- fileSizeFromInteger `fmap` IO.getSize fd
+-    let csz = fileSizeToCSize sz
+-    p    <- memoryMap Nothing csz [MemoryProtectionRead] MemoryMapPrivate (Just $ Fd $ fdFD fd) 0
+-    return $ FileMapping p sz (memoryUnmap p csz)
+diff --git a/Foundation/Network/HostName.hs b/Foundation/Network/HostName.hs
+new file mode 100644
+index 0000000..772e00f
+--- /dev/null
++++ b/Foundation/Network/HostName.hs
+@@ -0,0 +1,169 @@
++-- |
++-- Module      : Foundation.Network.HostName
++-- License     : BSD-style
++-- Maintainer  : Nicolas Di Prima <nicolas@primetype.co.uk>
++-- Stability   : experimental
++-- Portability : portable
++--
++-- HostName and HostName info
++--
++-- > getHostNameInfo "github.com" :: IO (HostNameInfo IPv4)
++--
++-- > getHostNameInfo "google.com" :: IO (HostNameInfo IPv6)
++--
++{-# LANGUAGE GeneralizedNewtypeDeriving #-}
++{-# LANGUAGE FlexibleContexts #-}
++{-# LANGUAGE OverloadedStrings #-}
++{-# LANGUAGE ForeignFunctionInterface #-}
++module Foundation.Network.HostName
++    ( HostName(..)
++    , HostNameInfo(..)
++    , getHostNameInfo
++    , getHostNameInfo_
++    ) where
++
++import Foundation.Class.Storable
++import Basement.Compat.Base
++import Data.Proxy
++import Foundation.Hashing (Hashable)
++import Foundation.String
++import Foundation.Array
++import Foundation.Collection.Mappable
++import Foundation.Network.IPv4 (IPv4)
++import Foundation.Network.IPv6 (IPv6)
++
++import Foundation.System.Bindings.Network
++
++import Foreign.C.String
++import Foreign.C.Types
++import Foreign.Ptr (nullPtr)
++import Control.Concurrent.MVar
++import System.IO.Unsafe (unsafePerformIO)
++
++import Control.Monad ((=<<))
++
++#ifdef mingw32_HOST_OS
++# include <winsock2.h>
++#else
++# include <netdb.h>
++# include <netinet/in.h>
++# include <sys/socket.h>
++#endif
++
++-- | HostName
++--
++newtype HostName = HostName { toString :: String }
++  deriving (Eq, Ord, Typeable, Hashable)
++instance Show HostName where
++    show = show . toString
++instance IsString HostName where
++    fromString = HostName . fromString
++
++-- | HostName Info
++data HostNameInfo address_type = HostNameInfo
++    { officialName :: !HostName
++        -- ^ official names
++    , aliases      :: !(Array HostName)
++        -- ^ known aliases
++    , addresses    :: !(Array address_type)
++        -- ^ known addresses
++    } deriving (Show, Eq, Ord, Typeable)
++
++-- | HostName errors
++data HostNameError
++    = HostNotFound !HostName
++        -- ^ the given HostMame was not found
++    | NoAssociatedData !HostName
++        -- ^ there is not associated info/data to the given HostName
++        --
++        -- i.e. : no IPv4 info? This might mean you should try IPv6 ?
++    | FatalError
++        -- ^ getHostNameInfo uses *C* a binding to get the `HostNameInfo`
++        --
++        -- a fatal error is linked to the underlying *C* function and is not
++        -- recoverable.
++    | UnknownError !CInt
++        -- ^ Unknown Error, `CInt` is the associated error code.
++        --
++        -- see man gethostbyname for more information
++  deriving (Show,Eq,Typeable)
++
++instance Exception HostNameError
++
++-- TODO: move this when we have socket family and domain name...
++class SocketFamily a where
++    familyCode :: proxy a -> CInt
++instance SocketFamily IPv4 where
++    familyCode _ = (#const AF_INET)
++instance SocketFamily IPv6 where
++    familyCode _ = (#const AF_INET6)
++
++-- | get `HostName` info:
++--
++-- retrieve the official name, the aliases and the addresses associated to this
++-- hostname.
++--
++-- For cross-platform compatibility purpose, this function is using a *C* non
++-- re-entrant function `gethostbyname2`. This function is using a `MVar ()` to
++-- avoid a race condition and should be safe to use.
++--
++getHostNameInfo :: (Eq address_type, Storable address_type, SocketFamily address_type)
++                => HostName
++                -> IO (HostNameInfo address_type)
++getHostNameInfo = getHostNameInfo_ Proxy
++
++globalMutex :: MVar ()
++globalMutex = unsafePerformIO (newMVar ())
++{-# NOINLINE globalMutex #-}
++
++-- | like `getHostNameInfo` but takes a `Proxy` to help with the type checker.
++getHostNameInfo_ :: (SocketFamily address_type, Eq address_type, Storable address_type)
++                 => Proxy address_type
++                 -> HostName
++                 -> IO (HostNameInfo address_type)
++getHostNameInfo_ p h@(HostName hn) =
++    withMVar globalMutex $ \_ ->
++    withCString (toList hn) $ \cname -> do
++        ptr <- loop $ c_gethostbyname2 cname (familyCode p)
++
++        on <- peekHostName . castPtr =<< peek (castPtr $ offname_ptr ptr)
++
++        as <- getAliases . castPtr =<< peek (castPtr $ aliases_ptr ptr)
++
++        addrs <- getAddresses p . castPtr =<< peek (castPtr $ addr_list ptr)
++        return $ HostNameInfo on as addrs
++  where
++    loop f = do
++        ptr <- f
++        if ptr /= nullPtr
++            then return ptr
++            else do
++                err <- getHErrno
++                case err of
++                    _ | err == herr_NoData        -> throwIO $ NoAssociatedData h
++                      | err == herr_HostNotFound  -> throwIO $ HostNotFound h
++                      | err == herr_TryAgain      -> loop f
++                      | err == herr_NoRecovery    -> throwIO FatalError
++                      | otherwise                 -> throwIO $ UnknownError err
++    offname_ptr = (#ptr struct hostent, h_name)
++    aliases_ptr = (#ptr struct hostent, h_aliases)
++    addr_list   = (#ptr struct hostent, h_addr_list)
++
++peekHostName :: Ptr Word8 -> IO HostName
++peekHostName ptr = HostName . fst . fromBytesLenient <$> peekArrayEndedBy 0x00 ptr
++
++getAliases :: Ptr (Ptr Word8) -> IO (Array HostName)
++getAliases ptr = do
++    arr <- peekArrayEndedBy nullPtr ptr
++    forM arr peekHostName
++
++getAddresses :: Storable address_type
++             => Proxy address_type
++             -> Ptr (Ptr address_type)
++             -> IO (Array address_type)
++getAddresses _ ptr = do
++    arr <- peekArrayEndedBy nullPtr ptr
++    forM arr peek
++
++c_gethostbyname2 :: CString -> CInt -> IO (Ptr Word8)
++c_gethostbyname2 = error "c_gethostbyname2: Not implemented yet."
+diff --git a/Foundation/Random/ChaChaDRG.hs b/Foundation/Random/ChaChaDRG.hs
+index 386e7f2..2c5b691 100644
+--- a/Foundation/Random/ChaChaDRG.hs
++++ b/Foundation/Random/ChaChaDRG.hs
+@@ -12,6 +12,7 @@ import           Foundation.Random.DRG
+ import qualified Basement.UArray as A
+ import qualified Basement.UArray.Mutable as A
+ import           GHC.ST
++import qualified GHC.Err as Err
+ import qualified Foreign.Marshal.Alloc (alloca)
+ 
+ -- | RNG based on ChaCha core.
+@@ -74,27 +75,27 @@ generateF64 (State key) = runST $ unsafePrimFromIO $
+         (,) <$> peek dst <*> (State <$> A.unsafeFreeze newKey)
+ 
+ -- return 0 on success, !0 for failure
+-foreign import ccall unsafe "foundation_rngV1_generate"
+-   c_rngv1_generate :: Ptr Word8 -- new key
++c_rngv1_generate :: Ptr Word8 -- new key
+                     -> Ptr Word8 -- destination
+                     -> Ptr Word8 -- current key
+                     -> CountOf Word8 -- number of bytes to generate
+                     -> IO Word32
++c_rngv1_generate = Err.error "c_rngv1_generate: Not implemented yet."
+ 
+-foreign import ccall unsafe "foundation_rngV1_generate_word64"
+-   c_rngv1_generate_word64 :: Ptr Word8  -- new key
++c_rngv1_generate_word64 :: Ptr Word8  -- new key
+                            -> Ptr Word64 -- destination
+                            -> Ptr Word8  -- current key
+                            -> IO Word32
++c_rngv1_generate_word64 = Err.error "c_rngv1_generate_word64: Not implemented yet."
+ 
+-foreign import ccall unsafe "foundation_rngV1_generate_f32"
+-   c_rngv1_generate_f32 :: Ptr Word8  -- new key
++c_rngv1_generate_f32 :: Ptr Word8  -- new key
+                         -> Ptr Float -- destination
+                         -> Ptr Word8  -- current key
+                         -> IO Word32
++c_rngv1_generate_f32 = Err.error "c_rngv1_generate_f32: Not implemented yet."
+ 
+-foreign import ccall unsafe "foundation_rngV1_generate_f64"
+-   c_rngv1_generate_f64 :: Ptr Word8  -- new key
++c_rngv1_generate_f64 :: Ptr Word8  -- new key
+                         -> Ptr Double -- destination
+                         -> Ptr Word8  -- current key
+                         -> IO Word32
++c_rngv1_generate_f64 = Err.error "c_rngv1_generate_f64: Not implemented yet."
+diff --git a/Foundation/System/Bindings/Hs.hs b/Foundation/System/Bindings/Hs.hs
+index cb4bacf..184466a 100644
+--- a/Foundation/System/Bindings/Hs.hs
++++ b/Foundation/System/Bindings/Hs.hs
+@@ -5,6 +5,9 @@ module Foundation.System.Bindings.Hs
+     where
+ 
+ import GHC.IO
++import GHC.Err
+ import Basement.Compat.C.Types
+ 
+-foreign import ccall unsafe "HsBase.h __hscore_get_errno" sysHsCoreGetErrno :: IO CInt
++-- foreign import ccall unsafe "HsBase.h __hscore_get_errno" sysHsCoreGetErrno :: IO CInt
++sysHsCoreGetErrno :: IO CInt
++sysHsCoreGetErrno = error "sysHsCoreGetErrno: Not implemented yet."
+diff --git a/Foundation/System/Bindings/Linux.hs b/Foundation/System/Bindings/Linux.hs
+new file mode 100644
+index 0000000..36e573f
+--- /dev/null
++++ b/Foundation/System/Bindings/Linux.hs
+@@ -0,0 +1,108 @@
++-----------------------------------------------------------------------------
++-- |
++-- Module      :  Foundation.System.Bindings.Linux
++-- Copyright   :  (c) Vincent Hanquez 2014-2017
++-- License     :  BSD-style
++--
++-- Maintainer  :  Vincent Hanquez
++-- Stability   :  provisional
++-- Portability :  non-portable (requires Linux)
++--
++-- Functions defined only for linux
++--
++-----------------------------------------------------------------------------
++{-# OPTIONS_HADDOCK hide #-}
++module Foundation.System.Bindings.Linux
++   where
++
++import Basement.Compat.Base
++import Foreign.C.Types
++import Foundation.System.Bindings.PosixDef
++
++#define __USE_GNU
++
++#include <sys/types.h>
++#include <sys/inotify.h>
++#include <fcntl.h>
++
++type CInotifyFlags = CInt
++type CInotifyMask = CInt
++type CWatchDescriptor = CInt
++
++sysLinux_O_TMPFILE
++    :: COpenFlags
++#ifdef __O_TMPFILE
++sysLinux_O_TMPFILE   = (#const __O_TMPFILE)
++#else
++sysLinux_O_TMPFILE   = 0
++#endif
++
++#ifdef IN_NONBLOCK
++sysLinux_IN_NONBLOCK :: CInotifyFlags
++sysLinux_IN_NONBLOCK = (#const IN_NONBLOCK)
++#endif
++
++#ifdef IN_CLOEXEC
++sysLinux_IN_CLOEXEC :: CInotifyFlags
++sysLinux_IN_CLOEXEC  = (#const IN_CLOEXEC)
++#endif
++
++sysLinux_IN_ACCESS
++    , sysLinux_IN_ATTRIB
++    , sysLinux_IN_CLOSE_WRITE
++    , sysLinux_IN_CLOSE_NOWRITE
++    , sysLinux_IN_CREATE
++    , sysLinux_IN_DELETE
++    , sysLinux_IN_DELETE_SELF
++    , sysLinux_IN_MODIFY
++    , sysLinux_IN_MOVE_SELF
++    , sysLinux_IN_MOVED_FROM
++    , sysLinux_IN_MOVED_TO :: CInotifyMask
++sysLinux_IN_ACCESS = (#const IN_ACCESS)
++sysLinux_IN_ATTRIB = (#const IN_ATTRIB)
++sysLinux_IN_CLOSE_WRITE = (#const IN_CLOSE_WRITE)
++sysLinux_IN_CLOSE_NOWRITE = (#const IN_CLOSE_NOWRITE)
++sysLinux_IN_CREATE = (#const IN_CREATE)
++sysLinux_IN_DELETE = (#const IN_DELETE)
++sysLinux_IN_DELETE_SELF = (#const IN_DELETE_SELF)
++sysLinux_IN_MODIFY = (#const IN_MODIFY)
++sysLinux_IN_MOVE_SELF = (#const IN_MOVE_SELF)
++sysLinux_IN_MOVED_FROM = (#const IN_MOVED_FROM)
++sysLinux_IN_MOVED_TO = (#const IN_MOVED_TO)
++
++-- extra mask at add_watch time
++sysLinux_IN_OPEN
++    , sysLinux_IN_DONT_FOLLOW
++    , sysLinux_IN_MASK_ADD
++    , sysLinux_IN_ONESHOT
++    , sysLinux_IN_ONLYDIR :: CInotifyMask
++sysLinux_IN_OPEN = (#const IN_OPEN)
++sysLinux_IN_DONT_FOLLOW = (#const IN_DONT_FOLLOW)
++sysLinux_IN_MASK_ADD = (#const IN_MASK_ADD)
++sysLinux_IN_ONESHOT = (#const IN_ONESHOT)
++sysLinux_IN_ONLYDIR = (#const IN_ONLYDIR)
++
++#ifdef IN_EXCL_UNLINK
++sysLinux_IN_EXCL_UNLINK :: CInotifyMask
++sysLinux_IN_EXCL_UNLINK = (#const IN_EXCL_UNLINK)
++#endif
++
++-- only found in mask
++sysLinux_IN_IGNORED
++    , sysLinux_IN_ISDIR
++    , sysLinux_IN_Q_OVERFLOW
++    , sysLinux_IN_UNMOUNT :: CInotifyMask
++sysLinux_IN_IGNORED = (#const IN_IGNORED)
++sysLinux_IN_ISDIR = (#const IN_ISDIR)
++sysLinux_IN_Q_OVERFLOW = (#const IN_Q_OVERFLOW)
++sysLinux_IN_UNMOUNT = (#const IN_UNMOUNT)
++
++cinotifyEventSize :: CSize
++cinotifyEventSize = 16
++
++sysLinuxInotifyInit :: CInotifyFlags -> IO CFd
++sysLinuxInotifyInit = error "sysLinuxInotifyInit: Not implemented yet."
++sysLinuxInotifyAddWatch :: CFd -> Ptr CChar -> CInotifyMask -> IO CWatchDescriptor
++sysLinuxInotifyAddWatch = error "sysLinuxInotifyAddWatch: Not implemented yet."
++sysLinuxInotifyRmWatch :: CFd -> CWatchDescriptor -> IO Int
++sysLinuxInotifyRmWatch = error "sysLinuxInotifyRmWatch: Not implemented yet."
+diff --git a/Foundation/System/Bindings/Linux.hsc b/Foundation/System/Bindings/Linux.hsc
+deleted file mode 100644
+index efd85ed..0000000
+--- a/Foundation/System/Bindings/Linux.hsc
++++ /dev/null
+@@ -1,108 +0,0 @@
+------------------------------------------------------------------------------
+--- |
+--- Module      :  Foundation.System.Bindings.Linux
+--- Copyright   :  (c) Vincent Hanquez 2014-2017
+--- License     :  BSD-style
+---
+--- Maintainer  :  Vincent Hanquez
+--- Stability   :  provisional
+--- Portability :  non-portable (requires Linux)
+---
+--- Functions defined only for linux
+---
+------------------------------------------------------------------------------
+-{-# OPTIONS_HADDOCK hide #-}
+-module Foundation.System.Bindings.Linux
+-   where
+-
+-import Basement.Compat.Base
+-import Basement.Compat.C.Types
+-import Foundation.System.Bindings.PosixDef
+-
+-#define __USE_GNU
+-
+-#include <sys/types.h>
+-#include <sys/inotify.h>
+-#include <fcntl.h>
+-
+-type CInotifyFlags = CInt
+-type CInotifyMask = CInt
+-type CWatchDescriptor = CInt
+-
+-sysLinux_O_TMPFILE
+-    :: COpenFlags
+-#ifdef __O_TMPFILE
+-sysLinux_O_TMPFILE   = (#const __O_TMPFILE)
+-#else
+-sysLinux_O_TMPFILE   = 0
+-#endif
+-
+-#ifdef IN_NONBLOCK
+-sysLinux_IN_NONBLOCK :: CInotifyFlags
+-sysLinux_IN_NONBLOCK = (#const IN_NONBLOCK)
+-#endif
+-
+-#ifdef IN_CLOEXEC
+-sysLinux_IN_CLOEXEC :: CInotifyFlags
+-sysLinux_IN_CLOEXEC  = (#const IN_CLOEXEC)
+-#endif
+-
+-sysLinux_IN_ACCESS
+-    , sysLinux_IN_ATTRIB
+-    , sysLinux_IN_CLOSE_WRITE
+-    , sysLinux_IN_CLOSE_NOWRITE
+-    , sysLinux_IN_CREATE
+-    , sysLinux_IN_DELETE
+-    , sysLinux_IN_DELETE_SELF
+-    , sysLinux_IN_MODIFY
+-    , sysLinux_IN_MOVE_SELF
+-    , sysLinux_IN_MOVED_FROM
+-    , sysLinux_IN_MOVED_TO :: CInotifyMask
+-sysLinux_IN_ACCESS = (#const IN_ACCESS)
+-sysLinux_IN_ATTRIB = (#const IN_ATTRIB)
+-sysLinux_IN_CLOSE_WRITE = (#const IN_CLOSE_WRITE)
+-sysLinux_IN_CLOSE_NOWRITE = (#const IN_CLOSE_NOWRITE)
+-sysLinux_IN_CREATE = (#const IN_CREATE)
+-sysLinux_IN_DELETE = (#const IN_DELETE)
+-sysLinux_IN_DELETE_SELF = (#const IN_DELETE_SELF)
+-sysLinux_IN_MODIFY = (#const IN_MODIFY)
+-sysLinux_IN_MOVE_SELF = (#const IN_MOVE_SELF)
+-sysLinux_IN_MOVED_FROM = (#const IN_MOVED_FROM)
+-sysLinux_IN_MOVED_TO = (#const IN_MOVED_TO)
+-
+--- extra mask at add_watch time
+-sysLinux_IN_OPEN
+-    , sysLinux_IN_DONT_FOLLOW
+-    , sysLinux_IN_MASK_ADD
+-    , sysLinux_IN_ONESHOT
+-    , sysLinux_IN_ONLYDIR :: CInotifyMask
+-sysLinux_IN_OPEN = (#const IN_OPEN)
+-sysLinux_IN_DONT_FOLLOW = (#const IN_DONT_FOLLOW)
+-sysLinux_IN_MASK_ADD = (#const IN_MASK_ADD)
+-sysLinux_IN_ONESHOT = (#const IN_ONESHOT)
+-sysLinux_IN_ONLYDIR = (#const IN_ONLYDIR)
+-
+-#ifdef IN_EXCL_UNLINK
+-sysLinux_IN_EXCL_UNLINK :: CInotifyMask
+-sysLinux_IN_EXCL_UNLINK = (#const IN_EXCL_UNLINK)
+-#endif
+-
+--- only found in mask
+-sysLinux_IN_IGNORED
+-    , sysLinux_IN_ISDIR
+-    , sysLinux_IN_Q_OVERFLOW
+-    , sysLinux_IN_UNMOUNT :: CInotifyMask
+-sysLinux_IN_IGNORED = (#const IN_IGNORED)
+-sysLinux_IN_ISDIR = (#const IN_ISDIR)
+-sysLinux_IN_Q_OVERFLOW = (#const IN_Q_OVERFLOW)
+-sysLinux_IN_UNMOUNT = (#const IN_UNMOUNT)
+-
+-cinotifyEventSize :: CSize
+-cinotifyEventSize = 16
+-
+-foreign import ccall unsafe "inotify_init1"
+-    sysLinuxInotifyInit :: CInotifyFlags -> IO CFd
+-foreign import ccall unsafe "inotify_add_watch"
+-    sysLinuxInotifyAddWatch :: CFd -> Ptr CChar -> CInotifyMask -> IO CWatchDescriptor
+-foreign import ccall unsafe "inotify_rm_watch"
+-    sysLinuxInotifyRmWatch :: CFd -> CWatchDescriptor -> IO Int
+diff --git a/Foundation/System/Bindings/Macos.hs b/Foundation/System/Bindings/Macos.hs
+new file mode 100644
+index 0000000..abb60d6
+--- /dev/null
++++ b/Foundation/System/Bindings/Macos.hs
+@@ -0,0 +1,33 @@
++{-# OPTIONS_HADDOCK hide #-}
++module Foundation.System.Bindings.Macos
++    where
++
++import Basement.Compat.Base
++import Foreign.C.Types
++import Foundation.System.Bindings.PosixDef
++import Basement.Types.OffsetSize
++
++sysMacos_O_SHLOCK
++    , sysMacos_O_EXLOCK
++    , sysMacos_O_SYMLINK
++    , sysMacos_O_EVTONLY :: COpenFlags
++sysMacos_O_SHLOCK   = error "sysMacos_O_SHLOCK: Not implemented yet."
++sysMacos_O_EXLOCK   = error "sysMacos_O_EXLOCK: Not implemented yet."
++sysMacos_O_SYMLINK  = error "sysMacos_O_SYMLINK: Not implemented yet."
++sysMacos_O_EVTONLY  = error "sysMacos_O_EVTONLY: Not implemented yet."
++
++data MachTimebaseInfo
++
++size_MachTimebaseInfo :: CSize
++size_MachTimebaseInfo = error "size_MachTimebaseInfo: Not implemented yet."
++
++ofs_MachTimebaseInfo_numer :: Offset Word8
++ofs_MachTimebaseInfo_numer = error "ofs_MachTimebaseInfo_numer: Not implemented yet."
++
++ofs_MachTimebaseInfo_denom :: Offset Word8
++ofs_MachTimebaseInfo_denom = error "ofs_MachTimebaseInfo_denom: Not implemented yet."
++
++sysMacos_absolute_time :: IO Word64
++sysMacos_absolute_time = error "sysMacos_absolute_time: Not implemented yet."
++sysMacos_timebase_info :: Ptr MachTimebaseInfo -> IO ()
++sysMacos_timebase_info = error "sysMacos_timebase_info: Not implemented yet."
+diff --git a/Foundation/System/Bindings/Macos.hsc b/Foundation/System/Bindings/Macos.hsc
+deleted file mode 100644
+index 75b670f..0000000
+--- a/Foundation/System/Bindings/Macos.hsc
++++ /dev/null
+@@ -1,40 +0,0 @@
+-{-# OPTIONS_HADDOCK hide #-}
+-module Foundation.System.Bindings.Macos
+-    where
+-
+-import Basement.Compat.Base
+-import Basement.Compat.C.Types
+-import Foundation.System.Bindings.PosixDef
+-import Basement.Types.OffsetSize
+-
+-#include <sys/mman.h>
+-#include <sys/stat.h>
+-#include <unistd.h>
+-#include <fcntl.h>
+-#include <mach/mach.h>
+-#include <mach/mach_time.h>
+-
+-sysMacos_O_SHLOCK
+-    , sysMacos_O_EXLOCK
+-    , sysMacos_O_SYMLINK
+-    , sysMacos_O_EVTONLY :: COpenFlags
+-sysMacos_O_SHLOCK   = (#const O_SHLOCK)
+-sysMacos_O_EXLOCK   = (#const O_EXLOCK)
+-sysMacos_O_SYMLINK  = (#const O_SYMLINK)
+-sysMacos_O_EVTONLY  = (#const O_EVTONLY)
+-
+-data MachTimebaseInfo
+-
+-size_MachTimebaseInfo :: CSize
+-size_MachTimebaseInfo = #const sizeof(mach_timebase_info_data_t)
+-
+-ofs_MachTimebaseInfo_numer :: Offset Word8
+-ofs_MachTimebaseInfo_numer = Offset (#offset mach_timebase_info_data_t, numer)
+-
+-ofs_MachTimebaseInfo_denom :: Offset Word8
+-ofs_MachTimebaseInfo_denom = Offset (#offset mach_timebase_info_data_t, denom)
+-
+-foreign import ccall unsafe "mach_absolute_time"
+-    sysMacos_absolute_time :: IO Word64
+-foreign import ccall unsafe "mach_timebase_info"
+-    sysMacos_timebase_info :: Ptr MachTimebaseInfo -> IO ()
+diff --git a/Foundation/System/Bindings/Network.hs b/Foundation/System/Bindings/Network.hs
+new file mode 100644
+index 0000000..4c024af
+--- /dev/null
++++ b/Foundation/System/Bindings/Network.hs
+@@ -0,0 +1,39 @@
++-- |
++-- Module      :  Foundation.System.Bindings.HostName
++-- License     :  BSD-style
++-- Maintainer  :  Nicolas Di Prima <nicolas@primetype.co.uk>
++-- Stability   :  provisional
++-- Portability :  portable
++--
++{-# OPTIONS_HADDOCK hide #-}
++module Foundation.System.Bindings.Network
++    ( -- * error
++      getHErrno
++    , herr_HostNotFound
++    , herr_NoData
++    , herr_NoRecovery
++    , herr_TryAgain
++    ) where
++
++import Basement.Compat.Base
++import Foreign.C.Types
++
++herr_HostNotFound
++  , herr_NoData
++  , herr_NoRecovery
++  , herr_TryAgain
++    :: CInt
++#ifdef mingw32_HOST_OS
++herr_HostNotFound = error "herr_HostNotFound: Not implemented yet."
++herr_NoData       = error "herr_NoData: Not implemented yet."
++herr_NoRecovery   = error "herr_NoRecovery: Not implemented yet."
++herr_TryAgain     = error "herr_TryAgain: Not implemented yet."
++#else
++herr_HostNotFound = error "herr_HostNotFound: Not implemented yet."
++herr_NoData       = error "herr_NoData: Not implemented yet."
++herr_NoRecovery   = error "herr_NoRecovery: Not implemented yet."
++herr_TryAgain     = error "herr_TryAgain: Not implemented yet."
++#endif
++
++getHErrno :: IO CInt
++getHErrno = error "getHErrno: Not implemented yet."
+diff --git a/Foundation/System/Bindings/Network.hsc b/Foundation/System/Bindings/Network.hsc
+deleted file mode 100644
+index 11ea740..0000000
+--- a/Foundation/System/Bindings/Network.hsc
++++ /dev/null
+@@ -1,46 +0,0 @@
+--- |
+--- Module      :  Foundation.System.Bindings.HostName
+--- License     :  BSD-style
+--- Maintainer  :  Nicolas Di Prima <nicolas@primetype.co.uk>
+--- Stability   :  provisional
+--- Portability :  portable
+---
+-{-# OPTIONS_HADDOCK hide #-}
+-module Foundation.System.Bindings.Network
+-    ( -- * error
+-      getHErrno
+-    , herr_HostNotFound
+-    , herr_NoData
+-    , herr_NoRecovery
+-    , herr_TryAgain
+-    ) where
+-
+-import Basement.Compat.Base
+-import Basement.Compat.C.Types
+-
+-#ifdef mingw32_HOST_OS
+-# include <winsock2.h>
+-#else
+-# include "netinet/in.h"
+-# include "netdb.h"
+-#endif
+-
+-herr_HostNotFound
+-  , herr_NoData
+-  , herr_NoRecovery
+-  , herr_TryAgain
+-    :: CInt
+-#ifdef mingw32_HOST_OS
+-herr_HostNotFound = (#const WSAHOST_NOT_FOUND)
+-herr_NoData       = (#const WSANO_DATA)
+-herr_NoRecovery   = (#const WSANO_RECOVERY)
+-herr_TryAgain     = (#const WSATRY_AGAIN)
+-#else
+-herr_HostNotFound = (#const HOST_NOT_FOUND)
+-herr_NoData       = (#const NO_DATA)
+-herr_NoRecovery   = (#const NO_RECOVERY)
+-herr_TryAgain     = (#const TRY_AGAIN)
+-#endif
+-
+-foreign import ccall unsafe "foundation_network_get_h_errno"
+-    getHErrno :: IO CInt
+diff --git a/Foundation/System/Bindings/Posix.hs b/Foundation/System/Bindings/Posix.hs
+new file mode 100644
+index 0000000..502854c
+--- /dev/null
++++ b/Foundation/System/Bindings/Posix.hs
+@@ -0,0 +1,375 @@
++-----------------------------------------------------------------------------
++-- |
++-- Module      :  Foundation.System.Bindings.Posix
++-- Copyright   :  (c) Vincent Hanquez 2014-2017
++-- License     :  BSD-style
++--
++-- Maintainer  :  Vincent Hanquez
++-- Stability   :  provisional
++-- Portability :  non-portable (requires POSIX)
++--
++-- Functions defined by the POSIX standards
++--
++-----------------------------------------------------------------------------
++{-# LANGUAGE CApiFFI #-}
++{-# OPTIONS_HADDOCK hide #-}
++module Foundation.System.Bindings.Posix
++   where
++
++import Basement.Compat.Base
++import Foreign.C.Types
++import Data.Bits
++import Foundation.System.Bindings.PosixDef
++
++data CDir
++data CDirent
++
++sysPosix_E2BIG
++    , sysPosix_EACCES
++    , sysPosix_EADDRINUSE
++    , sysPosix_EADDRNOTAVAIL
++    , sysPosix_EAFNOSUPPORT
++    , sysPosix_EAGAIN
++    , sysPosix_EALREADY
++    , sysPosix_EBADF
++    , sysPosix_EBUSY
++    , sysPosix_ECANCELED
++    , sysPosix_ECHILD
++    , sysPosix_ECONNABORTED
++    , sysPosix_ECONNREFUSED
++    , sysPosix_ECONNRESET
++    , sysPosix_EDEADLK
++    , sysPosix_EDESTADDRREQ
++    , sysPosix_EDOM
++    , sysPosix_EDQUOT
++    , sysPosix_EEXIST
++    , sysPosix_EFAULT
++    , sysPosix_EFBIG
++    , sysPosix_EHOSTUNREACH
++    , sysPosix_EIDRM
++    , sysPosix_EILSEQ
++    , sysPosix_EINPROGRESS
++    , sysPosix_EINTR
++    , sysPosix_EINVAL
++    , sysPosix_EIO
++    , sysPosix_EISCONN
++    , sysPosix_EISDIR
++    , sysPosix_ELOOP
++    , sysPosix_EMFILE
++    , sysPosix_EMLINK
++    , sysPosix_EMSGSIZE
++    , sysPosix_ENAMETOOLONG
++    , sysPosix_ENETDOWN
++    , sysPosix_ENETRESET
++    , sysPosix_ENETUNREACH
++    , sysPosix_ENFILE
++    , sysPosix_ENOBUFS
++    , sysPosix_ENODEV
++    , sysPosix_ENOENT
++    , sysPosix_ENOEXEC
++    , sysPosix_ENOLCK
++    , sysPosix_ENOMEM
++    , sysPosix_ENOMSG
++    , sysPosix_ENOPROTOOPT
++    , sysPosix_ENOSPC
++    , sysPosix_ENOSYS
++    , sysPosix_ENOTCONN
++    , sysPosix_ENOTDIR
++    , sysPosix_ENOTEMPTY
++    , sysPosix_ENOTSOCK
++    , sysPosix_ENOTSUP
++    , sysPosix_ENOTTY
++    , sysPosix_ENXIO
++    , sysPosix_EOPNOTSUPP
++    , sysPosix_EOVERFLOW
++    , sysPosix_EPERM
++    , sysPosix_EPIPE
++    , sysPosix_EPROTONOSUPPORT
++    , sysPosix_EPROTOTYPE
++    , sysPosix_ERANGE
++    , sysPosix_EROFS
++    , sysPosix_ESPIPE
++    , sysPosix_ESRCH
++    , sysPosix_ESTALE
++    , sysPosix_ETIMEDOUT
++    , sysPosix_ETXTBSY
++    , sysPosix_EWOULDBLOCK
++    , sysPosix_EXDEV :: CErrno
++sysPosix_E2BIG = error "sysPosix_E2BIG: Not implemented yet."
++sysPosix_EACCES = error "sysPosix_EACCES: Not implemented yet."
++sysPosix_EADDRINUSE = error "sysPosix_EADDRINUSE: Not implemented yet."
++sysPosix_EADDRNOTAVAIL = error "sysPosix_EADDRNOTAVAIL: Not implemented yet."
++sysPosix_EAFNOSUPPORT = error "sysPosix_EAFNOSUPPORT: Not implemented yet."
++sysPosix_EAGAIN = error "sysPosix_EAGAIN: Not implemented yet."
++sysPosix_EALREADY = error "sysPosix_EALREADY: Not implemented yet."
++sysPosix_EBADF = error "sysPosix_EBADF: Not implemented yet."
++sysPosix_EBUSY = error "sysPosix_EBUSY: Not implemented yet."
++sysPosix_ECANCELED = error "sysPosix_ECANCELED: Not implemented yet."
++sysPosix_ECHILD = error "sysPosix_ECHILD: Not implemented yet."
++sysPosix_ECONNABORTED = error "sysPosix_ECONNABORTED: Not implemented yet."
++sysPosix_ECONNREFUSED = error "sysPosix_ECONNREFUSED: Not implemented yet."
++sysPosix_ECONNRESET = error "sysPosix_ECONNRESET: Not implemented yet."
++sysPosix_EDEADLK = error "sysPosix_EDEADLK: Not implemented yet."
++sysPosix_EDESTADDRREQ = error "sysPosix_EDESTADDRREQ: Not implemented yet."
++sysPosix_EDOM = error "sysPosix_EDOM: Not implemented yet."
++sysPosix_EDQUOT = error "sysPosix_EDQUOT: Not implemented yet."
++sysPosix_EEXIST = error "sysPosix_EEXIST: Not implemented yet."
++sysPosix_EFAULT = error "sysPosix_EFAULT: Not implemented yet."
++sysPosix_EFBIG = error "sysPosix_EFBIG: Not implemented yet."
++sysPosix_EHOSTUNREACH = error "sysPosix_EHOSTUNREACH: Not implemented yet."
++sysPosix_EIDRM = error "sysPosix_EIDRM: Not implemented yet."
++sysPosix_EILSEQ = error "sysPosix_EILSEQ: Not implemented yet."
++sysPosix_EINPROGRESS = error "sysPosix_EINPROGRESS: Not implemented yet."
++sysPosix_EINTR = error "sysPosix_EINTR: Not implemented yet."
++sysPosix_EINVAL = error "sysPosix_EINVAL: Not implemented yet."
++sysPosix_EIO = error "sysPosix_EIO: Not implemented yet."
++sysPosix_EISCONN = error "sysPosix_EISCONN: Not implemented yet."
++sysPosix_EISDIR = error "sysPosix_EISDIR: Not implemented yet."
++sysPosix_ELOOP = error "sysPosix_ELOOP: Not implemented yet."
++sysPosix_EMFILE = error "sysPosix_EMFILE: Not implemented yet."
++sysPosix_EMLINK = error "sysPosix_EMLINK: Not implemented yet."
++sysPosix_EMSGSIZE = error "sysPosix_EMSGSIZE: Not implemented yet."
++sysPosix_ENAMETOOLONG = error "sysPosix_ENAMETOOLONG: Not implemented yet."
++sysPosix_ENETDOWN = error "sysPosix_ENETDOWN: Not implemented yet."
++sysPosix_ENETRESET = error "sysPosix_ENETRESET: Not implemented yet."
++sysPosix_ENETUNREACH = error "sysPosix_ENETUNREACH: Not implemented yet."
++sysPosix_ENFILE = error "sysPosix_ENFILE: Not implemented yet."
++sysPosix_ENOBUFS = error "sysPosix_ENOBUFS: Not implemented yet."
++sysPosix_ENODEV = error "sysPosix_ENODEV: Not implemented yet."
++sysPosix_ENOENT = error "sysPosix_ENOENT: Not implemented yet."
++sysPosix_ENOEXEC = error "sysPosix_ENOEXEC: Not implemented yet."
++sysPosix_ENOLCK = error "sysPosix_ENOLCK: Not implemented yet."
++sysPosix_ENOMEM = error "sysPosix_ENOMEM: Not implemented yet."
++sysPosix_ENOMSG = error "sysPosix_ENOMSG: Not implemented yet."
++sysPosix_ENOPROTOOPT = error "sysPosix_ENOPROTOOPT: Not implemented yet."
++sysPosix_ENOSPC = error "sysPosix_ENOSPC: Not implemented yet."
++sysPosix_ENOSYS = error "sysPosix_ENOSYS: Not implemented yet."
++sysPosix_ENOTCONN = error "sysPosix_ENOTCONN: Not implemented yet."
++sysPosix_ENOTDIR = error "sysPosix_ENOTDIR: Not implemented yet."
++sysPosix_ENOTEMPTY = error "sysPosix_ENOTEMPTY: Not implemented yet."
++sysPosix_ENOTSOCK = error "sysPosix_ENOTSOCK: Not implemented yet."
++sysPosix_ENOTSUP = error "sysPosix_ENOTSUP: Not implemented yet."
++sysPosix_ENOTTY = error "sysPosix_ENOTTY: Not implemented yet."
++sysPosix_ENXIO = error "sysPosix_ENXIO: Not implemented yet."
++sysPosix_EOPNOTSUPP = error "sysPosix_EOPNOTSUPP: Not implemented yet."
++sysPosix_EOVERFLOW = error "sysPosix_EOVERFLOW: Not implemented yet."
++sysPosix_EPERM = error "sysPosix_EPERM: Not implemented yet."
++sysPosix_EPIPE = error "sysPosix_EPIPE: Not implemented yet."
++sysPosix_EPROTONOSUPPORT = error "sysPosix_EPROTONOSUPPORT: Not implemented yet."
++sysPosix_EPROTOTYPE = error "sysPosix_EPROTOTYPE: Not implemented yet."
++sysPosix_ERANGE = error "sysPosix_ERANGE: Not implemented yet."
++sysPosix_EROFS = error "sysPosix_EROFS: Not implemented yet."
++sysPosix_ESPIPE = error "sysPosix_ESPIPE: Not implemented yet."
++sysPosix_ESRCH = error "sysPosix_ESRCH: Not implemented yet."
++sysPosix_ESTALE = error "sysPosix_ESTALE: Not implemented yet."
++sysPosix_ETIMEDOUT = error "sysPosix_ETIMEDOUT: Not implemented yet."
++sysPosix_ETXTBSY = error "sysPosix_ETXTBSY: Not implemented yet."
++sysPosix_EWOULDBLOCK = error "sysPosix_EWOULDBLOCK: Not implemented yet."
++sysPosix_EXDEV = error "sysPosix_EXDEV: Not implemented yet."
++
++#ifdef ENODATA
++sysPosix_ENODATA :: CErrno
++sysPosix_ENODATA = error "sysPosix_ENODATA: Not implemented yet."
++#endif
++
++#ifdef ENOSR
++sysPosix_ENOSR :: CErrno
++sysPosix_ENOSR = error "sysPosix_ENOSR: Not implemented yet."
++#endif
++
++#ifdef ENOSTR
++sysPosix_ENOSTR :: CErrno
++sysPosix_ENOSTR = error "sysPosix_ENOSTR: Not implemented yet."
++#endif
++
++#ifdef ETIME
++sysPosix_ETIME :: CErrno
++sysPosix_ETIME = error "sysPosix_ETIME: Not implemented yet."
++#endif
++
++#ifdef EBADMSG
++sysPosix_EBADMSG :: CErrno
++sysPosix_EBADMSG = error "sysPosix_EBADMSG: Not implemented yet."
++#endif
++
++#ifdef EMULTIHOP
++sysPosix_EMULTIHOP :: CErrno
++sysPosix_EMULTIHOP = error "sysPosix_EMULTIHOP: Not implemented yet."
++#endif
++
++#ifdef ENOLINK
++sysPosix_ENOLINK :: CErrno
++sysPosix_ENOLINK = error "sysPosix_ENOLINK: Not implemented yet."
++#endif
++
++#ifdef ENOTRECOVERABLE
++sysPosix_ENOTRECOVERABLE :: CErrno
++sysPosix_ENOTRECOVERABLE = error "sysPosix_ENOTRECOVERABLE: Not implemented yet."
++#endif
++
++#ifdef EOWNERDEAD
++sysPosix_EOWNERDEAD :: CErrno
++sysPosix_EOWNERDEAD = error "sysPosix_EOWNERDEAD: Not implemented yet."
++#endif
++
++#ifdef EPROTO
++sysPosix_EPROTO :: CErrno
++sysPosix_EPROTO = error "sysPosix_EPROTO: Not implemented yet."
++#endif
++
++sysPosix_O_RDONLY
++    , sysPosix_O_WRONLY
++    , sysPosix_O_RDWR
++    , sysPosix_O_NONBLOCK
++    , sysPosix_O_APPEND
++    , sysPosix_O_CREAT
++    , sysPosix_O_TRUNC
++    , sysPosix_O_EXCL :: COpenFlags
++sysPosix_O_RDONLY   = error "sysPosix_O_RDONLY: Not implemented yet."
++sysPosix_O_WRONLY   = error "sysPosix_O_WRONLY: Not implemented yet."
++sysPosix_O_RDWR     = error "sysPosix_O_RDWR: Not implemented yet."
++sysPosix_O_NONBLOCK = error "sysPosix_O_NONBLOCK: Not implemented yet."
++sysPosix_O_APPEND   = error "sysPosix_O_APPEND: Not implemented yet."
++sysPosix_O_CREAT    = error "sysPosix_O_CREAT: Not implemented yet."
++sysPosix_O_TRUNC    = error "sysPosix_O_TRUNC: Not implemented yet."
++sysPosix_O_EXCL     = error "sysPosix_O_EXCL: Not implemented yet."
++
++#ifdef O_NOFOLLOW
++sysPosix_O_NOFOLLOW :: COpenFlags
++sysPosix_O_NOFOLLOW = error "sysPosix_O_NOFOLLOW: Not implemented yet."
++#endif
++
++#ifdef O_CLOEXEC
++sysPosix_O_CLOEXEC :: COpenFlags
++sysPosix_O_CLOEXEC  = error "sysPosix_O_CLOEXEC: Not implemented yet."
++#endif
++
++sysPosix_PROT_NONE
++    , sysPosix_PROT_READ
++    , sysPosix_PROT_WRITE
++    , sysPosix_PROT_EXEC :: CMemProtFlags
++sysPosix_PROT_NONE  = error "sysPosix_PROT_NONE: Not implemented yet."
++sysPosix_PROT_READ  = error "sysPosix_PROT_READ: Not implemented yet."
++sysPosix_PROT_WRITE = error "sysPosix_PROT_WRITE: Not implemented yet."
++sysPosix_PROT_EXEC  = error "sysPosix_PROT_EXEC: Not implemented yet."
++
++sysPosix_MAP_SHARED
++    , sysPosix_MAP_PRIVATE
++    , sysPosix_MAP_FIXED
++    , sysPosix_MAP_ANONYMOUS :: CMemMappingFlags
++sysPosix_MAP_SHARED    = error "sysPosix_MAP_SHARED: Not implemented yet."
++sysPosix_MAP_PRIVATE   = error "sysPosix_MAP_PRIVATE: Not implemented yet."
++sysPosix_MAP_FIXED     = error "sysPosix_MAP_FIXED: Not implemented yet."
++#ifdef __APPLE__
++sysPosix_MAP_ANONYMOUS = error "sysPosix_MAP_ANONYMOUS: Not implemented yet."
++#else
++sysPosix_MAP_ANONYMOUS = error "sysPosix_MAP_ANONYMOUS: Not implemented yet."
++#endif
++
++sysPosix_MADV_NORMAL
++    , sysPosix_MADV_RANDOM
++    , sysPosix_MADV_SEQUENTIAL
++    , sysPosix_MADV_WILLNEED
++    , sysPosix_MADV_DONTNEED :: CMemAdvice
++#if defined(POSIX_MADV_NORMAL)
++sysPosix_MADV_NORMAL     = error "sysPosix_MADV_NORMAL: Not implemented yet."
++sysPosix_MADV_RANDOM     = error "sysPosix_MADV_RANDOM: Not implemented yet."
++sysPosix_MADV_SEQUENTIAL = error "sysPosix_MADV_SEQUENTIAL: Not implemented yet."
++sysPosix_MADV_WILLNEED   = error "sysPosix_MADV_WILLNEED: Not implemented yet."
++sysPosix_MADV_DONTNEED   = error "sysPosix_MADV_DONTNEED: Not implemented yet."
++#else
++sysPosix_MADV_NORMAL     = error "sysPosix_MADV_NORMAL: Not implemented yet."
++sysPosix_MADV_RANDOM     = error "sysPosix_MADV_RANDOM: Not implemented yet."
++sysPosix_MADV_SEQUENTIAL = error "sysPosix_MADV_SEQUENTIAL: Not implemented yet."
++sysPosix_MADV_WILLNEED   = error "sysPosix_MADV_WILLNEED: Not implemented yet."
++sysPosix_MADV_DONTNEED   = error "sysPosix_MADV_DONTNEED: Not implemented yet."
++#endif
++
++sysPosix_MS_ASYNC
++    , sysPosix_MS_SYNC
++    , sysPosix_MS_INVALIDATE :: CMemSyncFlags
++sysPosix_MS_ASYNC      = error "sysPosix_MS_ASYNC: Not implemented yet."
++sysPosix_MS_SYNC       = error "sysPosix_MS_SYNC: Not implemented yet."
++sysPosix_MS_INVALIDATE = error "sysPosix_MS_INVALIDATE: Not implemented yet."
++
++sysPosixMmap :: Ptr a -> CSize -> CMemProtFlags -> CMemMappingFlags -> CFd -> COff -> IO (Ptr a)
++sysPosixMmap = error "sysPosixMmap: Not implemented yet."
++
++sysPosixMunmap :: Ptr a -> CSize -> IO CInt
++sysPosixMunmap = error "sysPosixMunmap: Not implemented yet."
++
++#if defined(POSIX_MADV_NORMAL)
++sysPosixMadvise :: Ptr a -> CSize -> CMemAdvice -> IO CInt
++sysPosixMadvise = error "sysPosixMadvise: Not implemented yet."
++#else
++sysPosixMadvise :: Ptr a -> CSize -> CMemAdvice -> IO CInt
++sysPosixMadvise = error "sysPosixMadvise: Not implemented yet."
++#endif
++
++sysPosixMsync :: Ptr a -> CSize -> CMemSyncFlags -> IO CInt
++sysPosixMsync = error "sysPosixMsync: Not implemented yet."
++
++sysPosixMprotect :: Ptr a -> CSize -> CMemProtFlags -> IO CInt
++sysPosixMprotect = error "sysPosixMprotect: Not implemented yet."
++
++#ifndef __HAIKU__
++sysPosixMlock :: Ptr a -> CSize -> IO CInt
++sysPosixMlock = error "sysPosixMlock: Not implemented yet."
++#else
++sysPosixMlock :: Ptr a -> CSize -> IO CInt
++sysPosixMlock _ _ = return (-1)
++#endif
++
++#ifndef __HAIKU__
++sysPosixMunlock :: Ptr a -> CSize -> IO CInt
++sysPosixMunlock = error "sysPosixMunlock: Not implemented yet."
++#else
++sysPosixMunlock :: Ptr a -> CSize -> IO CInt
++sysPosixMunlock _ _ = return (-1)
++#endif
++
++sysPosix_SC_PAGESIZE :: CSysconfName
++sysPosix_SC_PAGESIZE = error "sysPosix_SC_PAGESIZE: Not implemented yet."
++
++sysPosixSysconf :: CSysconfName -> CLong
++sysPosixSysconf = error "sysPosixSysconf: Not implemented yet."
++--------------------------------------------------------------------------------
++-- files
++--------------------------------------------------------------------------------
++sysPosixOpen :: Ptr CChar -> COpenFlags -> CMode -> IO CFd
++sysPosixOpen = error "sysPosixOpen: Not implemented yet."
++sysPosixOpenAt :: CFd -> Ptr CChar -> COpenFlags -> CMode -> IO CFd
++sysPosixOpenAt = error "sysPosixOpenAt: Not implemented yet."
++sysPosixClose :: CFd -> IO CInt
++sysPosixClose = error "sysPosixClose: Not implemented yet."
++
++sysPosixFnctlNoArg :: CFd -> CInt -> IO CInt
++sysPosixFnctlNoArg = error "sysPosixFnctlNoArg: Not implemented yet."
++sysPosixFnctlPtr :: CFd -> CInt -> Ptr a -> IO CInt
++sysPosixFnctlPtr = error "sysPosixFnctlPtr: Not implemented yet."
++
++sysPosixFtruncate :: CFd -> COff -> IO CInt
++sysPosixFtruncate = error "sysPosixFtruncate: Not implemented yet."
++
++--------------------------------------------------------------------------------
++-- directories
++--------------------------------------------------------------------------------
++
++sysPosixOpendir :: Ptr CChar -> IO (Ptr CDir)
++sysPosixOpendir = error "sysPosixOpendir: Not implemented yet."
++sysPosixFdopendir :: CFd -> IO (Ptr CDir)
++sysPosixFdopendir = error "sysPosixFdopendir: Not implemented yet."
++sysPosixReaddir :: Ptr CDir -> IO (Ptr CDirent)
++sysPosixReaddir = error "sysPosixReaddir: Not implemented yet."
++sysPosixReaddirR :: Ptr CDir -> Ptr CDirent -> Ptr (Ptr CDirent) -> IO CInt
++sysPosixReaddirR = error "sysPosixReaddirR: Not implemented yet."
++sysPosixTelldir :: Ptr CDir -> IO CLong
++sysPosixTelldir = error "sysPosixTelldir: Not implemented yet."
++sysPosixSeekdir :: Ptr CDir -> CLong -> IO ()
++sysPosixSeekdir = error "sysPosixSeekdir: Not implemented yet."
++sysPosixRewinddir :: Ptr CDir -> IO ()
++sysPosixRewinddir = error "sysPosixRewinddir: Not implemented yet."
++sysPosixClosedir :: Ptr CDir -> IO CInt
++sysPosixClosedir = error "sysPosixClosedir: Not implemented yet."
++sysPosixDirfd :: Ptr CDir -> IO CFd
++sysPosixDirfd = error "sysPosixDirfd: Not implemented yet."
+diff --git a/Foundation/System/Bindings/Posix.hsc b/Foundation/System/Bindings/Posix.hsc
+deleted file mode 100644
+index 28776ee..0000000
+--- a/Foundation/System/Bindings/Posix.hsc
++++ /dev/null
+@@ -1,381 +0,0 @@
+------------------------------------------------------------------------------
+--- |
+--- Module      :  Foundation.System.Bindings.Posix
+--- Copyright   :  (c) Vincent Hanquez 2014-2017
+--- License     :  BSD-style
+---
+--- Maintainer  :  Vincent Hanquez
+--- Stability   :  provisional
+--- Portability :  non-portable (requires POSIX)
+---
+--- Functions defined by the POSIX standards
+---
+------------------------------------------------------------------------------
+-{-# LANGUAGE CApiFFI #-}
+-{-# OPTIONS_HADDOCK hide #-}
+-module Foundation.System.Bindings.Posix
+-   where
+-
+-import Basement.Compat.Base
+-import Basement.Compat.C.Types
+-import Data.Bits
+-import Foundation.System.Bindings.PosixDef
+-
+-#include <sys/mman.h>
+-#include <sys/stat.h>
+-#include <unistd.h>
+-#include <fcntl.h>
+-#include <errno.h>
+-
+-data CDir
+-data CDirent
+-
+-sysPosix_E2BIG
+-    , sysPosix_EACCES
+-    , sysPosix_EADDRINUSE
+-    , sysPosix_EADDRNOTAVAIL
+-    , sysPosix_EAFNOSUPPORT
+-    , sysPosix_EAGAIN
+-    , sysPosix_EALREADY
+-    , sysPosix_EBADF
+-    , sysPosix_EBUSY
+-    , sysPosix_ECANCELED
+-    , sysPosix_ECHILD
+-    , sysPosix_ECONNABORTED
+-    , sysPosix_ECONNREFUSED
+-    , sysPosix_ECONNRESET
+-    , sysPosix_EDEADLK
+-    , sysPosix_EDESTADDRREQ
+-    , sysPosix_EDOM
+-    , sysPosix_EDQUOT
+-    , sysPosix_EEXIST
+-    , sysPosix_EFAULT
+-    , sysPosix_EFBIG
+-    , sysPosix_EHOSTUNREACH
+-    , sysPosix_EIDRM
+-    , sysPosix_EILSEQ
+-    , sysPosix_EINPROGRESS
+-    , sysPosix_EINTR
+-    , sysPosix_EINVAL
+-    , sysPosix_EIO
+-    , sysPosix_EISCONN
+-    , sysPosix_EISDIR
+-    , sysPosix_ELOOP
+-    , sysPosix_EMFILE
+-    , sysPosix_EMLINK
+-    , sysPosix_EMSGSIZE
+-    , sysPosix_ENAMETOOLONG
+-    , sysPosix_ENETDOWN
+-    , sysPosix_ENETRESET
+-    , sysPosix_ENETUNREACH
+-    , sysPosix_ENFILE
+-    , sysPosix_ENOBUFS
+-    , sysPosix_ENODEV
+-    , sysPosix_ENOENT
+-    , sysPosix_ENOEXEC
+-    , sysPosix_ENOLCK
+-    , sysPosix_ENOMEM
+-    , sysPosix_ENOMSG
+-    , sysPosix_ENOPROTOOPT
+-    , sysPosix_ENOSPC
+-    , sysPosix_ENOSYS
+-    , sysPosix_ENOTCONN
+-    , sysPosix_ENOTDIR
+-    , sysPosix_ENOTEMPTY
+-    , sysPosix_ENOTSOCK
+-    , sysPosix_ENOTSUP
+-    , sysPosix_ENOTTY
+-    , sysPosix_ENXIO
+-    , sysPosix_EOPNOTSUPP
+-    , sysPosix_EOVERFLOW
+-    , sysPosix_EPERM
+-    , sysPosix_EPIPE
+-    , sysPosix_EPROTONOSUPPORT
+-    , sysPosix_EPROTOTYPE
+-    , sysPosix_ERANGE
+-    , sysPosix_EROFS
+-    , sysPosix_ESPIPE
+-    , sysPosix_ESRCH
+-    , sysPosix_ESTALE
+-    , sysPosix_ETIMEDOUT
+-    , sysPosix_ETXTBSY
+-    , sysPosix_EWOULDBLOCK
+-    , sysPosix_EXDEV :: CErrno
+-sysPosix_E2BIG = (#const E2BIG)
+-sysPosix_EACCES = (#const EACCES)
+-sysPosix_EADDRINUSE = (#const EADDRINUSE)
+-sysPosix_EADDRNOTAVAIL = (#const EADDRNOTAVAIL)
+-sysPosix_EAFNOSUPPORT = (#const EAFNOSUPPORT)
+-sysPosix_EAGAIN = (#const EAGAIN)
+-sysPosix_EALREADY = (#const EALREADY)
+-sysPosix_EBADF = (#const EBADF)
+-sysPosix_EBUSY = (#const EBUSY)
+-sysPosix_ECANCELED = (#const ECANCELED)
+-sysPosix_ECHILD = (#const ECHILD)
+-sysPosix_ECONNABORTED = (#const ECONNABORTED)
+-sysPosix_ECONNREFUSED = (#const ECONNREFUSED)
+-sysPosix_ECONNRESET = (#const ECONNRESET)
+-sysPosix_EDEADLK = (#const EDEADLK)
+-sysPosix_EDESTADDRREQ = (#const EDESTADDRREQ)
+-sysPosix_EDOM = (#const EDOM)
+-sysPosix_EDQUOT = (#const EDQUOT)
+-sysPosix_EEXIST = (#const EEXIST)
+-sysPosix_EFAULT = (#const EFAULT)
+-sysPosix_EFBIG = (#const EFBIG)
+-sysPosix_EHOSTUNREACH = (#const EHOSTUNREACH)
+-sysPosix_EIDRM = (#const EIDRM)
+-sysPosix_EILSEQ = (#const EILSEQ)
+-sysPosix_EINPROGRESS = (#const EINPROGRESS)
+-sysPosix_EINTR = (#const EINTR)
+-sysPosix_EINVAL = (#const EINVAL)
+-sysPosix_EIO = (#const EIO)
+-sysPosix_EISCONN = (#const EISCONN)
+-sysPosix_EISDIR = (#const EISDIR)
+-sysPosix_ELOOP = (#const ELOOP)
+-sysPosix_EMFILE = (#const EMFILE)
+-sysPosix_EMLINK = (#const EMLINK)
+-sysPosix_EMSGSIZE = (#const EMSGSIZE)
+-sysPosix_ENAMETOOLONG = (#const ENAMETOOLONG)
+-sysPosix_ENETDOWN = (#const ENETDOWN)
+-sysPosix_ENETRESET = (#const ENETRESET)
+-sysPosix_ENETUNREACH = (#const ENETUNREACH)
+-sysPosix_ENFILE = (#const ENFILE)
+-sysPosix_ENOBUFS = (#const ENOBUFS)
+-sysPosix_ENODEV = (#const ENODEV)
+-sysPosix_ENOENT = (#const ENOENT)
+-sysPosix_ENOEXEC = (#const ENOEXEC)
+-sysPosix_ENOLCK = (#const ENOLCK)
+-sysPosix_ENOMEM = (#const ENOMEM)
+-sysPosix_ENOMSG = (#const ENOMSG)
+-sysPosix_ENOPROTOOPT = (#const ENOPROTOOPT)
+-sysPosix_ENOSPC = (#const ENOSPC)
+-sysPosix_ENOSYS = (#const ENOSYS)
+-sysPosix_ENOTCONN = (#const ENOTCONN)
+-sysPosix_ENOTDIR = (#const ENOTDIR)
+-sysPosix_ENOTEMPTY = (#const ENOTEMPTY)
+-sysPosix_ENOTSOCK = (#const ENOTSOCK)
+-sysPosix_ENOTSUP = (#const ENOTSUP)
+-sysPosix_ENOTTY = (#const ENOTTY)
+-sysPosix_ENXIO = (#const ENXIO)
+-sysPosix_EOPNOTSUPP = (#const EOPNOTSUPP)
+-sysPosix_EOVERFLOW = (#const EOVERFLOW)
+-sysPosix_EPERM = (#const EPERM)
+-sysPosix_EPIPE = (#const EPIPE)
+-sysPosix_EPROTONOSUPPORT = (#const EPROTONOSUPPORT)
+-sysPosix_EPROTOTYPE = (#const EPROTOTYPE)
+-sysPosix_ERANGE = (#const ERANGE)
+-sysPosix_EROFS = (#const EROFS)
+-sysPosix_ESPIPE = (#const ESPIPE)
+-sysPosix_ESRCH = (#const ESRCH)
+-sysPosix_ESTALE = (#const ESTALE)
+-sysPosix_ETIMEDOUT = (#const ETIMEDOUT)
+-sysPosix_ETXTBSY = (#const ETXTBSY)
+-sysPosix_EWOULDBLOCK = (#const EWOULDBLOCK)
+-sysPosix_EXDEV = (#const EXDEV)
+-
+-#ifdef ENODATA
+-sysPosix_ENODATA :: CErrno
+-sysPosix_ENODATA = (#const ENODATA)
+-#endif
+-
+-#ifdef ENOSR
+-sysPosix_ENOSR :: CErrno
+-sysPosix_ENOSR = (#const ENOSR)
+-#endif
+-
+-#ifdef ENOSTR
+-sysPosix_ENOSTR :: CErrno
+-sysPosix_ENOSTR = (#const ENOSTR)
+-#endif
+-
+-#ifdef ETIME
+-sysPosix_ETIME :: CErrno
+-sysPosix_ETIME = (#const ETIME)
+-#endif
+-
+-#ifdef EBADMSG
+-sysPosix_EBADMSG :: CErrno
+-sysPosix_EBADMSG = (#const EBADMSG)
+-#endif
+-
+-#ifdef EMULTIHOP
+-sysPosix_EMULTIHOP :: CErrno
+-sysPosix_EMULTIHOP = (#const EMULTIHOP)
+-#endif
+-
+-#ifdef ENOLINK
+-sysPosix_ENOLINK :: CErrno
+-sysPosix_ENOLINK = (#const ENOLINK)
+-#endif
+-
+-#ifdef ENOTRECOVERABLE
+-sysPosix_ENOTRECOVERABLE :: CErrno
+-sysPosix_ENOTRECOVERABLE = (#const ENOTRECOVERABLE)
+-#endif
+-
+-#ifdef EOWNERDEAD
+-sysPosix_EOWNERDEAD :: CErrno
+-sysPosix_EOWNERDEAD = (#const EOWNERDEAD)
+-#endif
+-
+-#ifdef EPROTO
+-sysPosix_EPROTO :: CErrno
+-sysPosix_EPROTO = (#const EPROTO)
+-#endif
+-
+-sysPosix_O_RDONLY
+-    , sysPosix_O_WRONLY
+-    , sysPosix_O_RDWR
+-    , sysPosix_O_NONBLOCK
+-    , sysPosix_O_APPEND
+-    , sysPosix_O_CREAT
+-    , sysPosix_O_TRUNC
+-    , sysPosix_O_EXCL :: COpenFlags
+-sysPosix_O_RDONLY   = (#const O_RDONLY)
+-sysPosix_O_WRONLY   = (#const O_WRONLY)
+-sysPosix_O_RDWR     = ((#const O_RDONLY) .|. (#const O_WRONLY))
+-sysPosix_O_NONBLOCK = (#const O_NONBLOCK)
+-sysPosix_O_APPEND   = (#const O_APPEND)
+-sysPosix_O_CREAT    = (#const O_CREAT)
+-sysPosix_O_TRUNC    = (#const O_TRUNC)
+-sysPosix_O_EXCL     = (#const O_EXCL)
+-
+-#ifdef O_NOFOLLOW
+-sysPosix_O_NOFOLLOW :: COpenFlags
+-sysPosix_O_NOFOLLOW = (#const O_NOFOLLOW)
+-#endif
+-
+-#ifdef O_CLOEXEC
+-sysPosix_O_CLOEXEC :: COpenFlags
+-sysPosix_O_CLOEXEC  = (#const O_CLOEXEC)
+-#endif
+-
+-sysPosix_PROT_NONE
+-    , sysPosix_PROT_READ
+-    , sysPosix_PROT_WRITE
+-    , sysPosix_PROT_EXEC :: CMemProtFlags
+-sysPosix_PROT_NONE  = (#const PROT_NONE)
+-sysPosix_PROT_READ  = (#const PROT_READ)
+-sysPosix_PROT_WRITE = (#const PROT_WRITE)
+-sysPosix_PROT_EXEC  = (#const PROT_EXEC)
+-
+-sysPosix_MAP_SHARED
+-    , sysPosix_MAP_PRIVATE
+-    , sysPosix_MAP_FIXED
+-    , sysPosix_MAP_ANONYMOUS :: CMemMappingFlags
+-sysPosix_MAP_SHARED    = (#const MAP_SHARED)
+-sysPosix_MAP_PRIVATE   = (#const MAP_PRIVATE)
+-sysPosix_MAP_FIXED     = (#const MAP_FIXED)
+-#ifdef __APPLE__
+-sysPosix_MAP_ANONYMOUS = (#const MAP_ANON)
+-#else
+-sysPosix_MAP_ANONYMOUS = (#const MAP_ANONYMOUS)
+-#endif
+-
+-sysPosix_MADV_NORMAL
+-    , sysPosix_MADV_RANDOM
+-    , sysPosix_MADV_SEQUENTIAL
+-    , sysPosix_MADV_WILLNEED
+-    , sysPosix_MADV_DONTNEED :: CMemAdvice
+-#if defined(POSIX_MADV_NORMAL)
+-sysPosix_MADV_NORMAL     = (#const POSIX_MADV_NORMAL)
+-sysPosix_MADV_RANDOM     = (#const POSIX_MADV_RANDOM)
+-sysPosix_MADV_SEQUENTIAL = (#const POSIX_MADV_SEQUENTIAL)
+-sysPosix_MADV_WILLNEED   = (#const POSIX_MADV_WILLNEED)
+-sysPosix_MADV_DONTNEED   = (#const POSIX_MADV_DONTNEED)
+-#else
+-sysPosix_MADV_NORMAL     = (#const MADV_NORMAL)
+-sysPosix_MADV_RANDOM     = (#const MADV_RANDOM)
+-sysPosix_MADV_SEQUENTIAL = (#const MADV_SEQUENTIAL)
+-sysPosix_MADV_WILLNEED   = (#const MADV_WILLNEED)
+-sysPosix_MADV_DONTNEED   = (#const MADV_DONTNEED)
+-#endif
+-
+-sysPosix_MS_ASYNC
+-    , sysPosix_MS_SYNC
+-    , sysPosix_MS_INVALIDATE :: CMemSyncFlags
+-sysPosix_MS_ASYNC      = (#const MS_ASYNC)
+-sysPosix_MS_SYNC       = (#const MS_SYNC)
+-sysPosix_MS_INVALIDATE = (#const MS_INVALIDATE)
+-
+-foreign import ccall unsafe "mmap"
+-    sysPosixMmap :: Ptr a -> CSize -> CMemProtFlags -> CMemMappingFlags -> CFd -> COff -> IO (Ptr a)
+-
+-foreign import ccall unsafe "munmap"
+-    sysPosixMunmap :: Ptr a -> CSize -> IO CInt
+-
+-#if defined(POSIX_MADV_NORMAL)
+-foreign import ccall unsafe "posix_madvise"
+-    sysPosixMadvise :: Ptr a -> CSize -> CMemAdvice -> IO CInt
+-#else
+-foreign import ccall unsafe "madvise"
+-    sysPosixMadvise :: Ptr a -> CSize -> CMemAdvice -> IO CInt
+-#endif
+-
+-foreign import ccall unsafe "msync"
+-    sysPosixMsync :: Ptr a -> CSize -> CMemSyncFlags -> IO CInt
+-
+-foreign import ccall unsafe "mprotect"
+-    sysPosixMprotect :: Ptr a -> CSize -> CMemProtFlags -> IO CInt
+-
+-#ifndef __HAIKU__
+-foreign import ccall unsafe "mlock"
+-    sysPosixMlock :: Ptr a -> CSize -> IO CInt
+-#else
+-sysPosixMlock :: Ptr a -> CSize -> IO CInt
+-sysPosixMlock _ _ = return (-1)
+-#endif
+-
+-#ifndef __HAIKU__
+-foreign import ccall unsafe "munlock"
+-    sysPosixMunlock :: Ptr a -> CSize -> IO CInt
+-#else
+-sysPosixMunlock :: Ptr a -> CSize -> IO CInt
+-sysPosixMunlock _ _ = return (-1)
+-#endif
+-
+-sysPosix_SC_PAGESIZE :: CSysconfName
+-sysPosix_SC_PAGESIZE = (#const _SC_PAGESIZE)
+-
+-foreign import ccall unsafe "sysconf"
+-    sysPosixSysconf :: CSysconfName -> CLong
+---------------------------------------------------------------------------------
+--- files
+---------------------------------------------------------------------------------
+-foreign import ccall unsafe "open"
+-    sysPosixOpen :: Ptr CChar -> COpenFlags -> CMode -> IO CFd
+-foreign import ccall unsafe "openat"
+-    sysPosixOpenAt :: CFd -> Ptr CChar -> COpenFlags -> CMode -> IO CFd
+-foreign import ccall unsafe "close"
+-    sysPosixClose :: CFd -> IO CInt
+-
+-foreign import capi "fcntl.h fcntl"
+-    sysPosixFnctlNoArg :: CFd -> CInt -> IO CInt
+-foreign import capi "fcntl.h fcntl"
+-    sysPosixFnctlPtr :: CFd -> CInt -> Ptr a -> IO CInt
+-
+-foreign import ccall unsafe "ftruncate"
+-    sysPosixFtruncate :: CFd -> COff -> IO CInt
+-
+---------------------------------------------------------------------------------
+--- directories
+---------------------------------------------------------------------------------
+-
+-foreign import ccall unsafe "opendir"
+-    sysPosixOpendir :: Ptr CChar -> IO (Ptr CDir)
+-foreign import ccall unsafe "fdopendir"
+-    sysPosixFdopendir :: CFd -> IO (Ptr CDir)
+-foreign import ccall unsafe "readdir"
+-    sysPosixReaddir :: Ptr CDir -> IO (Ptr CDirent)
+-foreign import ccall unsafe "readdir_r"
+-    sysPosixReaddirR :: Ptr CDir -> Ptr CDirent -> Ptr (Ptr CDirent) -> IO CInt
+-foreign import ccall unsafe "telldir"
+-    sysPosixTelldir :: Ptr CDir -> IO CLong
+-foreign import ccall unsafe "seekdir"
+-    sysPosixSeekdir :: Ptr CDir -> CLong -> IO ()
+-foreign import ccall unsafe "rewinddir"
+-    sysPosixRewinddir :: Ptr CDir -> IO ()
+-foreign import ccall unsafe "closedir"
+-    sysPosixClosedir :: Ptr CDir -> IO CInt
+-foreign import ccall unsafe "dirfd"
+-    sysPosixDirfd :: Ptr CDir -> IO CFd
+diff --git a/Foundation/System/Bindings/PosixDef.hs b/Foundation/System/Bindings/PosixDef.hs
+new file mode 100644
+index 0000000..53303ca
+--- /dev/null
++++ b/Foundation/System/Bindings/PosixDef.hs
+@@ -0,0 +1,25 @@
++{-# OPTIONS_HADDOCK hide #-}
++module Foundation.System.Bindings.PosixDef
++    ( CErrno
++    , CFd
++    , CMemProtFlags
++    , CMemMappingFlags
++    , CMemAdvice
++    , CMemSyncFlags
++    , CSysconfName
++    , COpenFlags
++    , COff(..)
++    , CMode(..)
++    ) where
++
++import Foreign.C.Types
++import System.Posix.Types (COff(..), CMode(..))
++
++type CErrno = CInt
++type CFd = CInt
++type CMemProtFlags = CInt
++type CMemMappingFlags = CInt
++type CMemAdvice = CInt
++type CMemSyncFlags = CInt
++type CSysconfName = CInt
++type COpenFlags = CInt
+diff --git a/Foundation/System/Bindings/PosixDef.hsc b/Foundation/System/Bindings/PosixDef.hsc
+deleted file mode 100644
+index 420c9fd..0000000
+--- a/Foundation/System/Bindings/PosixDef.hsc
++++ /dev/null
+@@ -1,24 +0,0 @@
+-{-# OPTIONS_HADDOCK hide #-}
+-module Foundation.System.Bindings.PosixDef
+-    ( CErrno
+-    , CFd
+-    , CMemProtFlags
+-    , CMemMappingFlags
+-    , CMemAdvice
+-    , CMemSyncFlags
+-    , CSysconfName
+-    , COpenFlags
+-    , COff(..)
+-    , CMode(..)
+-    ) where
+-
+-import Basement.Compat.C.Types
+-
+-type CErrno = CInt
+-type CFd = CInt
+-type CMemProtFlags = CInt
+-type CMemMappingFlags = CInt
+-type CMemAdvice = CInt
+-type CMemSyncFlags = CInt
+-type CSysconfName = CInt
+-type COpenFlags = CInt
+diff --git a/Foundation/System/Bindings/Time.hs b/Foundation/System/Bindings/Time.hs
+new file mode 100644
+index 0000000..12eb681
+--- /dev/null
++++ b/Foundation/System/Bindings/Time.hs
+@@ -0,0 +1,122 @@
++-- |
++-- Module      :  Foundation.System.Bindings.Time
++-- Maintainer  :  Haskell foundation
++--
++
++module Foundation.System.Bindings.Time where
++
++import Basement.Compat.Base
++import Basement.Types.OffsetSize
++import Foreign.C.Types
++
++type CClockId = CInt
++data CTimeSpec
++data CTimeVal
++data CTimeZone
++
++size_CTimeSpec :: CSize
++size_CTimeSpec = error "size_CTimeSpec: Not implemented yet."
++
++ofs_CTimeSpec_Seconds :: Offset Word8
++ofs_CTimeSpec_Seconds = error "ofs_CTimeSpec_Seconds: Not implemented yet."
++
++ofs_CTimeSpec_NanoSeconds :: Offset Word8
++ofs_CTimeSpec_NanoSeconds = error "ofs_CTimeSpec_NanoSeconds: Not implemented yet."
++
++size_CTimeVal :: CSize
++size_CTimeVal = error "size_CTimeVal: Not implemented yet."
++
++size_CTimeZone :: CSize
++size_CTimeZone = error "size_CTimeZone: Not implemented yet."
++
++size_CTimeT :: CSize
++size_CTimeT = error "size_CTimeT: Not implemented yet."
++
++------------------------------------------------------------------------
++#ifdef FOUNDATION_SYSTEM_API_NO_CLOCK
++
++#define FOUNDATION_CLOCK_REALTIME 0
++#define FOUNDATION_CLOCK_MONOTONIC 1
++#define FOUNDATION_CLOCK_PROCESS_CPUTIME_ID 2
++#define FOUNDATION_CLOCK_THREAD_CPUTIME_ID 3
++
++#endif
++
++
++sysTime_CLOCK_REALTIME :: CClockId
++#ifdef FOUNDATION_SYSTEM_API_NO_CLOCK
++sysTime_CLOCK_REALTIME = error "sysTime_CLOCK_REALTIME: Not implemented yet."
++#else
++sysTime_CLOCK_REALTIME = error "sysTime_CLOCK_REALTIME: Not implemented yet."
++#endif
++
++sysTime_CLOCK_MONOTONIC :: CClockId
++#ifdef FOUNDATION_SYSTEM_API_NO_CLOCK
++sysTime_CLOCK_MONOTONIC = error "sysTime_CLOCK_MONOTONIC: Not implemented yet."
++#else
++sysTime_CLOCK_MONOTONIC = error "sysTime_CLOCK_MONOTONIC: Not implemented yet."
++#endif
++
++sysTime_CLOCK_PROCESS_CPUTIME_ID :: CClockId
++#ifdef FOUNDATION_SYSTEM_API_NO_CLOCK
++sysTime_CLOCK_PROCESS_CPUTIME_ID = error "sysTime_CLOCK_PROCESS_CPUTIME_ID: Not implemented yet."
++#else
++sysTime_CLOCK_PROCESS_CPUTIME_ID = error "sysTime_CLOCK_PROCESS_CPUTIME_ID: Not implemented yet."
++#endif
++
++sysTime_CLOCK_THREAD_CPUTIME_ID :: CClockId
++#ifdef FOUNDATION_SYSTEM_API_NO_CLOCK
++sysTime_CLOCK_THREAD_CPUTIME_ID = error "sysTime_CLOCK_THREAD_CPUTIME_ID: Not implemented yet."
++#else
++sysTime_CLOCK_THREAD_CPUTIME_ID = error "sysTime_CLOCK_THREAD_CPUTIME_ID: Not implemented yet."
++#endif
++
++#ifdef CLOCK_MONOTONIC_RAW
++sysTime_CLOCK_MONOTONIC_RAW :: CClockId
++sysTime_CLOCK_MONOTONIC_RAW = error "sysTime_CLOCK_MONOTONIC_RAW: Not implemented yet."
++#endif
++
++#ifdef CLOCK_REALTIME_COARSE
++sysTime_CLOCK_REALTIME_COARSE :: CClockId
++sysTime_CLOCK_REALTIME_COARSE = error "sysTime_CLOCK_REALTIME_COARSE: Not implemented yet."
++#endif
++
++#ifdef CLOCK_MONOTIC_COARSE
++sysTime_CLOCK_MONOTONIC_COARSE :: CClockId
++sysTime_CLOCK_MONOTONIC_COARSE = error "sysTime_CLOCK_MONOTONIC_COARSE: Not implemented yet."
++#endif
++
++#ifdef CLOCK_BOOTTIME
++sysTime_CLOCK_BOOTTIME :: CClockId
++sysTime_CLOCK_BOOTTIME = error "sysTime_CLOCK_BOOTTIME: Not implemented yet."
++#endif
++
++#ifdef CLOCK_REALTIME_ALARM
++sysTime_CLOCK_REALTIME_ALARM :: CClockId
++sysTime_CLOCK_REALTIME_ALARM = error "sysTime_CLOCK_REALTIME_ALARM: Not implemented yet."
++#endif
++
++#ifdef CLOCK_BOOTTIME_ALARM
++sysTime_CLOCK_BOOTTIME_ALARM :: CClockId
++sysTime_CLOCK_BOOTTIME_ALARM = error "sysTime_CLOCK_BOOTTIME_ALARM: Not implemented yet."
++#endif
++
++#ifdef CLOCK_TAI
++sysTime_CLOCK_TAI :: CClockId
++sysTime_CLOCK_TAI = error "sysTime_CLOCK_TAI: Not implemented yet."
++#endif
++
++#ifdef FOUNDATION_SYSTEM_API_NO_CLOCK
++sysTimeClockGetRes :: CClockId -> Ptr CTimeSpec -> IO CInt
++sysTimeClockGetRes = error "sysTimeClockGetRes: Not implemented yet."
++sysTimeClockGetTime :: CClockId -> Ptr CTimeSpec -> IO CInt
++sysTimeClockGetTime = error "sysTimeClockGetTime: Not implemented yet."
++#else
++sysTimeClockGetRes :: CClockId -> Ptr CTimeSpec -> IO CInt
++sysTimeClockGetRes = error "sysTimeClockGetRes: Not implemented yet."
++sysTimeClockGetTime :: CClockId -> Ptr CTimeSpec -> IO CInt
++sysTimeClockGetTime = error "sysTimeClockGetTime: Not implemented yet."
++#endif
++
++sysTimeGetTimeOfDay :: Ptr CTimeVal -> Ptr CTimeZone -> IO CInt
++sysTimeGetTimeOfDay = error "sysTimeGetTimeOfDay: Not implemented yet."
+diff --git a/Foundation/System/Bindings/Time.hsc b/Foundation/System/Bindings/Time.hsc
+deleted file mode 100644
+index e72f074..0000000
+--- a/Foundation/System/Bindings/Time.hsc
++++ /dev/null
+@@ -1,126 +0,0 @@
+--- |
+--- Module      :  Foundation.System.Bindings.Time
+--- Maintainer  :  Haskell foundation
+---
+-
+-module Foundation.System.Bindings.Time where
+-
+-import Basement.Compat.Base
+-import Basement.Compat.C.Types
+-import Basement.Types.OffsetSize
+-
+-#include <time.h>
+-#include <sys/time.h>
+-#include "foundation_system.h"
+-
+-type CClockId = CInt
+-data CTimeSpec
+-data CTimeVal
+-data CTimeZone
+-
+-size_CTimeSpec :: CSize
+-size_CTimeSpec = #const sizeof(struct timespec)
+-
+-ofs_CTimeSpec_Seconds :: Offset Word8
+-ofs_CTimeSpec_Seconds = Offset (#offset struct timespec, tv_sec)
+-
+-ofs_CTimeSpec_NanoSeconds :: Offset Word8
+-ofs_CTimeSpec_NanoSeconds = Offset (#offset struct timespec, tv_nsec)
+-
+-size_CTimeVal :: CSize
+-size_CTimeVal = #const sizeof(struct timeval)
+-
+-size_CTimeZone :: CSize
+-size_CTimeZone = #const sizeof(struct timezone)
+-
+-size_CTimeT :: CSize
+-size_CTimeT = #const sizeof(time_t)
+-
+-------------------------------------------------------------------------
+-#ifdef FOUNDATION_SYSTEM_API_NO_CLOCK
+-
+-#define FOUNDATION_CLOCK_REALTIME 0
+-#define FOUNDATION_CLOCK_MONOTONIC 1
+-#define FOUNDATION_CLOCK_PROCESS_CPUTIME_ID 2
+-#define FOUNDATION_CLOCK_THREAD_CPUTIME_ID 3
+-
+-#endif
+-
+-
+-sysTime_CLOCK_REALTIME :: CClockId
+-#ifdef FOUNDATION_SYSTEM_API_NO_CLOCK
+-sysTime_CLOCK_REALTIME = (#const FOUNDATION_CLOCK_REALTIME)
+-#else
+-sysTime_CLOCK_REALTIME = (#const CLOCK_REALTIME)
+-#endif
+-
+-sysTime_CLOCK_MONOTONIC :: CClockId
+-#ifdef FOUNDATION_SYSTEM_API_NO_CLOCK
+-sysTime_CLOCK_MONOTONIC = (#const FOUNDATION_CLOCK_MONOTONIC)
+-#else
+-sysTime_CLOCK_MONOTONIC = (#const CLOCK_MONOTONIC)
+-#endif
+-
+-sysTime_CLOCK_PROCESS_CPUTIME_ID :: CClockId
+-#ifdef FOUNDATION_SYSTEM_API_NO_CLOCK
+-sysTime_CLOCK_PROCESS_CPUTIME_ID = (#const FOUNDATION_CLOCK_PROCESS_CPUTIME_ID)
+-#else
+-sysTime_CLOCK_PROCESS_CPUTIME_ID = (#const CLOCK_PROCESS_CPUTIME_ID)
+-#endif
+-
+-sysTime_CLOCK_THREAD_CPUTIME_ID :: CClockId
+-#ifdef FOUNDATION_SYSTEM_API_NO_CLOCK
+-sysTime_CLOCK_THREAD_CPUTIME_ID = (#const FOUNDATION_CLOCK_THREAD_CPUTIME_ID)
+-#else
+-sysTime_CLOCK_THREAD_CPUTIME_ID = (#const CLOCK_THREAD_CPUTIME_ID)
+-#endif
+-
+-#ifdef CLOCK_MONOTONIC_RAW
+-sysTime_CLOCK_MONOTONIC_RAW :: CClockId
+-sysTime_CLOCK_MONOTONIC_RAW = (#const CLOCK_MONOTONIC_RAW)
+-#endif
+-
+-#ifdef CLOCK_REALTIME_COARSE
+-sysTime_CLOCK_REALTIME_COARSE :: CClockId
+-sysTime_CLOCK_REALTIME_COARSE = (#const CLOCK_REALTIME_COARSE)
+-#endif
+-
+-#ifdef CLOCK_MONOTIC_COARSE
+-sysTime_CLOCK_MONOTONIC_COARSE :: CClockId
+-sysTime_CLOCK_MONOTONIC_COARSE = (#const CLOCK_MONOTONIC_COARSE)
+-#endif
+-
+-#ifdef CLOCK_BOOTTIME
+-sysTime_CLOCK_BOOTTIME :: CClockId
+-sysTime_CLOCK_BOOTTIME = (#const CLOCK_BOOTTIME)
+-#endif
+-
+-#ifdef CLOCK_REALTIME_ALARM
+-sysTime_CLOCK_REALTIME_ALARM :: CClockId
+-sysTime_CLOCK_REALTIME_ALARM = (#const CLOCK_REALTIME_ALARM)
+-#endif
+-
+-#ifdef CLOCK_BOOTTIME_ALARM
+-sysTime_CLOCK_BOOTTIME_ALARM :: CClockId
+-sysTime_CLOCK_BOOTTIME_ALARM = (#const CLOCK_BOOTTIME_ALARM)
+-#endif
+-
+-#ifdef CLOCK_TAI
+-sysTime_CLOCK_TAI :: CClockId
+-sysTime_CLOCK_TAI = (#const CLOCK_TAI)
+-#endif
+-
+-#ifdef FOUNDATION_SYSTEM_API_NO_CLOCK
+-foreign import ccall unsafe "foundation_time_clock_getres"
+-    sysTimeClockGetRes :: CClockId -> Ptr CTimeSpec -> IO CInt
+-foreign import ccall unsafe "foundation_time_clock_gettime"
+-    sysTimeClockGetTime :: CClockId -> Ptr CTimeSpec -> IO CInt
+-#else
+-foreign import ccall unsafe "clock_getres"
+-    sysTimeClockGetRes :: CClockId -> Ptr CTimeSpec -> IO CInt
+-foreign import ccall unsafe "clock_gettime"
+-    sysTimeClockGetTime :: CClockId -> Ptr CTimeSpec -> IO CInt
+-#endif
+-
+-foreign import ccall unsafe "gettimeofday"
+-    sysTimeGetTimeOfDay :: Ptr CTimeVal -> Ptr CTimeZone -> IO CInt
+diff --git a/Foundation/System/Entropy/Unix.hs b/Foundation/System/Entropy/Unix.hs
+index 2ae5b3f..bbf4633 100644
+--- a/Foundation/System/Entropy/Unix.hs
++++ b/Foundation/System/Entropy/Unix.hs
+@@ -77,5 +77,5 @@ supportSyscall = unsafePerformIO ((==) 0 <$> c_sysrandom_linux nullPtr 0)
+ {-# NOINLINE supportSyscall #-}
+ 
+ -- return 0 on success, !0 for failure
+-foreign import ccall unsafe "foundation_sysrandom_linux"
+-   c_sysrandom_linux :: Ptr Word8 -> CSize -> IO Int
++c_sysrandom_linux :: Ptr Word8 -> CSize -> IO Int
++c_sysrandom_linux = error "c_sysrandom_linux: Not implemented yet."
+diff --git a/Foundation/System/Entropy/Windows.hs b/Foundation/System/Entropy/Windows.hs
+index 34e23a6..b32aee1 100644
+--- a/Foundation/System/Entropy/Windows.hs
++++ b/Foundation/System/Entropy/Windows.hs
+@@ -62,12 +62,12 @@ type CryptCtx = Word32
+ #endif
+ 
+ -- Declare the required CryptoAPI imports
+-foreign import WINDOWS_CCONV unsafe "CryptAcquireContextA"
+-   c_cryptAcquireCtx :: Ptr CryptCtx -> CString -> CString -> DWORD -> DWORD -> IO BOOL
+-foreign import WINDOWS_CCONV unsafe "CryptGenRandom"
+-   c_cryptGenRandom :: CryptCtx -> DWORD -> Ptr BYTE -> IO BOOL
+-foreign import WINDOWS_CCONV unsafe "CryptReleaseContext"
+-   c_cryptReleaseCtx :: CryptCtx -> DWORD -> IO BOOL
++c_cryptAcquireCtx :: Ptr CryptCtx -> CString -> CString -> DWORD -> DWORD -> IO BOOL
++c_cryptAcquireCtx = error "c_cryptAcquireCtx: Not implemented yet."
++c_cryptGenRandom :: CryptCtx -> DWORD -> Ptr BYTE -> IO BOOL
++c_cryptGenRandom = error "c_cryptGenRandom: Not implemented yet."
++c_cryptReleaseCtx :: CryptCtx -> DWORD -> IO BOOL
++c_cryptReleaseCtx = error "c_cryptReleaseCtx: Not implemented yet."
+ 
+ 
+ -- Define the constants we need from WinCrypt.h
+diff --git a/Foundation/Timing.hs b/Foundation/Timing.hs
+index 9a343e4..e86c922 100644
+--- a/Foundation/Timing.hs
++++ b/Foundation/Timing.hs
+@@ -25,7 +25,8 @@ import           Foundation.Time.Bindings
+ import           Control.Exception (evaluate)
+ import           System.Mem (performGC)
+ import           Data.Function (on)
+-import qualified GHC.Stats as GHC
++import qualified GHC.Err as Err
++-- import qualified GHC.Stats as GHC
+ 
+ 
+ data Timing = Timing
+@@ -49,15 +50,13 @@ getGCStats = do
+ diffGC :: Maybe GHC.RTSStats -> Maybe GHC.RTSStats -> Maybe Word64
+ diffGC gc2 gc1 = ((-) `on` GHC.allocated_bytes) <$> gc2 <*> gc1
+ #else
+-type GCStats = GHC.GCStats
++type GCStats = ()
+ 
+ getGCStats :: IO (Maybe GCStats)
+-getGCStats = do
+-    r <- GHC.getGCStatsEnabled
+-    if r then pure Nothing else Just <$> GHC.getGCStats
++getGCStats = Err.error "getGCStats: Not implemented yet."
+ 
+-diffGC :: Maybe GHC.GCStats -> Maybe GHC.GCStats -> Maybe Word64
+-diffGC gc2 gc1 = integralCast <$> (((-) `on` GHC.bytesAllocated) <$> gc2 <*> gc1)
++diffGC :: Maybe GCStats -> Maybe GCStats -> Maybe Word64
++diffGC gc2 gc1 = Err.error "diffGC: Not implemented yet."
+ #endif
+ 
+ -- | Simple one-time measurement of time & other metrics spent in a function
+diff --git a/foundation.cabal b/foundation.cabal
+index 633335d..c8fa3e6 100644
+--- a/foundation.cabal
++++ b/foundation.cabal
+@@ -159,28 +159,12 @@ library
+                      Foundation.System.Bindings.Time
+                      Foundation.System.Bindings.Hs
+ 
+-  include-dirs:      cbits
+-  c-sources:         cbits/foundation_random.c
+-                     cbits/foundation_network.c
+-                     cbits/foundation_time.c
+-                     cbits/foundation_utf8.c
+-
+   if flag(experimental)
+     exposed-modules: Foundation.Network.HostName
+-  if os(windows)
+-    exposed-modules: Foundation.System.Bindings.Windows
+-    other-modules:   Foundation.Foreign.MemoryMap.Windows
+-                     Foundation.System.Entropy.Windows
+-  else
+-    exposed-modules: Foundation.System.Bindings.Posix
+-                     Foundation.System.Bindings.PosixDef
+-    other-modules:   Foundation.Foreign.MemoryMap.Posix
+-                     Foundation.System.Entropy.Unix
+-  if os(linux)
+-    exposed-modules: Foundation.System.Bindings.Linux
+-  if os(osx)
+-    exposed-modules: Foundation.System.Bindings.Macos
+-
++  exposed-modules: Foundation.System.Bindings.Posix
++                    Foundation.System.Bindings.PosixDef
++  other-modules:   Foundation.Foreign.MemoryMap.Posix
++                    Foundation.System.Entropy.Unix
+   if impl(ghc >= 7.10)
+     exposed-modules: Foundation.Tuple.Nth
+                      Foundation.List.ListN
+@@ -190,6 +174,7 @@ library
+                       TypeFamilies
+                       BangPatterns
+                       DeriveDataTypeable
++                      CPP
+   build-depends:     base >= 4.7 && < 5
+                    , basement == 0.0.5
+                    , ghc-prim
+-- 
+2.7.4 (Apple Git-66)
+
