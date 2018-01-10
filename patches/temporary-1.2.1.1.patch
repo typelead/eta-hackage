@@ -1,18 +1,18 @@
-From 02c18e3db0e5b2ce5ee132f4c8e770f007bcd0f7 Mon Sep 17 00:00:00 2001
+From 565fc52f0cd357c9ebb3acbcc8b86fd48a6f73cc Mon Sep 17 00:00:00 2001
 From: Denys Dushyn <Denys.Dushyn@dataart.com>
-Date: Wed, 10 Jan 2018 09:55:46 +0100
-Subject: [PATCH] Patched
+Date: Wed, 10 Jan 2018 11:41:08 +0100
+Subject: [PATCH] Corrected paths
 
 ---
- temporary-1.2.1.1/System/IO/Temp.hs |  9 ---------
- temporary-1.2.1.1/temporary.cabal   |  7 +------
- temporary-1.2.1.1/tests/test.hs     | 18 ------------------
+ System/IO/Temp.hs |  9 ---------
+ temporary.cabal   |  7 +------
+ tests/test.hs     | 18 ------------------
  3 files changed, 1 insertion(+), 33 deletions(-)
 
-diff --git a/temporary-1.2.1.1/System/IO/Temp.hs b/temporary-1.2.1.1/System/IO/Temp.hs
+diff --git a/System/IO/Temp.hs b/System/IO/Temp.hs
 index 9abbb99..e85da9f 100644
---- a/temporary-1.2.1.1/System/IO/Temp.hs
-+++ b/temporary-1.2.1.1/System/IO/Temp.hs
+--- a/System/IO/Temp.hs
++++ b/System/IO/Temp.hs
 @@ -49,11 +49,6 @@ import System.IO (Handle, hClose, openTempFile, openBinaryTempFile,
  import System.IO.Error        (isAlreadyExistsError)
  import System.Posix.Internals (c_getpid)
@@ -37,10 +37,10 @@ index 9abbb99..e85da9f 100644
  
  -- | Return the absolute and canonical path to the system temporary
  -- directory.
-diff --git a/temporary-1.2.1.1/temporary.cabal b/temporary-1.2.1.1/temporary.cabal
+diff --git a/temporary.cabal b/temporary.cabal
 index aa18a23..4cdbaa4 100644
---- a/temporary-1.2.1.1/temporary.cabal
-+++ b/temporary-1.2.1.1/temporary.cabal
+--- a/temporary.cabal
++++ b/temporary.cabal
 @@ -24,9 +24,6 @@ Library
                       -- note: the transformers dependency is needed for MonadIO
                       -- on older GHCs; on newer ones, it is included in base.
@@ -60,10 +60,10 @@ index aa18a23..4cdbaa4 100644
 -      build-depends: unix >= 2.3
 +    , base-compat
 \ No newline at end of file
-diff --git a/temporary-1.2.1.1/tests/test.hs b/temporary-1.2.1.1/tests/test.hs
+diff --git a/tests/test.hs b/tests/test.hs
 index 21bcd29..4ee2a64 100644
---- a/temporary-1.2.1.1/tests/test.hs
-+++ b/temporary-1.2.1.1/tests/test.hs
+--- a/tests/test.hs
++++ b/tests/test.hs
 @@ -13,9 +13,6 @@ import System.Environment.Compat
  import Data.Bits
  import Data.List
