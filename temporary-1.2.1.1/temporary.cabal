@@ -24,9 +24,6 @@ Library
                      -- note: the transformers dependency is needed for MonadIO
                      -- on older GHCs; on newer ones, it is included in base.
     ghc-options:     -Wall
-    
-    if !os(windows)
-        build-depends: unix >= 2.3
 
 test-suite test
   default-language:
@@ -46,5 +43,3 @@ test-suite test
     , temporary
     , filepath
     , base-compat
-  if !os(windows)
-      build-depends: unix >= 2.3

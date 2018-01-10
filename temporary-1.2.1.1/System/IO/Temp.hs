@@ -49,11 +49,6 @@ import System.IO (Handle, hClose, openTempFile, openBinaryTempFile,
 import System.IO.Error        (isAlreadyExistsError)
 import System.Posix.Internals (c_getpid)
 import System.FilePath        ((</>))
-#ifdef mingw32_HOST_OS
-import System.Directory       ( createDirectory )
-#else
-import qualified System.Posix
-#endif
 
 -- | Create, open, and use a temporary file in the system standard temporary directory.
 --
@@ -177,11 +172,7 @@ createTempDirectory dir template = do
                 | otherwise              -> ioError e
 
 mkPrivateDir :: String -> IO ()
-#ifdef mingw32_HOST_OS
 mkPrivateDir s = createDirectory s
-#else
-mkPrivateDir s = System.Posix.createDirectory s 0o700
-#endif
 
 -- | Return the absolute and canonical path to the system temporary
 -- directory.

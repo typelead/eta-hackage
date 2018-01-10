@@ -13,9 +13,6 @@ import System.Environment.Compat
 import Data.Bits
 import Data.List
 import GHC.IO.Handle
-#ifndef mingw32_HOST_OS
-import System.Posix.Files
-#endif
 
 import System.IO.Temp
 
@@ -23,9 +20,6 @@ main = do
   -- force single-thread execution, because changing TMPDIR in one of the
   -- tests may leak to the other tests
   setEnv "TASTY_NUM_THREADS" "1"
-#ifndef mingw32_HOST_OS
-  setFileCreationMask 0
-#endif
   sys_tmp_dir <- getCanonicalTemporaryDirectory
 
   defaultMain $ testGroup "Tests"
@@ -38,10 +32,6 @@ main = do
           takeDirectory fp `equalFilePath` sys_tmp_dir
         hClose fh
         assertBool "File does not exist" =<< doesFileExist fp
-#ifndef mingw32_HOST_OS
-        status <- getFileStatus fp
-        fileMode status .&. 0o777  @?= 0o666 
-#endif
         removeFile fp
     , testCase "withSystemTempFile" $ do
         (fp, fh) <- withSystemTempFile "test.txt" $ \fp fh -> do
@@ -53,10 +43,6 @@ main = do
           assertBool "File not open" =<< hIsOpen fh
           hPutStrLn  fh "hi"
           assertBool "File does not exist" =<< doesFileExist fp
-#ifndef mingw32_HOST_OS
-          status <- getFileStatus fp
-          fileMode status .&. 0o777  @?= 0o600
-#endif
           return (fp, fh)
         assertBool "File still exists" . not =<< doesFileExist fp
         assertBool "File not closed" =<< hIsClosed fh
@@ -68,10 +54,6 @@ main = do
           assertBool (fp ++ " is not in the right directory " ++ sys_tmp_dir) $
             takeDirectory fp `equalFilePath` sys_tmp_dir
           assertBool "Directory does not exist" =<< doesDirectoryExist fp
-#ifndef mingw32_HOST_OS
-          status <- getFileStatus fp
-          fileMode status .&. 0o777  @?= 0o700
-#endif
           return fp
         assertBool "Directory still exists" . not =<< doesDirectoryExist fp
     , testCase "writeSystemTempFile" $ do
