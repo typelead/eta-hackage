@@ -1,0 +1,63 @@
+From 91c33d567b4efd91fbe885cacab69a85c7cedb00 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 11 Jan 2018 19:46:17 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Test/Hspec/Core/FailureReport.hs | 13 -------------
+ src/Test/Hspec/Core/Runner.hs        |  2 +-
+ 2 files changed, 1 insertion(+), 14 deletions(-)
+
+diff --git a/src/Test/Hspec/Core/FailureReport.hs b/src/Test/Hspec/Core/FailureReport.hs
+index 734e1da..1ffc79a 100644
+--- a/src/Test/Hspec/Core/FailureReport.hs
++++ b/src/Test/Hspec/Core/FailureReport.hs
+@@ -5,10 +5,6 @@ module Test.Hspec.Core.FailureReport (
+ , readFailureReport
+ ) where
+ 
+-#ifndef __GHCJS__
+-import           System.SetEnv
+-import           Test.Hspec.Core.Util (safeTry)
+-#endif
+ import           Control.Monad
+ import           System.IO
+ import           System.Directory
+@@ -28,21 +24,12 @@ writeFailureReport :: Config -> FailureReport -> IO ()
+ writeFailureReport config report = case configFailureReport config of
+   Just file -> writeFile file (show report)
+   Nothing -> do
+-#ifdef __GHCJS__
+     -- ghcjs currently does not support setting environment variables
+     -- (https://github.com/ghcjs/ghcjs/issues/263). Since writing a failure report
+     -- into the environment is a non-essential feature we just disable this to be
+     -- able to run hspec test-suites with ghcjs at all. Should be reverted once
+     -- the issue is fixed.
+     return ()
+-#else
+-    -- on Windows this can throw an exception when the input is too large, hence
+-    -- we use `safeTry` here
+-    safeTry (setEnv "HSPEC_FAILURES" $ show report) >>= either onError return
+-    where
+-      onError err = do
+-        hPutStrLn stderr ("WARNING: Could not write environment variable HSPEC_FAILURES (" ++ show err ++ ")")
+-#endif
+ 
+ readFailureReport :: Config -> IO (Maybe FailureReport)
+ readFailureReport config = case configFailureReport config of
+diff --git a/src/Test/Hspec/Core/Runner.hs b/src/Test/Hspec/Core/Runner.hs
+index 5d83d9a..60a7d45 100644
+--- a/src/Test/Hspec/Core/Runner.hs
++++ b/src/Test/Hspec/Core/Runner.hs
+@@ -191,7 +191,7 @@ dumpFailureReport config seed qcArgs xs = do
+     }
+ 
+ doNotLeakCommandLineArgumentsToExamples :: IO a -> IO a
+-doNotLeakCommandLineArgumentsToExamples = withArgs []
++doNotLeakCommandLineArgumentsToExamples = id -- withArgs []
+ 
+ withHiddenCursor :: Bool -> Handle -> IO a -> IO a
+ withHiddenCursor useColor h
+-- 
+2.7.4 (Apple Git-66)
+
