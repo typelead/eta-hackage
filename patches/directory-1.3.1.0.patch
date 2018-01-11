@@ -1,20 +1,20 @@
-From 670bd805d344ed939c3ed6b47e3769f6c1d82f2f Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Fri, 1 Dec 2017 23:49:23 +0530
+From ced7a23d62721346338b0cdddf877e92b24d7a2f Mon Sep 17 00:00:00 2001
+From: Denys Dushyn <Denys.Dushyn@dataart.com>
+Date: Thu, 11 Jan 2018 17:28:54 +0100
 Subject: [PATCH] Patched
 
 ---
- System/Directory.hs                  | 769 +++++++++--------------------------
+ System/Directory.hs                  | 771 +++++++++--------------------------
  System/Directory/Internal.hs         |  35 +-
  System/Directory/Internal/Config.hs  |   6 +-
  System/Directory/Internal/Prelude.hs |   6 +-
  directory.cabal                      |  17 +-
- java/Utils.java                      | 113 +++++
- 6 files changed, 344 insertions(+), 602 deletions(-)
+ java/Utils.java                      | 118 ++++++
+ 6 files changed, 351 insertions(+), 602 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/System/Directory.hs b/System/Directory.hs
-index 0f32863..c3410af 100644
+index 0f32863..8a48859 100644
 --- a/System/Directory.hs
 +++ b/System/Directory.hs
 @@ -1,4 +1,4 @@
@@ -440,9 +440,12 @@ index 0f32863..c3410af 100644
  
  -- | Make a path absolute, 'normalise' the path, and remove as many
  -- indirections from it as possible.  Any trailing path separators are
-@@ -1070,81 +941,8 @@ canonicalizePath = \ path ->
+@@ -1069,82 +940,11 @@ canonicalizePath = \ path ->
+   dropTrailingPathSeparator . normalise <$>
      (transform =<< prependCurrentDirectory path)
    where
++    transform :: FilePath -> IO FilePath
++    transform = canonicalize'
  
 -#if defined(mingw32_HOST_OS)
 -    transform = attemptRealpath getFinalPathName
@@ -519,12 +522,12 @@ index 0f32863..c3410af 100644
 -                  let mFallback' = Just (fromMaybe fallback mFallback)
 -                  path' <- simplify (p </> target </> joinPath restSuffix)
 -                  attemptRealpathWith (n - 1) mFallback' realpath path'
-+    -- TODO: Implement this
-+    transform path = undefined
++foreign import java unsafe "@static eta.directory.Utils.canonicalize"
++  canonicalize' :: String -> IO String
  
  -- | Convert a path into an absolute path.  If the given path is relative, the
  -- current directory is prepended and then the combined result is
-@@ -1354,48 +1152,33 @@ findFilesWithLazy f dirs path
+@@ -1354,48 +1154,33 @@ findFilesWithLazy f dirs path
  --   (usually @\"\"@ on POSIX systems and @\".exe\"@ on Windows or OS\/2).
  --
  -- @since 1.2.4.0
@@ -594,7 +597,7 @@ index 0f32863..c3410af 100644
  
  -- | @'listDirectory' dir@ returns a list of /all/ entries in /dir/ without
  -- the special entries (@.@ and @..@).
-@@ -1460,19 +1243,8 @@ listDirectory path =
+@@ -1460,19 +1245,8 @@ listDirectory path =
  -- * 'UnsupportedOperation'
  -- The operating system has no notion of current working directory.
  --
@@ -616,7 +619,7 @@ index 0f32863..c3410af 100644
  
  -- | Change the working directory to the given path.
  --
-@@ -1507,13 +1279,8 @@ getCurrentDirectory =
+@@ -1507,13 +1281,8 @@ getCurrentDirectory =
  -- The path refers to an existing non-directory object.
  -- @[ENOTDIR]@
  --
@@ -632,7 +635,7 @@ index 0f32863..c3410af 100644
  
  -- | Run an 'IO' action with the given working directory and restore the
  -- original working directory afterwards, even if the given action fails due
-@@ -1536,13 +1303,10 @@ withCurrentDirectory dir action =
+@@ -1536,13 +1305,10 @@ withCurrentDirectory dir action =
  --
  -- @since 1.2.7.0
  getFileSize :: FilePath -> IO Integer
@@ -650,7 +653,7 @@ index 0f32863..c3410af 100644
  
  -- | Test whether the given path points to an existing filesystem object.  If
  -- the user lacks necessary permissions to search the parent directories, this
-@@ -1550,13 +1314,10 @@ getFileSize path =
+@@ -1550,13 +1316,10 @@ getFileSize path =
  --
  -- @since 1.2.7.0
  doesPathExist :: FilePath -> IO Bool
@@ -668,7 +671,7 @@ index 0f32863..c3410af 100644
  
  {- |The operation 'doesDirectoryExist' returns 'True' if the argument file
  exists and is either a directory or a symbolic link to a directory,
-@@ -1564,28 +1325,15 @@ and 'False' otherwise.
+@@ -1564,28 +1327,15 @@ and 'False' otherwise.
  -}
  
  doesDirectoryExist :: FilePath -> IO Bool
@@ -700,7 +703,7 @@ index 0f32863..c3410af 100644
  
  -- | Create a /file/ symbolic link.  The target path can be either absolute or
  -- relative and need not refer to an existing file.  The order of arguments
-@@ -1616,13 +1364,10 @@ createFileLink
+@@ -1616,13 +1366,10 @@ createFileLink
    :: FilePath                           -- ^ path to the target file
    -> FilePath                           -- ^ path of the link to be created
    -> IO ()
@@ -718,7 +721,7 @@ index 0f32863..c3410af 100644
  
  -- | Create a /directory/ symbolic link.  The target path can be either
  -- absolute or relative and need not refer to an existing directory.  The
-@@ -1687,15 +1432,10 @@ removeDirectoryLink path =
+@@ -1687,15 +1434,10 @@ removeDirectoryLink path =
  --
  -- @since 1.3.0.0
  pathIsSymbolicLink :: FilePath -> IO Bool
@@ -738,7 +741,7 @@ index 0f32863..c3410af 100644
  
  {-# DEPRECATED isSymbolicLink "Use 'pathIsSymbolicLink' instead" #-}
  isSymbolicLink :: FilePath -> IO Bool
-@@ -1715,13 +1455,12 @@ isSymbolicLink = pathIsSymbolicLink
+@@ -1715,13 +1457,12 @@ isSymbolicLink = pathIsSymbolicLink
  --
  -- @since 1.3.1.0
  getSymbolicLinkTarget :: FilePath -> IO FilePath
@@ -758,7 +761,7 @@ index 0f32863..c3410af 100644
  
  #ifdef mingw32_HOST_OS
  -- | Open the handle of an existing file or directory.
-@@ -1751,8 +1490,20 @@ openFileHandle path mode = Win32.createFile path mode share Nothing
+@@ -1751,8 +1492,20 @@ openFileHandle path mode = Win32.createFile path mode share Nothing
  -- @since 1.2.3.0
  --
  getAccessTime :: FilePath -> IO UTCTime
@@ -781,7 +784,7 @@ index 0f32863..c3410af 100644
  
  -- | Obtain the time at which the file or directory was last modified.
  --
-@@ -1768,42 +1519,18 @@ getAccessTime = modifyIOError (`ioeAddLocation` "getAccessTime") .
+@@ -1768,42 +1521,18 @@ getAccessTime = modifyIOError (`ioeAddLocation` "getAccessTime") .
  -- and the underlying filesystem supports them.
  --
  getModificationTime :: FilePath -> IO UTCTime
@@ -834,7 +837,7 @@ index 0f32863..c3410af 100644
  
  -- | Change the time at which the file or directory was last accessed.
  --
-@@ -1830,7 +1557,6 @@ fileTimesFromStatus st =
+@@ -1830,7 +1559,6 @@ fileTimesFromStatus st =
  --
  setAccessTime :: FilePath -> UTCTime -> IO ()
  setAccessTime path atime =
@@ -842,7 +845,7 @@ index 0f32863..c3410af 100644
      setFileTimes path (Just atime, Nothing)
  
  -- | Change the time at which the file or directory was last modified.
-@@ -1863,89 +1589,15 @@ setModificationTime path mtime =
+@@ -1863,89 +1591,15 @@ setModificationTime path mtime =
  
  setFileTimes :: FilePath -> (Maybe UTCTime, Maybe UTCTime) -> IO ()
  setFileTimes _ (Nothing, Nothing) = return ()
@@ -938,7 +941,7 @@ index 0f32863..c3410af 100644
  
  {- | Returns the current user's home directory.
  
-@@ -1967,16 +1619,8 @@ The operating system has no notion of home directory.
+@@ -1967,16 +1621,8 @@ The operating system has no notion of home directory.
  The home directory for the current user does not exist, or
  cannot be found.
  -}
@@ -957,7 +960,7 @@ index 0f32863..c3410af 100644
  
  -- | Special directories for storing user-specific application data,
  --   configuration, and cache files, as specified by the
-@@ -2039,28 +1683,17 @@ getXdgDirectory xdgDir suffix =
+@@ -2039,28 +1685,17 @@ getXdgDirectory xdgDir suffix =
      XdgConfig -> get False "XDG_CONFIG_HOME" ".config"
      XdgCache  -> get True  "XDG_CACHE_HOME"  ".cache"
    where
@@ -997,7 +1000,7 @@ index 0f32863..c3410af 100644
  
  -- | Similar to 'try' but only catches a specify kind of 'IOError' as
  --   specified by the predicate.
-@@ -2104,18 +1737,17 @@ specializeErrorString str errType action = do
+@@ -2104,18 +1739,17 @@ specializeErrorString str errType action = do
  --     The home directory for the current user does not exist, or cannot be
  --     found.
  --
@@ -1024,7 +1027,7 @@ index 0f32863..c3410af 100644
  
  {- | Returns the current user's document directory.
  
-@@ -2136,15 +1768,12 @@ The operating system has no notion of document directory.
+@@ -2136,15 +1770,12 @@ The operating system has no notion of document directory.
  * 'isDoesNotExistError'
  The document directory for the current user does not exist, or
  cannot be found.
@@ -1044,7 +1047,7 @@ index 0f32863..c3410af 100644
  
  {- | Returns the current directory for temporary files.
  
-@@ -2172,14 +1801,8 @@ The operating system has no notion of temporary directory.
+@@ -2172,14 +1803,8 @@ The operating system has no notion of temporary directory.
  
  The function doesn\'t verify whether the path exists.
  -}
@@ -1189,16 +1192,17 @@ index 3f73c9a..217ed50 100644
  
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..5a7eb6a
+index 0000000..4f0fa7c
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,113 @@
+@@ -0,0 +1,118 @@
 +package eta.directory;
 +
 +import java.io.IOException;
 +import java.util.Set;
 +import java.util.Iterator;
 +import java.util.concurrent.TimeUnit;
++import java.io.File;
 +import java.nio.file.Path;
 +import java.nio.file.Paths;
 +import java.nio.file.Files;
@@ -1305,7 +1309,11 @@ index 0000000..5a7eb6a
 +    public static Iterator<Path> itDirStream(DirectoryStream<Path> ds) {
 +        return ds.iterator();
 +    }
++
++    public static String canonicalize(String path) throws IOException {
++        return new File(path).getCanonicalPath();
++    }
 +}
 -- 
-2.7.4 (Apple Git-66)
+2.14.1.windows.1
 
