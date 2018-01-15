@@ -1,0 +1,226 @@
+Name:          sbv
+Version:       6.1
+Category:      Formal Methods, Theorem Provers, Bit vectors, Symbolic Computation, Math, SMT
+Synopsis:      SMT Based Verification: Symbolic Haskell theorem prover using SMT solving.
+Description:   Express properties about Haskell programs and automatically prove them using SMT
+               (Satisfiability Modulo Theories) solvers.
+               .
+               For details, please see: <http://leventerkok.github.com/sbv/>
+
+Copyright:     Levent Erkok, 2010-2017
+License:       BSD3
+License-file:  LICENSE
+Stability:     Experimental
+Author:        Levent Erkok
+Homepage:      http://leventerkok.github.com/sbv/
+Bug-reports:   http://github.com/LeventErkok/sbv/issues
+Maintainer:    Levent Erkok (erkokl@gmail.com)
+Build-Type:    Simple
+Cabal-Version: >= 1.14
+Data-Files: SBVUnitTest/GoldFiles/*.gold
+Extra-Source-Files: INSTALL, README.md, COPYRIGHT, CHANGES.md
+
+source-repository head
+    type:       git
+    location:   git://github.com/LeventErkok/sbv.git
+
+Library
+  default-language: Haskell2010
+  ghc-options     : -Wall
+  other-extensions: BangPatterns
+                    DefaultSignatures
+                    DeriveAnyClass
+                    DeriveDataTypeable
+                    FlexibleContexts
+                    FlexibleInstances
+                    FunctionalDependencies
+                    GeneralizedNewtypeDeriving
+                    MultiParamTypeClasses
+                    OverlappingInstances
+                    ParallelListComp
+                    PatternGuards
+                    Rank2Types
+                    RankNTypes
+                    ScopedTypeVariables
+                    TupleSections
+                    TypeOperators
+                    TypeSynonymInstances
+  Build-Depends   : base >= 4.8 && < 5
+                  , base-compat >= 0.6
+                  -- , ghc
+                  , QuickCheck >= 2.9.2
+                  , crackNum >= 1.9
+                  , array, async, containers, deepseq, directory, filepath, old-time
+                  , pretty, process, mtl, random, syb, data-binary-ieee754
+  Exposed-modules : Data.SBV
+                  , Data.SBV.Bridge.Boolector
+                  , Data.SBV.Bridge.CVC4
+                  , Data.SBV.Bridge.MathSAT
+                  , Data.SBV.Bridge.Yices
+                  , Data.SBV.Bridge.Z3
+                  , Data.SBV.Bridge.ABC
+                  , Data.SBV.Dynamic
+                  , Data.SBV.Internals
+                  , Data.SBV.Tools.CodeGen
+                  , Data.SBV.Tools.ExpectedValue
+                  , Data.SBV.Tools.GenTest
+                  , Data.SBV.Tools.Polynomial
+                  , Data.SBV.Tools.STree
+                  , Data.SBV.Examples.BitPrecise.BitTricks
+                  , Data.SBV.Examples.BitPrecise.Legato
+                  , Data.SBV.Examples.BitPrecise.MergeSort
+                  , Data.SBV.Examples.BitPrecise.MultMask
+                  , Data.SBV.Examples.BitPrecise.PrefixSum
+                  , Data.SBV.Examples.CodeGeneration.AddSub
+                  , Data.SBV.Examples.CodeGeneration.CRC_USB5
+                  , Data.SBV.Examples.CodeGeneration.Fibonacci
+                  , Data.SBV.Examples.CodeGeneration.GCD
+                  , Data.SBV.Examples.CodeGeneration.PopulationCount
+                  , Data.SBV.Examples.CodeGeneration.Uninterpreted
+                  , Data.SBV.Examples.Crypto.AES
+                  , Data.SBV.Examples.Crypto.RC4
+                  , Data.SBV.Examples.Existentials.CRCPolynomial
+                  , Data.SBV.Examples.Existentials.Diophantine
+                  , Data.SBV.Examples.Misc.Enumerate
+                  , Data.SBV.Examples.Misc.Floating
+                  , Data.SBV.Examples.Misc.ModelExtract
+                  , Data.SBV.Examples.Misc.Auxiliary
+                  , Data.SBV.Examples.Misc.NoDiv0
+                  , Data.SBV.Examples.Misc.Word4
+                  , Data.SBV.Examples.Misc.UnsatCore
+                  , Data.SBV.Examples.Polynomials.Polynomials
+                  , Data.SBV.Examples.Optimization.LinearOpt
+                  , Data.SBV.Examples.Optimization.Production
+                  , Data.SBV.Examples.Optimization.VM
+                  , Data.SBV.Examples.Puzzles.Birthday
+                  , Data.SBV.Examples.Puzzles.Coins
+                  , Data.SBV.Examples.Puzzles.Counts
+                  , Data.SBV.Examples.Puzzles.DogCatMouse
+                  , Data.SBV.Examples.Puzzles.Euler185
+                  , Data.SBV.Examples.Puzzles.Fish
+                  , Data.SBV.Examples.Puzzles.MagicSquare
+                  , Data.SBV.Examples.Puzzles.NQueens
+                  , Data.SBV.Examples.Puzzles.SendMoreMoney
+                  , Data.SBV.Examples.Puzzles.Sudoku
+                  , Data.SBV.Examples.Puzzles.U2Bridge
+                  , Data.SBV.Examples.Uninterpreted.AUF
+                  , Data.SBV.Examples.Uninterpreted.Deduce
+                  , Data.SBV.Examples.Uninterpreted.Function
+                  , Data.SBV.Examples.Uninterpreted.Shannon
+                  , Data.SBV.Examples.Uninterpreted.Sort
+                  , Data.SBV.Examples.Uninterpreted.UISortAllSat
+  Other-modules   : Data.SBV.Core.AlgReals
+                  , Data.SBV.Core.Concrete
+                  , Data.SBV.Core.Data
+                  , Data.SBV.Core.Kind
+                  , Data.SBV.Core.Model
+                  , Data.SBV.Core.Operations
+                  , Data.SBV.Core.Floating
+                  , Data.SBV.Core.Splittable
+                  , Data.SBV.Core.Symbolic
+                  , Data.SBV.Compilers.C
+                  , Data.SBV.Compilers.CodeGen
+                  , Data.SBV.SMT.SMT
+                  , Data.SBV.SMT.SMTLib
+                  , Data.SBV.SMT.SMTLib2
+                  , Data.SBV.SMT.SMTLibNames
+                  , Data.SBV.Provers.Prover
+                  , Data.SBV.Provers.SExpr
+                  , Data.SBV.Provers.Boolector
+                  , Data.SBV.Provers.CVC4
+                  , Data.SBV.Provers.Yices
+                  , Data.SBV.Provers.Z3
+                  , Data.SBV.Provers.MathSAT
+                  , Data.SBV.Provers.ABC
+                  , Data.SBV.Utils.Boolean
+                  , Data.SBV.Utils.Numeric
+                  , Data.SBV.Utils.TDiff
+                  , Data.SBV.Utils.Lib
+                  , Data.SBV.Utils.PrettyNum
+                  , GHC.SrcLoc.Compat
+                  , GHC.Stack.Compat
+
+Executable SBVUnitTests
+  default-language: Haskell2010
+  ghc-options     : -Wall
+  other-extensions: DeriveAnyClass
+                    Rank2Types
+                    RankNTypes
+                    ScopedTypeVariables
+                    TupleSections
+  Build-depends : base  >= 4.8 && < 5
+                , HUnit, directory, filepath, process, syb, sbv, data-binary-ieee754
+  Hs-Source-Dirs  : SBVUnitTest
+  main-is         : SBVUnitTest.hs
+  Other-modules   : SBVTest
+                  , SBVTestCollection
+                  , Examples.Arrays.Memory
+                  , Examples.Basics.BasicTests
+                  , Examples.Basics.Higher
+                  , Examples.Basics.Index
+                  , Examples.Basics.ProofTests
+                  , Examples.Basics.QRem
+                  , Examples.CRC.CCITT
+                  , Examples.CRC.CCITT_Unidir
+                  , Examples.CRC.GenPoly
+                  , Examples.CRC.Parity
+                  , Examples.CRC.USB5
+                  , Examples.Puzzles.PowerSet
+                  , Examples.Puzzles.Temperature
+                  , Examples.Uninterpreted.Uninterpreted
+                  , TestSuite.Arrays.Memory
+                  , TestSuite.Basics.ArithNoSolver
+                  , TestSuite.Basics.ArithSolver
+                  , TestSuite.Basics.BasicTests
+                  , TestSuite.Basics.Higher
+                  , TestSuite.Basics.Index
+                  , TestSuite.Basics.IteTest
+                  , TestSuite.Basics.ProofTests
+                  , TestSuite.Basics.QRem
+                  , TestSuite.BitPrecise.BitTricks
+                  , TestSuite.BitPrecise.Legato
+                  , TestSuite.BitPrecise.MergeSort
+                  , TestSuite.BitPrecise.PrefixSum
+                  , TestSuite.CodeGeneration.AddSub
+                  , TestSuite.CodeGeneration.CgTests
+                  , TestSuite.CodeGeneration.CRC_USB5
+                  , TestSuite.CodeGeneration.Fibonacci
+                  , TestSuite.CodeGeneration.Floats
+                  , TestSuite.CodeGeneration.GCD
+                  , TestSuite.CodeGeneration.PopulationCount
+                  , TestSuite.CodeGeneration.Uninterpreted
+                  , TestSuite.Crypto.AES
+                  , TestSuite.Crypto.RC4
+                  , TestSuite.Existentials.CRCPolynomial
+                  , TestSuite.CRC.CCITT
+                  , TestSuite.CRC.CCITT_Unidir
+                  , TestSuite.CRC.GenPoly
+                  , TestSuite.CRC.Parity
+                  , TestSuite.CRC.USB5
+                  , TestSuite.Puzzles.Coins
+                  , TestSuite.Polynomials.Polynomials
+                  , TestSuite.Puzzles.Counts
+                  , TestSuite.Puzzles.DogCatMouse
+                  , TestSuite.Puzzles.Euler185
+                  , TestSuite.Puzzles.MagicSquare
+                  , TestSuite.Puzzles.NQueens
+                  , TestSuite.Puzzles.PowerSet
+                  , TestSuite.Puzzles.Sudoku
+                  , TestSuite.Puzzles.U2Bridge
+                  , TestSuite.Puzzles.Temperature
+                  , TestSuite.Uninterpreted.AUF
+                  , TestSuite.Uninterpreted.Function
+                  , TestSuite.Uninterpreted.Uninterpreted
+                  , TestSuite.Uninterpreted.Sort
+                  , TestSuite.Uninterpreted.Axioms
+
+Test-Suite SBVBasicTests
+  type            : exitcode-stdio-1.0
+  default-language: Haskell2010
+  ghc-options     : -Wall -with-rtsopts=-K64m
+  Build-depends : base >= 4.8 && < 5
+                , HUnit, directory, filepath, syb, sbv, data-binary-ieee754
+  Hs-Source-Dirs  : SBVUnitTest
+  main-is         : SBVBasicTests.hs
+  Other-modules   : SBVBasicTests
+                  , SBVTestCollection

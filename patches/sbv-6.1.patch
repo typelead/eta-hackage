@@ -1,0 +1,43 @@
+From 35d9e460bf5a709206856aae68f54953f3276bc2 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 15 Jan 2018 16:10:14 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/SBV/Core/Symbolic.hs | 6 +++---
+ sbv.cabal                 | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Data/SBV/Core/Symbolic.hs b/Data/SBV/Core/Symbolic.hs
+index 2e62a93..2152932 100644
+--- a/Data/SBV/Core/Symbolic.hs
++++ b/Data/SBV/Core/Symbolic.hs
+@@ -1102,9 +1102,9 @@ instance NFData GeneralizedCW where
+ 
+ #if MIN_VERSION_base(4,9,0)
+ #else
+--- Can't really force this, but not a big deal
+-instance NFData CallStack where
+-  rnf _ = ()
++-- -- Can't really force this, but not a big deal
++-- instance NFData CallStack where
++--   rnf _ = ()
+ #endif
+ 
+ instance NFData Result where
+diff --git a/sbv.cabal b/sbv.cabal
+index cb5f8bd..f81b803 100644
+--- a/sbv.cabal
++++ b/sbv.cabal
+@@ -47,7 +47,7 @@ Library
+                     TypeSynonymInstances
+   Build-Depends   : base >= 4.8 && < 5
+                   , base-compat >= 0.6
+-                  , ghc
++                  -- , ghc
+                   , QuickCheck >= 2.9.2
+                   , crackNum >= 1.9
+                   , array, async, containers, deepseq, directory, filepath, old-time
+-- 
+2.7.4 (Apple Git-66)
+
