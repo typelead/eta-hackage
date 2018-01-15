@@ -236,7 +236,7 @@ These packages are supported by `etlas`.
 - [monad-parallel-0.7.2.2](https://hackage.haskell.org/package/monad-parallel-0.7.2.2)
 - [monoid-absorbing-0.1.0.4](https://hackage.haskell.org/package/monoid-absorbing-0.1.0.4)
 - [monad-control >= 1.0.1.0 && <= 1.0.2.2](https://hackage.haskell.org/package/monad-control)
-- [monad-logger-0.3.26](https://hackage.haskell.org/package/monad-logger-0.3.26)
+- [monad-logger >= 0.3.26 && <= 0.3.28](https://hackage.haskell.org/package/monad-logger)
 - [monad-loops-0.4.3](https://hackage.haskell.org/package/monad-loops-0.4.3)
 - [MonadRandom >= 0.4.2.3 && <= 0.5.1](https://hackage.haskell.org/package/MonadRandom)
 - [monads-tf-0.1.0.3](https://hackage.haskell.org/package/monads-tf-0.1.0.3)
