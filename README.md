@@ -139,6 +139,7 @@ These packages are supported by `etlas`.
 - [dual-tree-0.2.1](https://hackage.haskell.org/package/dual-tree-0.2.1)
 - [easy-file-0.2.1](https://hackage.haskell.org/package/easy-file-0.2.1)
 - [either-4.4.1.1](https://hackage.haskell.org/package/either-4.4.1.1)
+- [entropy-0.4](https://hackage.haskell.org/package/entropy)
 - [erf-2.0.0.0](https://hackage.haskell.org/package/erf-2.0.0.0)
 - [errors >= 2.1.3 && <= 2.2.2](https://hackage.haskell.org/package/errors)
 - [exceptions-0.8.3](https://hackage.haskell.org/package/exceptions-0.8.3)

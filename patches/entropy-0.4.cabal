@@ -1,0 +1,54 @@
+name:           entropy
+version:        0.4
+x-revision: 1
+description:    A platform independent method to obtain cryptographically strong entropy
+                (RDRAND, urandom, CryptAPI, and patches welcome)
+                Users looking for cryptographically strong (number-theoretically
+                sound) PRNGs should see the 'DRBG' package too.
+synopsis:       A platform independent entropy source
+license:        BSD3
+license-file:   LICENSE
+copyright:      Thomas DuBuisson <thomas.dubuisson@gmail.com>
+author:         Thomas DuBuisson <thomas.dubuisson@gmail.com>
+maintainer:     Thomas DuBuisson <thomas.dubuisson@gmail.com>
+category:       Data, Cryptography
+homepage:       https://github.com/TomMD/entropy
+bug-reports:    https://github.com/TomMD/entropy/issues
+stability:      stable
+-- build-type:  Simple
+-- ^^ Used for HaLVM
+build-type:     Custom
+-- ^^ Test for RDRAND support using 'ghc'
+cabal-version:  >=1.10
+tested-with:    GHC == 8.2.2
+-- data-files:
+extra-source-files:   ./cbits/rdrand.c, ./cbits/rdrand.h, README.md
+
+-- Notice to compile  with HaLVM the above 'build-type' must be changed
+-- to 'Simple' instead of 'Custom'.  The current build system naively
+-- runs GHC to determine if the compiler supports RDRAND before proceeding.
+flag halvm
+    description:        Build for the HaLVM
+    default:            False
+
+
+custom-setup
+  setup-depends: Cabal >= 1.10 && < 2.2
+               , base < 5
+               , filepath < 1.5
+               , directory < 1.4
+               , process < 1.7
+
+library
+  ghc-options:  -O2
+  exposed-modules: System.Entropy
+  other-modules: System.EntropyJVM
+  other-extensions:    CPP, ForeignFunctionInterface, BangPatterns,
+                       ScopedTypeVariables
+  build-depends:       base >= 4.8 && < 5, bytestring
+  default-language:    Haskell2010
+  java-sources:        java/Utils.java
+
+source-repository head
+    type:       git
+    location:   https://github.com/TomMD/entropy
