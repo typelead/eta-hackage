@@ -15,10 +15,7 @@ category:       Data, Cryptography
 homepage:       https://github.com/TomMD/entropy
 bug-reports:    https://github.com/TomMD/entropy/issues
 stability:      stable
--- build-type:  Simple
--- ^^ Used for HaLVM
-build-type:     Custom
--- ^^ Test for RDRAND support using 'ghc'
+build-type:  Simple
 cabal-version:  >=1.10
 tested-with:    GHC == 8.2.2
 -- data-files:
