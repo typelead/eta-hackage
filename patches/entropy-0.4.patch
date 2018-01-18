@@ -1,0 +1,706 @@
+From 40437047c68bb36f6ac1ce137225e9e462021fda Mon Sep 17 00:00:00 2001
+From: Nikita Tchayka <nikitatchayka@gmail.com>
+Date: Wed, 17 Jan 2018 18:29:25 +0000
+Subject: [PATCH] Patch entropy for Eta
+
+Fix more stuff
+---
+ .gitignore               |  27 +++++++++
+ System/Entropy.hs        |  12 +---
+ System/EntropyJVM.hs     |  73 +++++++++++++++++++++++++
+ System/EntropyNix.hs     |  98 ---------------------------------
+ System/EntropyWindows.hs | 139 -----------------------------------------------
+ System/EntropyXen.hs     |  76 --------------------------
+ cbits/rdrand.c           |  99 ---------------------------------
+ cbits/rdrand.h           |  10 ----
+ entropy.cabal            |  34 +-----------
+ java/Utils.java          |  22 ++++++++
+ 10 files changed, 127 insertions(+), 463 deletions(-)
+ create mode 100644 .gitignore
+ create mode 100644 System/EntropyJVM.hs
+ delete mode 100644 System/EntropyNix.hs
+ delete mode 100644 System/EntropyWindows.hs
+ delete mode 100644 System/EntropyXen.hs
+ delete mode 100644 cbits/rdrand.c
+ delete mode 100644 cbits/rdrand.h
+ create mode 100644 java/Utils.java
+
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..59c9060
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,27 @@
++
++# Created by https://www.gitignore.io/api/haskell
++
++### Haskell ###
++dist
++dist-*
++cabal-dev
++*.o
++*.hi
++*.chi
++*.chs.h
++*.dyn_o
++*.dyn_hi
++.hpc
++.hsenv
++.cabal-sandbox/
++cabal.sandbox.config
++*.prof
++*.aux
++*.hp
++*.eventlog
++.stack-work/
++cabal.project.local
++.HTF/
++
++
++# End of https://www.gitignore.io/api/haskell
+diff --git a/System/Entropy.hs b/System/Entropy.hs
+index db809f0..96489b2 100644
+--- a/System/Entropy.hs
++++ b/System/Entropy.hs
+@@ -22,21 +22,13 @@ module System.Entropy
+           hGetEntropy,
+           closeHandle
+         ) where
+-#if defined(isWindows)
+-import System.EntropyWindows
+-#else
+-#ifdef XEN
+-import System.EntropyXen
+-#else
+-import System.EntropyNix
+-#endif
+-#endif
++import System.EntropyJVM
+ 
+ import qualified Data.ByteString as B
+ import Control.Exception (bracket)
+ 
+ -- |Get a specific number of bytes of cryptographically
+--- secure random data using the *system-specific* sources. 
++-- secure random data using the *system-specific* sources.
+ -- (As of 0.4.  Verions <0.4 mixed system and hardware sources)
+ --
+ -- The returned random value is considered cryptographically secure but not true entropy.
+diff --git a/System/EntropyJVM.hs b/System/EntropyJVM.hs
+new file mode 100644
+index 0000000..a2a4bc7
+--- /dev/null
++++ b/System/EntropyJVM.hs
+@@ -0,0 +1,73 @@
++{-# LANGUAGE CPP, ForeignFunctionInterface, BangPatterns, ScopedTypeVariables, MagicHash #-}
++{-|
++ Maintainer: Thomas.DuBuisson@gmail.com
++ Stability: beta
++ Portability: portable
++
++ Obtain entropy from system sources or x86 RDRAND when available.
++
++-}
++
++module System.EntropyJVM
++        ( CryptHandle
++        , openHandle
++        , hGetEntropy
++        , closeHandle
++        , hardwareRandom
++        ) where
++
++import Control.Monad (liftM, when)
++import Data.ByteString as B
++import System.IO.Error (mkIOError, eofErrorType, ioeSetErrorString)
++import Data.Bits (xor)
++
++import Foreign.Ptr
++import Foreign.C.Types
++
++import Java
++import Data.ByteString.Internal as B
++
++foreign import java unsafe "@static Utils.get_rand_bytes"
++  java_get_rand_bytes :: Ptr CUChar -> CSize -> SecureRandom -> IO CInt
++
++-- import System.Posix (openFd, closeFd, fdReadBuf, OpenMode(..), defaultFileFlags, Fd)
++
++-- |Handle for manual resource management
++data CryptHandle
++    = CH SecureRandom
++
++data SecureRandom = SecureRandom @java.security.SecureRandom
++  deriving Class
++
++foreign import java unsafe "@new" newSecureRandom :: IO SecureRandom
++
++
++-- | Get random values from the hardward RNG or return Nothing if no
++-- supported hardware RNG is available.
++--
++-- Supported hardware:
++--      * RDRAND
++--      * Patches welcome
++hardwareRandom :: Int -> IO (Maybe B.ByteString)
++hardwareRandom n = do
++  random <- newSecureRandom
++  Just <$> hGetEntropy (CH random) n
++
++-- |Open a `CryptHandle`
++openHandle :: IO CryptHandle
++openHandle = do
++  CH `fmap` newSecureRandom
++
++-- |Close the `CryptHandle`
++closeHandle :: CryptHandle -> IO ()
++closeHandle (CH _) = return ()
++
++-- |Read random data from a `CryptHandle`
++hGetEntropy :: CryptHandle -> Int -> IO B.ByteString
++hGetEntropy (CH rand) n =
++  B.create n filler
++ where
++  filler ptr = do
++    r <- java_get_rand_bytes (castPtr ptr) (fromIntegral n) rand
++    when (r/= 0) (fail "entropy library: Something bad occurred on the Java side")
++
+diff --git a/System/EntropyNix.hs b/System/EntropyNix.hs
+deleted file mode 100644
+index 01a7bc4..0000000
+--- a/System/EntropyNix.hs
++++ /dev/null
+@@ -1,98 +0,0 @@
+-{-# LANGUAGE CPP, ForeignFunctionInterface, BangPatterns, ScopedTypeVariables #-}
+-{-|
+- Maintainer: Thomas.DuBuisson@gmail.com
+- Stability: beta
+- Portability: portable
+-
+- Obtain entropy from system sources or x86 RDRAND when available.
+-
+--}
+-
+-module System.EntropyNix
+-        ( CryptHandle
+-        , openHandle
+-        , hGetEntropy
+-        , closeHandle
+-        , hardwareRandom
+-        ) where
+-
+-import Control.Monad (liftM, when)
+-import Data.ByteString as B
+-import System.IO.Error (mkIOError, eofErrorType, ioeSetErrorString)
+-import Data.Bits (xor)
+-
+-import Foreign (allocaBytes)
+-import Foreign.Ptr
+-import Foreign.C.Types
+-import Data.ByteString.Internal as B
+-
+-#ifdef arch_i386
+--- See .cabal wrt GCC 4.8.2 asm compilation bug
+-#undef HAVE_RDRAND
+-#endif
+-
+-import System.Posix (openFd, closeFd, fdReadBuf, OpenMode(..), defaultFileFlags, Fd)
+-
+-source :: FilePath
+-source = "/dev/urandom"
+-
+--- |Handle for manual resource management
+-data CryptHandle
+-    = CH Fd
+-
+--- | Get random values from the hardward RNG or return Nothing if no
+--- supported hardware RNG is available.
+---
+--- Supported hardware:
+---      * RDRAND
+---      * Patches welcome
+-hardwareRandom :: Int -> IO (Maybe B.ByteString)
+-#ifdef HAVE_RDRAND
+-hardwareRandom n =
+- do b <- cpuHasRdRand
+-    if b
+-     then Just <$> B.create n (\ptr ->
+-                      do r <- c_get_rand_bytes (castPtr ptr) (fromIntegral n)
+-                         when (r /= 0) (fail "RDRand failed to gather entropy"))
+-     else pure Nothing
+-#else
+-hardwareRandom _ = pure Nothing
+-#endif
+-
+--- |Open a `CryptHandle`
+-openHandle :: IO CryptHandle
+-openHandle = do CH `fmap` nonRDRandHandle
+- where
+-  nonRDRandHandle :: IO Fd
+-  nonRDRandHandle = openFd source ReadOnly Nothing defaultFileFlags
+-
+--- |Close the `CryptHandle`
+-closeHandle :: CryptHandle -> IO ()
+-closeHandle (CH h) = closeFd h
+-
+--- |Read random data from a `CryptHandle`
+-hGetEntropy :: CryptHandle -> Int -> IO B.ByteString
+-hGetEntropy (CH h) = fdReadBS h
+-
+-fdReadBS :: Fd -> Int -> IO B.ByteString
+-fdReadBS fd n =
+-    allocaBytes n $ \buf -> go buf n
+- where
+- go buf 0   = B.packCStringLen (castPtr buf, fromIntegral n)
+- go buf cnt  | cnt <= n = do
+-        rc <- fdReadBuf fd (plusPtr buf (n - cnt)) (fromIntegral cnt)
+-        case rc of
+-            0 -> ioError (ioeSetErrorString (mkIOError eofErrorType "fdRead" Nothing Nothing) "EOF")
+-            n' -> go buf (cnt - fromIntegral n')
+- go _ _     = error "Impossible!  The count of bytes left to read is greater than the request or less than zero!"
+-
+-#ifdef HAVE_RDRAND
+-foreign import ccall unsafe "cpu_has_rdrand"
+-   c_cpu_has_rdrand :: IO CInt
+-
+-foreign import ccall unsafe "get_rand_bytes"
+-  c_get_rand_bytes :: Ptr CUChar -> CSize -> IO CInt
+-
+-cpuHasRdRand :: IO Bool
+-cpuHasRdRand = (/= 0) `fmap` c_cpu_has_rdrand
+-#endif
+diff --git a/System/EntropyWindows.hs b/System/EntropyWindows.hs
+deleted file mode 100644
+index 3659ffe..0000000
+--- a/System/EntropyWindows.hs
++++ /dev/null
+@@ -1,139 +0,0 @@
+-{-# LANGUAGE CPP, ForeignFunctionInterface, BangPatterns, ScopedTypeVariables #-}
+-{-|
+- Maintainer: Thomas.DuBuisson@gmail.com
+- Stability: beta
+- Portability: portable
+-
+- Obtain entropy from system sources.
+--}
+-
+-module System.EntropyWindows
+-        ( CryptHandle
+-        , openHandle
+-        , hGetEntropy
+-        , closeHandle
+-        , hardwareRandom
+-        ) where
+-
+-import Control.Monad (liftM, when)
+-import System.IO.Error (mkIOError, eofErrorType, ioeSetErrorString)
+-import Foreign (allocaBytes)
+-import Data.ByteString as B
+-import Data.ByteString.Internal as BI
+-import Data.Int (Int32)
+-import Data.Bits (xor)
+-import Data.Word (Word32, Word8)
+-import Foreign.C.String (CString, withCString)
+-import Foreign.C.Types
+-import Foreign.Ptr (Ptr, nullPtr, castPtr)
+-import Foreign.Marshal.Alloc (alloca)
+-import Foreign.Marshal.Utils (toBool)
+-import Foreign.Storable (peek)
+-
+-{- C example for windows rng - taken from a blog, can't recall which one but thank you!
+-        #include <Windows.h>
+-        #include <Wincrypt.h>
+-        ...
+-        //
+-        // DISCLAIMER: Don't forget to check your error codes!!
+-        // I am not checking as to make the example simple...
+-        //
+-        HCRYPTPROV hCryptCtx = NULL;
+-        BYTE randomArray[128];
+-
+-        CryptAcquireContext(&hCryptCtx, NULL, MS_DEF_PROV, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT);
+-        CryptGenRandom(hCryptCtx, 128, randomArray);
+-        CryptReleaseContext(hCryptCtx, 0);
+--}
+-
+-
+-#ifdef arch_i386
+--- See .cabal wrt GCC 4.8.2 asm compilation bug
+-#undef HAVE_RDRAND
+-#endif
+-
+-#ifdef HAVE_RDRAND
+-foreign import ccall unsafe "cpu_has_rdrand"
+-   c_cpu_has_rdrand :: IO CInt
+-
+-foreign import ccall unsafe "get_rand_bytes"
+-  c_get_rand_bytes :: Ptr CUChar -> CSize -> IO CInt
+-
+-cpuHasRdRand :: IO Bool
+-cpuHasRdRand = (/= 0) `fmap` c_cpu_has_rdrand
+-#endif
+-
+-data CryptHandle
+-    = CH Word32
+-
+-
+--- | Get random values from the hardward RNG or return Nothing if no
+--- supported hardware RNG is available.
+---
+--- Supported hardware:
+---      * RDRAND
+---      * Patches welcome
+-hardwareRandom :: Int -> IO (Maybe B.ByteString)
+-#ifdef HAVE_RDRAND
+-hardwareRandom n =
+-  do b <- cpuHasRdRand
+-     if b
+-        then Just <$> BI.create n (\ptr ->
+-                        do r <- c_get_rand_bytes (castPtr ptr) (fromIntegral n)
+-                           when (r /= 0) (fail "RDRand failed to gather entropy"))
+-        else pure Nothing
+-#else
+-hardwareRandom _ = pure Nothing
+-#endif
+-
+--- Define the constants we need from WinCrypt.h 
+-msDefProv :: String
+-msDefProv = "Microsoft Base Cryptographic Provider v1.0"
+-provRSAFull :: Word32
+-provRSAFull = 1
+-cryptVerifyContext :: Word32
+-cryptVerifyContext = fromIntegral 0xF0000000
+-
+--- Declare the required CryptoAPI imports 
+-foreign import stdcall unsafe "CryptAcquireContextA"
+-   c_cryptAcquireCtx :: Ptr Word32 -> CString -> CString -> Word32 -> Word32 -> IO Int32
+-foreign import stdcall unsafe "CryptGenRandom"
+-   c_cryptGenRandom :: Word32 -> Word32 -> Ptr Word8 -> IO Int32
+-foreign import stdcall unsafe "CryptReleaseContext"
+-   c_cryptReleaseCtx :: Word32 -> Word32 -> IO Int32
+-
+-cryptAcquireCtx :: IO Word32
+-cryptAcquireCtx =
+-   alloca $ \handlePtr -> 
+-      withCString msDefProv $ \provName -> do
+-         stat <- c_cryptAcquireCtx handlePtr nullPtr provName provRSAFull cryptVerifyContext
+-         if (toBool stat)
+-            then peek handlePtr
+-            else fail "c_cryptAcquireCtx"
+-
+-cryptGenRandom :: Word32 -> Int -> IO B.ByteString
+-cryptGenRandom h i = 
+-   BI.create i $ \c_buffer -> do
+-      stat <- c_cryptGenRandom h (fromIntegral i) c_buffer
+-      if (toBool stat)
+-         then return ()
+-         else fail "c_cryptGenRandom"
+-
+-cryptReleaseCtx :: Word32 -> IO ()
+-cryptReleaseCtx h = do
+-   stat <- c_cryptReleaseCtx h 0
+-   if (toBool stat)
+-      then return ()
+-      else fail "c_cryptReleaseCtx"
+-
+--- |Open a handle from which random data can be read
+-openHandle :: IO CryptHandle
+-openHandle = CH `fmap` cryptAcquireCtx
+-
+--- |Close the `CryptHandle`
+-closeHandle :: CryptHandle -> IO ()
+-closeHandle (CH h)        = cryptReleaseCtx h
+-
+--- |Read from `CryptHandle`
+-hGetEntropy :: CryptHandle -> Int -> IO B.ByteString
+-hGetEntropy (CH h) n = cryptGenRandom h n
+diff --git a/System/EntropyXen.hs b/System/EntropyXen.hs
+deleted file mode 100644
+index c1799cc..0000000
+--- a/System/EntropyXen.hs
++++ /dev/null
+@@ -1,76 +0,0 @@
+-{-# LANGUAGE CPP, ForeignFunctionInterface, BangPatterns, ScopedTypeVariables #-}
+-{-|
+- Maintainer: Thomas.DuBuisson@gmail.com
+- Stability: beta
+- Portability: portable
+-
+- Obtain entropy from RDRAND when available.
+-
+--}
+-
+-module System.EntropyXen
+-        ( CryptHandle
+-        , openHandle
+-        , hGetEntropy
+-        , closeHandle
+-        , hardwardRNG
+-        ) where
+-
+-import Control.Monad (liftM, when)
+-import Data.ByteString as B
+-import System.IO.Error (mkIOError, eofErrorType, ioeSetErrorString)
+-
+-import Foreign (allocaBytes)
+-import Foreign.Ptr
+-import Foreign.C.Types
+-import Data.ByteString.Internal as B
+-
+-#ifdef arch_i386
+--- See .cabal wrt GCC 4.8.2 asm compilation bug
+-#undef HAVE_RDRAND
+-#endif
+-
+-#ifndef HAVE_RDRAND
+-#error "The entropy package requires RDRAND support when using the halvm/Xen"
+-#endif
+-data CryptHandle = UseRdRand -- or die trying
+-
+--- |Open a `CryptHandle`
+-openHandle :: IO CryptHandle
+-openHandle = do
+-    b <- cpuHasRdRand
+-    if b then return UseRdRand
+-         else nonRDRandHandle
+- where
+-  nonRDRandHandle :: IO CryptHandle
+-  nonRDRandHandle = error "entropy: On halvm there is no entropy other than RDRAND."
+-
+--- |Close the `CryptHandle`
+-closeHandle :: CryptHandle -> IO ()
+-closeHandle UseRdRand = return ()
+-
+--- | Get random values from the hardward RNG or return Nothing if no
+--- supported hardware RNG is available.
+---
+--- Supported hardware:
+---      * RDRAND
+---      * Patches welcome
+-hardwareRandom :: Int -> IO (Maybe B.ByteString)
+-hardwareRandom sz = Just <$> hGetEntropy UseRdRand sz
+-
+--- |Read random data from a `CryptHandle`, which uses RDRAND (when on Xen)
+-hGetEntropy :: CryptHandle -> Int -> IO B.ByteString
+-hGetEntropy UseRdRand = \n -> do
+-    B.create n $ \ptr ->  do
+-                r <- c_get_rand_bytes (castPtr ptr) (fromIntegral n)
+-                when (r /= 0)
+-                     (fail "RDRand failed to gather entropy")
+-
+-foreign import ccall unsafe "cpu_has_rdrand"
+-   c_cpu_has_rdrand :: IO CInt
+-
+-foreign import ccall unsafe "get_rand_bytes"
+-  c_get_rand_bytes :: Ptr CUChar -> CSize -> IO CInt
+-
+-cpuHasRdRand :: IO Bool
+-cpuHasRdRand = (/= 0) `fmap` c_cpu_has_rdrand
+diff --git a/cbits/rdrand.c b/cbits/rdrand.c
+deleted file mode 100644
+index 4fa8b1b..0000000
+--- a/cbits/rdrand.c
++++ /dev/null
+@@ -1,99 +0,0 @@
+-#ifdef HAVE_RDRAND
+-
+-#include <stdint.h>
+-#include <stdlib.h>
+-
+-int cpu_has_rdrand()
+-{
+-    uint32_t ax,bx,cx,dx,func=1;
+-    __asm__ volatile ("cpuid":\
+-            "=a" (ax), "=b" (bx), "=c" (cx), "=d" (dx) : "a" (func));
+-    return (cx & 0x40000000);
+-}
+-
+-#ifdef arch_x86_64
+-// Returns 1 on success
+-static inline int _rdrand64_step(uint64_t *therand)
+-{
+-     unsigned char err;
+-     asm volatile("rdrand %0 ; setc %1"
+-                 : "=r" (*therand), "=qm" (err));
+-     return (int) err;
+-}
+-
+-// Returns 0 on success, non-zero on failure.
+-int get_rand_bytes(uint8_t *therand, size_t len)
+-{
+-    int cnt;
+-    int fail=0;
+-    uint8_t *p = therand;
+-    uint8_t *end = therand + len;
+-    if((uint64_t)p%8 != 0) {
+-        uint64_t tmp;
+-        fail |= !_rdrand64_step(&tmp);
+-        while((uint64_t)p%8 != 0 && p != end) {
+-            *p = (uint8_t)(tmp & 0xFF);
+-            tmp = tmp >> 8;
+-            p++;
+-        }
+-    }
+-    for(; p <= end - sizeof(uint64_t); p+=sizeof(uint64_t)) {
+-        fail |= !_rdrand64_step((uint64_t *)p);
+-    }
+-    if(p != end) {
+-        uint64_t tmp;
+-        int cnt;
+-        fail |= !_rdrand64_step(&tmp);
+-        while(p != end) {
+-            *p = (uint8_t)(tmp & 0xFF);
+-            tmp = tmp >> 8;
+-            p++;
+-        }
+-    }
+-    return fail;
+-}
+-#endif /* x86-64 */
+-
+-#ifdef arch_i386
+-// Returns 1 on success
+-static inline int _rdrand32_step(uint32_t *therand)
+-{
+-     unsigned char err;
+-     asm volatile("rdrand %0 ; setc %1"
+-                 : "=r" (*therand), "=qm" (err));
+-     return (int) err;
+-}
+-
+-int get_rand_bytes(uint8_t *therand, size_t len)
+-{
+-    int cnt;
+-    int fail=0;
+-    uint8_t *p = therand;
+-    uint8_t *end = therand + len;
+-    if((uint32_t)p % sizeof(uint32_t) != 0) {
+-        uint32_t tmp;
+-        fail |= !_rdrand32_step(&tmp);
+-        while((uint32_t)p % sizeof(uint32_t) != 0 && p != end) {
+-            *p = (uint8_t)(tmp & 0xFF);
+-            tmp = tmp >> 8;
+-            p++;
+-        }
+-    }
+-    for(; p <= end - sizeof(uint32_t); p+=sizeof(uint32_t)) {
+-        fail |= !_rdrand32_step((uint32_t *)p);
+-    }
+-    if(p != end) {
+-        uint32_t tmp;
+-        int cnt;
+-        fail |= !_rdrand32_step(&tmp);
+-        while(p != end) {
+-            *p = (uint8_t)(tmp & 0xFF);
+-            tmp = tmp >> 8;
+-            p++;
+-        }
+-    }
+-    return fail;
+-}
+-#endif /* i386 */
+-
+-#endif // RDRAND
+diff --git a/cbits/rdrand.h b/cbits/rdrand.h
+deleted file mode 100644
+index 9f43a72..0000000
+--- a/cbits/rdrand.h
++++ /dev/null
+@@ -1,10 +0,0 @@
+-#ifndef rdrand_h
+-#ifdef HAVE_RDRAND
+-#include <stdint.h>
+-
+-int cpu_has_rdrand()
+-
+-// Returns 0 on success, non-zero on failure.
+-int get_rand_bytes(uint8_t *therand, size_t len)
+-#endif // HAVE_RDRAND
+-#endif // rdrand_h
+diff --git a/entropy.cabal b/entropy.cabal
+index 2dc104b..6994795 100644
+--- a/entropy.cabal
++++ b/entropy.cabal
+@@ -15,10 +15,7 @@ category:       Data, Cryptography
+ homepage:       https://github.com/TomMD/entropy
+ bug-reports:    https://github.com/TomMD/entropy/issues
+ stability:      stable
+--- build-type:  Simple
+--- ^^ Used for HaLVM
+-build-type:     Custom
+--- ^^ Test for RDRAND support using 'ghc'
++build-type:  Simple
+ cabal-version:  >=1.10
+ tested-with:    GHC == 8.2.2
+ -- data-files:
+@@ -42,37 +39,12 @@ custom-setup
+ library
+   ghc-options:  -O2
+   exposed-modules: System.Entropy
+-  if os(windows)
+-    other-modules: System.EntropyWindows
+-  else {
+-       if os(halvm)
+-         other-modules: System.EntropyXen
+-       else
+-         other-modules: System.EntropyNix
+-  }
++  other-modules: System.EntropyJVM
+   other-extensions:    CPP, ForeignFunctionInterface, BangPatterns,
+                        ScopedTypeVariables
+   build-depends:       base >= 4.8 && < 5, bytestring
+   default-language:    Haskell2010
+-  if(os(halvm))
+-    cpp-options: -DXEN -DHAVE_RDRAND
+-    cc-options:  -DXEN -DHAVE_RDRAND
+-  if arch(x86_64)
+-    cpp-options: -Darch_x86_64
+-    cc-options:  -Darch_x86_64 -O2
+-    -- gcc 4.8.2 on i386 fails to compile rdrand.c when using -fPIC!
+-    c-sources:    cbits/rdrand.c
+-    include-dirs: cbits
+-  if arch(i386)
+-    cpp-options: -Darch_i386
+-    cc-options:  -Darch_i386 -O2
+-  if os(windows)
+-    cpp-options: -DisWindows
+-    cc-options:  -DisWindows
+-    extra-libraries: advapi32
+-  else
+-    if !os(halvm)
+-       Build-Depends: unix
++  java-sources:        java/Utils.java
+ 
+ source-repository head
+     type:       git
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..f9e726c
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,22 @@
++package entropy.Utils;
++
++import eta.runtime.io.MemoryManager;
++import java.security.SecureRandom;
++import java.nio.ByteBuffer;
++
++public class Utils {
++
++    public static int get_rand_bytes(long address, int n, SecureRandom random){
++        ByteBuffer buffer = MemoryManager.getBoundedBuffer(address);
++        buffer.put(randomByteArray(n, random));
++        return 0;
++    }
++
++    private static byte[] randomByteArray(int n, SecureRandom random){
++        byte[] result = new byte[n];
++        random.nextBytes(result);
++        return result;
++    }
++
++}
++
+-- 
+2.7.4
+
