@@ -19,22 +19,7 @@ build-type:  Simple
 cabal-version:  >=1.10
 tested-with:    GHC == 8.2.2
 -- data-files:
-extra-source-files:   ./cbits/rdrand.c, ./cbits/rdrand.h, README.md
-
--- Notice to compile  with HaLVM the above 'build-type' must be changed
--- to 'Simple' instead of 'Custom'.  The current build system naively
--- runs GHC to determine if the compiler supports RDRAND before proceeding.
-flag halvm
-    description:        Build for the HaLVM
-    default:            False
-
-
-custom-setup
-  setup-depends: Cabal >= 1.10 && < 2.2
-               , base < 5
-               , filepath < 1.5
-               , directory < 1.4
-               , process < 1.7
+-- extra-source-files:   ./cbits/rdrand.c, ./cbits/rdrand.h, README.md
 
 library
   ghc-options:  -O2
