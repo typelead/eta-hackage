@@ -88,10 +88,10 @@ index db809f0..96489b2 100644
  -- The returned random value is considered cryptographically secure but not true entropy.
 diff --git a/System/EntropyJVM.hs b/System/EntropyJVM.hs
 new file mode 100644
-index 0000000..a2a4bc7
+index 0000000..f6df32a
 --- /dev/null
 +++ b/System/EntropyJVM.hs
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,72 @@
 +{-# LANGUAGE CPP, ForeignFunctionInterface, BangPatterns, ScopedTypeVariables, MagicHash #-}
 +{-|
 + Maintainer: Thomas.DuBuisson@gmail.com
@@ -164,7 +164,6 @@ index 0000000..a2a4bc7
 +  filler ptr = do
 +    r <- java_get_rand_bytes (castPtr ptr) (fromIntegral n) rand
 +    when (r/= 0) (fail "entropy library: Something bad occurred on the Java side")
-+
 diff --git a/System/EntropyNix.hs b/System/EntropyNix.hs
 deleted file mode 100644
 index 01a7bc4..0000000
@@ -618,10 +617,10 @@ index 9f43a72..0000000
 -#endif // HAVE_RDRAND
 -#endif // rdrand_h
 diff --git a/entropy.cabal b/entropy.cabal
-index 2dc104b..6994795 100644
+index a79b986..768b05d 100644
 --- a/entropy.cabal
 +++ b/entropy.cabal
-@@ -15,10 +15,7 @@ category:       Data, Cryptography
+@@ -14,10 +14,7 @@ category:       Data, Cryptography
  homepage:       https://github.com/TomMD/entropy
  bug-reports:    https://github.com/TomMD/entropy/issues
  stability:      stable
@@ -633,7 +632,7 @@ index 2dc104b..6994795 100644
  cabal-version:  >=1.10
  tested-with:    GHC == 8.2.2
  -- data-files:
-@@ -42,37 +39,12 @@ custom-setup
+@@ -41,37 +38,12 @@ custom-setup
  library
    ghc-options:  -O2
    exposed-modules: System.Entropy
@@ -648,7 +647,7 @@ index 2dc104b..6994795 100644
 +  other-modules: System.EntropyJVM
    other-extensions:    CPP, ForeignFunctionInterface, BangPatterns,
                         ScopedTypeVariables
-   build-depends:       base >= 4.8 && < 5, bytestring
+   build-depends:       base >= 4.3 && < 5, bytestring
    default-language:    Haskell2010
 -  if(os(halvm))
 -    cpp-options: -DXEN -DHAVE_RDRAND
@@ -675,10 +674,10 @@ index 2dc104b..6994795 100644
      type:       git
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..f9e726c
+index 0000000..688a143
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,21 @@
 +package entropy.Utils;
 +
 +import eta.runtime.io.MemoryManager;
@@ -700,7 +699,6 @@ index 0000000..f9e726c
 +    }
 +
 +}
-+
 -- 
-2.7.4
+2.7.4 (Apple Git-66)
 
