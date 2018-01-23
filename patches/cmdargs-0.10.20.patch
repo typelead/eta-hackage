@@ -1,0 +1,25 @@
+From b75f21ea2329202d9c8155e7d6e50cddabd5e477 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 23 Jan 2018 12:18:09 +0530
+Subject: [PATCH] Patched
+
+---
+ cmdargs.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cmdargs.cabal b/cmdargs.cabal
+index 4bed37d..cdb9210 100644
+--- a/cmdargs.cabal
++++ b/cmdargs.cabal
+@@ -45,7 +45,7 @@ flag testprog
+     description: Build the test program
+ 
+ flag quotation
+-    default: True
++    default: False
+     manual: True
+     description: Build the Quote module
+ 
+-- 
+2.7.4 (Apple Git-66)
+
