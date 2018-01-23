@@ -1,0 +1,703 @@
+From a4c17ac1da7764f5d9aec108d3f554385bd737e7 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 23 Jan 2018 10:45:33 +0530
+Subject: [PATCH] Patched
+
+---
+ Basement/Bindings/Memory.hs      |  12 +--
+ Basement/Block/Base.hs           |  10 +-
+ Basement/Compat/Primitive.hs     |  27 +++---
+ Basement/Numerical/Additive.hs   |   4 -
+ Basement/Numerical/Conversion.hs |   4 -
+ Basement/PrimType.hs             |   6 +-
+ Basement/Terminal/Size.hs        | 191 +++++++++++++++++++++++++++++++++++++++
+ Basement/Terminal/Size.hsc       | 187 --------------------------------------
+ Basement/Types/Char7.hs          |  12 +--
+ Basement/Types/OffsetSize.hs     |   4 -
+ basement.cabal                   |  10 --
+ java/Utils.java                  |  62 +++++++++++++
+ 12 files changed, 290 insertions(+), 239 deletions(-)
+ create mode 100644 Basement/Terminal/Size.hs
+ delete mode 100644 Basement/Terminal/Size.hsc
+ create mode 100644 java/Utils.java
+
+diff --git a/Basement/Bindings/Memory.hs b/Basement/Bindings/Memory.hs
+index d76b38a..a56d7f2 100644
+--- a/Basement/Bindings/Memory.hs
++++ b/Basement/Bindings/Memory.hs
+@@ -11,20 +11,20 @@ import Basement.Compat.C.Types
+ import Foreign.Ptr
+ import Basement.Types.OffsetSize
+ 
+-foreign import ccall unsafe "_foundation_memcmp" sysHsMemcmpBaBa ::
++foreign import java unsafe "@static eta.basement.Utils.memcmp_ba_ba" sysHsMemcmpBaBa ::
+     ByteArray# -> Offset Word8 -> ByteArray# -> Offset Word8 -> CountOf Word8 -> IO CInt
+ 
+-foreign import ccall unsafe "_foundation_memcmp" sysHsMemcmpBaPtr ::
++foreign import java unsafe "@static eta.basement.Utils.memcmp_ba_ptr" sysHsMemcmpBaPtr ::
+     ByteArray# -> Offset Word8 -> Ptr a -> Offset Word8 -> CountOf Word8 -> IO CInt
+ 
+-foreign import ccall unsafe "_foundation_memcmp" sysHsMemcmpPtrBa ::
++foreign import java unsafe "@static eta.basement.Utils.memcmp_ptr_ba" sysHsMemcmpPtrBa ::
+     Ptr a -> Offset Word8 -> ByteArray# -> Offset Word8 -> CountOf Word8 -> IO CInt
+ 
+-foreign import ccall unsafe "_foundation_memcmp" sysHsMemcmpPtrPtr ::
++foreign import java unsafe "@static eta.basement.Utils.memcmp_ptr_ptr" sysHsMemcmpPtrPtr ::
+     Ptr a -> Offset Word8 -> Ptr b -> Offset Word8 -> CountOf Word8 -> IO CInt
+ 
+-foreign import ccall unsafe "_foundation_mem_findbyte" sysHsMemFindByteBa ::
++foreign import java unsafe "@static eta.basement.Utils.findbyte_ba" sysHsMemFindByteBa ::
+     ByteArray# -> Offset Word8 -> Offset Word8 -> Word8 -> Offset Word8
+ 
+-foreign import ccall unsafe "_foundation_mem_findbyte" sysHsMemFindByteAddr ::
++foreign import java unsafe "@static eta.basement.Utils.findbyte_ptr" sysHsMemFindByteAddr ::
+     Addr# -> Offset Word8 -> Offset Word8 -> Word8 -> Offset Word8
+diff --git a/Basement/Block/Base.hs b/Basement/Block/Base.hs
+index 1ac54e1..a5a3762 100644
+--- a/Basement/Block/Base.hs
++++ b/Basement/Block/Base.hs
+@@ -89,10 +89,16 @@ instance PrimType ty => IsList (Block ty) where
+ data MutableBlock ty st = MutableBlock (MutableByteArray# st)
+ 
+ isPinned :: Block ty -> PinnedStatus
+-isPinned (Block ba) = toPinnedStatus# (compatIsByteArrayPinned# ba)
++isPinned (Block ba) = Pinned
++  -- TODO: Implemented properly
++  -- error "isPinned: Not implemented yet"
++  -- toPinnedStatus# (compatIsByteArrayPinned# ba)
+ 
+ isMutablePinned :: MutableBlock s ty -> PinnedStatus
+-isMutablePinned (MutableBlock mba) = toPinnedStatus# (compatIsMutableByteArrayPinned# mba)
++isMutablePinned (MutableBlock mba) = Pinned
++  -- TODO: Implement properly
++  -- error "isMutablePinned: Not implemented yet"
++  -- toPinnedStatus# (compatIsMutableByteArrayPinned# mba)
+ 
+ length :: forall ty . PrimType ty => Block ty -> CountOf ty
+ length (Block ba) =
+diff --git a/Basement/Compat/Primitive.hs b/Basement/Compat/Primitive.hs
+index 2b3f606..0a61c62 100644
+--- a/Basement/Compat/Primitive.hs
++++ b/Basement/Compat/Primitive.hs
+@@ -20,8 +20,9 @@ module Basement.Compat.Primitive
+     , compatGetSizeofMutableByteArray#
+     , compatShrinkMutableByteArray#
+     , compatResizeMutableByteArray#
+-    , compatIsByteArrayPinned#
+-    , compatIsMutableByteArrayPinned#
++    -- TODO: Implement
++    -- , compatIsByteArrayPinned#
++    -- , compatIsMutableByteArrayPinned#
+     , Word(..)
+     ) where
+ 
+@@ -161,16 +162,16 @@ compatResizeMutableByteArray# src i s =
+ #endif
+ {-# INLINE compatResizeMutableByteArray# #-}
+ 
+-#if __GLASGOW_HASKELL__ >= 802
+-compatIsByteArrayPinned# :: ByteArray# -> Pinned#
+-compatIsByteArrayPinned# ba = isByteArrayPinned# ba
++-- #if __GLASGOW_HASKELL__ >= 802
++-- compatIsByteArrayPinned# :: ByteArray# -> Pinned#
++-- compatIsByteArrayPinned# ba = isByteArrayPinned# ba
+ 
+-compatIsMutableByteArrayPinned# :: MutableByteArray# s -> Pinned#
+-compatIsMutableByteArrayPinned# ba = isMutableByteArrayPinned# ba
+-#else
+-foreign import ccall unsafe "foundation_is_bytearray_pinned"
+-    compatIsByteArrayPinned# :: ByteArray# -> Pinned#
++-- compatIsMutableByteArrayPinned# :: MutableByteArray# s -> Pinned#
++-- compatIsMutableByteArrayPinned# ba = isMutableByteArrayPinned# ba
++-- #else
++-- foreign import ccall unsafe "foundation_is_bytearray_pinned"
++--     compatIsByteArrayPinned# :: ByteArray# -> Pinned#
+ 
+-foreign import ccall unsafe "foundation_is_bytearray_pinned"
+-    compatIsMutableByteArrayPinned# :: MutableByteArray# s -> Pinned#
+-#endif
++-- foreign import ccall unsafe "foundation_is_bytearray_pinned"
++--     compatIsMutableByteArrayPinned# :: MutableByteArray# s -> Pinned#
++-- #endif
+diff --git a/Basement/Numerical/Additive.hs b/Basement/Numerical/Additive.hs
+index b3a4ebb..da334e6 100644
+--- a/Basement/Numerical/Additive.hs
++++ b/Basement/Numerical/Additive.hs
+@@ -24,10 +24,6 @@ import           Basement.Types.Word256 (Word256)
+ import qualified Basement.Types.Word128 as Word128
+ import qualified Basement.Types.Word256 as Word256
+ 
+-#if WORD_SIZE_IN_BITS < 64
+-import           GHC.IntWord64
+-#endif
+-
+ -- | Represent class of things that can be added together,
+ -- contains a neutral element and is commutative.
+ --
+diff --git a/Basement/Numerical/Conversion.hs b/Basement/Numerical/Conversion.hs
+index a86d195..b8093be 100644
+--- a/Basement/Numerical/Conversion.hs
++++ b/Basement/Numerical/Conversion.hs
+@@ -23,10 +23,6 @@ import GHC.Prim
+ import GHC.Int
+ import GHC.Word
+ 
+-#if WORD_SIZE_IN_BITS < 64
+-import GHC.IntWord64
+-#endif
+-
+ intToInt64 :: Int -> Int64
+ #if WORD_SIZE_IN_BITS == 64
+ intToInt64 (I# i) = I64# i
+diff --git a/Basement/PrimType.hs b/Basement/PrimType.hs
+index f8ca292..3337f12 100644
+--- a/Basement/PrimType.hs
++++ b/Basement/PrimType.hs
+@@ -53,9 +53,9 @@ import           Basement.Monad
+ import           Basement.Nat
+ import qualified Prelude (quot)
+ 
+-#if WORD_SIZE_IN_BITS < 64
+-import           GHC.IntWord64
+-#endif
++-- #if WORD_SIZE_IN_BITS < 64
++-- import           GHC.IntWord64
++-- #endif
+ 
+ #ifdef FOUNDATION_BOUNDS_CHECK
+ 
+diff --git a/Basement/Terminal/Size.hs b/Basement/Terminal/Size.hs
+new file mode 100644
+index 0000000..5cde909
+--- /dev/null
++++ b/Basement/Terminal/Size.hs
+@@ -0,0 +1,191 @@
++{-# LANGUAGE CApiFFI #-}
++module Basement.Terminal.Size 
++    ( getDimensions
++    ) where
++        
++import           Foreign
++import           Foreign.C
++import           Basement.Compat.Base
++import           Basement.Types.OffsetSize
++import           Basement.Numerical.Subtractive
++import           Basement.Numerical.Additive
++import           Prelude (fromIntegral)
++
++-- TODO: Implement
++getDimensions :: IO (CountOf Char, CountOf Char)
++getDimensions = error "getDimensions: Not implemented yet."
++
++-- #include "foundation_system.h"
++-- #ifdef FOUNDATION_SYSTEM_WINDOWS
++
++-- import           System.Win32.Types (HANDLE, BOOL)
++-- import           Graphics.Win32.Misc (getStdHandle, sTD_OUTPUT_HANDLE, StdHandleId)
++
++-- #include <windows.h>
++-- #elif defined FOUNDATION_SYSTEM_UNIX
++-- #include <sys/ioctl.h>
++-- #endif 
++
++-- #include <stdio.h>
++
++-- #if __GLASGOW_HASKELL__ < 800
++-- #let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
++-- #endif
++
++-- #ifdef FOUNDATION_SYSTEM_UNIX
++-- data Winsize = Winsize
++--     { ws_row    :: !Word16
++--     , ws_col    :: !Word16
++--     , ws_xpixel :: !Word16
++--     , ws_ypixel :: !Word16
++--     }
++
++-- instance Storable Winsize where
++--     sizeOf _ = #{size struct winsize}
++--     alignment _ = #{alignment struct winsize}
++--     peek ptr = do
++--         r <- #{peek struct winsize, ws_row} ptr
++--         c <- #{peek struct winsize, ws_col} ptr
++--         x <- #{peek struct winsize, ws_xpixel} ptr
++--         y <- #{peek struct winsize, ws_ypixel} ptr
++--         return (Winsize r c x y)
++--     poke ptr (Winsize r c x y) = do
++--         #{poke struct winsize, ws_row} ptr r
++--         #{poke struct winsize, ws_col} ptr c
++--         #{poke struct winsize, ws_xpixel} ptr x
++--         #{poke struct winsize, ws_ypixel} ptr y
++        
++-- #elif defined FOUNDATION_SYSTEM_WINDOWS
++-- type Handle = Ptr CChar  -- void *
++
++-- data SmallRect = SmallRect 
++--     { left   :: !Int16
++--     , top    :: !Int16
++--     , right  :: !Int16
++--     , bottom :: !Int16
++--     } deriving (Show)
++
++-- instance Storable SmallRect where
++--     sizeOf _ = #{size SMALL_RECT}
++--     alignment _ = #{alignment SMALL_RECT}
++--     peek ptr = do
++--         l <- #{peek SMALL_RECT, Left} ptr
++--         r <- #{peek SMALL_RECT, Right} ptr
++--         t <- #{peek SMALL_RECT, Top} ptr
++--         b <- #{peek SMALL_RECT, Bottom} ptr
++--         return (SmallRect l t r b)
++--     poke ptr (SmallRect l t r b) = do
++--         #{poke SMALL_RECT, Left} ptr l
++--         #{poke SMALL_RECT, Top} ptr t
++--         #{poke SMALL_RECT, Right} ptr r
++--         #{poke SMALL_RECT, Bottom} ptr b
++        
++-- data Coord = Coord 
++--     { x :: !Int16
++--     , y :: !Int16
++--     } deriving (Show)
++
++-- instance Storable Coord where
++--     sizeOf _ = #{size COORD}
++--     alignment _ = #{alignment COORD}
++--     peek ptr = do
++--         x <- #{peek COORD, X} ptr
++--         y <- #{peek COORD, Y} ptr
++--         return (Coord x y)
++--     poke ptr (Coord x y) = do
++--         #{poke COORD, X} ptr x
++--         #{poke COORD, Y} ptr y
++
++-- data ConsoleScreenBufferInfo = ConsoleScreenBufferInfo 
++--     { dwSize              :: !Coord
++--     , dwCursorPosition    :: !Coord
++--     , wAttributes         :: !Word16
++--     , srWindow            :: !SmallRect
++--     , dwMaximumWindowSize :: !Coord
++--     } deriving (Show)
++
++-- instance Storable ConsoleScreenBufferInfo where
++--     sizeOf _ = #{size CONSOLE_SCREEN_BUFFER_INFO}
++--     alignment _ = #{alignment CONSOLE_SCREEN_BUFFER_INFO}
++--     peek ptr = do
++--         s <- #{peek CONSOLE_SCREEN_BUFFER_INFO, dwSize} ptr
++--         c <- #{peek CONSOLE_SCREEN_BUFFER_INFO, dwCursorPosition} ptr
++--         a <- #{peek CONSOLE_SCREEN_BUFFER_INFO, wAttributes} ptr
++--         w <- #{peek CONSOLE_SCREEN_BUFFER_INFO, srWindow} ptr
++--         m <- #{peek CONSOLE_SCREEN_BUFFER_INFO, dwMaximumWindowSize} ptr
++--         return (ConsoleScreenBufferInfo s c a w m)
++--     poke ptr (ConsoleScreenBufferInfo s c a w m) = do
++--         #{poke CONSOLE_SCREEN_BUFFER_INFO, dwSize} ptr s
++--         #{poke CONSOLE_SCREEN_BUFFER_INFO, dwCursorPosition} ptr c
++--         #{poke CONSOLE_SCREEN_BUFFER_INFO, wAttributes} ptr a
++--         #{poke CONSOLE_SCREEN_BUFFER_INFO, srWindow} ptr w
++--         #{poke CONSOLE_SCREEN_BUFFER_INFO, dwMaximumWindowSize} ptr m
++    
++-- invalidHandleValue :: IntPtr
++-- invalidHandleValue = #{const INVALID_HANDLE_VALUE}
++
++-- stdOutputHandle :: CULong
++-- stdOutputHandle = #{const STD_OUTPUT_HANDLE}
++-- #endif
++-- -- defined FOUNDATION_SYSTEM_WINDOWS
++
++-- #ifdef FOUNDATION_SYSTEM_UNIX
++
++-- foreign import capi "sys/ioctl.h ioctl" c_ioctl :: CInt -> CULong -> Ptr a -> IO CInt
++
++-- -- | Get the terminal windows size
++-- tiocgwinsz :: CULong
++-- tiocgwinsz = Prelude.fromIntegral (#{const TIOCGWINSZ} :: Word)
++
++-- #elif defined FOUNDATION_SYSTEM_WINDOWS
++-- foreign import ccall "GetConsoleScreenBufferInfo" c_get_console_screen_buffer_info 
++--   :: HANDLE -> Ptr ConsoleScreenBufferInfo -> IO BOOL
++-- #endif
++
++-- #ifdef FOUNDATION_SYSTEM_UNIX
++-- ioctlWinsize :: CInt -> IO (Maybe (CountOf Char, CountOf Char))
++-- ioctlWinsize fd = alloca $ \winsizePtr -> do
++--     status <- c_ioctl fd tiocgwinsz winsizePtr
++--     if status == (-1 :: CInt)
++--         then pure Nothing
++--         else Just . toDimensions <$> peek winsizePtr
++--   where
++--     toDimensions winsize =
++--         ( CountOf . Prelude.fromIntegral . ws_col $ winsize
++--         , CountOf . Prelude.fromIntegral . ws_row $ winsize)
++       
++-- #elif defined FOUNDATION_SYSTEM_WINDOWS
++-- getConsoleScreenBufferInfo :: HANDLE -> IO (Maybe ConsoleScreenBufferInfo)
++-- getConsoleScreenBufferInfo handle = alloca $ \infoPtr -> do
++--     status <- c_get_console_screen_buffer_info handle infoPtr
++--     if status
++--         then Just <$> peek infoPtr
++--         else pure Nothing
++       
++-- winWinsize :: StdHandleId -> IO (Maybe (CountOf Char, CountOf Char))
++-- winWinsize handleRef = (infoToDimensions <$>) <$>
++--     (getStdHandle handleRef >>= getConsoleScreenBufferInfo)
++--   where
++--     infoToDimensions info =
++--         let window = srWindow info
++--             width = Prelude.fromIntegral (right window - left window + 1)
++--             height = Prelude.fromIntegral (bottom window - top window + 1)
++--          in (CountOf width, CountOf height)
++-- #endif
++-- -- defined FOUNDATION_SYSTEM_WINDOWS
++
++-- -- | Return the size of the current terminal
++-- --
++-- -- If the system is not supported or that querying the system result in an error
++-- -- then a default size of (80, 24) will be given back.
++-- getDimensions :: IO (CountOf Char, CountOf Char)
++-- getDimensions =
++-- #if defined FOUNDATION_SYSTEM_WINDOWS
++--     maybe defaultSize id <$> winWinsize sTD_OUTPUT_HANDLE
++-- #elif defined FOUNDATION_SYSTEM_UNIX
++--     maybe defaultSize id <$> ioctlWinsize 0
++-- #else
++--     pure defaultSize
++-- #endif
++--   where
++--     defaultSize = (80, 24)
+diff --git a/Basement/Terminal/Size.hsc b/Basement/Terminal/Size.hsc
+deleted file mode 100644
+index 7d18ea4..0000000
+--- a/Basement/Terminal/Size.hsc
++++ /dev/null
+@@ -1,187 +0,0 @@
+-{-# LANGUAGE CApiFFI #-}
+-module Basement.Terminal.Size 
+-    ( getDimensions
+-    ) where
+-        
+-import           Foreign
+-import           Foreign.C
+-import           Basement.Compat.Base
+-import           Basement.Types.OffsetSize
+-import           Basement.Numerical.Subtractive
+-import           Basement.Numerical.Additive
+-import           Prelude (fromIntegral)
+-
+-#include "foundation_system.h"
+-#ifdef FOUNDATION_SYSTEM_WINDOWS
+-
+-import           System.Win32.Types (HANDLE, BOOL)
+-import           Graphics.Win32.Misc (getStdHandle, sTD_OUTPUT_HANDLE, StdHandleId)
+-
+-#include <windows.h>
+-#elif defined FOUNDATION_SYSTEM_UNIX
+-#include <sys/ioctl.h>
+-#endif 
+-
+-#include <stdio.h>
+-
+-#if __GLASGOW_HASKELL__ < 800
+-#let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
+-#endif
+-
+-#ifdef FOUNDATION_SYSTEM_UNIX
+-data Winsize = Winsize
+-    { ws_row    :: !Word16
+-    , ws_col    :: !Word16
+-    , ws_xpixel :: !Word16
+-    , ws_ypixel :: !Word16
+-    }
+-
+-instance Storable Winsize where
+-    sizeOf _ = #{size struct winsize}
+-    alignment _ = #{alignment struct winsize}
+-    peek ptr = do
+-        r <- #{peek struct winsize, ws_row} ptr
+-        c <- #{peek struct winsize, ws_col} ptr
+-        x <- #{peek struct winsize, ws_xpixel} ptr
+-        y <- #{peek struct winsize, ws_ypixel} ptr
+-        return (Winsize r c x y)
+-    poke ptr (Winsize r c x y) = do
+-        #{poke struct winsize, ws_row} ptr r
+-        #{poke struct winsize, ws_col} ptr c
+-        #{poke struct winsize, ws_xpixel} ptr x
+-        #{poke struct winsize, ws_ypixel} ptr y
+-        
+-#elif defined FOUNDATION_SYSTEM_WINDOWS
+-type Handle = Ptr CChar  -- void *
+-
+-data SmallRect = SmallRect 
+-    { left   :: !Int16
+-    , top    :: !Int16
+-    , right  :: !Int16
+-    , bottom :: !Int16
+-    } deriving (Show)
+-
+-instance Storable SmallRect where
+-    sizeOf _ = #{size SMALL_RECT}
+-    alignment _ = #{alignment SMALL_RECT}
+-    peek ptr = do
+-        l <- #{peek SMALL_RECT, Left} ptr
+-        r <- #{peek SMALL_RECT, Right} ptr
+-        t <- #{peek SMALL_RECT, Top} ptr
+-        b <- #{peek SMALL_RECT, Bottom} ptr
+-        return (SmallRect l t r b)
+-    poke ptr (SmallRect l t r b) = do
+-        #{poke SMALL_RECT, Left} ptr l
+-        #{poke SMALL_RECT, Top} ptr t
+-        #{poke SMALL_RECT, Right} ptr r
+-        #{poke SMALL_RECT, Bottom} ptr b
+-        
+-data Coord = Coord 
+-    { x :: !Int16
+-    , y :: !Int16
+-    } deriving (Show)
+-
+-instance Storable Coord where
+-    sizeOf _ = #{size COORD}
+-    alignment _ = #{alignment COORD}
+-    peek ptr = do
+-        x <- #{peek COORD, X} ptr
+-        y <- #{peek COORD, Y} ptr
+-        return (Coord x y)
+-    poke ptr (Coord x y) = do
+-        #{poke COORD, X} ptr x
+-        #{poke COORD, Y} ptr y
+-
+-data ConsoleScreenBufferInfo = ConsoleScreenBufferInfo 
+-    { dwSize              :: !Coord
+-    , dwCursorPosition    :: !Coord
+-    , wAttributes         :: !Word16
+-    , srWindow            :: !SmallRect
+-    , dwMaximumWindowSize :: !Coord
+-    } deriving (Show)
+-
+-instance Storable ConsoleScreenBufferInfo where
+-    sizeOf _ = #{size CONSOLE_SCREEN_BUFFER_INFO}
+-    alignment _ = #{alignment CONSOLE_SCREEN_BUFFER_INFO}
+-    peek ptr = do
+-        s <- #{peek CONSOLE_SCREEN_BUFFER_INFO, dwSize} ptr
+-        c <- #{peek CONSOLE_SCREEN_BUFFER_INFO, dwCursorPosition} ptr
+-        a <- #{peek CONSOLE_SCREEN_BUFFER_INFO, wAttributes} ptr
+-        w <- #{peek CONSOLE_SCREEN_BUFFER_INFO, srWindow} ptr
+-        m <- #{peek CONSOLE_SCREEN_BUFFER_INFO, dwMaximumWindowSize} ptr
+-        return (ConsoleScreenBufferInfo s c a w m)
+-    poke ptr (ConsoleScreenBufferInfo s c a w m) = do
+-        #{poke CONSOLE_SCREEN_BUFFER_INFO, dwSize} ptr s
+-        #{poke CONSOLE_SCREEN_BUFFER_INFO, dwCursorPosition} ptr c
+-        #{poke CONSOLE_SCREEN_BUFFER_INFO, wAttributes} ptr a
+-        #{poke CONSOLE_SCREEN_BUFFER_INFO, srWindow} ptr w
+-        #{poke CONSOLE_SCREEN_BUFFER_INFO, dwMaximumWindowSize} ptr m
+-    
+-invalidHandleValue :: IntPtr
+-invalidHandleValue = #{const INVALID_HANDLE_VALUE}
+-
+-stdOutputHandle :: CULong
+-stdOutputHandle = #{const STD_OUTPUT_HANDLE}
+-#endif
+--- defined FOUNDATION_SYSTEM_WINDOWS
+-
+-#ifdef FOUNDATION_SYSTEM_UNIX
+-
+-foreign import capi "sys/ioctl.h ioctl" c_ioctl :: CInt -> CULong -> Ptr a -> IO CInt
+-
+--- | Get the terminal windows size
+-tiocgwinsz :: CULong
+-tiocgwinsz = Prelude.fromIntegral (#{const TIOCGWINSZ} :: Word)
+-
+-#elif defined FOUNDATION_SYSTEM_WINDOWS
+-foreign import ccall "GetConsoleScreenBufferInfo" c_get_console_screen_buffer_info 
+-  :: HANDLE -> Ptr ConsoleScreenBufferInfo -> IO BOOL
+-#endif
+-
+-#ifdef FOUNDATION_SYSTEM_UNIX
+-ioctlWinsize :: CInt -> IO (Maybe (CountOf Char, CountOf Char))
+-ioctlWinsize fd = alloca $ \winsizePtr -> do
+-    status <- c_ioctl fd tiocgwinsz winsizePtr
+-    if status == (-1 :: CInt)
+-        then pure Nothing
+-        else Just . toDimensions <$> peek winsizePtr
+-  where
+-    toDimensions winsize =
+-        ( CountOf . Prelude.fromIntegral . ws_col $ winsize
+-        , CountOf . Prelude.fromIntegral . ws_row $ winsize)
+-       
+-#elif defined FOUNDATION_SYSTEM_WINDOWS
+-getConsoleScreenBufferInfo :: HANDLE -> IO (Maybe ConsoleScreenBufferInfo)
+-getConsoleScreenBufferInfo handle = alloca $ \infoPtr -> do
+-    status <- c_get_console_screen_buffer_info handle infoPtr
+-    if status
+-        then Just <$> peek infoPtr
+-        else pure Nothing
+-       
+-winWinsize :: StdHandleId -> IO (Maybe (CountOf Char, CountOf Char))
+-winWinsize handleRef = (infoToDimensions <$>) <$>
+-    (getStdHandle handleRef >>= getConsoleScreenBufferInfo)
+-  where
+-    infoToDimensions info =
+-        let window = srWindow info
+-            width = Prelude.fromIntegral (right window - left window + 1)
+-            height = Prelude.fromIntegral (bottom window - top window + 1)
+-         in (CountOf width, CountOf height)
+-#endif
+--- defined FOUNDATION_SYSTEM_WINDOWS
+-
+--- | Return the size of the current terminal
+---
+--- If the system is not supported or that querying the system result in an error
+--- then a default size of (80, 24) will be given back.
+-getDimensions :: IO (CountOf Char, CountOf Char)
+-getDimensions =
+-#if defined FOUNDATION_SYSTEM_WINDOWS
+-    maybe defaultSize id <$> winWinsize sTD_OUTPUT_HANDLE
+-#elif defined FOUNDATION_SYSTEM_UNIX
+-    maybe defaultSize id <$> ioctlWinsize 0
+-#else
+-    pure defaultSize
+-#endif
+-  where
+-    defaultSize = (80, 24)
+diff --git a/Basement/Types/Char7.hs b/Basement/Types/Char7.hs
+index 98abe63..385987b 100644
+--- a/Basement/Types/Char7.hs
++++ b/Basement/Types/Char7.hs
+@@ -10,9 +10,9 @@ module Basement.Types.Char7
+     , c7_LF
+     , c7_CR
+     , c7_minus
+-    , c7_a
++    , c7_a_lower
+     , c7_A
+-    , c7_z
++    , c7_z_lower
+     , c7_Z
+     , c7_0
+     , c7_1
+@@ -75,14 +75,14 @@ c7_CR = Char7 0xd
+ c7_minus :: Char7
+ c7_minus = Char7 0x2d
+ 
+-c7_a :: Char7
+-c7_a = Char7 0x61
++c7_a_lower :: Char7
++c7_a_lower = Char7 0x61
+ 
+ c7_A :: Char7
+ c7_A = Char7 0x41
+ 
+-c7_z :: Char7
+-c7_z = Char7 0x7a
++c7_z_lower :: Char7
++c7_z_lower = Char7 0x7a
+ 
+ c7_Z :: Char7
+ c7_Z = Char7 0x5a
+diff --git a/Basement/Types/OffsetSize.hs b/Basement/Types/OffsetSize.hs
+index 0bce30b..b2cf894 100644
+--- a/Basement/Types/OffsetSize.hs
++++ b/Basement/Types/OffsetSize.hs
+@@ -67,10 +67,6 @@ import Basement.IntegralConv
+ import Data.List (foldl')
+ import qualified Prelude
+ 
+-#if WORD_SIZE_IN_BITS < 64
+-import GHC.IntWord64
+-#endif
+-
+ -- | File size in bytes
+ newtype FileSize = FileSize Word64
+     deriving (Show,Eq,Ord)
+diff --git a/basement.cabal b/basement.cabal
+index 3a7341b..aacbd5d 100644
+--- a/basement.cabal
++++ b/basement.cabal
+@@ -145,19 +145,9 @@ library
+   build-depends:       base >= 4.7 && < 5
+                      , ghc-prim
+ 
+-  if os(windows)
+-    build-depends:     Win32
+-
+   default-language:    Haskell2010
+   default-extensions: NoImplicitPrelude
+                       RebindableSyntax
+                       TypeFamilies
+                       BangPatterns
+                       DeriveDataTypeable
+-  if (arch(i386) || arch(x86_64))
+-    cpp-options: -DARCH_IS_LITTLE_ENDIAN
+-  else
+-    cpp-options: -DARCH_IS_UNKNOWN_ENDIAN
+-  include-dirs:      cbits
+-  c-sources:         cbits/foundation_mem.c
+-                     cbits/foundation_rts.c
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..342fa61
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,62 @@
++package eta.basement;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.MemoryManager;
++
++public class Utils {
++    private static ByteBuffer buf(long address, int off, int n) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(address);
++        buf.position(buf.position() + off);
++        buf.limit(buf.position() + n);
++        return buf;
++    }
++
++    public static int memcmp_ba_ba(ByteArray ba1, int o1, ByteArray ba2, int o2, int n)  {
++        return memcmp(buf(ba1.bufferAddress, o1, n), buf(ba2.bufferAddress, o2, n), n);
++    }
++
++    public static int memcmp_ba_ptr(ByteArray ba1, int o1, long a2, int o2, int n)  {
++        return memcmp(buf(ba1.bufferAddress, o1, n), buf(a2, o2, n), n);
++    }
++
++    public static int memcmp_ptr_ba(long a1, int o1, ByteArray ba2, int o2, int n)  {
++        return memcmp(buf(a1, o1, n), buf(ba2.bufferAddress, o2, n), n);
++    }
++
++    public static int memcmp_ptr_ptr(long a1, int o1, long a2, int o2, int n)  {
++        return memcmp(buf(a1, o1, n), buf(a2, o2, n), n);
++    }
++
++    public static int memcmp(ByteBuffer b1, ByteBuffer b2, int n) {
++        while (n-- != 0) {
++            int a = b1.get() & 0xFF;
++            int b = b2.get() & 0xFF;
++            if (a != b) {
++                return a - b;
++            }
++        }
++        return 0;
++    }
++
++    private static long memchr(ByteBuffer b, int c, int n) {
++        c = (int)((byte) c);
++
++        while (n-- != 0) {
++            if (b.get() == c) {
++                return address;
++            }
++            address++;
++        }
++        return 0L;
++    }
++
++    public static int findbyte_ptr(long address, int startofs, int endofs, int c) {
++        int n = endofs - startofs;
++        long result = memchr(buf(address, startofs, n), c, n);
++        return (result == 0L)? endofs : (int)(result - address);
++    }
++
++    public static findbyte_ba(ByteArray ba, int startofs, int endofs, int c) {
++        return findbyte_ptr(ba.bufferAddress, startofs, endofs, c);
++    }
++}
+-- 
+2.7.4 (Apple Git-66)
+
