@@ -1,0 +1,25 @@
+From d73e954cfcb5401c4234d820f5b395930034b655 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 24 Jan 2018 21:34:30 +0530
+Subject: [PATCH] Patchedfd
+
+---
+ monad-logger.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/monad-logger.cabal b/monad-logger.cabal
+index 6dd149a..19e07ef 100644
+--- a/monad-logger.cabal
++++ b/monad-logger.cabal
+@@ -19,7 +19,7 @@ source-repository head
+ 
+ flag template_haskell {
+       Description: Enable Template Haskell support
+-      Default:     True
++      Default:     False
+       Manual:      True
+ }
+ 
+-- 
+2.7.4 (Apple Git-66)
+
