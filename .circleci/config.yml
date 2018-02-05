@@ -14,7 +14,11 @@ jobs:
       - restore_cache:
           key: v16-stack-cache-
 
-      - run: curl -sSL https://get.haskellstack.org/ | sh
+      - run: |
+          if ! command -v stack >/dev/null 2>&1; then
+            apt-get install curl
+            curl -sSL https://get.haskellstack.org/ | bash
+          fi
 
       - save_cache:
           key: v16-stack-cache-{{ epoch }}
