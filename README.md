@@ -322,7 +322,7 @@ These packages are supported by `etlas`.
 - [stm-2.4.4.1](https://hackage.haskell.org/package/stm-2.4.4.1)
 - [stm-chans-3.0.0.4](https://hackage.haskell.org/package/stm-chans-3.0.0.4)
 - [storable-complex-0.2.2](https://hackage.haskell.org/package/storable-complex-0.2.2)
-- [streaming-commons-0.1.18](https://hackage.haskell.org/package/streaming-commons-0.1.18)
+- [streaming-commons >= 0.1.18 && <= 0.1.19](https://hackage.haskell.org/package/streaming-commons)
 - [string-conversions-0.4.0.1](https://hackage.haskell.org/package/string-conversions-0.4.0.1)
 - [stringsearch-0.3.6.6](https://hackage.haskell.org/package/stringsearch-0.3.6.6)
 - [svg-builder-0.1.0.2](https://hackage.haskell.org/package/svg-builder-0.1.0.2)
