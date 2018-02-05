@@ -23,7 +23,7 @@ jobs:
           key: v16-stack-cache-{{ epoch }}
           paths:
             - "~/.stack"
-            - "~/.local"
+            - "/usr/local/bin/stack"
 
       - restore_cache:
           key: v1200-etlas-cache-
@@ -60,7 +60,7 @@ jobs:
           key: v16-stack-cache-{{ epoch }}
           paths:
             - "~/.stack"
-            - "~/.local"
+            - "/usr/local/bin/stack"
 
       - save_cache:
           key: v1200-etlas-cache-{{ epoch }}
