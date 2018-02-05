@@ -1,0 +1,140 @@
+From e34698811f6ef35c8b524469c1f722b726a37111 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 5 Feb 2018 13:55:24 +0530
+Subject: [PATCH] Patched
+
+---
+ extra.cabal                   |  3 +--
+ java/Utils.java               | 40 ++++++++++++++++++++++++++++++++++++++++
+ src/System/Directory/Extra.hs | 10 ++++------
+ src/System/IO/Extra.hs        |  2 +-
+ src/System/Info/Extra.hs      | 14 ++------------
+ 5 files changed, 48 insertions(+), 21 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/extra.cabal b/extra.cabal
+index 818dad1..fbdc929 100644
+--- a/extra.cabal
++++ b/extra.cabal
+@@ -37,8 +37,7 @@ library
+         process,
+         clock >= 0.7,
+         time
+-    if !os(windows)
+-        build-depends: unix
++    java-sources: java/Utils.java
+ 
+     other-modules:
+         Partial
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..044a4ea
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,40 @@
++package eta.extra;
++
++import java.io.IOException;
++
++import java.util.EnumSet;
++import java.nio.ByteBuffer;
++import java.nio.file.Files;
++import java.nio.file.Paths;
++import java.nio.file.attribute.PosixFilePermission;
++import java.nio.file.attribute.PosixFilePermissions;
++import static java.nio.file.attribute.PosixFilePermission.*;
++
++import eta.runtime.io.MemoryManager;
++
++public class Utils {
++    public void createDirectoryPrivate(String dir) throws IOException {
++        Files.createDirectory(
++          Paths.get(dir),
++          PosixFilePermissions.asFileAttribute(
++            EnumSet.<PosixFilePermission>of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE)));
++    }
++
++    public static int memcmp(long a1, long a2, int n)  {
++        ByteBuffer b1 = MemoryManager.getBoundedBuffer(a1);
++        ByteBuffer b2 = MemoryManager.getBoundedBuffer(a2);
++        while (n-- != 0) {
++            int a = b1.get() & 0xFF;
++            int b = b2.get() & 0xFF;
++            if (a != b) {
++                return a - b;
++            }
++        }
++        return 0;
++    }
++
++    private static String osName = System.getProperty("os.name", "unknown").toLowerCase();
++    public static boolean isWindows = osName.indexOf("windows") >= 0;
++    public static boolean isMac = osName.startsWith("mac")
++                               || osName.startsWith("darwin");
++}
+diff --git a/src/System/Directory/Extra.hs b/src/System/Directory/Extra.hs
+index b2d4f07..14f6002 100644
+--- a/src/System/Directory/Extra.hs
++++ b/src/System/Directory/Extra.hs
+@@ -28,11 +28,6 @@ import Data.List
+ import Control.Exception
+ #endif
+ 
+-#ifndef mingw32_HOST_OS
+-import qualified System.Posix
+-#endif
+-
+-
+ #if !MIN_VERSION_directory(1,2,3)
+ -- | Set the current directory, perform an operation, then change back.
+ --   Remember that the current directory is a global variable, so calling this function
+@@ -95,5 +90,8 @@ createDirectoryPrivate :: String -> IO ()
+ #ifdef mingw32_HOST_OS
+ createDirectoryPrivate s = createDirectory s
+ #else
+-createDirectoryPrivate s = System.Posix.createDirectory s 0o700
++createDirectoryPrivate s = createDirectoryPrivate' s
++
++foreign import java unsafe "@static eta.extra.Utils.createDirectoryPrivate"
++  createDirectoryPrivate' :: String -> IO ()
+ #endif
+diff --git a/src/System/IO/Extra.hs b/src/System/IO/Extra.hs
+index bd3e73e..34f2ed4 100644
+--- a/src/System/IO/Extra.hs
++++ b/src/System/IO/Extra.hs
+@@ -225,7 +225,7 @@ withTempDir act = do
+ sameSize :: Handle -> Handle -> IO Bool
+ sameSize h1 h2 = liftM2 (==) (hFileSize h1) (hFileSize h2)
+ 
+-foreign import ccall unsafe "string.h memcmp" memcmp
++foreign import java unsafe "@static eta.extra.Utils.memcmp" memcmp
+     :: Ptr CUChar -> Ptr CUChar -> CSize -> IO CInt
+ 
+ -- | Returns 'True' when the contents of both files is the same.
+diff --git a/src/System/Info/Extra.hs b/src/System/Info/Extra.hs
+index 0097c09..a26419b 100644
+--- a/src/System/Info/Extra.hs
++++ b/src/System/Info/Extra.hs
+@@ -18,17 +18,7 @@ import System.Info
+ --   32bit assumptions that are already false. \<\/rant\>
+ --
+ -- > isWindows == (os == "mingw32")
+-isWindows :: Bool
+-#if defined(mingw32_HOST_OS)
+-isWindows = True
+-#else
+-isWindows = False
+-#endif
++foreign import java unsafe "@static eta.extra.Utils.isWindows" isWindows :: Bool
+ 
+ -- | Return 'True' on Mac OS X and 'False' otherwise.
+-isMac :: Bool
+-#if defined(darwin_HOST_OS)
+-isMac = True
+-#else
+-isMac = False
+-#endif
++foreign import java unsafe "@static eta.extra.Utils.isMac" isMac :: Bool
+-- 
+2.7.4 (Apple Git-66)
+

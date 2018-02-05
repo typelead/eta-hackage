@@ -143,7 +143,7 @@ These packages are supported by `etlas`.
 - [erf-2.0.0.0](https://hackage.haskell.org/package/erf-2.0.0.0)
 - [errors >= 2.1.3 && <= 2.2.2](https://hackage.haskell.org/package/errors)
 - [exceptions-0.8.3](https://hackage.haskell.org/package/exceptions-0.8.3)
-- [extra >= 1.5.2 && <= 1.6.2](https://hackage.haskell.org/package/extra)
+- [extra >= 1.5.2 && <= 1.6.3](https://hackage.haskell.org/package/extra)
 - [fail-4.9.0.0](https://hackage.haskell.org/package/fail-4.9.0.0)
 - [fast-logger-2.4.10](https://hackage.haskell.org/package/fast-logger-2.4.10)
 - [fast-math-1.0.2](https://hackage.haskell.org/package/fast-math-1.0.2)
