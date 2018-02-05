@@ -75,6 +75,6 @@ workflows:
   full_cycle:
     jobs:
       - build
-      - test:
+      - tests:
           requires:
             - build
