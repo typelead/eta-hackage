@@ -14,7 +14,8 @@ jobs:
 
       - run: |
           if ! command -v stack >/dev/null 2>&1; then
-            wget -qO- https://get.haskellstack.org/ | sh
+            apt-get install curl
+            curl -sSL https://get.haskellstack.org/ | sh
           fi
 
       - save_cache:
