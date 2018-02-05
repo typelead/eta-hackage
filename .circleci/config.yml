@@ -15,7 +15,7 @@ jobs:
       - run: |
           if ! command -v stack >/dev/null 2>&1; then
             apt-get update
-            apt-get install curl
+            apt-get install -y curl
             curl -sSL https://get.haskellstack.org/ | sh
           fi
 
