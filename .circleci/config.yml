@@ -1,0 +1,77 @@
+defaults: &defaults
+  docker:
+    - image: typelead/eta:latest
+      environment:
+        PATH: "${HOME}/.local/bin:${PATH}"
+
+version: 2.0
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: v16-stack-cache-
+
+      - run: curl -sSL https://get.haskellstack.org/ | sh
+
+      - save_cache:
+          key: v16-stack-cache-{{ epoch }}
+          paths:
+            - "~/.stack"
+            - "~/.local"
+
+      - restore_cache:
+          key: v1200-etlas-cache-
+
+      - run: etlas update
+
+      - save_cache:
+          key: v1200-etlas-cache-{{ epoch }}
+          paths:
+            - "~/.etlas/config"
+            - "~/.etlas/packages"
+            - "~/.etlas/patches"
+            - "~/.etlas/tools"
+
+      - persist_to_workspace:
+          root:  .
+          paths: .
+
+  tests:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: .
+
+      - restore_cache:
+          key: v16-stack-cache-
+
+      - restore_cache:
+          key: v1200-etlas-cache-
+
+      - run: ./test/Test.hs
+
+      - save_cache:
+          key: v16-stack-cache-{{ epoch }}
+          paths:
+            - "~/.stack"
+            - "~/.local"
+
+      - save_cache:
+          key: v1200-etlas-cache-{{ epoch }}
+          paths:
+            - "~/.etlas/config"
+            - "~/.etlas/packages"
+            - "~/.etlas/patches"
+            - "~/.etlas/tools"
+
+workflows:
+  version: 2
+  full_cycle:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
