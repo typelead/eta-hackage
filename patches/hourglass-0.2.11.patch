@@ -1,0 +1,146 @@
+From 6be7e32f43f8fe056de5498c9ac1622a5144e640 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 7 Feb 2018 14:08:17 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Hourglass/Internal.hs | 100 ++++++++++++++++++++++++++++++++++++++++++---
+ hourglass.cabal            |   7 ----
+ 2 files changed, 94 insertions(+), 13 deletions(-)
+
+diff --git a/Data/Hourglass/Internal.hs b/Data/Hourglass/Internal.hs
+index 8fd1145..cc326d4 100644
+--- a/Data/Hourglass/Internal.hs
++++ b/Data/Hourglass/Internal.hs
+@@ -7,7 +7,7 @@
+ --
+ -- System lowlevel functions
+ --
+-{-# LANGUAGE CPP #-}
++{-# LANGUAGE MagicHash #-}
+ module Data.Hourglass.Internal
+     ( dateTimeFromUnixEpochP
+     , dateTimeFromUnixEpoch
+@@ -16,8 +16,96 @@ module Data.Hourglass.Internal
+     , systemGetElapsedP
+     ) where
+ 
+-#ifdef WINDOWS
+-import Data.Hourglass.Internal.Win
+-#else
+-import Data.Hourglass.Internal.Unix
+-#endif
++import Java
++import Data.Int
++import Data.Hourglass.Types
++import System.IO.Unsafe
++
++-- | convert a unix epoch precise to DateTime
++dateTimeFromUnixEpochP :: ElapsedP -> DateTime
++dateTimeFromUnixEpochP (ElapsedP (Elapsed s) ns) =
++  toDateTime (fromIntegral s * 1000) ns
++
++-- | convert a unix epoch to DateTime
++dateTimeFromUnixEpoch :: Elapsed -> DateTime
++dateTimeFromUnixEpoch (Elapsed s)
++  = toDateTime (fromIntegral s * 1000) 0
++
++toDateTime :: Int64 -> NanoSeconds -> DateTime
++toDateTime ms ns = unsafeDupablePerformIO $ do
++  tz <- getTimeZone "UTC"
++  c <- getCalendar tz
++  return $ DateTime (date c) (time c)
++  where date c = Date
++            { dateYear  = get c year
++            , dateMonth = toEnum $ get c month
++            , dateDay   = get c dayOfMonth
++            }
++        time c = TimeOfDay
++            { todHour = fromIntegral $ get c hourOfDay
++            , todMin  = fromIntegral $ get c minute
++            , todSec  = fromIntegral $ get c second
++            , todNSec = ns
++            }
++
++data {-# CLASS "java.util.Calendar" #-} Calendar
++  = Calendar (Object# Calendar)
++
++foreign import java unsafe "@static java.util.Calendar.getInstance"
++  getCalendar :: TimeZone -> IO Calendar
++
++foreign import java unsafe get :: Calendar -> Int -> Int
++
++foreign import java unsafe "@static @field java.util.Calendar.YEAR"
++  year :: Int
++
++foreign import java unsafe "@static @field java.util.Calendar.MONTH"
++  month :: Int
++
++foreign import java unsafe "@static @field java.util.Calendar.DAY_OF_MONTH"
++  dayOfMonth :: Int
++
++foreign import java unsafe "@static @field java.util.Calendar.HOUR_OF_DAY"
++  hourOfDay :: Int
++
++foreign import java unsafe "@static @field java.util.Calendar.MINUTE"
++  minute :: Int
++
++foreign import java unsafe "@static @field java.util.Calendar.SECOND"
++  second :: Int
++
++-- | return the timezone offset in minutes
++systemGetTimezone :: IO TimezoneOffset
++systemGetTimezone = do
++  tz <- getDefaultTimeZone
++  off <- getRawOffset tz
++  return $ TimezoneOffset $ fromIntegral $ off `div` 60000
++
++data {-# CLASS "java.util.TimeZone" #-} TimeZone
++  = TimeZone (Object# TimeZone)
++
++foreign import java unsafe "@static java.util.TimeZone.getDefault"
++  getDefaultTimeZone :: IO TimeZone
++
++foreign import java unsafe "@static java.util.TimeZone.getTimeZone"
++  getTimeZone :: String -> IO TimeZone
++
++foreign import java unsafe getRawOffset :: TimeZone -> IO Int
++
++----------------------------------------------------------------------------------------
++-- | return the current elapsedP
++systemGetElapsedP :: IO ElapsedP
++systemGetElapsedP = do
++  msec <- getCurrentTimeMillis
++  let sec = msec `div` 1000
++      nsec = (msec `rem` 1000) * 1000000
++  return $ ElapsedP (Elapsed $ Seconds (fromIntegral sec)) (fromIntegral nsec)
++
++-- | return the current elapsed
++systemGetElapsed :: IO Elapsed
++systemGetElapsed = do
++  sec <- fmap (`div` 1000) getCurrentTimeMillis
++  return $ Elapsed $ Seconds (fromIntegral sec)
++
++foreign import java unsafe "@static java.lang.System.currentTimeMillis"
++  getCurrentTimeMillis :: IO Int64
+diff --git a/hourglass.cabal b/hourglass.cabal
+index ba69367..67c1d7f 100644
+--- a/hourglass.cabal
++++ b/hourglass.cabal
+@@ -43,13 +43,6 @@ Library
+                    , deepseq
+   ghc-options:       -Wall -fwarn-tabs
+   Default-Language:  Haskell2010
+-  if os(windows)
+-     cpp-options:    -DWINDOWS
+-     Build-depends:  Win32
+-     Other-modules:  Data.Hourglass.Internal.Win
+-  else
+-     Other-modules:  Data.Hourglass.Internal.Unix
+-     c-sources:      cbits/unix.c
+ 
+ Test-Suite test-hourglass
+   type:              exitcode-stdio-1.0
+-- 
+2.7.4 (Apple Git-66)
+
