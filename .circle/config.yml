@@ -1,0 +1,34 @@
+defaults: &defaults
+  docker:
+    - image: typelead/eta:latest
+
+version: 2.0
+jobs:
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: v1200-etlas-cache-
+
+      - run: etlas update
+      - run: etlas install --dependencies-only
+      - run: etlas run
+
+      - save_cache:
+          key: v1200-etlas-cache-{{ epoch }}
+          paths:
+            - "~/.etlas/config"
+            - "~/.etlas/packages"
+            - "~/.etlas/patches"
+            - "~/.etlas/tools"
+
+workflows:
+  version: 2
+  full_cycle:
+    jobs:
+      - test
+      - tests:
+          requires:
+            - test

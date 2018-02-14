@@ -1,23 +1,5 @@
-#!/usr/bin/env stack
-{- stack
-     --resolver lts-6.6
-     --install-ghc
-     runghc
-     --package turtle-1.3.0
-     --package text
-     --package aeson
-     --package bytestring
-     --package directory
-     --package filepath
-     --package optparse-applicative-0.13.2.0
--}
-
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
-
-import Turtle.Shell
-import Turtle.Line
-import Turtle.Prelude hiding (die)
 
 import Data.Aeson
 import Data.Text (Text)
@@ -33,6 +15,7 @@ import Control.Monad
 import Data.String
 import GHC.IO.Exception (ExitCode(..))
 import System.Exit (die)
+import System.Process
 
 data Packages = Packages {
       patched :: [Text],
@@ -104,19 +87,18 @@ buildPackage pkg = do
   putStrLn dashes
   putStrLn outString
   putStrLn dashes
-  sh $ procExitOnError "etlas" ["--patches-dir", ".", "install", pkg] empty
+  procExitOnError "etlas" ["--patches-dir", ".", "install", T.unpack pkg]
 
-procExitOnError :: Text -> [Text] -> Shell Line -> Shell ()
-procExitOnError prog args shellm = do
-  exitCode <- proc prog args shellm
+procExitOnError :: String -> [String] -> IO ()
+procExitOnError prog args = do
+  exitCode <- rawSystem prog args
   case exitCode of
-    ExitFailure code -> liftIO $ die ("ExitCode " ++ show code)
+    ExitFailure code -> die ("ExitCode " ++ show code)
     ExitSuccess -> return ()
 
 main :: IO ()
 main = do
-  let vmUpdateCmd = "etlas update"
-  _ <- shell vmUpdateCmd ""
+  _ <- system "etlas update"
   etlasPkgs <- packagesFilePath
   pkg <- parsePackagesFile etlasPkgs
   case pkg of
