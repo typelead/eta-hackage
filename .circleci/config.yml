@@ -4,7 +4,7 @@ defaults: &defaults
 
 version: 2.0
 jobs:
-  tests:
+  build:
     <<: *defaults
     steps:
       - checkout
@@ -28,4 +28,4 @@ workflows:
   version: 2
   full_cycle:
     jobs:
-      - tests
+      - build
