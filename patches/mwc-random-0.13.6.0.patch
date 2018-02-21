@@ -1,0 +1,121 @@
+From 3021b37d821db3a5510f5ab78c7ec0e36f48e001 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Wed, 21 Feb 2018 11:38:28 +0100
+Subject: [PATCH] Patched
+
+---
+ System/Random/MWC.hs | 67 +++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 38 insertions(+), 29 deletions(-)
+
+diff --git a/System/Random/MWC.hs b/System/Random/MWC.hs
+index 9453705..def08c2 100644
+--- a/System/Random/MWC.hs
++++ b/System/Random/MWC.hs
+@@ -115,7 +115,7 @@ import Data.Word               (Word8, Word16, Word32, Word64)
+ #if !MIN_VERSION_base(4,8,0)
+ import Data.Word               (Word)
+ #endif
+-import Foreign.Marshal.Alloc   (allocaBytes)
++-- import Foreign.Marshal.Alloc   (allocaBytes)
+ import Foreign.Marshal.Array   (peekArray)
+ import qualified Data.Vector.Generic         as G
+ import qualified Data.Vector.Unboxed         as I
+@@ -124,11 +124,11 @@ import System.CPUTime   (cpuTimePrecision, getCPUTime)
+ import System.IO        (IOMode(..), hGetBuf, hPutStrLn, stderr, withBinaryFile)
+ import System.IO.Unsafe (unsafePerformIO)
+ import qualified Control.Exception as E
+-#if defined(mingw32_HOST_OS)
++-- #if defined(mingw32_HOST_OS)
+ import Foreign.Ptr
+-import Foreign.C.Types
+-#endif
+-
++-- import Foreign.C.Types
++-- #endif
++import qualified Java                         as J 
+ 
+ -- | The class of types for which we can generate uniformly
+ -- distributed random variates.
+@@ -418,36 +418,45 @@ acquireSeedTime = do
+   let n    = fromIntegral (numerator t) :: Word64
+   return [fromIntegral c, fromIntegral n, fromIntegral (n `shiftR` 32)]
+ 
++foreign import java unsafe "@static java.security.SecureRandom.getSeed"
++   getSeed :: Int -> IO J.JByteArray
++foreign import java unsafe "@static eta.runtime.io.MemoryManager.allocateAndSet"
++   allocateAndSet :: J.JByteArray -> Ptr Word32
++
+ -- | Acquire seed from the system entropy source. On Unix machines,
+ -- this will attempt to use @/dev/urandom@. On Windows, it will internally
+ -- use @RtlGenRandom@.
+ acquireSeedSystem :: IO [Word32]
+ acquireSeedSystem = do
+-#if !defined(mingw32_HOST_OS)
+-  -- Read 256 random Word32s from /dev/urandom
+   let nbytes = 1024
+-      random = "/dev/urandom"
+-  allocaBytes nbytes $ \buf -> do
+-    nread <- withBinaryFile random ReadMode $
+-               \h -> hGetBuf h buf nbytes
+-    peekArray (nread `div` 4) buf
+-#else
+-  let nbytes = 1024
+-  -- Generate 256 random Word32s from RtlGenRandom
+-  allocaBytes nbytes $ \buf -> do
+-    ok <- c_RtlGenRandom buf (fromIntegral nbytes)
+-    if ok then return () else fail "Couldn't use RtlGenRandom"
+-    peekArray (nbytes `div` 4) buf
++  seed <- getSeed nbytes
++  let buf = allocateAndSet seed
++  peekArray (nbytes `div` 4) buf
++-- #if !defined(mingw32_HOST_OS)
++--   -- Read 256 random Word32s from /dev/urandom
++--   let nbytes = 1024
++--       random = "/dev/urandom"
++--   allocaBytes nbytes $ \buf -> do
++--     nread <- withBinaryFile random ReadMode $
++--                \h -> hGetBuf h buf nbytes
++--     peekArray (nread `div` 4) buf
++-- #else
++--   let nbytes = 1024
++--   -- Generate 256 random Word32s from RtlGenRandom
++--   allocaBytes nbytes $ \buf -> do
++--     ok <- c_RtlGenRandom buf (fromIntegral nbytes)
++--     if ok then return () else fail "Couldn't use RtlGenRandom"
++--     peekArray (nbytes `div` 4) buf
+ 
+ -- Note: on 64-bit Windows, the 'stdcall' calling convention
+ -- isn't supported, so we use 'ccall' instead.
+-#if defined(i386_HOST_ARCH)
+-# define WINDOWS_CCONV stdcall
+-#elif defined(x86_64_HOST_ARCH)
+-# define WINDOWS_CCONV ccall
+-#else
+-# error Unknown mingw32 architecture!
+-#endif
++-- #if defined(i386_HOST_ARCH)
++-- # define WINDOWS_CCONV stdcall
++-- #elif defined(x86_64_HOST_ARCH)
++-- # define WINDOWS_CCONV ccall
++-- #else
++-- # error Unknown mingw32 architecture!
++-- #endif
+ 
+ -- Note: On Windows, the typical convention would be to use
+ -- the CryptoGenRandom API in order to generate random data.
+@@ -469,9 +478,9 @@ acquireSeedSystem = do
+ --   - http://blogs.msdn.com/b/michael_howard/archive/2005/01/14/353379.aspx
+ --   - https://bugzilla.mozilla.org/show_bug.cgi?id=504270
+ --
+-foreign import WINDOWS_CCONV unsafe "SystemFunction036"
+-  c_RtlGenRandom :: Ptr a -> CULong -> IO Bool
+-#endif
++-- foreign import WINDOWS_CCONV unsafe "SystemFunction036"
++--   c_RtlGenRandom :: Ptr a -> CULong -> IO Bool
++-- #endif
+ 
+ -- | Seed a PRNG with data from the system's fast source of
+ -- pseudo-random numbers (\"@\/dev\/urandom@\" on Unix-like systems or
+-- 
+1.9.5.msysgit.1
+
