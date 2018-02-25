@@ -10,14 +10,14 @@ jobs:
       - checkout
 
       - restore_cache:
-          key: v1201-etlas-cache-
+          key: eta-hackage-v1200-etlas-cache-
 
       - run: etlas update
       - run: etlas install --dependencies-only
       - run: etlas run
 
       - save_cache:
-          key: v1201-etlas-cache-{{ epoch }}
+          key: eta-hackage-v1200-etlas-cache-{{ epoch }}
           paths:
             - "~/.etlas/config"
             - "~/.etlas/packages"
