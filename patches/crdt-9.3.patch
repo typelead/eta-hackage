@@ -1,0 +1,24 @@
+From e55f952fe251842187179618bede61b07f1e6b20 Mon Sep 17 00:00:00 2001
+From: Yuriy Syrovetskiy <cblp@cblp.su>
+Date: Tue, 27 Feb 2018 18:06:21 +0300
+Subject: [PATCH] Patched
+
+---
+ crdt.cabal | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/crdt.cabal b/crdt.cabal
+index 15b2dd9..35600e1 100644
+--- a/crdt.cabal
++++ b/crdt.cabal
+@@ -34,7 +34,6 @@ library
+                   , time
+                   , vector
+     -- if !impl(eta)
+-    build-depends:  network-info
+     exposed-modules:  CRDT.Cv
+                       CRDT.Cv.GCounter
+                       CRDT.Cv.GSet
+-- 
+2.14.1
+

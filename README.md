@@ -116,6 +116,7 @@ These packages are supported by `etlas`.
 - [control-monad-omega-0.3.1](https://hackage.haskell.org/package/control-monad-omega-0.3.1)
 - [convertible-1.1.1.0](https://hackage.haskell.org/package/convertible-1.1.1.0)
 - [crackNum-1.9](https://hackage.haskell.org/package/crackNum-1.9)
+- [crdt-9.3](https://hackage.haskell.org/package/crdt-9.3)
 - [crypto-pubkey-types-0.4.3](https://hackage.haskell.org/package/crypto-pubkey-types-0.4.3)
 - [cryptonite-0.24](https://hackage.haskell.org/package/cryptonite-0.24)
 - [data-binary-ieee754-0.4.4](https://hackage.haskell.org/package/data-binary-ieee754-0.4.4)
@@ -464,9 +465,9 @@ If you have already forked this repository, then skip to step 3.
    ```
    git apply --ignore-space-change --ignore-whitespace --reject [path-to-path]
    ```
-   
+
    This will work in most cases. If not, resolve the changes.
-   
+
 5. Otherwise, apply the desired changes and go back to step 3 as long as the build fails.
 
 6. Once the build succeeds, make a commit.
@@ -490,7 +491,7 @@ If you have already forked this repository, then skip to step 3.
 
 9. Copy the patch file and the cabal file (if changed) to the `patches` directory
    in your local clone of your fork of the `eta-hackage` repository.
-   
+
    NOTE: `$YOUR_FORK_PATH` should be replaced with the path to the local clone
          of your forked version of `eta-hackage`.
 
@@ -508,7 +509,7 @@ If you have already forked this repository, then skip to step 3.
 
 10. Update this `README.md` with the package name (in alphabetical order) in the
     **Supported Packages** section in the same format as the other packages.
-   
+
     If there already exists an entry for an older or newer version of the package,
     please consolidate the new versions into the existing entry. You can see the
     `directory` entry as an example.
