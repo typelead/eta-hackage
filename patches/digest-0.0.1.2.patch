@@ -1,94 +1,308 @@
-From adb105b308f9d527c7e9e4785951293479087990 Mon Sep 17 00:00:00 2001
-From: Martin Mauch <martin.mauch@gmail.com>
-Date: Thu, 31 Aug 2017 09:15:39 +0200
+From e560c9da114973b20d5227b5fcf6e3610d6ab235 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 9 Mar 2018 10:24:25 +0530
 Subject: [PATCH] Patched
 
 ---
- Data/Digest/Adler32.hsc   | 14 ++++------
- Data/Digest/CRC32.hsc     | 15 ++++------
+ Data/Digest/Adler32.hs    | 63 ++++++++++++++++++++++++++++++++++++++++++
+ Data/Digest/Adler32.hsc   | 67 ---------------------------------------------
+ Data/Digest/CRC32.hs      | 63 ++++++++++++++++++++++++++++++++++++++++++
+ Data/Digest/CRC32.hsc     | 68 ---------------------------------------------
  digest.cabal              |  9 +++---
  java/Adler32.java         | 65 +++++++++++++++++++++++++++++++++++++++++++
  java/CRC32.java           | 70 +++++++++++++++++++++++++++++++++++++++++++++++
  java/Digest.java          | 28 +++++++++++++++++++
  java/Utils.java           | 17 ++++++++++++
  java/eta-0.0.9/Utils.java | 21 ++++++++++++++
- 8 files changed, 215 insertions(+), 24 deletions(-)
+ 10 files changed, 331 insertions(+), 140 deletions(-)
+ create mode 100644 Data/Digest/Adler32.hs
+ delete mode 100644 Data/Digest/Adler32.hsc
+ create mode 100644 Data/Digest/CRC32.hs
+ delete mode 100644 Data/Digest/CRC32.hsc
  create mode 100644 java/Adler32.java
  create mode 100644 java/CRC32.java
  create mode 100644 java/Digest.java
  create mode 100644 java/Utils.java
  create mode 100644 java/eta-0.0.9/Utils.java
 
-diff --git a/Data/Digest/Adler32.hsc b/Data/Digest/Adler32.hsc
-index 7d8b62b..4238f49 100644
---- a/Data/Digest/Adler32.hsc
-+++ b/Data/Digest/Adler32.hsc
-@@ -18,14 +18,14 @@ module Data.Digest.Adler32 (
- 
- import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
- import Foreign
+diff --git a/Data/Digest/Adler32.hs b/Data/Digest/Adler32.hs
+new file mode 100644
+index 0000000..366cff2
+--- /dev/null
++++ b/Data/Digest/Adler32.hs
+@@ -0,0 +1,63 @@
++{-# LANGUAGE ForeignFunctionInterface, FlexibleInstances #-}
++------------------------------------------------------------
++-- |
++-- Copyright    :   (c) 2008 Eugene Kirpichov
++-- License      :   BSD-style
++--
++-- Maintainer   :   ekirpichov@gmail.com
++-- Stability    :   experimental
++-- Portability  :   portable (H98 + FFI)
++--
++-- Adler32 wrapper
++--
++------------------------------------------------------------
++
++module Data.Digest.Adler32 (
++    Adler32, adler32, adler32Update
++) where
++
++import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
++import Foreign
 +import Foreign.C.String
 +import Java
- 
- import qualified Data.ByteString as S
- import qualified Data.ByteString.Lazy as L
- import qualified Data.ByteString.Lazy.Internal as LI
- import qualified System.IO.Unsafe as U
- 
++
++import qualified Data.ByteString as S
++import qualified Data.ByteString.Lazy as L
++import qualified Data.ByteString.Lazy.Internal as LI
++import qualified System.IO.Unsafe as U
++
++-- | The class of values for which Adler32 may be computed
++class Adler32 a where
++    -- | Compute Adler32 checksum
++    adler32 :: a -> Word32
++    adler32 = adler32Update 1
++
++    -- | Given the Adler32 checksum of a string, compute Adler32 of its
++    -- concatenation with another string (t.i., incrementally update the 
++    -- Adler32 hash value).
++    adler32Update :: Word32 -> a -> Word32
++
++instance Adler32 S.ByteString where
++    adler32Update = adler32_s_update
++
++instance Adler32 L.ByteString where
++    adler32Update = adler32_l_update
++
++instance Adler32 [Word8] where
++    adler32Update n = (adler32Update n) . L.pack
++
++
++adler32_s_update :: Word32 -> S.ByteString -> Word32
++adler32_s_update seed str
++    | S.null str = seed
++    | otherwise =
++        U.unsafePerformIO $
++        unsafeUseAsCStringLen str $
++        \(buf, len) -> fmap fromIntegral $
++            java $ c_adler32 seed buf len
++
++adler32_l_update :: Word32 -> L.ByteString -> Word32
++adler32_l_update = LI.foldlChunks adler32_s_update
++
++foreign import java unsafe "@static eta.digest.Utils.calc_adler32"
++  c_adler32 :: Word32 -> CString -> Int -> Java c Int64
+diff --git a/Data/Digest/Adler32.hsc b/Data/Digest/Adler32.hsc
+deleted file mode 100644
+index 37043ba..0000000
+--- a/Data/Digest/Adler32.hsc
++++ /dev/null
+@@ -1,67 +0,0 @@
+-{-# LANGUAGE ForeignFunctionInterface, FlexibleInstances #-}
+-------------------------------------------------------------
+--- |
+--- Copyright    :   (c) 2008 Eugene Kirpichov
+--- License      :   BSD-style
+---
+--- Maintainer   :   ekirpichov@gmail.com
+--- Stability    :   experimental
+--- Portability  :   portable (H98 + FFI)
+---
+--- Adler32 wrapper
+---
+-------------------------------------------------------------
+-
+-module Data.Digest.Adler32 (
+-    Adler32, adler32, adler32Update
+-) where
+-
+-import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
+-import Foreign
+-
+-import qualified Data.ByteString as S
+-import qualified Data.ByteString.Lazy as L
+-import qualified Data.ByteString.Lazy.Internal as LI
+-import qualified System.IO.Unsafe as U
+-
 -#include "zlib.h"
 -
- -- | The class of values for which Adler32 may be computed
- class Adler32 a where
-     -- | Compute Adler32 checksum
-@@ -54,14 +54,10 @@ adler32_s_update seed str
-         U.unsafePerformIO $
-         unsafeUseAsCStringLen str $
-         \(buf, len) -> fmap fromIntegral $
+--- | The class of values for which Adler32 may be computed
+-class Adler32 a where
+-    -- | Compute Adler32 checksum
+-    adler32 :: a -> Word32
+-    adler32 = adler32Update 1
+-
+-    -- | Given the Adler32 checksum of a string, compute Adler32 of its
+-    -- concatenation with another string (t.i., incrementally update the 
+-    -- Adler32 hash value).
+-    adler32Update :: Word32 -> a -> Word32
+-
+-instance Adler32 S.ByteString where
+-    adler32Update = adler32_s_update
+-
+-instance Adler32 L.ByteString where
+-    adler32Update = adler32_l_update
+-
+-instance Adler32 [Word8] where
+-    adler32Update n = (adler32Update n) . L.pack
+-
+-
+-adler32_s_update :: Word32 -> S.ByteString -> Word32
+-adler32_s_update seed str
+-    | S.null str = seed
+-    | otherwise =
+-        U.unsafePerformIO $
+-        unsafeUseAsCStringLen str $
+-        \(buf, len) -> fmap fromIntegral $
 -            adler32_c (fromIntegral seed) (castPtr buf) (fromIntegral len)
-+            java $ c_adler32 seed buf len
- 
- adler32_l_update :: Word32 -> L.ByteString -> Word32
- adler32_l_update = LI.foldlChunks adler32_s_update
- 
+-
+-adler32_l_update :: Word32 -> L.ByteString -> Word32
+-adler32_l_update = LI.foldlChunks adler32_s_update
+-
 -
 -foreign import ccall unsafe "zlib.h adler32"
 -    adler32_c :: #{type uLong}
 -              -> Ptr #{type Bytef}
 -              -> #{type uInt}
 -              -> IO #{type uLong}
-+foreign import java unsafe "@static eta.digest.Utils.calc_adler32"
-+  c_adler32 :: Word32 -> CString -> Int -> Java c Int64
-diff --git a/Data/Digest/CRC32.hsc b/Data/Digest/CRC32.hsc
-index 980d91c..3639be6 100644
---- a/Data/Digest/CRC32.hsc
-+++ b/Data/Digest/CRC32.hsc
-@@ -18,14 +18,14 @@ module Data.Digest.CRC32 (
- 
- import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
- import Foreign
+diff --git a/Data/Digest/CRC32.hs b/Data/Digest/CRC32.hs
+new file mode 100644
+index 0000000..a2c3ccc
+--- /dev/null
++++ b/Data/Digest/CRC32.hs
+@@ -0,0 +1,63 @@
++{-# LANGUAGE ForeignFunctionInterface, FlexibleInstances #-}
++------------------------------------------------------------
++-- |
++-- Copyright    :   (c) 2008 Eugene Kirpichov
++-- License      :   BSD-style
++--
++-- Maintainer   :   ekirpichov@gmail.com
++-- Stability    :   experimental
++-- Portability  :   portable (H98 + FFI)
++--
++-- CRC32 wrapper
++--
++------------------------------------------------------------
++
++module Data.Digest.CRC32 (
++    CRC32, crc32, crc32Update
++) where
++
++import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
++import Foreign
 +import Foreign.C.String
 +import Java
- 
- import qualified Data.ByteString as S
- import qualified Data.ByteString.Lazy as L
- import qualified Data.ByteString.Lazy.Internal as LI
- import qualified System.IO.Unsafe as U
- 
++
++import qualified Data.ByteString as S
++import qualified Data.ByteString.Lazy as L
++import qualified Data.ByteString.Lazy.Internal as LI
++import qualified System.IO.Unsafe as U
++
++-- | The class of values for which CRC32 may be computed
++class CRC32 a where
++    -- | Compute CRC32 checksum
++    crc32 :: a -> Word32
++    crc32 = crc32Update 0
++
++    -- | Given the CRC32 checksum of a string, compute CRC32 of its
++    -- concatenation with another string (t.i., incrementally update 
++    -- the CRC32 hash value)
++    crc32Update :: Word32 -> a -> Word32
++
++instance CRC32 S.ByteString where
++    crc32Update = crc32_s_update
++
++instance CRC32 L.ByteString where
++    crc32Update = crc32_l_update
++
++instance CRC32 [Word8] where
++    crc32Update n = (crc32Update n) . L.pack
++
++
++crc32_s_update :: Word32 -> S.ByteString -> Word32
++crc32_s_update seed str
++    | S.null str = seed
++    | otherwise =
++        U.unsafePerformIO $
++        unsafeUseAsCStringLen str $
++        \(buf, len) -> fmap fromIntegral $
++            java $ c_crc32 seed buf len
++
++crc32_l_update :: Word32 -> L.ByteString -> Word32
++crc32_l_update = LI.foldlChunks crc32_s_update
++
++foreign import java unsafe "@static eta.digest.Utils.calc_crc32"
++  c_crc32 :: Word32 -> CString -> Int -> Java c Int64
+diff --git a/Data/Digest/CRC32.hsc b/Data/Digest/CRC32.hsc
+deleted file mode 100644
+index bab946f..0000000
+--- a/Data/Digest/CRC32.hsc
++++ /dev/null
+@@ -1,68 +0,0 @@
+-{-# LANGUAGE ForeignFunctionInterface, FlexibleInstances #-}
+-------------------------------------------------------------
+--- |
+--- Copyright    :   (c) 2008 Eugene Kirpichov
+--- License      :   BSD-style
+---
+--- Maintainer   :   ekirpichov@gmail.com
+--- Stability    :   experimental
+--- Portability  :   portable (H98 + FFI)
+---
+--- CRC32 wrapper
+---
+-------------------------------------------------------------
+-
+-module Data.Digest.CRC32 (
+-    CRC32, crc32, crc32Update
+-) where
+-
+-import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
+-import Foreign
+-
+-import qualified Data.ByteString as S
+-import qualified Data.ByteString.Lazy as L
+-import qualified Data.ByteString.Lazy.Internal as LI
+-import qualified System.IO.Unsafe as U
+-
 -#include "zlib.h"
 -
- -- | The class of values for which CRC32 may be computed
- class CRC32 a where
-     -- | Compute CRC32 checksum
-@@ -54,15 +54,10 @@ crc32_s_update seed str
-         U.unsafePerformIO $
-         unsafeUseAsCStringLen str $
-         \(buf, len) -> fmap fromIntegral $
+--- | The class of values for which CRC32 may be computed
+-class CRC32 a where
+-    -- | Compute CRC32 checksum
+-    crc32 :: a -> Word32
+-    crc32 = crc32Update 0
+-
+-    -- | Given the CRC32 checksum of a string, compute CRC32 of its
+-    -- concatenation with another string (t.i., incrementally update 
+-    -- the CRC32 hash value)
+-    crc32Update :: Word32 -> a -> Word32
+-
+-instance CRC32 S.ByteString where
+-    crc32Update = crc32_s_update
+-
+-instance CRC32 L.ByteString where
+-    crc32Update = crc32_l_update
+-
+-instance CRC32 [Word8] where
+-    crc32Update n = (crc32Update n) . L.pack
+-
+-
+-crc32_s_update :: Word32 -> S.ByteString -> Word32
+-crc32_s_update seed str
+-    | S.null str = seed
+-    | otherwise =
+-        U.unsafePerformIO $
+-        unsafeUseAsCStringLen str $
+-        \(buf, len) -> fmap fromIntegral $
 -            crc32_c (fromIntegral seed) (castPtr buf) (fromIntegral len)
-+            java $ c_crc32 seed buf len
- 
- crc32_l_update :: Word32 -> L.ByteString -> Word32
- crc32_l_update = LI.foldlChunks crc32_s_update
- 
+-
+-crc32_l_update :: Word32 -> L.ByteString -> Word32
+-crc32_l_update = LI.foldlChunks crc32_s_update
+-
 -
 -foreign import ccall unsafe "zlib.h crc32"
 -    crc32_c :: #{type uLong}
@@ -96,8 +310,6 @@ index 980d91c..3639be6 100644
 -            -> #{type uInt}
 -            -> IO #{type uLong}
 -
-+foreign import java unsafe "@static eta.digest.Utils.calc_crc32"
-+  c_crc32 :: Word32 -> CString -> Int -> Java c Int64
 diff --git a/digest.cabal b/digest.cabal
 index eaea373..1581e7e 100644
 --- a/digest.cabal
@@ -348,5 +560,5 @@ index 0000000..2d08671
 +    }
 +}
 -- 
-2.14.1
+2.7.4 (Apple Git-66)
 
