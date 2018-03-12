@@ -1,20 +1,20 @@
-From 6450b5545d49f43038f4069fd46d009652f7ba86 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Thu, 15 Feb 2018 22:49:09 +0530
+From d99903c7a9424ed8de94fe5c9ff13106f83a5f0f Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Mon, 12 Mar 2018 07:57:42 +0100
 Subject: [PATCH] Patched
 
 ---
- System/Directory.hs                  | 775 +++++++++--------------------------
+ System/Directory.hs                  | 783 ++++++++++-------------------------
  System/Directory/Internal.hs         |  35 +-
  System/Directory/Internal/Config.hs  |   6 +-
  System/Directory/Internal/Prelude.hs |   6 +-
  directory.cabal                      |  17 +-
- java/Utils.java                      | 118 ++++++
- 6 files changed, 355 insertions(+), 602 deletions(-)
+ java/Utils.java                      | 134 ++++++
+ 6 files changed, 379 insertions(+), 602 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/System/Directory.hs b/System/Directory.hs
-index 0f32863..0892ed1 100644
+index 0f32863..8fb7620 100644
 --- a/System/Directory.hs
 +++ b/System/Directory.hs
 @@ -1,4 +1,4 @@
@@ -209,11 +209,13 @@ index 0f32863..0892ed1 100644
  
  -----------------------------------------------------------------------------
  -- Implementation
-@@ -372,14 +328,8 @@ The path refers to an existing non-directory object.
+@@ -372,14 +328,11 @@ The path refers to an existing non-directory object.
  @[EEXIST]@
  
  -}
--
++foreign import java unsafe "@static eta.directory.Utils.createDirectory"
++  createDirectory :: FilePath -> IO ()
+ 
 -createDirectory :: FilePath -> IO ()
 -createDirectory path = do
 -#ifdef mingw32_HOST_OS
@@ -221,12 +223,24 @@ index 0f32863..0892ed1 100644
 -#else
 -  Posix.createDirectory path 0o777
 -#endif
-+foreign import java unsafe "@static eta.directory.Utils.createDirectory"
-+  createDirectory :: FilePath -> IO ()
++foreign import java unsafe "@static eta.directory.Utils.createDirectories"
++  createDirectories :: FilePath -> IO ()
  
  -- | @'createDirectoryIfMissing' parents dir@ creates a new directory
  -- @dir@ if it doesn\'t exist. If the first argument is 'True'
-@@ -426,11 +376,7 @@ createDirectoryIfMissing create_parents path0
+@@ -388,6 +341,11 @@ createDirectoryIfMissing :: Bool     -- ^ Create its parents too?
+                          -> FilePath -- ^ The path to the directory you want to make
+                          -> IO ()
+ createDirectoryIfMissing create_parents path0
++  | create_parents = createDirectories path0
++  | otherwise = do
++      exist <- doesDirectoryExist path0
++      when (not exist) $ createDirectory path0
++{-
+   | create_parents = createDirs (parents path0)
+   | otherwise      = createDirs (take 1 (parents path0))
+   where
+@@ -426,12 +384,8 @@ createDirectoryIfMissing create_parents path0
                unless canIgnore (ioError e)
            | otherwise              -> ioError e
        where
@@ -235,11 +249,13 @@ index 0f32863..0892ed1 100644
 -#else
 -        isDir = (Posix.isDirectory <$> Posix.getFileStatus dir)
 -#endif
+-
 +        isDir = isPathDirectory (toPath dir)
- 
++-}
  -- | * @'NotDirectory'@:   not a directory.
  --   * @'Directory'@:      a true directory (not a symbolic link).
-@@ -442,24 +388,23 @@ data DirectoryType = NotDirectory
+ --   * @'DirectoryLink'@:  a directory symbolic link (only exists on Windows).
+@@ -442,24 +396,23 @@ data DirectoryType = NotDirectory
  
  -- | Obtain the type of a directory.
  getDirectoryType :: FilePath -> IO DirectoryType
@@ -281,7 +297,7 @@ index 0f32863..0892ed1 100644
  
  {- | @'removeDirectory' dir@ removes an existing directory /dir/.  The
  implementation may specify additional constraints which must be
-@@ -503,12 +448,10 @@ The operand refers to an existing non-directory object.
+@@ -503,12 +456,10 @@ The operand refers to an existing non-directory object.
  -}
  
  removeDirectory :: FilePath -> IO ()
@@ -298,7 +314,7 @@ index 0f32863..0892ed1 100644
  
  -- | @'removeDirectoryRecursive' dir@ removes an existing directory /dir/
  -- together with its contents and subdirectories. Within this directory,
-@@ -648,12 +591,7 @@ The operand refers to an existing directory.
+@@ -648,12 +599,7 @@ The operand refers to an existing directory.
  -}
  
  removeFile :: FilePath -> IO ()
@@ -312,7 +328,7 @@ index 0f32863..0892ed1 100644
  
  {- |@'renameDirectory' old new@ changes the name of an existing
  directory from /old/ to /new/.  If the /new/ directory
-@@ -705,17 +643,8 @@ Either path refers to an existing non-directory object.
+@@ -705,17 +651,8 @@ Either path refers to an existing non-directory object.
  -}
  
  renameDirectory :: FilePath -> FilePath -> IO ()
@@ -332,7 +348,7 @@ index 0f32863..0892ed1 100644
     when (not is_dir) $ do
       ioError . (`ioeSetErrorString` "not a directory") $
         (mkIOError InappropriateType "renameDirectory" Nothing (Just opath))
-@@ -769,7 +698,7 @@ renameFile :: FilePath -> FilePath -> IO ()
+@@ -769,7 +706,7 @@ renameFile :: FilePath -> FilePath -> IO ()
  renameFile opath npath = (`ioeAddLocation` "renameFile") `modifyIOError` do
     -- XXX the tests are not performed atomically with the rename
     checkNotDir opath
@@ -341,7 +357,7 @@ index 0f32863..0892ed1 100644
       -- The underlying rename implementation can throw odd exceptions when the
       -- destination is a directory.  For example, Windows typically throws a
       -- permission error, while POSIX systems may throw a resource busy error
-@@ -788,6 +717,8 @@ renameFile opath npath = (`ioeAddLocation` "renameFile") `modifyIOError` do
+@@ -788,6 +725,8 @@ renameFile opath npath = (`ioeAddLocation` "renameFile") `modifyIOError` do
               NotDirectory  -> return ()
           errIsDir path = ioError . (`ioeSetErrorString` "is a directory") $
                           mkIOError InappropriateType "" Nothing (Just path)
@@ -350,7 +366,7 @@ index 0f32863..0892ed1 100644
  
  -- | Rename a file or directory.  If the destination path already exists, it
  -- is replaced atomically.  The destination path must not point to an existing
-@@ -834,12 +765,10 @@ renameFile opath npath = (`ioeAddLocation` "renameFile") `modifyIOError` do
+@@ -834,12 +773,10 @@ renameFile opath npath = (`ioeAddLocation` "renameFile") `modifyIOError` do
  renamePath :: FilePath                  -- ^ Old path
             -> FilePath                  -- ^ New path
             -> IO ()
@@ -367,7 +383,7 @@ index 0f32863..0892ed1 100644
  
  -- | Copy a file with its permissions.  If the destination file already exists,
  -- it is replaced atomically.  Neither path may refer to an existing
-@@ -853,20 +782,6 @@ copyFile fromFPath toFPath =
+@@ -853,20 +790,6 @@ copyFile fromFPath toFPath =
      atomicCopyFileContents fromFPath toFPath
        (ignoreIOExceptions . copyPermissions fromFPath)
  
@@ -388,7 +404,7 @@ index 0f32863..0892ed1 100644
  -- | Copy the contents of a source file to a destination file, replacing the
  -- destination file atomically via 'withReplacementFile', resetting the
  -- attributes of the destination file to the defaults.
-@@ -952,51 +867,10 @@ copyHandleData hFrom hTo =
+@@ -952,51 +875,10 @@ copyHandleData hFrom hTo =
  copyFileWithMetadata :: FilePath        -- ^ Source file
                       -> FilePath        -- ^ Destination file
                       -> IO ()
@@ -443,7 +459,7 @@ index 0f32863..0892ed1 100644
  
  -- | Make a path absolute, 'normalise' the path, and remove as many
  -- indirections from it as possible.  Any trailing path separators are
-@@ -1069,82 +943,11 @@ canonicalizePath = \ path ->
+@@ -1069,82 +951,11 @@ canonicalizePath = \ path ->
    dropTrailingPathSeparator . normalise <$>
      (transform =<< prependCurrentDirectory path)
    where
@@ -530,7 +546,7 @@ index 0f32863..0892ed1 100644
  
  -- | Convert a path into an absolute path.  If the given path is relative, the
  -- current directory is prepended and then the combined result is
-@@ -1354,48 +1157,34 @@ findFilesWithLazy f dirs path
+@@ -1354,48 +1165,34 @@ findFilesWithLazy f dirs path
  --   (usually @\"\"@ on POSIX systems and @\".exe\"@ on Windows or OS\/2).
  --
  -- @since 1.2.4.0
@@ -601,7 +617,7 @@ index 0f32863..0892ed1 100644
  
  -- | @'listDirectory' dir@ returns a list of /all/ entries in /dir/ without
  -- the special entries (@.@ and @..@).
-@@ -1460,19 +1249,8 @@ listDirectory path =
+@@ -1460,19 +1257,8 @@ listDirectory path =
  -- * 'UnsupportedOperation'
  -- The operating system has no notion of current working directory.
  --
@@ -623,7 +639,7 @@ index 0f32863..0892ed1 100644
  
  -- | Change the working directory to the given path.
  --
-@@ -1507,13 +1285,8 @@ getCurrentDirectory =
+@@ -1507,13 +1293,8 @@ getCurrentDirectory =
  -- The path refers to an existing non-directory object.
  -- @[ENOTDIR]@
  --
@@ -639,7 +655,7 @@ index 0f32863..0892ed1 100644
  
  -- | Run an 'IO' action with the given working directory and restore the
  -- original working directory afterwards, even if the given action fails due
-@@ -1536,13 +1309,10 @@ withCurrentDirectory dir action =
+@@ -1536,13 +1317,10 @@ withCurrentDirectory dir action =
  --
  -- @since 1.2.7.0
  getFileSize :: FilePath -> IO Integer
@@ -657,7 +673,7 @@ index 0f32863..0892ed1 100644
  
  -- | Test whether the given path points to an existing filesystem object.  If
  -- the user lacks necessary permissions to search the parent directories, this
-@@ -1550,13 +1320,10 @@ getFileSize path =
+@@ -1550,13 +1328,10 @@ getFileSize path =
  --
  -- @since 1.2.7.0
  doesPathExist :: FilePath -> IO Bool
@@ -675,7 +691,7 @@ index 0f32863..0892ed1 100644
  
  {- |The operation 'doesDirectoryExist' returns 'True' if the argument file
  exists and is either a directory or a symbolic link to a directory,
-@@ -1564,28 +1331,15 @@ and 'False' otherwise.
+@@ -1564,28 +1339,15 @@ and 'False' otherwise.
  -}
  
  doesDirectoryExist :: FilePath -> IO Bool
@@ -707,7 +723,7 @@ index 0f32863..0892ed1 100644
  
  -- | Create a /file/ symbolic link.  The target path can be either absolute or
  -- relative and need not refer to an existing file.  The order of arguments
-@@ -1616,13 +1370,10 @@ createFileLink
+@@ -1616,13 +1378,10 @@ createFileLink
    :: FilePath                           -- ^ path to the target file
    -> FilePath                           -- ^ path of the link to be created
    -> IO ()
@@ -725,7 +741,7 @@ index 0f32863..0892ed1 100644
  
  -- | Create a /directory/ symbolic link.  The target path can be either
  -- absolute or relative and need not refer to an existing directory.  The
-@@ -1687,15 +1438,10 @@ removeDirectoryLink path =
+@@ -1687,15 +1446,10 @@ removeDirectoryLink path =
  --
  -- @since 1.3.0.0
  pathIsSymbolicLink :: FilePath -> IO Bool
@@ -745,7 +761,7 @@ index 0f32863..0892ed1 100644
  
  {-# DEPRECATED isSymbolicLink "Use 'pathIsSymbolicLink' instead" #-}
  isSymbolicLink :: FilePath -> IO Bool
-@@ -1715,13 +1461,12 @@ isSymbolicLink = pathIsSymbolicLink
+@@ -1715,13 +1469,12 @@ isSymbolicLink = pathIsSymbolicLink
  --
  -- @since 1.3.1.0
  getSymbolicLinkTarget :: FilePath -> IO FilePath
@@ -765,7 +781,7 @@ index 0f32863..0892ed1 100644
  
  #ifdef mingw32_HOST_OS
  -- | Open the handle of an existing file or directory.
-@@ -1751,8 +1496,20 @@ openFileHandle path mode = Win32.createFile path mode share Nothing
+@@ -1751,8 +1504,20 @@ openFileHandle path mode = Win32.createFile path mode share Nothing
  -- @since 1.2.3.0
  --
  getAccessTime :: FilePath -> IO UTCTime
@@ -788,7 +804,7 @@ index 0f32863..0892ed1 100644
  
  -- | Obtain the time at which the file or directory was last modified.
  --
-@@ -1768,42 +1525,18 @@ getAccessTime = modifyIOError (`ioeAddLocation` "getAccessTime") .
+@@ -1768,42 +1533,18 @@ getAccessTime = modifyIOError (`ioeAddLocation` "getAccessTime") .
  -- and the underlying filesystem supports them.
  --
  getModificationTime :: FilePath -> IO UTCTime
@@ -841,7 +857,7 @@ index 0f32863..0892ed1 100644
  
  -- | Change the time at which the file or directory was last accessed.
  --
-@@ -1830,7 +1563,6 @@ fileTimesFromStatus st =
+@@ -1830,7 +1571,6 @@ fileTimesFromStatus st =
  --
  setAccessTime :: FilePath -> UTCTime -> IO ()
  setAccessTime path atime =
@@ -849,7 +865,7 @@ index 0f32863..0892ed1 100644
      setFileTimes path (Just atime, Nothing)
  
  -- | Change the time at which the file or directory was last modified.
-@@ -1863,89 +1595,15 @@ setModificationTime path mtime =
+@@ -1863,89 +1603,15 @@ setModificationTime path mtime =
  
  setFileTimes :: FilePath -> (Maybe UTCTime, Maybe UTCTime) -> IO ()
  setFileTimes _ (Nothing, Nothing) = return ()
@@ -945,7 +961,7 @@ index 0f32863..0892ed1 100644
  
  {- | Returns the current user's home directory.
  
-@@ -1967,16 +1625,8 @@ The operating system has no notion of home directory.
+@@ -1967,16 +1633,8 @@ The operating system has no notion of home directory.
  The home directory for the current user does not exist, or
  cannot be found.
  -}
@@ -964,7 +980,7 @@ index 0f32863..0892ed1 100644
  
  -- | Special directories for storing user-specific application data,
  --   configuration, and cache files, as specified by the
-@@ -2039,28 +1689,17 @@ getXdgDirectory xdgDir suffix =
+@@ -2039,28 +1697,17 @@ getXdgDirectory xdgDir suffix =
      XdgConfig -> get False "XDG_CONFIG_HOME" ".config"
      XdgCache  -> get True  "XDG_CACHE_HOME"  ".cache"
    where
@@ -1004,7 +1020,7 @@ index 0f32863..0892ed1 100644
  
  -- | Similar to 'try' but only catches a specify kind of 'IOError' as
  --   specified by the predicate.
-@@ -2104,18 +1743,17 @@ specializeErrorString str errType action = do
+@@ -2104,18 +1751,17 @@ specializeErrorString str errType action = do
  --     The home directory for the current user does not exist, or cannot be
  --     found.
  --
@@ -1031,7 +1047,7 @@ index 0f32863..0892ed1 100644
  
  {- | Returns the current user's document directory.
  
-@@ -2136,15 +1774,12 @@ The operating system has no notion of document directory.
+@@ -2136,15 +1782,12 @@ The operating system has no notion of document directory.
  * 'isDoesNotExistError'
  The document directory for the current user does not exist, or
  cannot be found.
@@ -1051,7 +1067,7 @@ index 0f32863..0892ed1 100644
  
  {- | Returns the current directory for temporary files.
  
-@@ -2172,14 +1807,8 @@ The operating system has no notion of temporary directory.
+@@ -2172,14 +1815,8 @@ The operating system has no notion of temporary directory.
  
  The function doesn\'t verify whether the path exists.
  -}
@@ -1196,10 +1212,10 @@ index 3f73c9a..217ed50 100644
  
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..4f0fa7c
+index 0000000..2be7754
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,118 @@
+@@ -0,0 +1,134 @@
 +package eta.directory;
 +
 +import java.io.IOException;
@@ -1207,11 +1223,13 @@ index 0000000..4f0fa7c
 +import java.util.Iterator;
 +import java.util.concurrent.TimeUnit;
 +import java.io.File;
++import java.nio.file.FileSystems;
 +import java.nio.file.Path;
 +import java.nio.file.Paths;
 +import java.nio.file.Files;
 +import java.nio.file.DirectoryStream;
 +import java.nio.file.StandardCopyOption;
++import java.nio.file.attribute.FileAttribute;
 +import java.nio.file.attribute.FileTime;
 +import java.nio.file.attribute.PosixFilePermission;
 +import java.nio.file.attribute.PosixFilePermissions;
@@ -1234,11 +1252,25 @@ index 0000000..4f0fa7c
 +    public static Path toPath(String path) {
 +        return Paths.get(path);
 +    }
-+
++    private static FileAttribute[] getFileAttributes(String perms) {
++        FileAttribute[] attrs = new FileAttribute[0];
++        boolean isPosix = FileSystems.getDefault().
++            supportedFileAttributeViews().contains("posix");
++        if (isPosix)
++            attrs = new FileAttribute[] {
++                PosixFilePermissions.
++                  asFileAttribute(PosixFilePermissions.fromString(perms))
++            };
++        return attrs;
++    }
 +    public static void createDirectory(String path) throws IOException {
 +        Files.createDirectory(toPath(path),
-+                PosixFilePermissions.asFileAttribute(
-+                PosixFilePermissions.fromString("rwxrwxrwx")));
++                              getFileAttributes("rwxrwxrwx"));
++    }
++
++    public static void createDirectories(String path) throws IOException {
++        Files.createDirectories(toPath(path),
++                                getFileAttributes("rwxrwxrwx"));
 +    }
 +
 +    public static boolean isDirectory(Path path) {
@@ -1319,5 +1351,5 @@ index 0000000..4f0fa7c
 +    }
 +}
 -- 
-2.7.4 (Apple Git-66)
+2.16.2.windows.1
 
