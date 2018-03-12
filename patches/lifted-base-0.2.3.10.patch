@@ -1,0 +1,49 @@
+From 44c1e77cc102114a74224bfedc8b743232828b71 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 12 Mar 2018 10:22:24 +0530
+Subject: [PATCH] Patched
+
+---
+ Control/Concurrent/Lifted.hs | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/Control/Concurrent/Lifted.hs b/Control/Concurrent/Lifted.hs
+index 433ef45..1415805 100644
+--- a/Control/Concurrent/Lifted.hs
++++ b/Control/Concurrent/Lifted.hs
+@@ -91,7 +91,11 @@ import Data.Bool          ( Bool )
+ import Data.Int           ( Int )
+ import Data.Function      ( ($) )
+ import System.IO          ( IO )
++#if ((ETA_VERSION == 9) && (ETA_BUILD_NUMBER >= 2)) || (ETA_VERSION > 9)
++import System.Posix.Types ( Channel )
++#else
+ import System.Posix.Types ( Fd )
++#endif
+ #if MIN_VERSION_base(4,6,0)
+ import Control.Monad      ( (>>=) )
+ import Data.Either        ( Either )
+@@ -229,12 +233,20 @@ threadDelay = liftBase .  C.threadDelay
+ {-# INLINABLE threadDelay #-}
+ 
+ -- | Generalized version of 'C.threadWaitRead'.
++#if ((ETA_VERSION == 9) && (ETA_BUILD_NUMBER >= 2)) || (ETA_VERSION > 9)
++threadWaitRead :: MonadBase IO m => Channel -> m ()
++#else
+ threadWaitRead :: MonadBase IO m => Fd -> m ()
++#endif
+ threadWaitRead = liftBase . C.threadWaitRead
+ {-# INLINABLE threadWaitRead #-}
+ 
+ -- | Generalized version of 'C.threadWaitWrite'.
++#if ((ETA_VERSION == 9) && (ETA_BUILD_NUMBER >= 2)) || (ETA_VERSION > 9)
++threadWaitWrite :: MonadBase IO m => Channel -> m ()
++#else
+ threadWaitWrite :: MonadBase IO m => Fd -> m ()
++#endif
+ threadWaitWrite = liftBase . C.threadWaitWrite
+ {-# INLINABLE threadWaitWrite #-}
+ 
+-- 
+2.7.4 (Apple Git-66)
+
