@@ -481,6 +481,7 @@ If you have already forked this repository, then skip to step 3.
    ```
    git format-patch HEAD~ --stdout > somepackage-0.1.2.3.patch
    ```
+   It had been detected that in windows [patches created using powershell has not the correct format](https://stackoverflow.com/questions/13675782/git-shell-in-windows-patchs-default-character-encoding-is-ucs-2-little-endian) and can't be applied so it's better to do it in the dos console.
 
 8. If you have changed the `.cabal` file of the package in your patch, make a copy
    and rename it from `somepackage.cabal` to `somepackage-0.1.2.3.cabal`.
