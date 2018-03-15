@@ -1,0 +1,25 @@
+From 5a3b54fee532917ab02f744417481751a4d4efe1 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 15 Mar 2018 13:38:07 +0530
+Subject: [PATCH] Patched
+
+---
+ QuickCheck.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/QuickCheck.cabal b/QuickCheck.cabal
+index 357a6b7..c3074ae 100644
+--- a/QuickCheck.cabal
++++ b/QuickCheck.cabal
+@@ -53,7 +53,7 @@ source-repository this
+ 
+ flag templateHaskell
+   Description: Build Test.QuickCheck.All, which uses Template Haskell.
+-  Default: True
++  Default: False
+ 
+ library
+   Build-depends: base >=4.3 && <5, random, containers
+-- 
+2.7.4 (Apple Git-66)
+
