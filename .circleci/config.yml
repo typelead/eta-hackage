@@ -13,7 +13,6 @@ jobs:
           key: eta-hackage-v1200-etlas-cache-
 
       - run: etlas update
-      - run: etlas install --dependencies-only
       - run: etlas run
 
       - save_cache:
