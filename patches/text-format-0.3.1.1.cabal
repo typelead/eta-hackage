@@ -1,0 +1,72 @@
+name:           text-format
+version:        0.3.1.1
+license:        BSD3
+license-file:   LICENSE
+homepage:       https://github.com/bos/text-format
+bug-reports:    https://github.com/bos/text-format/issues
+category:       Text
+author:         Bryan O'Sullivan <bos@serpentine.com>
+maintainer:     Bryan O'Sullivan <bos@serpentine.com>
+stability:      experimental
+tested-with:    GHC == 7.0.3
+synopsis:       Text formatting
+cabal-version:  >= 1.8
+build-type:     Simple
+description:
+    A text formatting library optimized for both ease of use and high
+    performance.
+
+extra-source-files:
+    README.markdown
+    benchmarks/Makefile
+    benchmarks/*.c
+    benchmarks/*.hs
+
+flag developer
+  description: operate in developer mode
+  default: False
+
+library
+  exposed-modules:
+    Data.Text.Format
+    Data.Text.Buildable
+    Data.Text.Format.Params
+    Data.Text.Format.Types
+
+  other-modules:
+    Data.Text.Format.Functions
+    Data.Text.Format.Int
+    Data.Text.Format.Types.Internal
+
+  build-depends:
+    array,
+    base == 4.*,
+    double-conversion >= 0.2.0.0,
+    ghc-prim,
+    old-locale,
+    text >= 0.11.0.8,
+    time,
+    transformers
+
+  if flag(developer)
+    ghc-options: -Werror
+    ghc-prof-options: -auto-all
+
+  ghc-options: -Wall
+
+  cpp-options: -DINTEGER_GMP
+
+  if impl(ghc >= 6.11)
+    build-depends: integer >= 0.2
+--    build-depends: integer-gmp >= 0.2
+
+  if impl(ghc >= 6.9) && impl(ghc < 6.11)
+    build-depends: integer >= 0.1 && < 0.2
+
+source-repository head
+  type:     git
+  location: https://github.com/bos/text-format
+
+source-repository head
+  type:     mercurial
+  location: https://bitbucket.org/bos/text-format

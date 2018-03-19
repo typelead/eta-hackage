@@ -1,0 +1,45 @@
+From f450ad96d1c6740ede6aab5ee3dc0e9db801430f Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Mon, 19 Mar 2018 23:50:35 +0100
+Subject: [PATCH] Patched but untested
+
+---
+ Data/Text/Format/Int.hs | 4 +++-
+ text-format.cabal       | 3 ++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/Data/Text/Format/Int.hs b/Data/Text/Format/Int.hs
+index 37858c9..e1cfb78 100644
+--- a/Data/Text/Format/Int.hs
++++ b/Data/Text/Format/Int.hs
+@@ -29,10 +29,12 @@ import GHC.Types (Int(..))
+ # if __GLASGOW_HASKELL__ < 611
+ import GHC.Integer.Internals
+ # else
+-import GHC.Integer.GMP.Internals
++-- import GHC.Integer.GMP.Internals
++import GHC.Integer.BigInteger.Internals
+ # endif
+ #endif
+ 
++
+ #ifdef INTEGER_GMP
+ # define PAIR(a,b) (# a,b #)
+ #else
+diff --git a/text-format.cabal b/text-format.cabal
+index 102d4d2..6270376 100644
+--- a/text-format.cabal
++++ b/text-format.cabal
+@@ -57,7 +57,8 @@ library
+   cpp-options: -DINTEGER_GMP
+ 
+   if impl(ghc >= 6.11)
+-    build-depends: integer-gmp >= 0.2
++    build-depends: integer >= 0.2
++--    build-depends: integer-gmp >= 0.2
+ 
+   if impl(ghc >= 6.9) && impl(ghc < 6.11)
+     build-depends: integer >= 0.1 && < 0.2
+-- 
+2.16.2.windows.1
+
