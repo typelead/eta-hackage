@@ -1,16 +1,16 @@
-From d99903c7a9424ed8de94fe5c9ff13106f83a5f0f Mon Sep 17 00:00:00 2001
+From 7f3e887af4bc6739055dfe43c4750b6bfc9f5d71 Mon Sep 17 00:00:00 2001
 From: jneira <atreyu.bbb@gmail.com>
-Date: Mon, 12 Mar 2018 07:57:42 +0100
-Subject: [PATCH] Patched
+Date: Mon, 19 Mar 2018 22:47:01 +0100
+Subject: [PATCH] Patched using tryJavaIOError for eta >= 0.7.0.2
 
 ---
  System/Directory.hs                  | 783 ++++++++++-------------------------
  System/Directory/Internal.hs         |  35 +-
  System/Directory/Internal/Config.hs  |   6 +-
- System/Directory/Internal/Prelude.hs |   6 +-
- directory.cabal                      |  17 +-
+ System/Directory/Internal/Prelude.hs |  27 +-
+ directory.cabal                      |  20 +-
  java/Utils.java                      | 134 ++++++
- 6 files changed, 379 insertions(+), 602 deletions(-)
+ 6 files changed, 398 insertions(+), 607 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/System/Directory.hs b/System/Directory.hs
@@ -1151,10 +1151,44 @@ index 54d1064..607fe52 100644
 +foreign import java unsafe "@static eta.directory.Utils.isWindows"
 +  isWindows :: Bool
 diff --git a/System/Directory/Internal/Prelude.hs b/System/Directory/Internal/Prelude.hs
-index f128870..2552708 100644
+index f128870..d1e6719 100644
 --- a/System/Directory/Internal/Prelude.hs
 +++ b/System/Directory/Internal/Prelude.hs
-@@ -165,9 +165,9 @@ import System.Posix.Internals
+@@ -29,7 +29,7 @@ module System.Directory.Internal.Prelude
+   , module Foreign
+   , module Foreign.C
+   , module GHC.IO.Encoding
+-  , module GHC.IO.Exception
++  , module GHC.IO.Exception 
+   , module System.Environment
+   , module System.Exit
+   , module System.IO
+@@ -37,6 +37,7 @@ module System.Directory.Internal.Prelude
+   , module System.Posix.Internals
+   , module System.Posix.Types
+   , module System.Timeout
++  , tryIOError, catchIOError
+   ) where
+ #if !MIN_VERSION_base(4, 6, 0)
+ import Prelude hiding (catch)
+@@ -143,7 +144,7 @@ import System.IO
+   )
+ import System.IO.Error
+   ( IOError
+-  , catchIOError
++--  , catchIOError
+   , illegalOperationErrorType
+   , ioeGetErrorString
+   , ioeGetErrorType
+@@ -158,24 +159,36 @@ import System.IO.Error
+   , mkIOError
+   , modifyIOError
+   , permissionErrorType
+-  , tryIOError
++--  , tryIOError
+   , userError
+   )
+ import System.Posix.Internals
    ( CStat
    , c_stat
    , withFilePath
@@ -1167,8 +1201,29 @@ index f128870..2552708 100644
    , st_size
    )
  import System.Posix.Types (CMode(..), EpochTime, FileMode)
+ import System.Timeout (timeout)
+-
++#ifdef JAVA_IO_ERR
++import Java.Exception (tryJavaIOError, catchJavaIOError)
++#else
++import System.IO.Error (catchIOError, tryIOError)
++#endif
+ #if !MIN_VERSION_base(4, 8, 0)
+ data Void = Void
+ 
+ _unusedVoid :: Void
+ _unusedVoid = Void
+ #endif
++
++#ifdef JAVA_IO_ERR
++tryIOError :: IO a -> IO (Either IOError a)
++tryIOError = tryJavaIOError
++
++catchIOError :: IO a -> (IOError -> IO a) -> IO a
++catchIOError = catchJavaIOError
++#endif
 diff --git a/directory.cabal b/directory.cabal
-index 3f73c9a..217ed50 100644
+index 3f73c9a..0867cb9 100644
 --- a/directory.cabal
 +++ b/directory.cabal
 @@ -10,7 +10,7 @@ description:
@@ -1180,7 +1235,7 @@ index 3f73c9a..217ed50 100644
  cabal-version:  >= 1.10
  tested-with:    GHC>=7.4.1
  
-@@ -46,21 +46,22 @@ Library
+@@ -46,22 +46,24 @@ Library
          System.Directory.Internal
          System.Directory.Internal.Prelude
      other-modules:
@@ -1203,13 +1258,16 @@ index 3f73c9a..217ed50 100644
 -        build-depends: Win32 >= 2.2.2 && < 2.6
 -    else
 -        build-depends: unix >= 2.5.1 && < 2.8
+-
 +    -- if os(windows)
 +    --     build-depends: Win32 >= 2.2.2 && < 2.6
 +    -- else
 +    --     build-depends: unix >= 2.5.1 && < 2.8
- 
++    if impl(eta >= 0.7.1.2)
++       cpp-options:      -DJAVA_IO_ERR
      ghc-options: -Wall
  
+ test-suite test
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
 index 0000000..2be7754

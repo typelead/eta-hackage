@@ -62,7 +62,8 @@ Library
     --     build-depends: Win32 >= 2.2.2 && < 2.6
     -- else
     --     build-depends: unix >= 2.5.1 && < 2.8
-
+    if impl(eta >= 0.7.1.2)
+       cpp-options:      -DJAVA_IO_ERR
     ghc-options: -Wall
 
 test-suite test
