@@ -1,0 +1,85 @@
+From 73fdbaf8ce10212eea498186afdc4c447319f556 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Tue, 20 Mar 2018 06:31:08 +0100
+Subject: [PATCH] Patched
+
+---
+ ansi-terminal.cabal | 54 ++++++++++++++++++++++++++---------------------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
+
+diff --git a/ansi-terminal.cabal b/ansi-terminal.cabal
+index b21caef..2dca0ee 100644
+--- a/ansi-terminal.cabal
++++ b/ansi-terminal.cabal
+@@ -33,22 +33,22 @@ Library
+         Include-Dirs:           includes
+         
+         Build-Depends:          base >= 4 && < 5
+-        if os(windows)
+-                Build-Depends:          base-compat >= 0.9.1
+-                                      , Win32 >= 2.0
+-                                      , process
+-                Cpp-Options:            -DWINDOWS
+-                Other-Modules:          System.Console.ANSI.Windows
+-                                        System.Console.ANSI.Windows.Detect
+-                                        System.Console.ANSI.Windows.Emulator
+-                                        System.Console.ANSI.Windows.Emulator.Codes
+-                                        System.Console.ANSI.Windows.Foreign
+-                                        -- NB: used for fallback by the emulator
+-                                        System.Console.ANSI.Unix
+-        else
+-                -- We assume any non-Windows platform is Unix
+-                Cpp-Options:            -DUNIX
+-                Other-Modules:          System.Console.ANSI.Unix
++        -- if os(windows)
++        --         Build-Depends:          base-compat >= 0.9.1
++        --                               , Win32 >= 2.0
++        --                               , process
++        --         Cpp-Options:            -DWINDOWS
++        --         Other-Modules:          System.Console.ANSI.Windows
++        --                                 System.Console.ANSI.Windows.Detect
++        --                                 System.Console.ANSI.Windows.Emulator
++        --                                 System.Console.ANSI.Windows.Emulator.Codes
++        --                                 System.Console.ANSI.Windows.Foreign
++        --                                 -- NB: used for fallback by the emulator
++        --                                 System.Console.ANSI.Unix
++        -- else
++        -- We assume any non-Windows platform is Unix
++        Cpp-Options:            -DUNIX
++        Other-Modules:          System.Console.ANSI.Unix
+         
+         Extensions:             CPP
+                                 ForeignFunctionInterface
+@@ -65,18 +65,18 @@ Executable ansi-terminal-example
+                                 System.Console.ANSI.Types
+                                 System.Console.ANSI.Unix
+ 
+-        if os(windows)
+-                Build-Depends:          base-compat >= 0.9.1
+-                                      , Win32 >= 2.0
+-                Cpp-Options:            -DWINDOWS
+-                Other-Modules:          System.Console.ANSI.Windows
+-                                        System.Console.ANSI.Windows.Detect
+-                                        System.Console.ANSI.Windows.Emulator
+-                                        System.Console.ANSI.Windows.Emulator.Codes
+-                                        System.Console.ANSI.Windows.Foreign
+-        else
++        -- if os(windows)
++        --         Build-Depends:          base-compat >= 0.9.1
++        --                               , Win32 >= 2.0
++        --         Cpp-Options:            -DWINDOWS
++        --         Other-Modules:          System.Console.ANSI.Windows
++        --                                 System.Console.ANSI.Windows.Detect
++        --                                 System.Console.ANSI.Windows.Emulator
++        --                                 System.Console.ANSI.Windows.Emulator.Codes
++        --                                 System.Console.ANSI.Windows.Foreign
++        -- else
+                 -- We assume any non-Windows platform is Unix
+-                Cpp-Options:            -DUNIX
++        Cpp-Options:            -DUNIX
+ 
+         Build-Depends:          base >= 4 && < 5
+         Extensions:             CPP
+-- 
+2.16.2.windows.1
+
