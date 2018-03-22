@@ -1,0 +1,93 @@
+From e3ee9cfb38492defa7c3d525d638550c94b941fd Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 22 Mar 2018 22:22:08 +0530
+Subject: [PATCH] Patched
+
+---
+ Text/Regex/TDFA/NewDFA/Engine.hs    |  2 +-
+ Text/Regex/TDFA/NewDFA/Engine_FA.hs |  2 +-
+ java/Utils.java                     | 13 +++++++++++++
+ java/eta-0.0.9/Utils.java           | 11 +++++++++++
+ regex-tdfa.cabal                    |  4 ++++
+ 5 files changed, 30 insertions(+), 2 deletions(-)
+ create mode 100644 java/Utils.java
+ create mode 100644 java/eta-0.0.9/Utils.java
+
+diff --git a/Text/Regex/TDFA/NewDFA/Engine.hs b/Text/Regex/TDFA/NewDFA/Engine.hs
+index 4a395c3..4e38973 100644
+--- a/Text/Regex/TDFA/NewDFA/Engine.hs
++++ b/Text/Regex/TDFA/NewDFA/Engine.hs
+@@ -696,7 +696,7 @@ updateCopy ((_i1,instructions),oldPos,newOrbit) preTag s2 i2 = do
+ {- USING memcpy TO COPY STUARRAY DATA -}
+ 
+ -- #ifdef __GLASGOW_HASKELL__
+-foreign import ccall unsafe "memcpy"
++foreign import java unsafe "@static eta.regex_tdfa.memcpy"
+     memcpy :: MutableByteArray# RealWorld -> MutableByteArray# RealWorld -> Int# -> IO ()
+ 
+ {-
+diff --git a/Text/Regex/TDFA/NewDFA/Engine_FA.hs b/Text/Regex/TDFA/NewDFA/Engine_FA.hs
+index 9014a63..2d8e5f0 100644
+--- a/Text/Regex/TDFA/NewDFA/Engine_FA.hs
++++ b/Text/Regex/TDFA/NewDFA/Engine_FA.hs
+@@ -554,7 +554,7 @@ updateCopy ((_i1,instructions),oldPos,newOrbit) preTag s2 i2 = do
+ {- USING memcpy TO COPY STUARRAY DATA -}
+ 
+ -- #ifdef __GLASGOW_HASKELL__
+-foreign import ccall unsafe "memcpy"
++foreign import java unsafe "@static eta.regex_tdfa.memcpy"
+     memcpy :: MutableByteArray# RealWorld -> MutableByteArray# RealWorld -> Int# -> IO ()
+ 
+ {-
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..1308679
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,13 @@
++package eta.regex_tdfa;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.StgByteArray;
++
++public class Utils {
++    public static void memcpy(StgByteArray destArray, StgByteArray srcArray, int size) {
++        ByteBuffer dest = destArray.buf.duplicate();
++        ByteBuffer src = srcArray.buf.duplicate();
++        eta.base.Utils.c_memcpy(dest, src, size);
++    }
++
++}
+diff --git a/java/eta-0.0.9/Utils.java b/java/eta-0.0.9/Utils.java
+new file mode 100644
+index 0000000..5acc6e3
+--- /dev/null
++++ b/java/eta-0.0.9/Utils.java
+@@ -0,0 +1,11 @@
++package eta.regex_tdfa;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.ByteArray;
++
++public class Utils {
++    public static void memcpy(ByteArray destArray, ByteArray srcArray, int size) {
++        eta.base.Utils.c_memcpy(destArray.bufferAddress, srcArray.bufferAddress, size);
++    }
++
++}
+diff --git a/regex-tdfa.cabal b/regex-tdfa.cabal
+index d86defb..aa6355d 100644
+--- a/regex-tdfa.cabal
++++ b/regex-tdfa.cabal
+@@ -98,4 +98,8 @@ library
+   Buildable:              True
+   Extensions:             MultiParamTypeClasses, FunctionalDependencies, BangPatterns, MagicHash, RecursiveDo, NoMonoPatBinds, ForeignFunctionInterface, UnboxedTuples, TypeOperators, FlexibleContexts, ExistentialQuantification, UnliftedFFITypes, TypeSynonymInstances, FlexibleInstances
+   GHC-Options:            -Wall -funbox-strict-fields -fspec-constr-count=10 -O2 -fno-warn-orphans
++  if impl(eta >= 0.0.9)
++    Java-Sources:          java/eta-0.0.9/Utils.java
++  else
++    Java-Sources:          java/Utils.java
+   GHC-Prof-Options:       -auto-all
+-- 
+2.7.4 (Apple Git-66)
+
