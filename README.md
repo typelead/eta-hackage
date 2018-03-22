@@ -112,7 +112,7 @@ These packages are supported by `etlas`.
 - [connection-0.2.8](https://hackage.haskell.org/package/connection-0.2.8)
 - [constraints-0.8](https://hackage.haskell.org/package/constraints-0.8)
 - [containers >= 0.5.8.1 && <= 0.5.9.1 ](https://hackage.haskell.org/package/containers-0.5.9.1)
-- [contravariant-1.4](https://hackage.haskell.org/package/contravariant-1.4)
+- [contravariant >= 1.33 && <= 1.4](https://hackage.haskell.org/package/contravariant)
 - [control-monad-omega-0.3.1](https://hackage.haskell.org/package/control-monad-omega-0.3.1)
 - [convertible-1.1.1.0](https://hackage.haskell.org/package/convertible-1.1.1.0)
 - [crackNum-1.9](https://hackage.haskell.org/package/crackNum-1.9)

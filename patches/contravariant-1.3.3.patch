@@ -1,0 +1,45 @@
+From 37485480b801f447852cf6c311f291a5c6916ec8 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 22 Mar 2018 20:04:10 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Data/Functor/Contravariant/Divisible.hs | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/Data/Functor/Contravariant/Divisible.hs b/src/Data/Functor/Contravariant/Divisible.hs
+index 38d59eb..5aa7999 100644
+--- a/src/Data/Functor/Contravariant/Divisible.hs
++++ b/src/Data/Functor/Contravariant/Divisible.hs
+@@ -28,7 +28,7 @@ import Data.Monoid
+ 
+ import Data.Void
+ 
+-#if MIN_VERSION_StateVar
++#ifdef MIN_VERSION_StateVar
+ import Data.StateVar
+ #endif
+ 
+@@ -135,7 +135,7 @@ instance Monoid m => Divisible (Const m) where
+   divide _ (Const a) (Const b) = Const (mappend a b)
+   conquer = Const mempty
+ 
+-#if MIN_VERSION_StateVar
++#ifdef MIN_VERSION_StateVar
+ instance Divisible SettableStateVar where
+   divide k (SettableStateVar l) (SettableStateVar r) = SettableStateVar $ \ a -> case k a of
+     (b, c) -> l b >> r c
+@@ -210,8 +210,8 @@ instance Monoid r => Decidable (Op r) where
+   lose f = Op $ absurd . f
+   choose f (Op g) (Op h) = Op $ either g h . f
+ 
+-#if MIN_VERSION_StateVar
+-instance Decidable SettableVar where
++#ifdef MIN_VERSION_StateVar
++instance Decidable SettableStateVar where
+   lose k = SettableStateVar (absurd . k)
+   choose k (SettableStateVar l) (SettableStateVar r) = SettableStateVar $ \ a -> case k a of
+     Left b -> l b
+-- 
+2.7.4 (Apple Git-66)
+
