@@ -314,6 +314,7 @@ These packages are supported by `etlas`.
 - [scientific >= 0.3.4.9 && <= 0.3.5.1](https://hackage.haskell.org/package/scientific)
 - [semigroups >= 0.18.2 && <= 0.18.3](https://hackage.haskell.org/package/semigroups)
 - [semigroupoids >= 5.1 && <= 5.2.1](https://hackage.haskell.org/package/semigroupoids)
+- [shake-0.16.2](https://hackage.haskell.org/package/shake-0.16.2)
 - [silently-1.2.5](https://hackage.haskell.org/package/silently-1.2.5)
 - [singletons-2.0.1](https://hackage.haskell.org/package/singletons-2.0.1)
 - [socks-0.5.5](https://hackage.haskell.org/package/socks-0.5.5)

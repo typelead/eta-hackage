@@ -1,0 +1,101 @@
+From e01207fb9e44d19461c54198f7b5fb973a6af026 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 22 Mar 2018 18:22:46 +0530
+Subject: [PATCH] Patched
+
+---
+ shake.cabal             | 12 +-----------
+ src/General/FileLock.hs | 33 +++++++++++++++++----------------
+ 2 files changed, 18 insertions(+), 27 deletions(-)
+
+diff --git a/shake.cabal b/shake.cabal
+index cf95eac..787e343 100644
+--- a/shake.cabal
++++ b/shake.cabal
+@@ -70,7 +70,7 @@ source-repository head
+     location: https://github.com/ndmitchell/shake.git
+ 
+ flag portable
+-    default: False
++    default: True
+     manual: True
+     description: Obtain FileTime using portable functions
+ 
+@@ -100,11 +100,6 @@ library
+         cpp-options: -DPORTABLE
+         if impl(ghc < 7.6)
+             build-depends: old-time
+-    else
+-        if !os(windows)
+-            build-depends: unix >= 2.5.1
+-    if !os(windows)
+-        build-depends: unix
+ 
+     if impl(ghc < 8.0)
+         build-depends: semigroups >= 0.18
+@@ -204,11 +199,6 @@ executable shake
+         cpp-options: -DPORTABLE
+         if impl(ghc < 7.6)
+             build-depends: old-time
+-    else
+-        if !os(windows)
+-            build-depends: unix >= 2.5.1
+-    if !os(windows)
+-        build-depends: unix
+ 
+     if impl(ghc < 8.0)
+         build-depends: semigroups >= 0.18
+diff --git a/src/General/FileLock.hs b/src/General/FileLock.hs
+index 407a505..3965be9 100644
+--- a/src/General/FileLock.hs
++++ b/src/General/FileLock.hs
+@@ -13,7 +13,7 @@ import Foreign.C.Types
+ import Foreign.C.String
+ #else
+ import System.IO
+-import System.Posix.IO
++-- import System.Posix.IO
+ #endif
+ 
+ #ifdef mingw32_HOST_OS
+@@ -56,21 +56,22 @@ withLockFile file act = withCWString file $ \cfile -> do
+ 
+ #else
+ 
+-withLockFile file act = do
+-    createDirectoryRecursive $ takeDirectory file
+-    tryIO $ writeFile file ""
++withLockFile _file act = act
++    -- TODO: Implement file locking
++    -- createDirectoryRecursive $ takeDirectory file
++    -- tryIO $ writeFile file ""
+ 
+-    bracket (openFd file ReadWrite Nothing defaultFileFlags) closeFd $ \fd -> do
+-        let lock = (WriteLock, AbsoluteSeek, 0, 0)
+-        res <- tryIO $ setLock fd lock
+-        case res of
+-            Right () -> act
+-            Left e -> do
+-                res <- getLock fd lock
+-                errorIO $ "Shake failed to acquire a file lock on " ++ file ++ "\n" ++
+-                          (case res of
+-                               Nothing -> ""
+-                               Just (pid, _) -> "Shake process ID " ++ show pid ++ " is using this lock.\n") ++
+-                          show e
++    -- bracket (openFd file ReadWrite Nothing defaultFileFlags) closeFd $ \fd -> do
++    --     let lock = (WriteLock, AbsoluteSeek, 0, 0)
++    --     res <- tryIO $ setLock fd lock
++    --     case res of
++    --         Right () -> act
++    --         Left e -> do
++    --             res <- getLock fd lock
++    --             errorIO $ "Shake failed to acquire a file lock on " ++ file ++ "\n" ++
++    --                       (case res of
++    --                            Nothing -> ""
++    --                            Just (pid, _) -> "Shake process ID " ++ show pid ++ " is using this lock.\n") ++
++    --                       show e
+ 
+ #endif
+-- 
+2.7.4 (Apple Git-66)
+
