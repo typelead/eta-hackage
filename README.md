@@ -84,6 +84,7 @@ These packages are supported by `etlas`.
 - [blaze-html >= 0.8.1.3 && <= 0.9.0.1](https://hackage.haskell.org/package/blaze-html)
 - [blaze-html-truncate-0.3.0.0](https://hackage.haskell.org/package/blaze-html-truncate-0.3.0.0)
 - [blaze-markup >= 0.7.1.1 && <= 0.8.0.0](https://hackage.haskell.org/package/blaze-markup)
+- [blaze-textual-0.2.1.0](https://hackage.haskell.org/package/blaze-textual-0.2.1.0)
 - [bmp-1.2.6.3](https://hackage.haskell.org/package/bmp-1.2.6.3)
 - [Boolean >= 0.2.3 && <= 0.2.4](https://hackage.haskell.org/package/Boolean)
 - [byteable-0.1.1](https://hackage.haskell.org/package/byteable-0.1.1)

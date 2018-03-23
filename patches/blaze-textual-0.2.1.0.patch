@@ -1,0 +1,46 @@
+From 7ae99aa0bc26d84ef352395309955d6a97b1284c Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 23 Mar 2018 11:26:10 +0530
+Subject: [PATCH] Patched
+
+---
+ Blaze/Text/Int.hs   | 4 ++--
+ blaze-textual.cabal | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Blaze/Text/Int.hs b/Blaze/Text/Int.hs
+index 58cdbf4..d1a6d2e 100644
+--- a/Blaze/Text/Int.hs
++++ b/Blaze/Text/Int.hs
+@@ -27,9 +27,9 @@ import GHC.Num (quotRemInteger)
+ import GHC.Types (Int(..))
+ 
+ #if defined(INTEGER_GMP)
+-import GHC.Integer.GMP.Internals
++import GHC.Integer.BigInteger.Internals
+ #elif defined(INTEGER_SIMPLE)
+-import GHC.Integer.Simple.Internals
++import GHC.Integer.BigInteger.Internals
+ #endif
+ 
+ #define PAIR(a,b) (# a,b #)
+diff --git a/blaze-textual.cabal b/blaze-textual.cabal
+index 27d2ee7..0d35a9b 100644
+--- a/blaze-textual.cabal
++++ b/blaze-textual.cabal
+@@ -75,10 +75,10 @@ library
+ 
+   if flag(integer-simple)
+     cpp-options: -DINTEGER_SIMPLE
+-    build-depends: integer-simple
++    build-depends: integer
+   else
+     cpp-options: -DINTEGER_GMP
+-    build-depends: integer-gmp >= 0.2
++    build-depends: integer
+ 
+ test-suite tests
+   type:           exitcode-stdio-1.0
+-- 
+2.7.4 (Apple Git-66)
+
