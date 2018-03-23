@@ -10,13 +10,13 @@ jobs:
       - checkout
 
       - restore_cache:
-          key: eta-hackage-v1200-etlas-cache-
+          key: eta-hackage-v1300-etlas-cache-
 
       - run: etlas update
       - run: etlas run
 
       - save_cache:
-          key: eta-hackage-v1200-etlas-cache-{{ epoch }}
+          key: eta-hackage-v1300-etlas-cache-{{ epoch }}
           paths:
             - "~/.etlas/config"
             - "~/.etlas/packages"
