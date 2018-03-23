@@ -1,0 +1,63 @@
+From f192a8243b1cd864e3a728b77d649b28a6849293 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 23 Mar 2018 12:38:36 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Aeson/Types/Internal.hs | 26 +++++++++++++-------------
+ aeson.cabal                  |  2 +-
+ 2 files changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/Data/Aeson/Types/Internal.hs b/Data/Aeson/Types/Internal.hs
+index 2d88035..7fd1688 100644
+--- a/Data/Aeson/Types/Internal.hs
++++ b/Data/Aeson/Types/Internal.hs
+@@ -429,19 +429,19 @@ instance Hashable Value where
+     hashWithSalt = hashValue
+ 
+ -- @since 0.11.0.0
+-instance TH.Lift Value where
+-    lift Null = [| Null |]
+-    lift (Bool b) = [| Bool b |]
+-    lift (Number n) = [| Number (S.scientific c e) |]
+-      where
+-        c = S.coefficient n
+-        e = S.base10Exponent n
+-    lift (String t) = [| String (pack s) |]
+-      where s = unpack t
+-    lift (Array a) = [| Array (V.fromList a') |]
+-      where a' = V.toList a
+-    lift (Object o) = [| Object (H.fromList . map (first pack) $ o') |]
+-      where o' = map (first unpack) . H.toList $ o
++-- instance TH.Lift Value where
++--     lift Null = [| Null |]
++--     lift (Bool b) = [| Bool b |]
++--     lift (Number n) = [| Number (S.scientific c e) |]
++--       where
++--         c = S.coefficient n
++--         e = S.base10Exponent n
++--     lift (String t) = [| String (pack s) |]
++--       where s = unpack t
++--     lift (Array a) = [| Array (V.fromList a') |]
++--       where a' = V.toList a
++--     lift (Object o) = [| Object (H.fromList . map (first pack) $ o') |]
++--       where o' = map (first unpack) . H.toList $ o
+ 
+ -- | The empty array.
+ emptyArray :: Value
+diff --git a/aeson.cabal b/aeson.cabal
+index 4b6e6ef..d02ddaa 100644
+--- a/aeson.cabal
++++ b/aeson.cabal
+@@ -74,7 +74,7 @@ library
+     Data.Aeson.Internal.Time
+     Data.Aeson.Parser
+     Data.Aeson.Types
+-    Data.Aeson.TH
++    -- Data.Aeson.TH
+ 
+   other-modules:
+     Data.Aeson.Encode.Builder
+-- 
+2.7.4 (Apple Git-66)
+

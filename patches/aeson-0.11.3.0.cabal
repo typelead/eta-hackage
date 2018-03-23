@@ -1,0 +1,189 @@
+name:            aeson
+version:         0.11.3.0
+license:         BSD3
+license-file:    LICENSE
+category:        Text, Web, JSON
+copyright:       (c) 2011-2016 Bryan O'Sullivan
+                 (c) 2011 MailRank, Inc.
+author:          Bryan O'Sullivan <bos@serpentine.com>
+maintainer:      Bryan O'Sullivan <bos@serpentine.com>
+stability:       experimental
+tested-with:     GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.2
+synopsis:        Fast JSON parsing and encoding
+cabal-version:   >= 1.10
+homepage:        https://github.com/bos/aeson
+bug-reports:     https://github.com/bos/aeson/issues
+build-type:      Simple
+description:
+    A JSON parsing and encoding library optimized for ease of use
+    and high performance.
+    .
+    To get started, see the documentation for the @Data.Aeson@ module
+    below.
+    .
+    Parsing performance on a late 2013 MacBook Pro (2.6GHz Core i7),
+    running 64-bit GHC 7.10.1, for mostly-English tweets from Twitter's
+    JSON search API:
+    .
+    * 6.4 KB payloads, English: 7570 msg\/sec (47.6 MB\/sec)
+    .
+    * 14.6 KB payloads, Japanese: 3261 msg\/sec (46.6 MB\/sec)
+    .
+    Encoding performance on the same machine and data:
+    .
+    * 6.4 KB payloads, English: 22738 msg\/sec (142.9 MB\/sec)
+    .
+    * 14.6 KB payloads, Japanese: 15911 msg\/sec (227.4 MB\/sec)
+    .
+    (A note on naming: in Greek mythology, Aeson was the father of Jason.)
+
+extra-source-files:
+    README.markdown
+    benchmarks/*.cabal
+    benchmarks/*.hs
+    benchmarks/*.py
+    benchmarks/Compare/*.hs
+    benchmarks/Makefile
+    benchmarks/Typed/*.hs
+    benchmarks/json-data/*.json
+    include/overlapping-compat.h
+    changelog.md
+    examples/*.cabal
+    examples/*.hs
+    examples/Twitter/*.hs
+    include/*.h
+
+flag developer
+  description: operate in developer mode
+  default: False
+  manual: True
+
+flag old-locale
+  description: If false then depend on time >= 1.5.
+               .
+               If true then depend on time < 1.5 together with old-locale.
+  default: False
+
+library
+  default-language: Haskell2010
+
+  exposed-modules:
+    Data.Aeson
+    Data.Aeson.Encode
+    Data.Aeson.Internal
+    Data.Aeson.Internal.Time
+    Data.Aeson.Parser
+    Data.Aeson.Types
+    -- Data.Aeson.TH
+
+  other-modules:
+    Data.Aeson.Encode.Builder
+    Data.Aeson.Encode.Functions
+    Data.Aeson.Functions
+    Data.Aeson.Parser.Internal
+    Data.Aeson.Parser.Time
+    Data.Aeson.Types.Class
+    Data.Aeson.Types.Generic
+    Data.Aeson.Types.Instances
+    Data.Aeson.Types.Internal
+
+  build-depends:
+    attoparsec >= 0.13.0.1,
+    base >= 4.5 && < 5,
+    bytestring >= 0.10.4.0,
+    containers,
+    deepseq,
+    dlist >= 0.2,
+    fail == 4.9.*,
+    ghc-prim >= 0.2,
+    hashable >= 1.1.2.0,
+    mtl,
+    scientific >= 0.3.1 && < 0.4,
+    syb,
+    tagged >=0.8.3 && <0.9,
+    template-haskell >= 2.7,
+    text >= 1.1.1.0,
+    transformers,
+    unordered-containers >= 0.2.5.0,
+    vector >= 0.8
+
+  if !impl(ghc >= 8.0)
+    -- `Data.Semigroup` is available in base only since GHC 8.0 / base 4.9
+    build-depends: semigroups >= 0.16.1 && < 0.19
+
+  if !impl(ghc >= 7.10)
+    -- `Numeric.Natural` is available in base only since GHC 7.10 / base 4.8
+    build-depends: nats >=1 && <1.2
+
+  if flag(old-locale)
+    build-depends: time < 1.5, old-locale
+  else
+    build-depends: time >= 1.5
+
+  if flag(developer)
+    ghc-prof-options: -auto-all
+
+  ghc-options: -O2 -Wall
+
+  include-dirs: include
+
+test-suite tests
+  default-language: Haskell2010
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: tests
+  main-is:        Tests.hs
+  other-modules:
+    DataFamilies.Properties
+    DataFamilies.Instances
+    DataFamilies.Encoders
+    DataFamilies.Types
+    Encoders
+    Functions
+    Instances
+    Options
+    Properties
+    Types
+    UnitTests
+
+  ghc-options: -Wall -threaded -rtsopts
+
+  build-depends:
+    HUnit,
+    QuickCheck >= 2.7 && <2.10,
+    aeson,
+    attoparsec,
+    base,
+    base-orphans >=0.5.3 && <0.6,
+    bytestring,
+    containers,
+    ghc-prim >= 0.2,
+    hashable >= 1.1.2.0,
+    tagged,
+    template-haskell,
+    test-framework,
+    test-framework-hunit,
+    test-framework-quickcheck2,
+    text,
+    time,
+    unordered-containers,
+    vector,
+    quickcheck-instances >=0.3.12
+
+  if !impl(ghc >= 8.0)
+    build-depends: semigroups >= 0.16.1 && < 0.19
+
+  if flag(old-locale)
+    build-depends: time < 1.5, old-locale
+  else
+    build-depends: time >= 1.5
+
+  if !impl(ghc >= 7.10)
+    build-depends: nats >=1 && <1.2
+
+source-repository head
+  type:     git
+  location: git://github.com/bos/aeson.git
+
+source-repository head
+  type:     mercurial
+  location: https://bitbucket.org/bos/aeson
