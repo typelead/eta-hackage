@@ -252,7 +252,7 @@ These packages are supported by `etlas`.
 - [nested-sequence-0.2](https://hackage.haskell.org/package/nested-sequence-0.2)
 - [nested-sets-0.0.1.1](https://hackage.haskell.org/package/nested-sets-0.0.1.1)
 - [network-2.6.3.2](https://hackage.haskell.org/package/network-2.6.3.2)
-- [network-uri-2.6.1.0](https://hackage.haskell.org/package/network-uri-2.6.1.0)
+- [network-uri >= 2.6.0.3 && <= 2.6.1.0](https://hackage.haskell.org/package/network-uri)
 - [newtype-0.2](https://hackage.haskell.org/package/newtype-0.2)
 - [newtype-generics-0.4.1](https://hackage.haskell.org/package/newtype-generics-0.4.1)
 - [NumInstances-1.4](https://hackage.haskell.org/package/NumInstances-1.4)
