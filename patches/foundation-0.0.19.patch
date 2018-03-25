@@ -1,6 +1,6 @@
-From 24f1e0a6860bb27102ad4594a3d7cb39e8b89231 Mon Sep 17 00:00:00 2001
+From 131175c85b04c92a39dbf3e3dc2bb1cf8b5a31ca Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 23 Jan 2018 19:10:16 +0530
+Date: Mon, 26 Mar 2018 01:07:29 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -24,8 +24,8 @@ Subject: [PATCH] Patched
  Foundation/System/Entropy/Unix.hs       |   4 +-
  Foundation/System/Entropy/Windows.hs    |  12 +-
  Foundation/Timing.hs                    |  13 +-
- foundation.cabal                        |  25 +--
- 21 files changed, 1153 insertions(+), 1020 deletions(-)
+ foundation.cabal                        |  27 +--
+ 21 files changed, 1153 insertions(+), 1022 deletions(-)
  create mode 100644 Foundation/Foreign/MemoryMap/Posix.hs
  delete mode 100644 Foundation/Foreign/MemoryMap/Posix.hsc
  create mode 100644 Foundation/Network/HostName.hs
@@ -2362,7 +2362,7 @@ index a8df263..491e017 100644
  
  -- | Simple one-time measurement of time & other metrics spent in a function
 diff --git a/foundation.cabal b/foundation.cabal
-index c63986c..69b7113 100644
+index c63986c..aed8697 100644
 --- a/foundation.cabal
 +++ b/foundation.cabal
 @@ -159,28 +159,12 @@ library
@@ -2406,6 +2406,15 @@ index c63986c..69b7113 100644
    build-depends:     base >= 4.7 && < 5
                     , basement == 0.0.6
                     , ghc-prim
+@@ -201,8 +186,6 @@ library
+     cpp-options: -DARCH_IS_LITTLE_ENDIAN
+   else
+     cpp-options: -DARCH_IS_UNKNOWN_ENDIAN
+-  if os(windows)
+-    build-depends:    Win32
+   ghc-options:       -Wall -fwarn-tabs
+   default-language:  Haskell2010
+   if impl(ghc >= 8.0)
 -- 
 2.7.4 (Apple Git-66)
 
