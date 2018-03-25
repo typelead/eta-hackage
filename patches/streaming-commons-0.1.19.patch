@@ -1,14 +1,14 @@
-From 38c6aa25dddee8570c4dee7a9294e0ce0f0c5148 Mon Sep 17 00:00:00 2001
+From e78ef5bbdeb6a0655bb4cf5034a572ecf798e7f7 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 5 Feb 2018 11:54:03 +0530
+Date: Sun, 25 Mar 2018 22:22:09 +0530
 Subject: [PATCH] Patched
 
 ---
  Data/Streaming/Filesystem.hs    | 58 ++++++++++++++++++++---------------
- Data/Streaming/Text.hs          |  5 +--
+ Data/Streaming/Text.hs          |  7 ++---
  Data/Streaming/Zlib/Lowlevel.hs | 68 ++++++++++++++++++++---------------------
  streaming-commons.cabal         | 12 --------
- 4 files changed, 70 insertions(+), 73 deletions(-)
+ 4 files changed, 70 insertions(+), 75 deletions(-)
 
 diff --git a/Data/Streaming/Filesystem.hs b/Data/Streaming/Filesystem.hs
 index 6647b91..511d93e 100644
@@ -85,13 +85,15 @@ index 6647b91..511d93e 100644
  #endif
  
 diff --git a/Data/Streaming/Text.hs b/Data/Streaming/Text.hs
-index 543f950..0f64947 100644
+index 543f950..e3ce7c8 100644
 --- a/Data/Streaming/Text.hs
 +++ b/Data/Streaming/Text.hs
-@@ -97,10 +97,11 @@ getText j marr = do
+@@ -95,12 +95,11 @@ getText j marr = do
+     return $! text arr 0 j
+ {-# INLINE getText #-}
  
- #include "text_cbits.h"
- 
+-#include "text_cbits.h"
+-
 -foreign import ccall unsafe "_hs_streaming_commons_decode_utf8_state" c_decode_utf8_with_state
 +c_decode_utf8_with_state
      :: MutableByteArray# s -> Ptr CSize
@@ -101,7 +103,7 @@ index 543f950..0f64947 100644
  
  newtype CodePoint = CodePoint Word32 deriving (Eq, Show, Num, Storable)
  newtype DecoderState = DecoderState Word32 deriving (Eq, Show, Num, Storable)
-@@ -150,7 +151,7 @@ decodeUtf8 = decodeChunk B.empty 0 0
+@@ -150,7 +149,7 @@ decodeUtf8 = decodeChunk B.empty 0 0
                      | B.null bsOld = bs
                      | otherwise = B.append bsOld bs
                case unused `seq` state of
