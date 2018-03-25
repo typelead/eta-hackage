@@ -1,21 +1,21 @@
-From aa2744d2e195c78093b24287fd3775fcdda2a44f Mon Sep 17 00:00:00 2001
-From: Abhiroop Sarkar <asiamgenius@gmail.com>
-Date: Thu, 27 Apr 2017 19:08:05 +0530
-Subject: [PATCH] Patched clock
+From e6b48df332e798b64194ad3a8b0b8ce8dd2d7b21 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 25 Mar 2018 21:18:06 +0530
+Subject: [PATCH] Patched
 
 ---
- System/Clock.hs  | 299 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- System/Clock.hsc | 288 -----------------------------------------------------
- 2 files changed, 299 insertions(+), 288 deletions(-)
+ System/Clock.hs  | 284 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ System/Clock.hsc | 288 -------------------------------------------------------
+ 2 files changed, 284 insertions(+), 288 deletions(-)
  create mode 100644 System/Clock.hs
  delete mode 100644 System/Clock.hsc
 
 diff --git a/System/Clock.hs b/System/Clock.hs
 new file mode 100644
-index 0000000..6a06ad7
+index 0000000..db28a5d
 --- /dev/null
 +++ b/System/Clock.hs
-@@ -0,0 +1,299 @@
+@@ -0,0 +1,284 @@
 +-- | High-resolution, realtime clock and timer functions for Posix
 +--   systems. This module is being developed according to IEEE Std
 +--   1003.1-2008: <http://www.opengroup.org/onlinepubs/9699919799/>,
@@ -46,21 +46,6 @@ index 0000000..6a06ad7
 +import Foreign.Marshal.Alloc
 +import GHC.Generics (Generic)
 +import Java
-+
-+#if defined(_WIN32)
-+#  include "hs_clock_win32.c"
-+#elif defined(__MACH__) && defined(__APPLE__)
-+#  include "hs_clock_darwin.c"
-+#else
-+#  include <time.h>
-+-- Due to missing define in FreeBSD 9.0 and 9.1
-+-- (http://lists.freebsd.org/pipermail/freebsd-stable/2013-September/075095.html).
-+#  ifndef CLOCK_PROCESS_CPUTIME_ID
-+#    define CLOCK_PROCESS_CPUTIME_ID 15
-+#  endif
-+#endif
-+
-+#let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
 +
 +-- | Clock types. A clock may be system-wide (that is, visible to all processes)
 +--   or per-process (measuring time that is meaningful only within a process).
@@ -610,5 +595,5 @@ index 297607b..0000000
 -timeSpecAsNanoSecs :: TimeSpec -> Integer
 -timeSpecAsNanoSecs   (TimeSpec s n) = toInteger s * s2ns + toInteger n
 -- 
-2.4.9 (Apple Git-60)
+2.7.4 (Apple Git-66)
 
