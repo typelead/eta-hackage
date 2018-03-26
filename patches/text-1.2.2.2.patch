@@ -1,19 +1,20 @@
-From 30d8c68d7cac1a31c361d8fd89c3f89fa1316d1b Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 14 Nov 2017 20:47:53 +0530
-Subject: [PATCH] Patched
+From 334854ab0ec7d3271792f31c59d42eaede04b7c0 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Mon, 26 Mar 2018 15:01:24 +0200
+Subject: [PATCH] Patched: make Error.hs unsafe
 
 ---
  Data/Text.hs                  |  41 +++++++-
  Data/Text/Array.hs            |   8 +-
  Data/Text/Encoding.hs         |   8 +-
+ Data/Text/Encoding/Error.hs   |   2 +
  Data/Text/Lazy.hs             |   5 +-
  Data/Text/Lazy/Builder/Int.hs |   2 +-
  Data/Text/Show.hs             |   3 +-
  java/Utils.java               | 178 +++++++++++++++++++++++++++++++++++
  java/eta-0.0.9/Utils.java     | 213 ++++++++++++++++++++++++++++++++++++++++++
  text.cabal                    |  13 ++-
- 9 files changed, 455 insertions(+), 16 deletions(-)
+ 10 files changed, 457 insertions(+), 16 deletions(-)
  create mode 100644 java/Utils.java
  create mode 100644 java/eta-0.0.9/Utils.java
 
@@ -132,6 +133,22 @@ index 1db9dd8..2a0f7fd 100644
 -foreign import ccall unsafe "_hs_text_encode_utf8" c_encode_utf8
 +foreign import java unsafe "@static eta.text.Utils.encode_utf8" c_encode_utf8
      :: Ptr (Ptr Word8) -> ByteArray# -> CSize -> CSize -> IO ()
+diff --git a/Data/Text/Encoding/Error.hs b/Data/Text/Encoding/Error.hs
+index 6227447..6d08704 100644
+--- a/Data/Text/Encoding/Error.hs
++++ b/Data/Text/Encoding/Error.hs
+@@ -1,9 +1,11 @@
+ {-# LANGUAGE CPP, DeriveDataTypeable #-}
++#ifndef TOOL_VERSION_eta
+ #if __GLASGOW_HASKELL__ >= 704
+ {-# LANGUAGE Safe #-}
+ #elif __GLASGOW_HASKELL__ >= 702
+ {-# LANGUAGE Trustworthy #-}
+ #endif
++#endif
+ -- |
+ -- Module      : Data.Text.Encoding.Error
+ -- Copyright   : (c) Bryan O'Sullivan 2009
 diff --git a/Data/Text/Lazy.hs b/Data/Text/Lazy.hs
 index 7094bcc..98f92a9 100644
 --- a/Data/Text/Lazy.hs
@@ -641,5 +658,5 @@ index 55ce8a6..0c8a40c 100644
  source-repository head
    type:     git
 -- 
-2.7.4 (Apple Git-66)
+2.16.2.windows.1
 
