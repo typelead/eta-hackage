@@ -179,6 +179,7 @@ These packages are supported by `etlas`.
 - [hgal-2.0.0.2](https://hackage.haskell.org/package/hgal-2.0.0.2)
 - [hostname-1.0](https://hackage.haskell.org/package/hostname-1.0)
 - [hourglass >= 0.2.10 && <= 0.2.11](https://hackage.haskell.org/package/hourglass)
+- [hslogger-1.2.10](https://hackage.haskell.org/package/hslogger-1.2.10)
 - [hspec-2.4.3](https://hackage.haskell.org/package/hspec-2.4.3)
 - [hspec-core >= 2.4.3 && <= 2.4.6](https://hackage.haskell.org/package/hspec-core-2.4.6)
 - [hspec-discover-2.4.3](https://hackage.haskell.org/package/hspec-discover-2.4.3)

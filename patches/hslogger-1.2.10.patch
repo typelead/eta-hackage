@@ -1,0 +1,103 @@
+From 5d134a6902205dde913f2e985db7a7d6ee153d25 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 28 Mar 2018 22:57:41 +0530
+Subject: [PATCH] Patched
+
+---
+ hslogger.cabal                   |  2 --
+ src/System/Log/Formatter.hs      | 12 ++++++------
+ src/System/Log/Handler/Syslog.hs | 22 +++++++++++-----------
+ 3 files changed, 17 insertions(+), 19 deletions(-)
+
+diff --git a/hslogger.cabal b/hslogger.cabal
+index c7b8aa0..21a9f7b 100644
+--- a/hslogger.cabal
++++ b/hslogger.cabal
+@@ -46,8 +46,6 @@ Library
+         System.Log.Logger
+     Extensions: CPP, ExistentialQuantification
+     Build-Depends: network, mtl
+-    if !os(windows)
+-        Build-Depends: unix
+     if flag(small_base)
+         build-depends: base >= 4 && < 5, containers, directory, process,
+                        time, old-locale
+diff --git a/src/System/Log/Formatter.hs b/src/System/Log/Formatter.hs
+index e00c874..4650c96 100644
+--- a/src/System/Log/Formatter.hs
++++ b/src/System/Log/Formatter.hs
+@@ -24,9 +24,9 @@ module System.Log.Formatter( LogFormatter
+ import Data.List
+ import Control.Applicative ((<$>))
+ import Control.Concurrent (myThreadId)
+-#ifndef mingw32_HOST_OS
+-import System.Posix.Process (getProcessID)
+-#endif
++-- #ifndef mingw32_HOST_OS
++-- import System.Posix.Process (getProcessID)
++-- #endif
+ 
+ #if MIN_VERSION_time(1,5,0)
+ import Data.Time.Format (defaultTimeLocale)
+@@ -90,9 +90,9 @@ varFormatter vars format h (prio,msg) loggername = do
+                                  ,("prio", return $ show prio)
+                                  ,("loggername", return loggername)
+                                  ,("tid", show <$> myThreadId)
+-#ifndef mingw32_HOST_OS
+-                                 ,("pid", show <$> getProcessID)
+-#endif
++-- #ifndef mingw32_HOST_OS
++--                                  ,("pid", show <$> getProcessID)
++-- #endif
+                                  ]
+                           ) 
+                   format
+diff --git a/src/System/Log/Handler/Syslog.hs b/src/System/Log/Handler/Syslog.hs
+index 7b0d5f9..078230b 100644
+--- a/src/System/Log/Handler/Syslog.hs
++++ b/src/System/Log/Handler/Syslog.hs
+@@ -33,9 +33,9 @@ module System.Log.Handler.Syslog(
+                                        -- * Handler Initialization
+                                        openlog,
+                                        -- * Advanced handler initialization
+-#ifndef mingw32_HOST_OS
+-                                       openlog_local,
+-#endif
++-- #ifndef mingw32_HOST_OS
++--                                        openlog_local,
++-- #endif
+                                        openlog_remote,
+                                        openlog_generic,
+                                        -- * Data Types
+@@ -51,9 +51,9 @@ import Data.Bits
+ import Network.Socket as S
+ import Network.BSD
+ import Data.List
+-#ifndef mingw32_HOST_OS
+-import System.Posix.Process(getProcessID)
+-#endif
++-- #ifndef mingw32_HOST_OS
++-- import System.Posix.Process(getProcessID)
++-- #endif
+ import System.IO
+ import Control.Monad (void, when)
+ 
+@@ -269,10 +269,10 @@ instance LogHandler SyslogHandler where
+                      else return ""
+         getPid :: IO String
+         getPid =
+-#ifndef mingw32_HOST_OS
+-          getProcessID >>= return . show
+-#else
+-          return "windows"
+-#endif
++-- #ifndef mingw32_HOST_OS
++--           getProcessID >>= return . show
++-- #else
++          return "no-pid"
++-- #endif
+ 
+     close sh = sClose (logsocket sh)
+-- 
+2.7.4 (Apple Git-66)
+
