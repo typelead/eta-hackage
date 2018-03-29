@@ -1,16 +1,16 @@
-From 5c7bf09355353d206d011773d88c1248ecefc81b Mon Sep 17 00:00:00 2001
+From 427828f8ec3fe233903573aa36ff0429b3cec725 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sun, 10 Dec 2017 07:05:23 +0530
+Date: Thu, 29 Mar 2018 14:19:57 +0530
 Subject: [PATCH] Patched
 
 ---
  Data/UnixTime/Conv.hs   | 16 +++++------
- Data/UnixTime/Sys.hs    | 32 ++++++++++++++++++++++
+ Data/UnixTime/Sys.hs    | 30 +++++++++++++++++++++
  Data/UnixTime/Sys.hsc   | 31 ---------------------
- Data/UnixTime/Types.hs  | 69 +++++++++++++++++++++++++++++++++++++++++++++++
+ Data/UnixTime/Types.hs  | 67 +++++++++++++++++++++++++++++++++++++++++++++
  Data/UnixTime/Types.hsc | 72 -------------------------------------------------
  unix-time.cabal         |  5 +---
- 6 files changed, 110 insertions(+), 115 deletions(-)
+ 6 files changed, 106 insertions(+), 115 deletions(-)
  create mode 100644 Data/UnixTime/Sys.hs
  delete mode 100644 Data/UnixTime/Sys.hsc
  create mode 100644 Data/UnixTime/Types.hs
@@ -48,10 +48,10 @@ index 76f2da6..3c263e5 100644
  
 diff --git a/Data/UnixTime/Sys.hs b/Data/UnixTime/Sys.hs
 new file mode 100644
-index 0000000..f8c94ea
+index 0000000..173bc2c
 --- /dev/null
 +++ b/Data/UnixTime/Sys.hs
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,30 @@
 +{-# LANGUAGE CPP, ForeignFunctionInterface #-}
 +
 +module Data.UnixTime.Sys (getUnixTime) where
@@ -65,8 +65,6 @@ index 0000000..f8c94ea
 +
 +-- from System.Time
 +
-+#include <time.h>
-+#include <sys/time.h>
 +
 +type CTimeVal = ()
 +type CTimeZone = ()
@@ -123,10 +121,10 @@ index 500efad..0000000
 -    return $ UnixTime sec usec
 diff --git a/Data/UnixTime/Types.hs b/Data/UnixTime/Types.hs
 new file mode 100644
-index 0000000..fb706b6
+index 0000000..ffc7d8d
 --- /dev/null
 +++ b/Data/UnixTime/Types.hs
-@@ -0,0 +1,69 @@
+@@ -0,0 +1,67 @@
 +{-# LANGUAGE CPP #-}
 +module Data.UnixTime.Types where
 +
@@ -139,8 +137,6 @@ index 0000000..fb706b6
 +#if __GLASGOW_HASKELL__ >= 704
 +import Data.Binary
 +#endif
-+
-+#include <sys/time.h>
 +
 +-- |
 +-- Data structure for Unix time.

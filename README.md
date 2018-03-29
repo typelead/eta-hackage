@@ -320,6 +320,7 @@ These packages are supported by `etlas`.
 - [silently-1.2.5](https://hackage.haskell.org/package/silently-1.2.5)
 - [singletons-2.0.1](https://hackage.haskell.org/package/singletons-2.0.1)
 - [socks-0.5.5](https://hackage.haskell.org/package/socks-0.5.5)
+- [sorted-list-0.2.0.0](https://hackage.haskell.org/package/sorted-list-0.2.0.0)
 - [split >= 0.2.3.1 && <= 0.2.3.2](https://hackage.haskell.org/package/split-0.2.3.2)
 - [stable-marriage-0.1.1.0](https://hackage.haskell.org/package/stable-marriage-0.1.1.0)
 - [statistics-0.14.0.2](https://hackage.haskell.org/package/statistics-0.14.0.2)
@@ -386,6 +387,7 @@ These packages are supported by `etlas`.
 - [xml-1.3.5](https://hackage.haskell.org/package/xml-1.3.5)
 - [xml-types-0.3.6](https://hackage.haskell.org/package/xml-types-0.3.6)
 - [xmlhtml >= 0.2.3.5 && <= 0.2.5.2](https://hackage.haskell.org/package/xmlhtml)
+- [yi-rope-0.10](https://hackage.haskell.org/package/yi-rope-0.10)
 - [zlib-0.6.1.2](https://hackage.haskell.org/package/zlib-0.6.1.2)
 
 ### Unsupported Packages
