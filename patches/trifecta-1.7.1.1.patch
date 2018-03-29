@@ -1,0 +1,262 @@
+From a61c0327762ac009e23b2a090aaed0f3f64783a3 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Tue, 20 Mar 2018 09:54:27 +0100
+Subject: [PATCH] Patched
+
+---
+ src/Text/Trifecta/Highlight.hs | 60 ++++++++++++++++++++++++++++++---
+ src/Text/Trifecta/Rendering.hs | 76 +++++++++++++++++++++++++++++++++++++++---
+ src/Text/Trifecta/Result.hs    | 38 +++++++++++++++++++--
+ trifecta.cabal                 |  2 +-
+ 4 files changed, 164 insertions(+), 12 deletions(-)
+
+diff --git a/src/Text/Trifecta/Highlight.hs b/src/Text/Trifecta/Highlight.hs
+index 3390b20..d435bf0 100644
+--- a/src/Text/Trifecta/Highlight.hs
++++ b/src/Text/Trifecta/Highlight.hs
+@@ -1,6 +1,6 @@
+ {-# LANGUAGE CPP #-}
+ {-# LANGUAGE OverloadedStrings #-}
+-{-# LANGUAGE TemplateHaskell #-}
++-- {-# LANGUAGE TemplateHaskell #-}
+ 
+ #ifndef MIN_VERSION_lens
+ #define MIN_VERSION_lens(x,y,z) 1
+@@ -69,8 +69,30 @@ data HighlightedRope = HighlightedRope
+   , _ropeContent    :: {-# UNPACK #-} !Rope
+   }
+ 
+-makeClassy ''HighlightedRope
+-
++-- makeClassy ''HighlightedRope
++
++class HasHighlightedRope t where
++  highlightedRope :: Lens' t HighlightedRope
++
++  ropeHighlights :: Lens' t (IM.IntervalMap Delta Highlight)
++  ropeHighlights = highlightedRope.ropeHighlights
++  {-# INLINE ropeHighlights #-}
++  
++  ropeContent :: Lens' t Rope
++  ropeContent = highlightedRope.ropeContent
++  {-# INLINE ropeContent #-}
++
++instance HasHighlightedRope HighlightedRope where
++  highlightedRope = id
++
++  ropeHighlights f (HighlightedRope h c) =
++    fmap (\y-> HighlightedRope y c) (f h)
++  {-# INLINE ropeHighlights #-}
++  
++  ropeContent f (HighlightedRope h c) =
++    fmap (\y-> HighlightedRope h y) (f c)
++  {-# INLINE ropeContent #-}
++  
+ instance HasDelta HighlightedRope where
+   delta = delta . _ropeContent
+ 
+@@ -131,7 +153,37 @@ data HighlightDoc = HighlightDoc
+   , _docContent :: HighlightedRope
+   }
+ 
+-makeClassy ''HighlightDoc
++-- makeClassy ''HighlightDoc
++
++class HasHighlightDoc t where
++  highlightDoc :: Lens' t HighlightDoc
++
++  docTitle :: Lens' t String
++  docTitle = highlightDoc.docTitle
++  {-# INLINE docTitle #-}
++  
++  docCss :: Lens' t String
++  docCss = highlightDoc.docCss
++  {-# INLINE docCss #-}
++  
++  docContent :: Lens' t HighlightedRope
++  docContent = highlightDoc.docContent
++  {-# INLINE docContent #-}
++
++instance HasHighlightDoc HighlightDoc where
++  highlightDoc = id
++
++  docTitle f (HighlightDoc t css ct) =
++    fmap (\y-> HighlightDoc y css ct) (f t)
++  {-# INLINE docTitle #-}
++ 
++  docCss f (HighlightDoc t css ct) =
++    fmap (\y-> HighlightDoc t y ct) (f css)
++  {-# INLINE docCss #-}
++  
++  docContent f (HighlightDoc t css ct) =
++    fmap (\y-> HighlightDoc t css y) (f ct)
++  {-# INLINE docContent #-}
+ 
+ -- | Generate an HTML document from a title and a 'HighlightedRope'.
+ doc :: String -> HighlightedRope -> HighlightDoc
+diff --git a/src/Text/Trifecta/Rendering.hs b/src/Text/Trifecta/Rendering.hs
+index d5b3b6c..51df7c3 100644
+--- a/src/Text/Trifecta/Rendering.hs
++++ b/src/Text/Trifecta/Rendering.hs
+@@ -2,7 +2,7 @@
+ {-# LANGUAGE TypeSynonymInstances #-}
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE FlexibleInstances #-}
+-{-# LANGUAGE TemplateHaskell #-}
++-- {-# LANGUAGE TemplateHaskell #-}
+ {-# LANGUAGE DeriveGeneric #-}
+ -----------------------------------------------------------------------------
+ -- |
+@@ -162,8 +162,54 @@ data Rendering = Rendering
+   , _renderingOverlays :: Delta -> Lines -> Lines
+   }
+ 
+-makeClassy ''Rendering
+-
++-- makeClassy ''Rendering
++  
++class HasRendering t where
++  rendering :: Lens' t Rendering
++
++  renderingDelta :: Lens' t Delta
++  renderingDelta = rendering.renderingDelta
++  {-# INLINE renderingDelta #-}
++
++  renderingLineLen :: Lens' t Int64
++  renderingLineLen = rendering.renderingLineLen
++  {-# INLINE renderingLineLen #-}
++
++  renderingLineBytes :: Lens' t Int64
++  renderingLineBytes = rendering.renderingLineBytes
++  {-# INLINE renderingLineBytes #-}
++
++  renderingLine :: Lens' t (Lines -> Lines)
++  renderingLine = rendering.renderingLine
++  {-# INLINE renderingLine #-}
++
++  renderingOverlays :: Lens' t (Delta -> Lines -> Lines)
++  renderingOverlays = rendering.renderingOverlays
++  {-# INLINE renderingOverlays #-}
++
++instance HasRendering Rendering where
++  rendering = id
++
++  renderingDelta f (Rendering d ll lb l o) =
++    fmap (\y-> Rendering y ll lb l o) (f d)
++  {-# INLINE renderingDelta #-}
++
++  renderingLineLen f (Rendering d ll lb l o) =
++    fmap (\y-> Rendering d y lb l o) (f ll)
++  {-# INLINE renderingLineLen #-}
++  
++  renderingLineBytes f (Rendering d ll lb l o) =
++    fmap (\y-> Rendering d ll y l o) (f lb)
++  {-# INLINE renderingLineBytes #-}
++  
++  renderingLine f (Rendering d ll lb l o) =
++    fmap (\y-> Rendering d ll lb y o) (f l)
++  {-# INLINE renderingLine #-}
++  
++  renderingOverlays f (Rendering d ll lb l o) =
++    fmap (\y-> Rendering d ll lb l y) (f o)
++  {-# INLINE renderingOverlays #-}
++  
+ instance Show Rendering where
+   showsPrec d (Rendering p ll lb _ _) = showParen (d > 10) $
+     showString "Rendering " . showsPrec 11 p . showChar ' ' . showsPrec 11 ll . showChar ' ' . showsPrec 11 lb . showString " ... ..."
+@@ -437,8 +483,28 @@ data Fixit = Fixit
+   , _fixitReplacement :: !ByteString
+   } deriving (Eq,Ord,Show,Data,Typeable,Generic)
+ 
+-makeClassy ''Fixit
+-
++-- makeClassy ''Fixit
++
++class HasFixit t where
++  fixit :: Lens' t Fixit
++  
++  fixitSpan :: Lens' t Span
++  fixitSpan = fixit.fixitSpan
++  {-# INLINE fixitSpan #-}
++    
++  fixitReplacement :: Lens' t ByteString
++  fixitReplacement = fixit.fixitReplacement
++  {-# INLINE fixitReplacement #-}
++
++instance HasFixit Fixit where
++  fixit = id
++
++  fixitSpan f (Fixit s p) = fmap (\y-> Fixit y p) (f s)
++  {-# INLINE fixitSpan #-}
++  
++  fixitReplacement f (Fixit s p) = fmap (\y-> Fixit s y) (f p)
++  {-# INLINE fixitReplacement #-}
++  
+ instance HasSpan Fixit where
+   span = fixitSpan
+ 
+diff --git a/src/Text/Trifecta/Result.hs b/src/Text/Trifecta/Result.hs
+index 9eb110e..ddee65a 100644
+--- a/src/Text/Trifecta/Result.hs
++++ b/src/Text/Trifecta/Result.hs
+@@ -61,8 +61,42 @@ data Err = Err
+   , _finalDeltas :: [Delta]
+   }
+ 
+-makeClassy ''Err
+-
++-- makeClassy ''Err
++
++class HasErr t where
++  err :: Lens' t Err
++
++  reason :: Lens' t (Maybe Doc)
++  reason = err.reason
++  {-# INLINE reason #-}
++  
++  footnotes :: Lens' t [Doc]
++  footnotes = err.footnotes
++  {-# INLINE footnotes #-}
++  
++  expected :: Lens' t (Set String)
++  expected = err.expected
++  {-# INLINE expected #-}
++  
++  finalDeltas :: Lens' t [Delta]
++  finalDeltas = err.finalDeltas
++  {-# INLINE finalDeltas #-}
++  
++instance HasErr Err where
++  err = id
++
++  reason f (Err r fn e fd) = fmap (\y -> Err y fn e fd) (f r)
++  {-# INLINE reason #-}
++
++  footnotes f (Err r fn e fd) = fmap (\y -> Err r y e fd) (f fn)
++  {-# INLINE footnotes #-}
++
++  expected f (Err r fn e fd) = fmap (\y -> Err r fn y fd) (f e)
++  {-# INLINE expected #-}
++
++  finalDeltas f (Err r fn e fd) = fmap (\y -> Err r fn e y) (f fd)
++  {-# INLINE finalDeltas #-}
++  
+ instance Semigroup Err where
+   Err md mds mes delta1 <> Err nd nds nes delta2
+     = Err (nd <|> md) (if isJust nd then nds else if isJust md then mds else nds ++ mds) (mes <> nes) (delta1 <> delta2)
+diff --git a/trifecta.cabal b/trifecta.cabal
+index 8dea585..ba9e041 100644
+--- a/trifecta.cabal
++++ b/trifecta.cabal
+@@ -54,7 +54,7 @@ library
+ 
+   build-depends:
+     ansi-wl-pprint       >= 0.6.6   && < 0.7,
+-    ansi-terminal        >= 0.6     && < 0.7,
++    ansi-terminal        >= 0.6.3.1 && < 0.7,
+     array                >= 0.3.0.2 && < 0.6,
+     base                 >= 4.4     && < 5,
+     blaze-builder        >= 0.3.0.1 && < 0.5,
+-- 
+2.16.2.windows.1
+

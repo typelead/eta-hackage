@@ -1,0 +1,37 @@
+From 131b781d27ddbca42acd83cafdedfb9d7cfc0595 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Tue, 20 Mar 2018 08:27:25 +0100
+Subject: [PATCH] Patched
+
+---
+ x509-system.cabal | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/x509-system.cabal b/x509-system.cabal
+index 95a21a1..3ee93e1 100644
+--- a/x509-system.cabal
++++ b/x509-system.cabal
+@@ -29,13 +29,13 @@ Library
+                      System.X509.Unix
+                      System.X509.MacOS
+   ghc-options:       -Wall
+-  if os(windows)
+-     cpp-options:     -DWINDOWS
+-     Build-Depends:   Win32, asn1-encoding
+-     extra-libraries: Crypt32
+-     Exposed-modules: System.X509.Win32
+-  if os(OSX)
+-     cpp-options: -DMACOSX
++--  if os(windows)
++--     cpp-options:     -DWINDOWS
++--     Build-Depends:   Win32, asn1-encoding
++--     extra-libraries: Crypt32
++--     Exposed-modules: System.X509.Win32
++--  if os(OSX)
++--     cpp-options: -DMACOSX
+ 
+ source-repository head
+   type:     git
+-- 
+2.16.2.windows.1
+

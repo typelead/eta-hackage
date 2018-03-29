@@ -1,0 +1,88 @@
+Name:                ansi-terminal
+Version:             0.6.3.1
+Cabal-Version:       >= 1.6
+Category:            User Interfaces
+Synopsis:            Simple ANSI terminal support, with Windows compatibility
+Description:         ANSI terminal support for Haskell: allows cursor movement, screen clearing, color output showing or hiding the cursor, and
+                     changing the title. Compatible with Windows and those Unixes with ANSI terminals, but only GHC is supported as a compiler.
+License:             BSD3
+License-File:        LICENSE
+Author:              Max Bolingbroke
+Maintainer:          Roman Cheplyaka <roma@ro-che.info>
+Homepage:            https://github.com/feuerbach/ansi-terminal
+Build-Type:          Simple
+
+Extra-Source-Files:     includes/Common-Include.hs
+                        includes/Exports-Include.hs
+                        CHANGELOG.md
+                        README.md
+
+Source-repository head
+  type:     git
+  location: git://github.com/feuerbach/ansi-terminal.git
+
+Flag Example
+        Description:    Build the example application
+        Default:        False
+
+Library
+        Exposed-Modules:        System.Console.ANSI
+                                System.Console.ANSI.Types
+                                System.Console.ANSI.Codes
+        
+        Include-Dirs:           includes
+        
+        Build-Depends:          base >= 4 && < 5
+        -- if os(windows)
+        --         Build-Depends:          base-compat >= 0.9.1
+        --                               , Win32 >= 2.0
+        --                               , process
+        --         Cpp-Options:            -DWINDOWS
+        --         Other-Modules:          System.Console.ANSI.Windows
+        --                                 System.Console.ANSI.Windows.Detect
+        --                                 System.Console.ANSI.Windows.Emulator
+        --                                 System.Console.ANSI.Windows.Emulator.Codes
+        --                                 System.Console.ANSI.Windows.Foreign
+        --                                 -- NB: used for fallback by the emulator
+        --                                 System.Console.ANSI.Unix
+        -- else
+        -- We assume any non-Windows platform is Unix
+        Cpp-Options:            -DUNIX
+        Other-Modules:          System.Console.ANSI.Unix
+        
+        Extensions:             CPP
+                                ForeignFunctionInterface
+        
+        Ghc-Options:                    -Wall
+
+Executable ansi-terminal-example
+        Main-Is:                System/Console/ANSI/Example.hs
+        
+        Include-Dirs:           includes
+
+        Other-Modules:          System.Console.ANSI
+                                System.Console.ANSI.Codes
+                                System.Console.ANSI.Types
+                                System.Console.ANSI.Unix
+
+        -- if os(windows)
+        --         Build-Depends:          base-compat >= 0.9.1
+        --                               , Win32 >= 2.0
+        --         Cpp-Options:            -DWINDOWS
+        --         Other-Modules:          System.Console.ANSI.Windows
+        --                                 System.Console.ANSI.Windows.Detect
+        --                                 System.Console.ANSI.Windows.Emulator
+        --                                 System.Console.ANSI.Windows.Emulator.Codes
+        --                                 System.Console.ANSI.Windows.Foreign
+        -- else
+                -- We assume any non-Windows platform is Unix
+        Cpp-Options:            -DUNIX
+
+        Build-Depends:          base >= 4 && < 5
+        Extensions:             CPP
+                                ForeignFunctionInterface
+
+        Ghc-Options:            -Wall
+
+        if !flag(example)
+                Buildable:              False

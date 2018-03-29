@@ -1,0 +1,39 @@
+From 059dd61168bf34977fd392aa33ca1891b3fe4da2 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Tue, 27 Mar 2018 12:01:32 +0200
+Subject: [PATCH] Patched
+
+---
+ formatting.cabal            | 2 +-
+ src/Data/Text/Format/Int.hs | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/formatting.cabal b/formatting.cabal
+index d118530..e85dda6 100644
+--- a/formatting.cabal
++++ b/formatting.cabal
+@@ -41,7 +41,7 @@ library
+     text >= 0.11.0.8,
+     transformers,
+     bytestring,
+-    integer-gmp >= 0.2,
++    integer >= 0.2,
+     semigroups
+ 
+   hs-source-dirs:    src
+diff --git a/src/Data/Text/Format/Int.hs b/src/Data/Text/Format/Int.hs
+index 61099b4..ad24482 100644
+--- a/src/Data/Text/Format/Int.hs
++++ b/src/Data/Text/Format/Int.hs
+@@ -31,7 +31,7 @@ import GHC.Types (Int(..))
+ # if __GLASGOW_HASKELL__ < 611
+ import GHC.Integer.Internals
+ # else
+-import GHC.Integer.GMP.Internals
++import GHC.Integer.BigInteger.Internals
+ # endif
+ #endif
+ 
+-- 
+2.16.2.windows.1
+
