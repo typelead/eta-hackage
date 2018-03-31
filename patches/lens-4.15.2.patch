@@ -1,13 +1,13 @@
-From 978abd8422a84e929496d7c6c1e58dd19211b842 Mon Sep 17 00:00:00 2001
+From 010220968b3b5c5a7a3bb16ad91b1415fba4cb4d Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Wed, 16 Aug 2017 19:21:50 -0400
-Subject: [PATCH] Patchd
+Date: Sat, 31 Mar 2018 20:00:46 +0530
+Subject: [PATCH] Patched
 
 ---
  lens.cabal                  |  16 +--
  src/Control/Lens/Empty.hs   |   4 +-
- src/Control/Lens/Wrapped.hs | 308 ++++++++++++++++++++++----------------------
- 3 files changed, 164 insertions(+), 164 deletions(-)
+ src/Control/Lens/Wrapped.hs | 310 ++++++++++++++++++++++----------------------
+ 3 files changed, 164 insertions(+), 166 deletions(-)
 
 diff --git a/lens.cabal b/lens.cabal
 index 5b444ae..4d20ffb 100644
@@ -73,10 +73,19 @@ index fdbff30..ba98ba3 100644
  #endif
  instance (Eq a, Num a) => AsEmpty (Product a)
 diff --git a/src/Control/Lens/Wrapped.hs b/src/Control/Lens/Wrapped.hs
-index 3a1d8e4..fa5587c 100644
+index 3a1d8e4..0472978 100644
 --- a/src/Control/Lens/Wrapped.hs
 +++ b/src/Control/Lens/Wrapped.hs
-@@ -914,155 +914,155 @@ failedAssertion (AssertionFailed x) = x
+@@ -82,8 +82,6 @@ module Control.Lens.Wrapped
+   , _GWrapped'
+   ) where
+ 
+-#include "HsBaseConfig.h"
+-
+ import qualified Control.Alternative.Free as Free
+ import qualified Control.Applicative as Applicative
+ import           Control.Applicative hiding (WrappedArrow(..))
+@@ -914,155 +912,155 @@ failedAssertion (AssertionFailed x) = x
  
  -- * Foreign.C.Types
  
@@ -381,7 +390,7 @@ index 3a1d8e4..fa5587c 100644
  
  -- * GHC.Generics
  
-@@ -1202,11 +1202,11 @@ instance Wrapped CRLim where
+@@ -1202,11 +1200,11 @@ instance Wrapped CRLim where
    {-# INLINE _Wrapped' #-}
  #endif
  
