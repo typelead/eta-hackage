@@ -1,12 +1,13 @@
-From c457f5087db627b48797df86f96fa08f5f806b80 Mon Sep 17 00:00:00 2001
+From 5e05a6db0dd1ea10095c5052c4ff9e455cd4e099 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Wed, 9 Aug 2017 18:04:48 -0400
+Date: Sat, 31 Mar 2018 10:34:37 +0530
 Subject: [PATCH] Patched
 
 ---
  generic-deriving.cabal        |  16 +++---
- src/Generics/Deriving/Enum.hs | 112 +++++++++++++++++++++---------------------
- 2 files changed, 64 insertions(+), 64 deletions(-)
+ src/Generics/Deriving/Enum.hs | 114 +++++++++++++++++++++---------------------
+ src/Generics/Deriving/Eq.hs   |   2 -
+ 3 files changed, 64 insertions(+), 68 deletions(-)
 
 diff --git a/generic-deriving.cabal b/generic-deriving.cabal
 index d1e4a8e..2caf16f 100644
@@ -47,10 +48,19 @@ index d1e4a8e..2caf16f 100644
    build-depends:        containers       >= 0.1 && < 0.6
                        , ghc-prim                   < 1
 diff --git a/src/Generics/Deriving/Enum.hs b/src/Generics/Deriving/Enum.hs
-index 2315ff7..2641ae5 100644
+index 2315ff7..ec44971 100644
 --- a/src/Generics/Deriving/Enum.hs
 +++ b/src/Generics/Deriving/Enum.hs
-@@ -240,22 +240,22 @@ instance GEnum CCc where
+@@ -14,8 +14,6 @@
+ {-# LANGUAGE PolyKinds #-}
+ #endif
+ 
+-#include "HsBaseConfig.h"
+-
+ module Generics.Deriving.Enum (
+ 
+   -- * Generic enum class
+@@ -240,22 +238,22 @@ instance GEnum CCc where
    genum = coerce (genum :: [HTYPE_CC_T])
  #endif
  
@@ -81,7 +91,7 @@ index 2315ff7..2641ae5 100644
  
  #if defined(HTYPE_GID_T)
  instance GEnum CGid where
-@@ -267,20 +267,20 @@ instance GEnum CIno where
+@@ -267,20 +265,20 @@ instance GEnum CIno where
    genum = coerce (genum :: [HTYPE_INO_T])
  #endif
  
@@ -112,7 +122,7 @@ index 2315ff7..2641ae5 100644
  
  #if defined(HTYPE_MODE_T)
  instance GEnum CMode where
-@@ -310,16 +310,16 @@ instance GEnum CPid where
+@@ -310,16 +308,16 @@ instance GEnum CPid where
    genum = coerce (genum :: [HTYPE_PID_T])
  #endif
  
@@ -133,7 +143,7 @@ index 2315ff7..2641ae5 100644
  
  #if defined(HTYPE_SPEED_T)
  instance GEnum CSpeed where
-@@ -327,18 +327,18 @@ instance GEnum CSpeed where
+@@ -327,18 +325,18 @@ instance GEnum CSpeed where
  #endif
  
  #if MIN_VERSION_base(4,4,0)
@@ -160,7 +170,7 @@ index 2315ff7..2641ae5 100644
  
  #if defined(HTYPE_SSIZE_T)
  instance GEnum CSsize where
-@@ -350,42 +350,42 @@ instance GEnum CTcflag where
+@@ -350,42 +348,42 @@ instance GEnum CTcflag where
    genum = coerce (genum :: [HTYPE_TCFLAG_T])
  #endif
  
@@ -223,7 +233,7 @@ index 2315ff7..2641ae5 100644
  
  instance GEnum Double where
    genum = genumNumUnbounded
-@@ -399,8 +399,8 @@ instance (GEnum a, GEnum b) => GEnum (Either a b) where
+@@ -399,8 +397,8 @@ instance (GEnum a, GEnum b) => GEnum (Either a b) where
  instance GEnum ExitCode where
    genum = genumDefault
  
@@ -234,7 +244,7 @@ index 2315ff7..2641ae5 100644
  
  instance GEnum a => GEnum (Monoid.First a) where
    genum = genumDefault
-@@ -872,10 +872,10 @@ instance GIx ExitCode where
+@@ -872,10 +870,10 @@ instance GIx ExitCode where
    index   = indexDefault
    inRange = inRangeDefault
  
@@ -249,6 +259,19 @@ index 2315ff7..2641ae5 100644
  
  instance (GEq a, GEnum a, GIx a) => GIx (Monoid.First a) where
    range   = rangeDefault
+diff --git a/src/Generics/Deriving/Eq.hs b/src/Generics/Deriving/Eq.hs
+index 500cb5e..66a25f8 100644
+--- a/src/Generics/Deriving/Eq.hs
++++ b/src/Generics/Deriving/Eq.hs
+@@ -16,8 +16,6 @@
+ {-# LANGUAGE PolyKinds #-}
+ #endif
+ 
+-#include "HsBaseConfig.h"
+-
+ module Generics.Deriving.Eq (
+   -- * Generic Eq class
+     GEq(..)
 -- 
 2.7.4 (Apple Git-66)
 
