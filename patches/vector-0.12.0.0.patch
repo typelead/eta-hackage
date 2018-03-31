@@ -1,12 +1,12 @@
-From aa991c0f57ec887efafc12088f41eef931761f37 Mon Sep 17 00:00:00 2001
+From aed44b0c3f59f1cc8000292d53beec1817bb0a67 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 13 Nov 2017 06:40:14 +0530
+Date: Sat, 31 Mar 2018 18:10:00 +0530
 Subject: [PATCH] Patched
 
 ---
  Data/Vector.hs | 2 +-
- vector.cabal   | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ vector.cabal   | 3 +++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/Data/Vector.hs b/Data/Vector.hs
 index 21b6196..51df664 100644
@@ -22,18 +22,19 @@ index 21b6196..51df664 100644
  
  import Control.DeepSeq ( NFData, rnf )
 diff --git a/vector.cabal b/vector.cabal
-index 8f0b57f..de181ba 100644
+index 8f0b57f..329f1b2 100644
 --- a/vector.cabal
 +++ b/vector.cabal
-@@ -156,7 +156,7 @@ Library
-   if !impl(ghc > 8.0)
-     Build-Depends: semigroups >= 0.18 && < 0.19
+@@ -158,6 +158,9 @@ Library
  
--  Ghc-Options: -O2 -Wall
-+  Ghc-Options: -O2 -Wall -optP--text
+   Ghc-Options: -O2 -Wall
  
++  if impl(eta < 0.7.1.3)
++    Ghc-Options: -optP--text
++
    if !flag(Wall)
      Ghc-Options: -fno-warn-orphans
+ 
 -- 
 2.7.4 (Apple Git-66)
 
