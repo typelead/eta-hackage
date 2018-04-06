@@ -1,20 +1,20 @@
-From eede2614cc85e299939cc93f54fe3e0bb2fb2b69 Mon Sep 17 00:00:00 2001
+From 7f0a477b0c5f6f14343ef483202d9037d7414d04 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Thu, 30 Nov 2017 22:17:52 +0530
+Date: Fri, 6 Apr 2018 12:41:18 +0530
 Subject: [PATCH] Patched
 
 ---
- System/Process.hs           |  75 ++++++--------
- System/Process/Common.hs    | 100 +++++++++++-------
+ System/Process.hs           |  68 +++++-------
+ System/Process/Common.hs    | 109 ++++++++++++--------
  System/Process/Internals.hs |  16 ---
  System/Process/Posix.hs     | 245 ++++++++++++++++++++++----------------------
  java/Utils.java             |  41 ++++++++
  process.cabal               |  21 +---
- 6 files changed, 260 insertions(+), 238 deletions(-)
+ 6 files changed, 256 insertions(+), 244 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/System/Process.hs b/System/Process.hs
-index a8e627a..9b16374 100644
+index a8e627a..33a78d7 100644
 --- a/System/Process.hs
 +++ b/System/Process.hs
 @@ -587,16 +587,15 @@ waitForProcess ph@(ProcessHandle _ delegating_ctlc _) = lockWaitpid $ do
@@ -36,7 +36,7 @@ index a8e627a..9b16374 100644
                  let e = if (code == 0)
                         then ExitSuccess
                         else (ExitFailure (fromIntegral code))
-@@ -604,15 +603,15 @@ waitForProcess ph@(ProcessHandle _ delegating_ctlc _) = lockWaitpid $ do
+@@ -604,15 +603,8 @@ waitForProcess ph@(ProcessHandle _ delegating_ctlc _) = lockWaitpid $ do
          when delegating_ctlc $
            endDelegateControlC e
          return e
@@ -46,20 +46,13 @@ index a8e627a..9b16374 100644
 -      where mkExitCode code | code == 0 = ExitSuccess
 -                            | otherwise = ExitFailure $ fromIntegral code
 -#else
-+-- #if defined(WINDOWS)
-+--     OpenExtHandle _ job iocp ->
-+--         maybe (ExitFailure (-1)) mkExitCode `fmap` waitForJobCompletion job iocp timeout_Infinite
-+--       where mkExitCode code | code == 0 = ExitSuccess
-+--                             | otherwise = ExitFailure $ fromIntegral code
-+-- #else
      OpenExtHandle _ _job _iocp ->
          return $ ExitFailure (-1)
 -#endif
-+-- #endif
    where
      -- If more than one thread calls `waitpid` at a time, `waitpid` will
      -- return the exit code to one of them and (-1) to the rest of them,
-@@ -639,20 +638,18 @@ getProcessExitCode ph@(ProcessHandle _ delegating_ctlc _) = tryLockWaitpid $ do
+@@ -639,20 +631,18 @@ getProcessExitCode ph@(ProcessHandle _ delegating_ctlc _) = tryLockWaitpid $ do
      case p_ of
        ClosedHandle e -> return (p_, (Just e, False))
        open -> do
@@ -92,7 +85,7 @@ index a8e627a..9b16374 100644
    case m_e of
      Just e | was_open && delegating_ctlc -> endDelegateControlC e
      _                                    -> return ()
-@@ -703,13 +700,9 @@ terminateProcess ph = do
+@@ -703,13 +693,9 @@ terminateProcess ph = do
    withProcessHandle ph $ \p_ ->
      case p_ of
        ClosedHandle  _ -> return ()
@@ -107,7 +100,7 @@ index a8e627a..9b16374 100644
          return ()
          -- does not close the handle, we might want to try terminating it
          -- again, or get its exit code.
-@@ -718,22 +711,14 @@ terminateProcess ph = do
+@@ -718,22 +704,14 @@ terminateProcess ph = do
  -- ----------------------------------------------------------------------------
  -- Interface to C bits
  
@@ -139,7 +132,7 @@ index a8e627a..9b16374 100644
  
  -- ----------------------------------------------------------------------------
 diff --git a/System/Process/Common.hs b/System/Process/Common.hs
-index b424764..a11c1bc 100644
+index b424764..38302bc 100644
 --- a/System/Process/Common.hs
 +++ b/System/Process/Common.hs
 @@ -1,5 +1,6 @@
@@ -159,7 +152,7 @@ index b424764..a11c1bc 100644
      , GroupID
      , UserID
      , modifyProcessHandle
-@@ -20,12 +24,8 @@ module System.Process.Common
+@@ -20,21 +24,13 @@ module System.Process.Common
      , mbPipe
      , pfdToHandle
  
@@ -173,7 +166,16 @@ index b424764..a11c1bc 100644
      ) where
  
  import Control.Concurrent
-@@ -46,26 +46,14 @@ import System.IO.Error
+ import Control.Exception
+ import Data.String
+-import Foreign.Ptr
+-import Foreign.Storable
+-
+-import System.Posix.Internals
+ import GHC.IO.Exception
+ import GHC.IO.Encoding
+ import qualified GHC.IO.FD as FD
+@@ -46,26 +42,14 @@ import System.IO.Error
  import Data.Typeable
  import GHC.IO.IOMode
  
@@ -201,9 +203,19 @@ index b424764..a11c1bc 100644
  
  data CreateProcess = CreateProcess{
    cmdspec      :: CmdSpec,                 -- ^ Executable & arguments, or shell command.  If 'cwd' is 'Nothing', relative paths are resolved with respect to the current working directory.  If 'cwd' is provided, it is implementation-dependent whether relative paths are resolved with respect to 'cwd' or the current working directory, so absolute paths should be used to ensure portability.
-@@ -202,39 +190,45 @@ withProcessHandle
+@@ -194,47 +178,54 @@ modifyProcessHandle
+         :: ProcessHandle
+         -> (ProcessHandle__ -> IO (ProcessHandle__, a))
          -> IO a
- withProcessHandle (ProcessHandle m _ _) io = withMVar m io
+-modifyProcessHandle (ProcessHandle m _ _) io = modifyMVar m io
++modifyProcessHandle (ProcessHandle m _ _) io' = modifyMVar m io'
+ 
+ withProcessHandle
+         :: ProcessHandle
+         -> (ProcessHandle__ -> IO a)
+         -> IO a
+-withProcessHandle (ProcessHandle m _ _) io = withMVar m io
++withProcessHandle (ProcessHandle m _ _) io' = withMVar m io'
  
 -fd_stdin, fd_stdout, fd_stderr :: FD
 +fd_stdin, fd_stdout, fd_stderr :: Int
@@ -256,6 +268,7 @@ index b424764..a11c1bc 100644
 +          | stdint == 0 = getInputChannel
 +          | stdint == 1 = getOutputChannel
 +          | stdint == 2 = getErrorChannel
++          | otherwise = error $ "Invalid channel: " ++ show stdint
 +mbPipe _ph _std      _pfd _mode = return Nothing
 +
 +pfdToHandle :: Channel -> IOMode -> IO Handle
@@ -266,7 +279,7 @@ index b424764..a11c1bc 100644
                         False {-non-blocking-}
    fD' <- FD.setNonBlockingMode fD True -- see #3316
  #if __GLASGOW_HASKELL__ >= 704
-@@ -243,3 +237,35 @@ pfdToHandle pfd mode = do
+@@ -243,3 +234,35 @@ pfdToHandle pfd mode = do
    let enc = localeEncoding
  #endif
    mkHandleFromFD fD' fd_type filepath mode False {-is_socket-} (Just enc)
