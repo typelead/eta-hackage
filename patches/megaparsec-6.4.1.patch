@@ -1,0 +1,63 @@
+From 92eebed070f59e118304e0e86fc78d841bba8bd4 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Tue, 10 Apr 2018 21:36:58 +0200
+Subject: [PATCH] Patched
+
+---
+ Text/Megaparsec.hs | 12 +++++++++++-
+ megaparsec.cabal   |  2 ++
+ 2 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/Text/Megaparsec.hs b/Text/Megaparsec.hs
+index 69e2d00..b606355 100644
+--- a/Text/Megaparsec.hs
++++ b/Text/Megaparsec.hs
+@@ -128,6 +128,9 @@ import Control.Monad.Reader.Class
+ import Control.Monad.State.Class hiding (state)
+ import Control.Monad.Trans
+ import Data.Data (Data)
++#ifdef HAS_TRAMPOLINE
++import qualified Data.Function as F
++#endif
+ import Data.List.NonEmpty (NonEmpty (..))
+ import Data.Maybe (fromJust)
+ import Data.Proxy
+@@ -160,6 +163,13 @@ import Control.Applicative
+ import Control.Monad.Trans.Identity
+ #endif
+ 
++trampoline :: a -> a
++#ifdef HAS_TRAMPOLINE
++trampoline = F.trampoline
++#else
++trampoline = id
++#endif
++
+ -- $reexports
+ --
+ -- Also note that you can import "Control.Monad.Combinators.NonEmpty" if you
+@@ -624,7 +634,7 @@ runParsecT :: Monad m
+   => ParsecT e s m a -- ^ Parser to run
+   -> State s       -- ^ Initial state
+   -> m (Reply e s a)
+-runParsecT p s = unParser p s cok cerr eok eerr
++runParsecT p s = trampoline $ unParser p s cok cerr eok eerr
+   where cok a s' _  = return $ Reply s' Consumed (OK a)
+         cerr err s' = return $ Reply s' Consumed (Error err)
+         eok a s' _  = return $ Reply s' Virgin   (OK a)
+diff --git a/megaparsec.cabal b/megaparsec.cabal
+index 7246c98..e556bab 100644
+--- a/megaparsec.cabal
++++ b/megaparsec.cabal
+@@ -60,6 +60,8 @@ library
+                     , Text.Megaparsec.Perm
+                     , Text.Megaparsec.Pos
+                     , Text.Megaparsec.Stream
++  if impl(eta >= 0.0.9.7)
++    cpp-options: -DHAS_TRAMPOLINE
+   if flag(dev)
+     ghc-options:      -O0 -Wall -Werror
+   else
+-- 
+2.16.2.windows.1
+
