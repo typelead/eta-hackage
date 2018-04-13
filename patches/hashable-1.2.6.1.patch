@@ -1,6 +1,6 @@
-From 44092d10ecec1304e2a6c157a094c9d5866d9076 Mon Sep 17 00:00:00 2001
+From 968ce4b8728f1b4a326fc44b919d7566b3327390 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Thu, 20 Jul 2017 15:08:19 -0400
+Date: Sat, 14 Apr 2018 00:14:37 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -13,7 +13,7 @@ Subject: [PATCH] Patched
  create mode 100644 java/eta-0.0.9/Utils.java
 
 diff --git a/Data/Hashable/Class.hs b/Data/Hashable/Class.hs
-index f848d7b..852513f 100644
+index f848d7b..908e02a 100644
 --- a/Data/Hashable/Class.hs
 +++ b/Data/Hashable/Class.hs
 @@ -631,8 +631,8 @@ instance Hashable TL.Text where
@@ -22,7 +22,7 @@ index f848d7b..852513f 100644
  
 -foreign import ccall unsafe "rts_getThreadId" getThreadId
 -    :: ThreadId# -> CInt
-+foreign import java unsafe "@static eta.runtime.stg.StgTSO.getThreadId"
++foreign import java unsafe "@static eta.runtime.stg.TSO.getThreadId"
 +  getThreadId :: ThreadId# -> CInt
  
  instance Hashable ThreadId where
