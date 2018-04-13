@@ -1,6 +1,6 @@
-From e34698811f6ef35c8b524469c1f722b726a37111 Mon Sep 17 00:00:00 2001
+From 5ce2bf6dda9a6aa9139a57d56657f748529a736d Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 5 Feb 2018 13:55:24 +0530
+Date: Sat, 14 Apr 2018 00:24:36 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -112,7 +112,7 @@ index bd3e73e..34f2ed4 100644
  
  -- | Returns 'True' when the contents of both files is the same.
 diff --git a/src/System/Info/Extra.hs b/src/System/Info/Extra.hs
-index 0097c09..a26419b 100644
+index 0097c09..edba30b 100644
 --- a/src/System/Info/Extra.hs
 +++ b/src/System/Info/Extra.hs
 @@ -18,17 +18,7 @@ import System.Info
@@ -125,7 +125,7 @@ index 0097c09..a26419b 100644
 -#else
 -isWindows = False
 -#endif
-+foreign import java unsafe "@static eta.extra.Utils.isWindows" isWindows :: Bool
++foreign import java unsafe "@static @field eta.extra.Utils.isWindows" isWindows :: Bool
  
  -- | Return 'True' on Mac OS X and 'False' otherwise.
 -isMac :: Bool
@@ -134,7 +134,7 @@ index 0097c09..a26419b 100644
 -#else
 -isMac = False
 -#endif
-+foreign import java unsafe "@static eta.extra.Utils.isMac" isMac :: Bool
++foreign import java unsafe "@static @field eta.extra.Utils.isMac" isMac :: Bool
 -- 
 2.7.4 (Apple Git-66)
 
