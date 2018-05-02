@@ -65,7 +65,7 @@ source-repository head
 
 flag integer-simple
   description: Use the simple integer library instead of GMP
-  default: False
+  default: True
 
 library
   build-depends:     base >= 4.2 && < 5, ghc-prim, deepseq

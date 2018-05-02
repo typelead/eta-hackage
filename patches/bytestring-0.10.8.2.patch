@@ -1,4 +1,4 @@
-From 63b70d042cb2afcda4defa526b5a44418271133c Mon Sep 17 00:00:00 2001
+From 53474aaf96e3d1cb4667498ad0b35e912c82cdd9 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
 Date: Wed, 2 May 2018 20:47:10 +0530
 Subject: [PATCH] Patched
@@ -9,10 +9,10 @@ Subject: [PATCH] Patched
  Data/ByteString/Internal.hs            |  42 +++--
  Data/ByteString/Short/Internal.hs      |   2 +-
  Data/ByteString/Unsafe.hs              |   8 +
- bytestring.cabal                       |  11 +-
+ bytestring.cabal                       |  13 +-
  java/Utils.java                        | 283 +++++++++++++++++++++++++++++++++
  java/eta-0.0.9/Utils.java              | 254 +++++++++++++++++++++++++++++
- 8 files changed, 632 insertions(+), 111 deletions(-)
+ 8 files changed, 633 insertions(+), 112 deletions(-)
  create mode 100644 java/Utils.java
  create mode 100644 java/eta-0.0.9/Utils.java
 
@@ -394,9 +394,18 @@ index 782a42d..60f405a 100644
  
  -- ---------------------------------------------------------------------
 diff --git a/bytestring.cabal b/bytestring.cabal
-index 53d4edf..e039c39 100644
+index 53d4edf..e056f11 100644
 --- a/bytestring.cabal
 +++ b/bytestring.cabal
+@@ -65,7 +65,7 @@ source-repository head
+ 
+ flag integer-simple
+   description: Use the simple integer library instead of GMP
+-  default: False
++  default: True
+ 
+ library
+   build-depends:     base >= 4.2 && < 5, ghc-prim, deepseq
 @@ -126,17 +126,16 @@ library
                      -fdicts-cheap
                      -fspec-constr-count=6
