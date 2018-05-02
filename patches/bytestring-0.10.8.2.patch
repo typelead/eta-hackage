@@ -1,6 +1,6 @@
-From 4a4d564c512be254dcfb70f769f71581f149442e Mon Sep 17 00:00:00 2001
+From 63b70d042cb2afcda4defa526b5a44418271133c Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Wed, 26 Jul 2017 21:26:04 -0400
+Date: Wed, 2 May 2018 20:47:10 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -9,10 +9,10 @@ Subject: [PATCH] Patched
  Data/ByteString/Internal.hs            |  42 +++--
  Data/ByteString/Short/Internal.hs      |   2 +-
  Data/ByteString/Unsafe.hs              |   8 +
- bytestring.cabal                       |   9 +-
+ bytestring.cabal                       |  11 +-
  java/Utils.java                        | 283 +++++++++++++++++++++++++++++++++
  java/eta-0.0.9/Utils.java              | 254 +++++++++++++++++++++++++++++
- 8 files changed, 631 insertions(+), 110 deletions(-)
+ 8 files changed, 632 insertions(+), 111 deletions(-)
  create mode 100644 java/Utils.java
  create mode 100644 java/eta-0.0.9/Utils.java
 
@@ -394,10 +394,10 @@ index 782a42d..60f405a 100644
  
  -- ---------------------------------------------------------------------
 diff --git a/bytestring.cabal b/bytestring.cabal
-index 53d4edf..490f785 100644
+index 53d4edf..e039c39 100644
 --- a/bytestring.cabal
 +++ b/bytestring.cabal
-@@ -126,11 +126,10 @@ library
+@@ -126,17 +126,16 @@ library
                      -fdicts-cheap
                      -fspec-constr-count=6
  
@@ -413,6 +413,13 @@ index 53d4edf..490f785 100644
  
     -- flags for the decimal integer serialization code
    if impl(ghc >= 6.11)
+     if !flag(integer-simple)
+       cpp-options: -DINTEGER_GMP
+-      build-depends: integer-gmp >= 0.2
++      build-depends: integer >= 0.2
+ 
+   if impl(ghc >= 6.9) && impl(ghc < 6.11)
+     cpp-options: -DINTEGER_GMP
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
 index 0000000..69a327a
