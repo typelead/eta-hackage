@@ -1,0 +1,63 @@
+From 726f48d860e416ec254612cf74d66abff382f3fa Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Thu, 10 May 2018 09:07:50 +0200
+Subject: [PATCH] Patched
+
+---
+ Data/Aeson/Types/Internal.hs | 26 +++++++++++++-------------
+ aeson.cabal                  |  2 +-
+ 2 files changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/Data/Aeson/Types/Internal.hs b/Data/Aeson/Types/Internal.hs
+index 0543f7a..f6d0002 100644
+--- a/Data/Aeson/Types/Internal.hs
++++ b/Data/Aeson/Types/Internal.hs
+@@ -404,19 +404,19 @@ instance Hashable Value where
+     hashWithSalt = hashValue
+ 
+ -- @since 0.11.0.0
+-instance TH.Lift Value where
+-    lift Null = [| Null |]
+-    lift (Bool b) = [| Bool b |]
+-    lift (Number n) = [| Number (S.scientific c e) |]
+-      where
+-        c = S.coefficient n
+-        e = S.base10Exponent n
+-    lift (String t) = [| String (pack s) |]
+-      where s = unpack t
+-    lift (Array a) = [| Array (V.fromList a') |]
+-      where a' = V.toList a
+-    lift (Object o) = [| Object (H.fromList . map (first pack) $ o') |]
+-      where o' = map (first unpack) . H.toList $ o
++-- instance TH.Lift Value where
++--     lift Null = [| Null |]
++--     lift (Bool b) = [| Bool b |]
++--     lift (Number n) = [| Number (S.scientific c e) |]
++--       where
++--         c = S.coefficient n
++--         e = S.base10Exponent n
++--     lift (String t) = [| String (pack s) |]
++--       where s = unpack t
++--     lift (Array a) = [| Array (V.fromList a') |]
++--       where a' = V.toList a
++--     lift (Object o) = [| Object (H.fromList . map (first pack) $ o') |]
++--       where o' = map (first unpack) . H.toList $ o
+ 
+ -- | The empty array.
+ emptyArray :: Value
+diff --git a/aeson.cabal b/aeson.cabal
+index a3b2948..d62e23d 100644
+--- a/aeson.cabal
++++ b/aeson.cabal
+@@ -74,7 +74,7 @@ library
+     Data.Aeson.Internal.Time
+     Data.Aeson.Parser
+     Data.Aeson.Types
+-    Data.Aeson.TH
++    -- Data.Aeson.TH
+ 
+   other-modules:
+     Data.Aeson.Encode.Builder
+-- 
+2.16.2.windows.1
+
