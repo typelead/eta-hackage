@@ -1,0 +1,57 @@
+From 36b14b18b4f4a7176bccca43cca1af75331e48db Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Fri, 25 May 2018 07:52:43 +0200
+Subject: [PATCH] Patched
+
+---
+ ansi-terminal.cabal | 34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/ansi-terminal.cabal b/ansi-terminal.cabal
+index ab4231a..8fa1aca 100644
+--- a/ansi-terminal.cabal
++++ b/ansi-terminal.cabal
+@@ -38,23 +38,23 @@ Library
+ 
+         Build-Depends:          base >= 4.2.0.0 && < 5
+                               , colour
+-        if os(windows)
+-                Build-Depends:          containers >= 0.5.0.0
+-                                      , mintty
+-                                      , Win32 >= 2.0
+-                Cpp-Options:            -DWINDOWS
+-                Other-Modules:          System.Console.ANSI.Windows
+-                                        System.Console.ANSI.Windows.Detect
+-                                        System.Console.ANSI.Windows.Emulator
+-                                        System.Console.ANSI.Windows.Emulator.Codes
+-                                        System.Console.ANSI.Windows.Foreign
+-                                        -- NB: used for fallback by the emulator
+-                                        System.Console.ANSI.Unix
+-                                        System.Win32.Compat
+-        else
+-                -- We assume any non-Windows platform is Unix
+-                Cpp-Options:            -DUNIX
+-                Other-Modules:          System.Console.ANSI.Unix
++        -- if os(windows)
++        --         Build-Depends:          containers >= 0.5.0.0
++        --                               , mintty
++        --                               , Win32 >= 2.0
++        --         Cpp-Options:            -DWINDOWS
++        --         Other-Modules:          System.Console.ANSI.Windows
++        --                                 System.Console.ANSI.Windows.Detect
++        --                                 System.Console.ANSI.Windows.Emulator
++        --                                 System.Console.ANSI.Windows.Emulator.Codes
++        --                                 System.Console.ANSI.Windows.Foreign
++        --                                 -- NB: used for fallback by the emulator
++        --                                 System.Console.ANSI.Unix
++        --                                 System.Win32.Compat
++        -- else
++        --         -- We assume any non-Windows platform is Unix
++        Cpp-Options:            -DUNIX
++        Other-Modules:          System.Console.ANSI.Unix
+ 
+         Extensions:             CPP
+                                 ForeignFunctionInterface
+-- 
+2.16.2.windows.1
+
