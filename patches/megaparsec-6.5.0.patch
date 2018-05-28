@@ -1,0 +1,57 @@
+From 0330aa4d1899a376d42cf286b66940cfc96c06a0 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Fri, 25 May 2018 10:08:24 +0200
+Subject: [PATCH] Patched
+
+---
+ Text/Megaparsec/Internal.hs | 13 ++++++++++++-
+ megaparsec.cabal            |  2 ++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/Text/Megaparsec/Internal.hs b/Text/Megaparsec/Internal.hs
+index 8c338af..c167439 100644
+--- a/Text/Megaparsec/Internal.hs
++++ b/Text/Megaparsec/Internal.hs
+@@ -68,6 +68,17 @@ import qualified Control.Monad.Fail  as Fail
+ import qualified Data.List.NonEmpty  as NE
+ import qualified Data.Set            as E
+ 
++#ifdef HAS_TRAMPOLINE
++import qualified Data.Function as F
++#endif
++
++trampoline :: a -> a
++#ifdef HAS_TRAMPOLINE
++trampoline = F.trampoline
++#else
++trampoline = id
++#endif
++
+ ----------------------------------------------------------------------------
+ -- Data types
+ 
+@@ -614,7 +625,7 @@ runParsecT :: Monad m
+   => ParsecT e s m a -- ^ Parser to run
+   -> State s       -- ^ Initial state
+   -> m (Reply e s a)
+-runParsecT p s = unParser p s cok cerr eok eerr
++runParsecT p s = trampoline $ unParser p s cok cerr eok eerr
+   where
+     cok a s' _  = return $ Reply s' Consumed (OK a)
+     cerr err s' = return $ Reply s' Consumed (Error err)
+diff --git a/megaparsec.cabal b/megaparsec.cabal
+index ccdf286..793356a 100644
+--- a/megaparsec.cabal
++++ b/megaparsec.cabal
+@@ -63,6 +63,8 @@ library
+                     , Text.Megaparsec.Stream
+   other-modules:      Text.Megaparsec.Class
+                     , Text.Megaparsec.State
++  if impl(eta >= 0.0.9.7)
++    cpp-options:      -DHAS_TRAMPOLINE
+   if flag(dev)
+     ghc-options:      -O0 -Wall -Werror
+   else
+-- 
+2.16.2.windows.1
+
