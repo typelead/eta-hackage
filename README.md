@@ -208,7 +208,7 @@ These packages are supported by `etlas`.
 - [keys-3.11](https://hackage.haskell.org/package/keys-3.11)
 - [lazy-io-0.1.0](https://hackage.haskell.org/package/lazy-io-0.1.0)
 - [labeled-tree-1.0.0.0](https://hackage.haskell.org/package/labeled-tree-1.0.0.0)
-- [lens >= 4.15.1 && <= 4.15.4](https://hackage.haskell.org/package/lens)
+- [lens >= 4.15.1 && <= 4.16.1](https://hackage.haskell.org/package/lens)
 - [lens-aeson-1.0.2](https://hackage.haskell.org/package/lens-aeson-1.0.2)
 - [lens-family-1.2.1](https://hackage.haskell.org/package/lens-family-1.2.1)
 - [lens-family-core-1.2.1](https://hackage.haskell.org/package/lens-family-core-1.2.1)
