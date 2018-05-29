@@ -338,7 +338,7 @@ These packages are supported by `etlas`.
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
 - [tagsoup-0.14](https://hackage.haskell.org/package/tagsoup-0.14)
 - [tasty >= 0.11.2.1 && <= 0.11.2.5](https://hackage.haskell.org/package/tasty-0.11.2.5)
-- [template-haskell-2.11.0.0](https://hackage.haskell.org/package/template-haskell-2.11.0.0)
+- [template-haskell-2.11.1.0](https://hackage.haskell.org/package/template-haskell-2.11.1.0)
 - [temporary-1.2.1.1](http://hackage.haskell.org/package/temporary-1.2.1.1)
 - [terminal-size-0.3.2.1](https://hackage.haskell.org/package/terminal-size-0.3.2.1)
 - [testpack-2.1.3.0](https://hackage.haskell.org/package/testpack-2.1.3.0)

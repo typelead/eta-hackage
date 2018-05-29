@@ -1,0 +1,239 @@
+From b18e65cf3c37d21a24f64d2d7220b11e32eeab92 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 29 May 2018 12:04:27 +0530
+Subject: [PATCH] Patched
+
+---
+ Language/Haskell/TH.hs                    |  6 ++++++
+ Language/Haskell/TH/LanguageExtensions.hs |  4 ++++
+ Language/Haskell/TH/Lib.hs                | 12 +++++++++++-
+ Language/Haskell/TH/Lib/Map.hs            |  8 ++++++++
+ Language/Haskell/TH/Ppr.hs                | 12 +++++++++++-
+ Language/Haskell/TH/PprLib.hs             |  5 +++++
+ Language/Haskell/TH/Quote.hs              |  6 +++++-
+ Language/Haskell/TH/Syntax.hs             | 12 ++++++++++++
+ template-haskell.cabal                    | 19 +++++++++++++------
+ 9 files changed, 75 insertions(+), 9 deletions(-)
+
+diff --git a/Language/Haskell/TH.hs b/Language/Haskell/TH.hs
+index 3bca8ea..a777a89 100644
+--- a/Language/Haskell/TH.hs
++++ b/Language/Haskell/TH.hs
+@@ -165,6 +165,12 @@ module Language.Haskell.TH(
+ 
+    ) where
+ 
++#ifdef ETA_META
++import Language.Eta.Meta.Syntax as Syntax
++import Language.Eta.Meta.Lib
++import Language.Eta.Meta.Ppr
++#else
+ import Language.Haskell.TH.Syntax as Syntax
+ import Language.Haskell.TH.Lib
+ import Language.Haskell.TH.Ppr
++#endif
+diff --git a/Language/Haskell/TH/LanguageExtensions.hs b/Language/Haskell/TH/LanguageExtensions.hs
+index 2043e89..df8ca23 100644
+--- a/Language/Haskell/TH/LanguageExtensions.hs
++++ b/Language/Haskell/TH/LanguageExtensions.hs
+@@ -19,4 +19,8 @@ module Language.Haskell.TH.LanguageExtensions
+ -- This module exists primarily to avoid inserting a massive list of language
+ -- extensions into the already quite large Haddocks for Language.Haskell.TH
+ 
++#ifdef ETA_META
++import Language.Eta.Meta.LanguageExtensions
++#else
+ import GHC.LanguageExtensions.Type (Extension(..))
++#endif
+diff --git a/Language/Haskell/TH/Lib.hs b/Language/Haskell/TH/Lib.hs
+index 6fc606b..8ef8b2a 100644
+--- a/Language/Haskell/TH/Lib.hs
++++ b/Language/Haskell/TH/Lib.hs
+@@ -4,7 +4,15 @@
+ 
+ {-# LANGUAGE CPP #-}
+ 
+-module Language.Haskell.TH.Lib where
++module Language.Haskell.TH.Lib
++#ifdef ETA_META
++  (module Language.Eta.Meta.Lib)
++where
++
++import Language.Eta.Meta.Lib
++#else
++  where
++
+     -- All of the exports from this module should
+     -- be "public" functions.  The main module TH
+     -- re-exports them all.
+@@ -832,3 +840,5 @@ thisModule :: Q Module
+ thisModule = do
+   loc <- location
+   return $ Module (mkPkgName $ loc_package loc) (mkModName $ loc_module loc)
++
++#endif
+diff --git a/Language/Haskell/TH/Lib/Map.hs b/Language/Haskell/TH/Lib/Map.hs
+index ac24151..fdc8dad 100644
+--- a/Language/Haskell/TH/Lib/Map.hs
++++ b/Language/Haskell/TH/Lib/Map.hs
+@@ -13,6 +13,12 @@ module Language.Haskell.TH.Lib.Map
+     ( Map
+     , empty
+     , insert
++#ifdef ETA_META
++    , Language.Eta.Meta.Lib.Map.lookup
++    ) where
++
++import Language.Eta.Meta.Lib.Map
++#else
+     , Language.Haskell.TH.Lib.Map.lookup
+     ) where
+ 
+@@ -106,3 +112,5 @@ balanceR k x l r = case l of
+ delta,ratio :: Int
+ delta = 3
+ ratio = 2
++
++#endif
+diff --git a/Language/Haskell/TH/Ppr.hs b/Language/Haskell/TH/Ppr.hs
+index a57eeff..c83afa8 100644
+--- a/Language/Haskell/TH/Ppr.hs
++++ b/Language/Haskell/TH/Ppr.hs
+@@ -1,7 +1,15 @@
+ -- | contains a prettyprinter for the
+ -- Template Haskell datatypes
+ 
+-module Language.Haskell.TH.Ppr where
++module Language.Haskell.TH.Ppr
++#ifdef ETA_META
++  (module Language.Eta.Meta.Ppr)
++where
++
++import Language.Eta.Meta.Ppr
++#else
++  where
++
+     -- All of the exports from this module should
+     -- be "public" functions.  The main module TH
+     -- re-exports them all.
+@@ -761,3 +769,5 @@ commaSepWith pprFun = sep . punctuate comma . map pprFun
+ -- followed by space.
+ semiSep :: Ppr a => [a] -> Doc
+ semiSep = sep . punctuate semi . map ppr
++
++#endif
+diff --git a/Language/Haskell/TH/PprLib.hs b/Language/Haskell/TH/PprLib.hs
+index acef327..56144a2 100644
+--- a/Language/Haskell/TH/PprLib.hs
++++ b/Language/Haskell/TH/PprLib.hs
+@@ -34,6 +34,9 @@ module Language.Haskell.TH.PprLib (
+     to_HPJ_Doc, pprName, pprName'
+   ) where
+ 
++#ifdef ETA_META
++import Language.Eta.Meta.PprLib
++#else
+ 
+ import Language.Haskell.TH.Syntax
+     (Name(..), showName', NameFlavour(..), NameIs(..))
+@@ -227,3 +230,5 @@ punctuate p (d:ds) = go d ds
+                    where
+                      go d' [] = [d']
+                      go d' (e:es) = (d' <> p) : go e es
++
++#endif
+diff --git a/Language/Haskell/TH/Quote.hs b/Language/Haskell/TH/Quote.hs
+index 91e3739..4e5bbb3 100644
+--- a/Language/Haskell/TH/Quote.hs
++++ b/Language/Haskell/TH/Quote.hs
+@@ -20,7 +20,9 @@ module Language.Haskell.TH.Quote(
+         dataToQa, dataToExpQ, dataToPatQ
+     ) where
+ 
+-import Language.Haskell.TH.Syntax
++#ifdef ETA_META
++import Language.Eta.Meta.Quote
++#else
+ 
+ -- | The 'QuasiQuoter' type, a value @q@ of this type can be used
+ -- in the syntax @[q| ... string to parse ...|]@.  In fact, for
+@@ -54,3 +56,5 @@ quoteFile (QuasiQuoter { quoteExp = qe, quotePat = qp, quoteType = qt, quoteDec
+    get old_quoter file_name = do { file_cts <- runIO (readFile file_name) 
+                                  ; addDependentFile file_name
+                                  ; old_quoter file_cts }
++
++#endif
+diff --git a/Language/Haskell/TH/Syntax.hs b/Language/Haskell/TH/Syntax.hs
+index ec6e1ca..65bc62b 100644
+--- a/Language/Haskell/TH/Syntax.hs
++++ b/Language/Haskell/TH/Syntax.hs
+@@ -27,6 +27,16 @@
+ -----------------------------------------------------------------------------
+ 
+ module Language.Haskell.TH.Syntax
++#ifdef ETA_META
++    ( module Language.Eta.Meta.Syntax
++      -- * Language extensions
++    , module Language.Eta.Meta.LanguageExtensions
++    ) where
++
++import Language.Eta.Meta.Syntax
++import Language.Eta.Meta.LanguageExtensions
++
++#else
+     ( module Language.Haskell.TH.Syntax
+       -- * Language extensions
+     , module Language.Haskell.TH.LanguageExtensions
+@@ -1836,3 +1846,5 @@ cmpEq _  = False
+ thenCmp :: Ordering -> Ordering -> Ordering
+ thenCmp EQ o2 = o2
+ thenCmp o1 _  = o1
++
++#endif
+diff --git a/template-haskell.cabal b/template-haskell.cabal
+index e413e3d..dfa3eb8 100644
+--- a/template-haskell.cabal
++++ b/template-haskell.cabal
+@@ -25,9 +25,9 @@ source-repository head
+ 
+ Library
+     default-language: Haskell2010
++    default-extensions: CPP
+     other-extensions:
+         BangPatterns
+-        CPP
+         DefaultSignatures
+         DeriveDataTypeable
+         DeriveGeneric
+@@ -48,16 +48,23 @@ Library
+     other-modules:
+         Language.Haskell.TH.Lib.Map
+ 
+-    build-depends:
+-        base        >= 4.7 && < 4.10,
+-        ghc-boot-th == 8.0.*,
+-        pretty      == 1.1.*
++    if impl(eta >= 0.8)
++      cpp-options: -DETA_META
++      build-depends:
++          base        >= 4.7 && < 4.10,
++          eta-meta
++    else
++      build-depends:
++          base        >= 4.7 && < 4.10,
++          ghc-boot-th == 8.0.*,
++          pretty      == 1.1.*
++
+ 
+     -- We need to set the unit ID to template-haskell (without a
+     -- version number) as it's magic.
+     ghc-options: -Wall
+ 
+-    if impl( ghc >= 7.11 )
++    if impl( ghc >= 7.11 ) || impl(eta)
+         ghc-options:  -this-unit-id template-haskell
+     else
+         if impl( ghc >= 7.9 )
+-- 
+2.7.4 (Apple Git-66)
+
