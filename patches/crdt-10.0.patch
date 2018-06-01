@@ -1,0 +1,25 @@
+From b9e8142b3a8d78332644376611e2978941251794 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 1 Jun 2018 11:16:01 +0530
+Subject: [PATCH] Patched
+
+---
+ crdt.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/crdt.cabal b/crdt.cabal
+index 972c339..6951b5b 100644
+--- a/crdt.cabal
++++ b/crdt.cabal
+@@ -29,7 +29,7 @@ library
+                   , Diff
+                   , hashable
+                   , mtl
+-                  , network-info
++                  -- , network-info
+                   , safe
+                   , stm
+                   , time
+-- 
+2.7.4 (Apple Git-66)
+

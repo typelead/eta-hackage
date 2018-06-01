@@ -117,7 +117,7 @@ These packages are supported by `etlas`.
 - [control-monad-omega-0.3.1](https://hackage.haskell.org/package/control-monad-omega-0.3.1)
 - [convertible-1.1.1.0](https://hackage.haskell.org/package/convertible-1.1.1.0)
 - [crackNum-1.9](https://hackage.haskell.org/package/crackNum-1.9)
-- [crdt-9.3](https://hackage.haskell.org/package/crdt-9.3)
+- [crdt >= 9.3 && <= 10.0](https://hackage.haskell.org/package/crdt)
 - [crypto-pubkey-types-0.4.3](https://hackage.haskell.org/package/crypto-pubkey-types-0.4.3)
 - [cryptonite-0.24](https://hackage.haskell.org/package/cryptonite-0.24)
 - [data-binary-ieee754-0.4.4](https://hackage.haskell.org/package/data-binary-ieee754-0.4.4)

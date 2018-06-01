@@ -1,0 +1,68 @@
+name: crdt
+version: 10.0
+          -- ^ ComVer
+category: Distributed Systems
+copyright:
+    2017 Yuriy Syrovetskiy, Nikolay Loginov;
+    2018 Yuriy Syrovetskiy
+maintainer: Yuriy Syrovetskiy <cblp@cblp.su>
+license: BSD3
+license-file: LICENSE
+synopsis: Conflict-free replicated data types
+description:
+    Definitions of CmRDT and CvRDT. Implementations for some classic CRDTs.
+homepage: https://github.com/cblp/crdt#readme
+bug-reports: https://github.com/cblp/crdt/issues
+cabal-version: >= 1.10
+build-type: Simple
+
+source-repository head
+    type: git
+    location: https://github.com/cblp/crdt.git
+
+library
+    hs-source-dirs: lib
+    build-depends:  base >= 4.8 && < 4.11
+                  , binary
+                  , bytestring
+                  , containers
+                  , Diff
+                  , hashable
+                  , mtl
+                  -- , network-info
+                  , safe
+                  , stm
+                  , time
+                  , vector
+    exposed-modules:  CRDT.Cv
+                      CRDT.Cv.GCounter
+                      CRDT.Cv.GSet
+                      CRDT.Cv.LwwElementSet
+                      CRDT.Cv.Max
+                      CRDT.Cv.ORSet
+                      CRDT.Cv.PNCounter
+                      CRDT.Cv.RGA
+                      CRDT.Cv.TwoPSet
+                      CRDT.LamportClock
+                      CRDT.LamportClock.Simulation
+                      CRDT.LWW
+                      Data.Empty
+                      Data.MultiMap
+                      Data.Semilattice
+    if impl(ghc >= 8)
+        exposed-modules:  CRDT.Cm
+                          CRDT.Cm.Counter
+                          CRDT.Cm.GSet
+                          CRDT.Cm.ORSet
+                          CRDT.Cm.RGA
+                          CRDT.Cm.TwoPSet
+    other-modules: MacAddress
+    default-language: Haskell2010
+
+    if impl(ghc >= 8)
+        default-extensions: StrictData
+    else
+        build-depends:  fail
+                      , semigroups
+                      , transformers
+        other-modules:  Compat
