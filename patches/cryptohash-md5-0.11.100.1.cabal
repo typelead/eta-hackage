@@ -47,6 +47,7 @@ library
   hs-source-dirs:    src
   exposed-modules:   Crypto.Hash.MD5
   ghc-options:       -Wall -fno-cse -O2
+  java-sources:      java/Utils.java
   cc-options:        -Wall -O3
   c-sources:         cbits/md5.c
   include-dirs:      cbits
@@ -58,7 +59,6 @@ test-suite test-md5
   hs-source-dirs:    src-tests
   main-is:           test-md5.hs
   ghc-options:       -Wall -threaded
-  java-sources:      java/Utils.java
   build-depends:     cryptohash-md5
                    , base
                    , bytestring

@@ -1,36 +1,40 @@
-From 17b5d34165850c20b350b05c99820e0ee24b8832 Mon Sep 17 00:00:00 2001
+From 8710da1b62fd4f91566a2e20f11faa4d456cbfd5 Mon Sep 17 00:00:00 2001
 From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
 Date: Mon, 4 Jun 2018 18:48:27 +0530
 Subject: [PATCH] Patched
 
 ---
  cryptohash-md5.cabal   |   1 +
- java/Utils.java        |  32 +++++++++++++++
+ java/Utils.java        |  51 ++++++++++++++++++++++++
  src/Crypto/Hash/MD5.hs | 105 ++++++++++++++++++++-----------------------------
- 3 files changed, 75 insertions(+), 63 deletions(-)
+ 3 files changed, 94 insertions(+), 63 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/cryptohash-md5.cabal b/cryptohash-md5.cabal
-index 9e8eed6..6fd1e7d 100644
+index 9e8eed6..543931b 100644
 --- a/cryptohash-md5.cabal
 +++ b/cryptohash-md5.cabal
-@@ -58,6 +58,7 @@ test-suite test-md5
-   hs-source-dirs:    src-tests
-   main-is:           test-md5.hs
-   ghc-options:       -Wall -threaded
+@@ -47,6 +47,7 @@ library
+   hs-source-dirs:    src
+   exposed-modules:   Crypto.Hash.MD5
+   ghc-options:       -Wall -fno-cse -O2
 +  java-sources:      java/Utils.java
-   build-depends:     cryptohash-md5
-                    , base
-                    , bytestring
+   cc-options:        -Wall -O3
+   c-sources:         cbits/md5.c
+   include-dirs:      cbits
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..cf15f9f
+index 0000000..000d9a2
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,51 @@
 +package eta.cryptohashmd5;
 +
++import java.nio.ByteBuffer;
 +import java.security.MessageDigest;
++import java.security.NoSuchAlgorithmException;
++
++import eta.runtime.io.MemoryManager;
 +
 +public class Utils {
 +    private static byte[] getBuffer(long ptr, int size) {
@@ -41,23 +45,38 @@ index 0000000..cf15f9f
 +    }
 +
 +    public static void md5_update(MessageDigest digest, long ptr, int size) {
-+        digest.update(getBuffer(ptr, size), 0, size);
++        digest.update(getBuffer(ptr, size));
 +    }
 +
 +    public static void md5_finalize(MessageDigest digest, long ptr) {
-+        int digestSize = digest.getDigestSize();
-+        ByteBuffer buf = MemoryManager.getBoundedBuffer(ptr);
-+        byte[] bytes = new byte[digestSize];
-+        digest.doFinal(bytes, 0);
-+        buf.put(bytes);
++        MemoryManager.getBoundedBuffer(ptr).put(digest.digest());
 +    }
 +
-+    public static MessageDigest md5_init()  {
++    public static MessageDigest md5_init() throws NoSuchAlgorithmException {
 +      return MessageDigest.getInstance("MD5");
 +    }
 +
-+    public static MessageDigest md5_copy(MessageDigest digest) {
-+      return digest.clone();
++    private static class CloneHolder {
++      public static boolean cloneable;
++      static {
++        try {
++            MessageDigest digest = MessageDigest.getInstance("MD5");
++            digest.clone();
++            cloneable = true;
++        } catch (CloneNotSupportedException ce) {
++            cloneable = false;
++        } catch (NoSuchAlgorithmException ne) {
++            cloneable = false;
++        }
++      }
++    }
++
++    public static MessageDigest md5_copy(MessageDigest digest) throws CloneNotSupportedException {
++      if (CloneHolder.cloneable) {
++        return (MessageDigest) digest.clone();
++      } else {
++        return digest;
++      }
 +    }
 +}
 diff --git a/src/Crypto/Hash/MD5.hs b/src/Crypto/Hash/MD5.hs
