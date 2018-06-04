@@ -120,6 +120,7 @@ These packages are supported by `etlas`.
 - [crdt >= 9.3 && <= 10.0](https://hackage.haskell.org/package/crdt)
 - [crypto-pubkey-types-0.4.3](https://hackage.haskell.org/package/crypto-pubkey-types-0.4.3)
 - [cryptonite-0.24](https://hackage.haskell.org/package/cryptonite-0.24)
+- [cryptohash-md5-0.11.100.1](http://hackage.haskell.org/package/cryptohash-md5)
 - [data-binary-ieee754-0.4.4](https://hackage.haskell.org/package/data-binary-ieee754-0.4.4)
 - [data-default-0.7.1.1](https://hackage.haskell.org/package/data-default-0.7.1.1)
 - [data-default-class-0.1.2.0](https://hackage.haskell.org/package/data-default-class-0.1.2.0)
@@ -491,7 +492,7 @@ If you have already forked this repository, then skip to step 3.
    ```
 
    Windows users can use the following command to patch:
-   
+
    ```
    git format-patch HEAD~ --stdout --ignore-cr-at-eol > somepackage-0.1.2.3.patch
    ```
