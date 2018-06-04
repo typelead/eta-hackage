@@ -1,6 +1,6 @@
-From 477fa8965a7832dd1daf3b642c28af2e0ea34923 Mon Sep 17 00:00:00 2001
+From fb370529066211fbba59c6f5ba6239604f414958 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sun, 25 Mar 2018 15:49:26 +0530
+Date: Mon, 4 Jun 2018 10:57:34 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -14,7 +14,7 @@ Subject: [PATCH] Patched
  create mode 100644 java/Utils.java
 
 diff --git a/System/Directory.hs b/System/Directory.hs
-index 0f32863..3298e29 100644
+index 0f32863..375e33f 100644
 --- a/System/Directory.hs
 +++ b/System/Directory.hs
 @@ -1,4 +1,4 @@
@@ -297,10 +297,10 @@ index 0f32863..3298e29 100644
 +  else return NotDirectory
 +  where p = toPath path
 +
-+foreign import java unsafe "isDirectory"
++foreign import java unsafe "@interface isDirectory"
 +  isDirectory' :: BasicFileAttributes -> IO Bool
 +
-+foreign import java unsafe "isSymbolicLink"
++foreign import java unsafe "@interface isSymbolicLink"
 +  isSymbolicLink' :: BasicFileAttributes -> IO Bool
  
  {- | @'removeDirectory' dir@ removes an existing directory /dir/.  The
