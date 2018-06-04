@@ -479,11 +479,19 @@ If you have already forked this repository, then skip to step 3.
 6. Once the build succeeds, make a commit.
 
    ```
-   git add . && git commit -m "Patched"
+   rm -rf dist/ && git add . && git commit -m "Patched"
    ```
 
 7. Create a patch.
 
+   Mac and Linux users can use the following command to patch:
+
+   ```
+   git format-patch HEAD~ --stdout > somepackage-0.1.2.3.patch
+   ```
+
+   Windows users can use the following command to patch:
+   
    ```
    git format-patch HEAD~ --stdout --ignore-cr-at-eol > somepackage-0.1.2.3.patch
    ```
