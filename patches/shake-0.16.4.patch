@@ -1,12 +1,13 @@
-From 7ec38afb25c1937bbf8d1d04db30d26d32bc905f Mon Sep 17 00:00:00 2001
+From eb31e91929b9a00b43cb6817587f959f0388f519 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
 Date: Fri, 6 Apr 2018 12:11:29 +0530
 Subject: [PATCH] Patched
 
 ---
- shake.cabal             | 12 +-----------
- src/General/FileLock.hs | 33 +++++++++++++++++----------------
- 2 files changed, 18 insertions(+), 27 deletions(-)
+ shake.cabal                               | 12 +----------
+ src/Development/Shake/Internal/Profile.hs | 18 ++++++++---------
+ src/General/FileLock.hs                   | 33 ++++++++++++++++---------------
+ 3 files changed, 27 insertions(+), 36 deletions(-)
 
 diff --git a/shake.cabal b/shake.cabal
 index f97578a..777d38b 100644
@@ -45,6 +46,35 @@ index f97578a..777d38b 100644
  
      if impl(ghc < 8.0)
          build-depends: semigroups >= 0.18
+diff --git a/src/Development/Shake/Internal/Profile.hs b/src/Development/Shake/Internal/Profile.hs
+index 8945ec2..2b8fd1a 100644
+--- a/src/Development/Shake/Internal/Profile.hs
++++ b/src/Development/Shake/Internal/Profile.hs
+@@ -23,15 +23,15 @@ prfTime ProfileTrace{..} = prfStop - prfStart
+ 
+ -- | Generates an report given some build system profiling data.
+ writeProfile :: FilePath -> [ProfileEntry] -> IO ()
+-writeProfile out xs
+-    | takeExtension out == ".js" = writeFile out $ "var shake = \n" ++ generateJSON xs
+-    | takeExtension out == ".json" = writeFile out $ generateJSON xs
+-    | takeExtension out == ".trace" = writeFile out $ generateTrace xs
+-    | out == "-" = putStr $ unlines $ generateSummary xs
+-    -- NOTE: On my laptop writing 1.5Mb of profile report takes 0.6s.
+-    --       This is fundamentals of my laptop, not a Haskell profiling issue.
+-    --       Verified with similar "type foo > bar" commands taking similar time.
+-    | otherwise = LBS.writeFile out =<< generateHTML xs
++writeProfile _out _xs = return ()
++    -- | takeExtension out == ".js" = writeFile out $ "var shake = \n" ++ generateJSON xs
++    -- | takeExtension out == ".json" = writeFile out $ generateJSON xs
++    -- | takeExtension out == ".trace" = writeFile out $ generateTrace xs
++    -- | out == "-" = putStr $ unlines $ generateSummary xs
++    -- -- NOTE: On my laptop writing 1.5Mb of profile report takes 0.6s.
++    -- --       This is fundamentals of my laptop, not a Haskell profiling issue.
++    -- --       Verified with similar "type foo > bar" commands taking similar time.
++    -- | otherwise = LBS.writeFile out =<< generateHTML xs
+ 
+ 
+ generateSummary :: [ProfileEntry] -> [String]
 diff --git a/src/General/FileLock.hs b/src/General/FileLock.hs
 index 407a505..3965be9 100644
 --- a/src/General/FileLock.hs
