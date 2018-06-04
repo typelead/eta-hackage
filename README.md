@@ -233,6 +233,7 @@ These packages are supported by `etlas`.
 - [microlens-mtl >= 0.1.10.0 && <= 0.1.11.0](http://hackage.haskell.org/package/microlens-mtl)
 - [microstache-1.0.1.1](http://hackage.haskell.org/package/microstache-1.0.1.1)
 - [mime-types-0.1.0.7](http://hackage.haskell.org/package/mime-types-0.1.0.7)
+- [MissingH-1.4.0.1](https://hackage.haskell.org/package/MissingH)
 - [mmorph >= 1.0.6 && <= 1.1.0](https://hackage.haskell.org/package/mmorph)
 - [monad-coroutine-0.9.0.3](https://hackage.haskell.org/package/monad-coroutine-0.9.0.3)
 - [monad-par-0.3.4.8](https://hackage.haskell.org/package/monad-par-0.3.4.8)

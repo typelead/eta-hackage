@@ -1,0 +1,132 @@
+From 42f4245511a8becab94585dde1c0934693be1c18 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 4 Jun 2018 16:50:19 +0530
+Subject: [PATCH] Patched
+
+---
+ MissingH.cabal | 67 +++++++++++++++++++++++++++++++++-------------------------
+ 1 file changed, 38 insertions(+), 29 deletions(-)
+
+diff --git a/MissingH.cabal b/MissingH.cabal
+index ae872cd..3a9be61 100644
+--- a/MissingH.cabal
++++ b/MissingH.cabal
+@@ -42,23 +42,28 @@ Cabal-Version: >=1.8
+ Library
+  Hs-Source-Dirs: src
+  Exposed-Modules:
+-  Data.String.Utils, System.IO.Utils, System.IO.Binary, Data.List.Utils,
+-  System.Daemon,
++  Data.String.Utils, System.IO.Utils,
++  -- System.IO.Binary,
++  Data.List.Utils,
++  -- System.Daemon,
+   Text.ParserCombinators.Parsec.Utils,
+   Network.Email.Mailbox,
+   Control.Concurrent.Thread.Utils,
+-  Network.Email.Sendmail,
++  -- Network.Email.Sendmail,
+     Data.CSV,
+-  System.Cmd.Utils,
++  -- System.Cmd.Utils,
+   Data.BinPacking,
+-  Data.Progress.Tracker,
+-  Data.Progress.Meter,
++  -- Data.Progress.Tracker,
++  -- Data.Progress.Meter,
+   Data.Quantity,
+-  Data.Map.Utils, System.Path, System.Path.NameManip,
+-    System.Path.WildMatch, System.Path.Glob,
+-  System.Time.Utils,
+-  Network.Utils,
+-  Network.SocketServer,
++  Data.Map.Utils,
++  -- System.Path,
++  -- System.Path.NameManip,
++    System.Path.WildMatch,
++    -- System.Path.Glob,
++  -- System.Time.Utils,
++  -- Network.Utils,
++  -- Network.SocketServer,
+   Data.Either.Utils,
+   Data.Maybe.Utils,
+   Data.Tuple.Utils,
+@@ -67,15 +72,19 @@ Library
+    Data.Hash.MD5, Data.Hash.MD5.Zord64_HARD,
+   Data.Compression.Inflate,
+   System.FileArchive.GZip,
+-  System.IO.HVFS,
+-    System.IO.HVFS.Combinators,
+-    System.IO.HVFS.InstanceHelpers,
+-    System.IO.HVFS.Utils,
+-  System.IO.HVIO, System.IO.StatCompat, System.IO.WindowsCompat,
+-    System.IO.PlafCompat, System.Posix.Consts,
+-  System.Debian, System.Debian.ControlParser,
+-  Data.MIME.Types,
+-  System.Console.GetOpt.Utils
++  -- System.IO.HVFS,
++    -- System.IO.HVFS.Combinators,
++    -- System.IO.HVFS.InstanceHelpers,
++    -- System.IO.HVFS.Utils,
++  -- System.IO.HVIO,
++  -- System.IO.StatCompat,
++  -- System.IO.WindowsCompat,
++    -- System.IO.PlafCompat,
++    System.Posix.Consts,
++  System.Debian,
++  System.Debian.ControlParser
++  -- Data.MIME.Types,
++  -- System.Console.GetOpt.Utils
+ 
+  Extensions: ExistentialQuantification, OverlappingInstances,
+    UndecidableInstances, CPP, Rank2Types,
+@@ -88,8 +97,8 @@ Library
+                hslogger,
+                base >= 4.5, base < 5, directory, random, process, old-time,
+                            containers, old-locale, array, time
+- If ! os(windows)
+-   Build-Depends: unix
++ -- If ! os(windows)
++ --   Build-Depends: unix
+ 
+ test-suite runtests
+   type:           exitcode-stdio-1.0
+@@ -101,8 +110,8 @@ test-suite runtests
+                hslogger,
+                base >= 4.5, base < 5, directory, random, process, old-time,
+                          containers, old-locale, array, time
+-  If ! os(windows)
+-   Build-Depends: unix
++  -- If ! os(windows)
++  --  Build-Depends: unix
+   Build-Depends: testpack, QuickCheck, HUnit
+ 
+   Main-Is: runtests.hs
+@@ -111,19 +120,19 @@ test-suite runtests
+     CRC32GZIPtest,
+     Eithertest,
+     GZiptest,
+-    Globtest,
+-    HVFStest,
++    -- Globtest,
++    -- HVFStest,
+     HVIOtest,
+     IOtest,
+     Listtest,
+     MIMETypestest,
+     Maptest,
+-    Pathtest,
++    -- Pathtest,
+     ProgressTrackertest,
+     Str.CSVtest,
+     Strtest,
+-    Tests,
+-    Timetest,
++    -- Tests,
++    -- Timetest,
+     WildMatchtest
+   Extensions: ExistentialQuantification, OverlappingInstances,
+     UndecidableInstances, CPP, Rank2Types,
+-- 
+2.14.3 (Apple Git-98)
+
