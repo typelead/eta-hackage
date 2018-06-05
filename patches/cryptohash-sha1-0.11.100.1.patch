@@ -1,0 +1,270 @@
+From d63c8256dc65ade72fe66a9ec0e5815bba9f04f0 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 5 Jun 2018 08:17:56 +0530
+Subject: [PATCH] Patched
+
+---
+ cryptohash-sha1.cabal   |   1 +
+ java/Utils.java         |  51 +++++++++++++++++++++++
+ src/Crypto/Hash/SHA1.hs | 107 ++++++++++++++++++++----------------------------
+ 3 files changed, 97 insertions(+), 62 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/cryptohash-sha1.cabal b/cryptohash-sha1.cabal
+index 1f19b5b..451f626 100644
+--- a/cryptohash-sha1.cabal
++++ b/cryptohash-sha1.cabal
+@@ -47,6 +47,7 @@ library
+   hs-source-dirs:    src
+   exposed-modules:   Crypto.Hash.SHA1
+   ghc-options:       -Wall -fno-cse -O2
++  java-sources:      java/Utils.java
+   cc-options:        -Wall -O3
+   c-sources:         cbits/sha1.c
+   include-dirs:      cbits
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..5ea94f6
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,51 @@
++package eta.cryptohashsha1;
++
++import java.nio.ByteBuffer;
++import java.security.MessageDigest;
++import java.security.NoSuchAlgorithmException;
++
++import eta.runtime.io.MemoryManager;
++
++public class Utils {
++    private static byte[] getBuffer(long ptr, int size) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(ptr);
++        byte[] bytes = new byte[size];
++        buf.get(bytes);
++        return bytes;
++    }
++
++    public static void sha1_update(MessageDigest digest, long ptr, int size) {
++        digest.update(getBuffer(ptr, size));
++    }
++
++    public static void sha1_finalize(MessageDigest digest, long ptr) {
++        MemoryManager.getBoundedBuffer(ptr).put(digest.digest());
++    }
++
++    public static MessageDigest sha1_init() throws NoSuchAlgorithmException {
++      return MessageDigest.getInstance("SHA1");
++    }
++
++    private static class CloneHolder {
++      public static boolean cloneable;
++      static {
++        try {
++            MessageDigest digest = MessageDigest.getInstance("SHA1");
++            digest.clone();
++            cloneable = true;
++        } catch (CloneNotSupportedException ce) {
++            cloneable = false;
++        } catch (NoSuchAlgorithmException ne) {
++            cloneable = false;
++        }
++      }
++    }
++
++    public static MessageDigest sha1_copy(MessageDigest digest) throws CloneNotSupportedException {
++      if (CloneHolder.cloneable) {
++        return (MessageDigest) digest.clone();
++      } else {
++        return digest;
++      }
++    }
++}
+diff --git a/src/Crypto/Hash/SHA1.hs b/src/Crypto/Hash/SHA1.hs
+index d832578..97c03fd 100644
+--- a/src/Crypto/Hash/SHA1.hs
++++ b/src/Crypto/Hash/SHA1.hs
+@@ -74,16 +74,15 @@ module Crypto.Hash.SHA1
+     , hmaclazy -- :: ByteString -> L.ByteString -> ByteString
+     ) where
+ 
++import Java
+ import Prelude hiding (init)
+ import Foreign.C.Types
+ import Foreign.Ptr
+-import Foreign.ForeignPtr (withForeignPtr)
+-import Foreign.Marshal.Alloc
+ import qualified Data.ByteString.Lazy as L
+ import qualified Data.ByteString as B
+ import Data.ByteString (ByteString)
+ import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
+-import Data.ByteString.Internal (create, toForeignPtr, memcpy)
++import Data.ByteString.Internal (create)
+ import Data.Bits (xor)
+ import Data.Word
+ import System.IO.Unsafe (unsafeDupablePerformIO)
+@@ -110,119 +109,103 @@ unsafeDoIO = unsafeDupablePerformIO
+ --  * a 5-element 'Word32' array holding the current work-in-progress digest-value.
+ --
+ -- Consequently, a SHA-1 digest as produced by 'hash', 'hashlazy', or 'finalize' is 20 bytes long.
+-newtype Ctx = Ctx ByteString
++newtype Ctx = Ctx MessageDigest
+ 
+ -- keep this synchronised with cbits/sha1.h
+ {-# INLINE digestSize #-}
+ digestSize :: Int
+ digestSize = 20
+ 
+-{-# INLINE sizeCtx #-}
+-sizeCtx :: Int
+-sizeCtx = 92
+-
+ {-# RULES "digestSize" B.length (finalize init) = digestSize #-}
+ {-# RULES "hash" forall b. finalize (update init b) = hash b #-}
+ {-# RULES "hash.list1" forall b. finalize (updates init [b]) = hash b #-}
+ {-# RULES "hashmany" forall b. finalize (foldl update init b) = hashlazy (L.fromChunks b) #-}
+ {-# RULES "hashlazy" forall b. finalize (foldl update init $ L.toChunks b) = hashlazy b #-}
+ 
+-{-# INLINE withByteStringPtr #-}
+-withByteStringPtr :: ByteString -> (Ptr Word8 -> IO a) -> IO a
+-withByteStringPtr b f =
+-    withForeignPtr fptr $ \ptr -> f (ptr `plusPtr` off)
+-    where (fptr, off, _) = toForeignPtr b
+-
+-copyCtx :: Ptr Ctx -> Ptr Ctx -> IO ()
+-copyCtx dst src = memcpy (castPtr dst) (castPtr src) (fromIntegral sizeCtx)
+-
+-withCtxCopy :: Ctx -> (Ptr Ctx -> IO ()) -> IO Ctx
+-withCtxCopy (Ctx ctxB) f = Ctx `fmap` createCtx
++withCtxCopy :: Ctx -> (MessageDigest -> IO ()) -> IO Ctx
++withCtxCopy (Ctx ctx) f = Ctx `fmap` createCtx
+   where
+-    createCtx = create sizeCtx $ \dstPtr ->
+-                withByteStringPtr ctxB $ \srcPtr -> do
+-                    copyCtx (castPtr dstPtr) (castPtr srcPtr)
+-                    f (castPtr dstPtr)
++    createCtx = do ctx' <- c_md_copy ctx
++                   f ctx'
++                   return ctx'
+ 
+-withCtxThrow :: Ctx -> (Ptr Ctx -> IO a) -> IO a
+-withCtxThrow (Ctx ctxB) f =
+-    allocaBytes sizeCtx $ \dstPtr ->
+-    withByteStringPtr ctxB $ \srcPtr -> do
+-        copyCtx (castPtr dstPtr) (castPtr srcPtr)
+-        f (castPtr dstPtr)
++foreign import java unsafe "@static eta.cryptohashmd5.Utils.md5_copy"
++   c_md_copy :: MessageDigest -> IO MessageDigest
+ 
+-withCtxNew :: (Ptr Ctx -> IO ()) -> IO Ctx
+-withCtxNew f = Ctx `fmap` create sizeCtx (f . castPtr)
++withCtxThrow :: Ctx -> (MessageDigest -> IO a) -> IO a
++withCtxThrow (Ctx ctx) f = do
++ ctx' <- c_md_copy ctx
++ f ctx'
+ 
+-withCtxNewThrow :: (Ptr Ctx -> IO a) -> IO a
+-withCtxNewThrow f = allocaBytes sizeCtx (f . castPtr)
++withCtxNewThrow :: (MessageDigest -> IO a) -> IO a
++withCtxNewThrow f = do
++ ctx <- c_sha1_init
++ f ctx
+ 
+-foreign import ccall unsafe "sha1.h hs_cryptohash_sha1_init"
+-    c_sha1_init :: Ptr Ctx -> IO ()
++data MessageDigest = MessageDigest @java.security.MessageDigest
++ deriving Class
+ 
+-foreign import ccall unsafe "sha1.h hs_cryptohash_sha1_update"
+-    c_sha1_update_unsafe :: Ptr Ctx -> Ptr Word8 -> CSize -> IO ()
++foreign import java unsafe "@static eta.cryptohashsha1.Utils.sha1_init"
++    c_sha1_init :: IO MessageDigest
+ 
+-foreign import ccall safe "sha1.h hs_cryptohash_sha1_update"
+-    c_sha1_update_safe :: Ptr Ctx -> Ptr Word8 -> CSize -> IO ()
++foreign import java unsafe "@static eta.cryptohashsha1.Utils.sha1_update"
++    c_sha1_update_unsafe :: MessageDigest -> Ptr Word8 -> CSize -> IO ()
++
++foreign import java safe "@static eta.cryptohashsha1.Utils.sha1_update"
++    c_sha1_update_safe :: MessageDigest -> Ptr Word8 -> CSize -> IO ()
+ 
+ -- 'safe' call overhead neglible for 8KiB and more
+-c_sha1_update :: Ptr Ctx -> Ptr Word8 -> CSize -> IO ()
++c_sha1_update :: MessageDigest -> Ptr Word8 -> CSize -> IO ()
+ c_sha1_update pctx pbuf sz
+   | sz < 8192 = c_sha1_update_unsafe pctx pbuf sz
+   | otherwise  = c_sha1_update_safe   pctx pbuf sz
+ 
+-foreign import ccall unsafe "sha1.h hs_cryptohash_sha1_finalize"
+-    c_sha1_finalize :: Ptr Ctx -> Ptr Word8 -> IO ()
++foreign import java unsafe "@static eta.cryptohashsha1.Utils.sha1_finalize"
++    c_sha1_finalize :: MessageDigest -> Ptr Word8 -> IO ()
+ 
+-updateInternalIO :: Ptr Ctx -> ByteString -> IO ()
++updateInternalIO :: MessageDigest -> ByteString -> IO ()
+ updateInternalIO ptr d =
+     unsafeUseAsCStringLen d (\(cs, len) -> c_sha1_update ptr (castPtr cs) (fromIntegral len))
+ 
+-finalizeInternalIO :: Ptr Ctx -> IO ByteString
++finalizeInternalIO :: MessageDigest -> IO ByteString
+ finalizeInternalIO ptr = create digestSize (c_sha1_finalize ptr)
+ 
+ {-# NOINLINE init #-}
+ -- | create a new hash context
+ init :: Ctx
+-init = unsafeDoIO $ withCtxNew $ c_sha1_init
+-
+-validCtx :: Ctx -> Bool
+-validCtx (Ctx b) = B.length b == sizeCtx
++init = unsafeDoIO $ fmap Ctx c_sha1_init
+ 
+ {-# NOINLINE update #-}
+ -- | update a context with a bytestring
+ update :: Ctx -> ByteString -> Ctx
+-update ctx d
+-  | validCtx ctx = unsafeDoIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
+-  | otherwise    = error "SHA1.update: invalid Ctx"
++update ctx d = unsafeDoIO $ withCtxCopy ctx $ \ptr -> updateInternalIO ptr d
++
+ 
+ {-# NOINLINE updates #-}
+ -- | updates a context with multiple bytestrings
+ updates :: Ctx -> [ByteString] -> Ctx
+-updates ctx d
+-  | validCtx ctx = unsafeDoIO $ withCtxCopy ctx $ \ptr -> mapM_ (updateInternalIO ptr) d
+-  | otherwise    = error "SHA1.updates: invalid Ctx"
++updates ctx d = unsafeDoIO $ withCtxCopy ctx $ \ptr -> mapM_ (updateInternalIO ptr) d
++
+ 
+ {-# NOINLINE finalize #-}
+ -- | finalize the context into a digest bytestring (20 bytes)
+ finalize :: Ctx -> ByteString
+-finalize ctx
+-  | validCtx ctx = unsafeDoIO $ withCtxThrow ctx finalizeInternalIO
+-  | otherwise    = error "SHA1.finalize: invalid Ctx"
++finalize ctx = unsafeDoIO $ withCtxThrow ctx finalizeInternalIO
++
+ 
+ {-# NOINLINE hash #-}
+ -- | hash a strict bytestring into a digest bytestring (20 bytes)
+ hash :: ByteString -> ByteString
+-hash d = unsafeDoIO $ withCtxNewThrow $ \ptr -> do
+-    c_sha1_init ptr >> updateInternalIO ptr d >> finalizeInternalIO ptr
++hash d = unsafeDoIO $ withCtxNewThrow $ \ctx -> do
++     updateInternalIO ctx d
++     finalizeInternalIO ctx
+ 
+ {-# NOINLINE hashlazy #-}
+ -- | hash a lazy bytestring into a digest bytestring (20 bytes)
+ hashlazy :: L.ByteString -> ByteString
+-hashlazy l = unsafeDoIO $ withCtxNewThrow $ \ptr -> do
+-    c_sha1_init ptr >> mapM_ (updateInternalIO ptr) (L.toChunks l) >> finalizeInternalIO ptr
+-
++hashlazy l = unsafeDoIO $ withCtxNewThrow $ \ctx -> do
++  mapM_ (updateInternalIO ctx) (L.toChunks l)
++  finalizeInternalIO ctx
+ 
+ {-# NOINLINE hmac #-}
+ -- | Compute 20-byte <https://tools.ietf.org/html/rfc2104 RFC2104>-compatible
+-- 
+2.14.3 (Apple Git-98)
+

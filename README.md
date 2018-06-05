@@ -121,6 +121,7 @@ These packages are supported by `etlas`.
 - [crypto-pubkey-types-0.4.3](https://hackage.haskell.org/package/crypto-pubkey-types-0.4.3)
 - [cryptonite-0.24](https://hackage.haskell.org/package/cryptonite-0.24)
 - [cryptohash-md5-0.11.100.1](http://hackage.haskell.org/package/cryptohash-md5)
+- [cryptohash-sha1-0.11.100.1](http://hackage.haskell.org/package/cryptohash-sha1)
 - [data-binary-ieee754-0.4.4](https://hackage.haskell.org/package/data-binary-ieee754-0.4.4)
 - [data-default-0.7.1.1](https://hackage.haskell.org/package/data-default-0.7.1.1)
 - [data-default-class-0.1.2.0](https://hackage.haskell.org/package/data-default-class-0.1.2.0)
