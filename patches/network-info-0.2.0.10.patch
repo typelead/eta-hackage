@@ -1,0 +1,112 @@
+From ab1966bef1e956633301b965afd1ca7d5b74a5d8 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 5 Jun 2018 08:37:21 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Network/{Info.hsc => Info.hs} | 78 +++++++++++++++++++--------------------
+ 1 file changed, 39 insertions(+), 39 deletions(-)
+ rename src/Network/{Info.hsc => Info.hs} (69%)
+
+diff --git a/src/Network/Info.hsc b/src/Network/Info.hs
+similarity index 69%
+rename from src/Network/Info.hsc
+rename to src/Network/Info.hs
+index c1b6040..fd19316 100644
+--- a/src/Network/Info.hsc
++++ b/src/Network/Info.hs
+@@ -1,8 +1,8 @@
+ {-# LANGUAGE ForeignFunctionInterface #-}
+ 
+ module Network.Info (
+-    getNetworkInterfaces,
+-    NetworkInterface (..),
++    -- getNetworkInterfaces,
++    -- NetworkInterface (..),
+     IPv4 (..),
+     IPv6 (..),
+     MAC (..),
+@@ -24,43 +24,43 @@ import Text.Printf
+ -- FFI
+ ----------------------------------------------------------------------
+ 
+-#include "network.h"
+-
+-foreign import ccall unsafe "c_get_network_interfaces"
+-        c_get_network_interfaces :: Ptr NetworkInterface -> CInt -> IO CInt
+-
+-
+-----------------------------------------------------------------------
+--- Network interfaces
+-----------------------------------------------------------------------
+-
+--- | Describes the basic configuration of a network interface. /This/
+---   /definition is currently limited to just one address per family./
+-data NetworkInterface = NetworkInterface
+-    { name :: String -- ^ Interface name (e.g. \"eth0\", \"lo\", \"Local Area Connection\")
+-    , ipv4 :: IPv4   -- ^ IPv4 address
+-    , ipv6 :: IPv6   -- ^ IPv6 address
+-    , mac  :: MAC    -- ^ MAC address
+-    } deriving (Show)
+-
+-instance Storable NetworkInterface where
+-    alignment _ = #const offsetof(struct {char x__; struct network_interface (y__); }, y__)
+-    sizeOf _    = #size struct network_interface
+-    peek ptr    = do
+-        name <- peekCWString $ (#ptr struct network_interface, name) ptr
+-        ipv4 <- (#peek struct network_interface, ip_address) ptr
+-        ipv6 <- (#peek struct network_interface, ip6_address) ptr
+-        mac  <- (#peek struct network_interface, mac_address) ptr
+-        return $ NetworkInterface name ipv4 ipv6 mac
+-
+-
+--- | Gets the address information for each of the network interfaces on
+---   the local computer.
+-getNetworkInterfaces :: IO [NetworkInterface]
+-getNetworkInterfaces =
+-    allocaArray 64 $ \ptr -> do
+-    count <- c_get_network_interfaces ptr 64
+-    peekArray (fromIntegral count) ptr
++-- #include "network.h"
++--
++-- foreign import ccall unsafe "c_get_network_interfaces"
++--         c_get_network_interfaces :: Ptr NetworkInterface -> CInt -> IO CInt
++--
++--
++-- ----------------------------------------------------------------------
++-- -- Network interfaces
++-- ----------------------------------------------------------------------
++--
++-- -- | Describes the basic configuration of a network interface. /This/
++-- --   /definition is currently limited to just one address per family./
++-- data NetworkInterface = NetworkInterface
++--     { name :: String -- ^ Interface name (e.g. \"eth0\", \"lo\", \"Local Area Connection\")
++--     , ipv4 :: IPv4   -- ^ IPv4 address
++--     , ipv6 :: IPv6   -- ^ IPv6 address
++--     , mac  :: MAC    -- ^ MAC address
++--     } deriving (Show)
++--
++-- instance Storable NetworkInterface where
++--     alignment _ = #const offsetof(struct {char x__; struct network_interface (y__); }, y__)
++--     sizeOf _    = #size struct network_interface
++--     peek ptr    = do
++--         name <- peekCWString $ (#ptr struct network_interface, name) ptr
++--         ipv4 <- (#peek struct network_interface, ip_address) ptr
++--         ipv6 <- (#peek struct network_interface, ip6_address) ptr
++--         mac  <- (#peek struct network_interface, mac_address) ptr
++--         return $ NetworkInterface name ipv4 ipv6 mac
++--
++--
++-- -- | Gets the address information for each of the network interfaces on
++-- --   the local computer.
++-- getNetworkInterfaces :: IO [NetworkInterface]
++-- getNetworkInterfaces =
++--     allocaArray 64 $ \ptr -> do
++--     count <- c_get_network_interfaces ptr 64
++--     peekArray (fromIntegral count) ptr
+ 
+ 
+ ----------------------------------------------------------------------
+-- 
+2.14.3 (Apple Git-98)
+
