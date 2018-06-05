@@ -187,6 +187,7 @@ These packages are supported by `etlas`.
 - [hspec-discover-2.4.3](https://hackage.haskell.org/package/hspec-discover-2.4.3)
 - [hspec-expectations-0.8.2](https://hackage.haskell.org/package/hspec-expectations-0.8.2)
 - [html-truncate-0.3.0.0](https://hackage.haskell.org/package/html-truncate-0.3.0.0)
+- [http2-1.6.3](https://hackage.haskell.org/package/http2-1.6.3)
 - [http-api-data >= 0.3.5 & <= 0.3.7.1](https://hackage.haskell.org/package/http-api-data)
 - [http-client-0.5.7.1](https://hackage.haskell.org/package/http-client-0.5.7.1)
 - [http-client-tls-0.3.5.1](https://hackage.haskell.org/package/http-client-tls-0.3.5.1)
