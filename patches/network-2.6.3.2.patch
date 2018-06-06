@@ -1,6 +1,6 @@
-From e160b7413037721053129502d0157590ed6cb9bd Mon Sep 17 00:00:00 2001
+From 032d693c373702396b3af84ed6ac42f113e6bef0 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sun, 25 Mar 2018 21:59:01 +0530
+Date: Wed, 6 Jun 2018 19:29:59 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -19,9 +19,9 @@ Subject: [PATCH] Patched
  Network/Socket/Types.hsc              | 1111 ----------------------
  include/HsNet.h                       |  359 +++----
  include/HsNetworkConfig.h             |  178 ----
- java/Utils.java                       |  181 ++++
+ java/Utils.java                       |  186 ++++
  network.cabal                         |   26 +-
- 17 files changed, 3816 insertions(+), 4413 deletions(-)
+ 17 files changed, 3821 insertions(+), 4413 deletions(-)
  create mode 100644 Network/BSD.hs
  delete mode 100644 Network/BSD.hsc
  create mode 100644 Network/Socket.hs
@@ -8244,10 +8244,10 @@ index 6dcef8f..0000000
 -/* #undef const */
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..72e2e06
+index 0000000..8fad27a
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,181 @@
+@@ -0,0 +1,186 @@
 +package eta.network;
 +
 +import java.io.IOException;
@@ -8355,7 +8355,12 @@ index 0000000..72e2e06
 +
 +    public static boolean connect(Channel c, SocketAddress address) throws IOException {
 +        if (c instanceof SocketChannel) {
-+            return ((SocketChannel) c).connect(address);
++            SocketChannel sc = (SocketChannel) c;
++            if (sc.isConnectionPending()) {
++                return sc.finishConnect();
++            } else {
++                return sc.connect(address);
++            }
 +        }
 +        return false;
 +    }
