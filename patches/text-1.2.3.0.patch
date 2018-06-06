@@ -1,0 +1,663 @@
+From 424b043f9c093d47e1417ff96e8d4bc5ebf23171 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 6 Jun 2018 12:31:18 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Text.hs                  |  42 ++++++++-
+ Data/Text/Array.hs            |   8 +-
+ Data/Text/Encoding.hs         |   8 +-
+ Data/Text/Encoding/Error.hs   |   2 +
+ Data/Text/Lazy.hs             |   5 +-
+ Data/Text/Lazy/Builder/Int.hs |   2 +-
+ Data/Text/Show.hs             |   3 +-
+ java/Utils.java               | 178 +++++++++++++++++++++++++++++++++++
+ java/eta-0.0.9/Utils.java     | 213 ++++++++++++++++++++++++++++++++++++++++++
+ text.cabal                    |  13 ++-
+ 10 files changed, 458 insertions(+), 16 deletions(-)
+ create mode 100644 java/Utils.java
+ create mode 100644 java/eta-0.0.9/Utils.java
+
+diff --git a/Data/Text.hs b/Data/Text.hs
+index 2fee297..eaf74bf 100644
+--- a/Data/Text.hs
++++ b/Data/Text.hs
+@@ -1,4 +1,6 @@
+-{-# LANGUAGE BangPatterns, CPP, MagicHash, Rank2Types, UnboxedTuples #-}
++{-# LANGUAGE BangPatterns, CPP, MagicHash, Rank2Types, UnboxedTuples,
++             ForeignFunctionInterface, MultiParamTypeClasses, InstanceSigs,
++             UnliftedFFITypes #-}
+ {-# OPTIONS_GHC -fno-warn-orphans #-}
+ #if __GLASGOW_HASKELL__ >= 702
+ {-# LANGUAGE Trustworthy #-}
+@@ -250,6 +252,22 @@ import qualified GHC.Exts as Exts
+ import Text.Printf (PrintfArg, formatArg, formatString)
+ #endif
+ 
++#if ETA_VERSION >= 9
++import Java
++#ifdef NO_STRINGUTILS
++import qualified Interop.Java.StringUtils as Str
++#else
++import qualified Java.StringUtils as Str
++#endif
++import Data.ByteString.Internal (toForeignPtr)
++import Foreign.ForeignPtr (withForeignPtr)
++import Data.Word (Word8)
++import Data.Text.Unsafe (unsafeDupablePerformIO)
++import Control.Monad.ST (runST)
++import Control.Monad.ST.Unsafe (unsafeIOToST)
++import Data.Text.Encoding (encodeUtf16BE)
++#endif
++
+ -- $character_definition
+ --
+ -- This package uses the term /character/ to denote Unicode /code points/.
+@@ -1884,3 +1902,25 @@ copy (Text arr off len) = Text (A.run go) 0 len
+ -- $setup
+ -- >>> :set -XOverloadedStrings
+ -- >>> import qualified Data.Text as T
++
++#if ETA_VERSION >= 9
++foreign import java unsafe "@static eta.text.Utils.populateBA"
++  populateBA :: JString -> Exts.ByteArray# -> P.IO ()
++
++foreign import java unsafe "@static eta.text.Utils.populateJString"
++  populateJString :: Int -> Int -> Exts.Ptr Word8 -> P.IO JString
++
++instance JavaConverter Text JString where
++  fromJava :: JString -> Text
++  fromJava js = runST $ do
++    marr <- A.new len
++    arr <- A.unsafeFreeze marr
++    unsafeIOToST (populateBA js (A.aBA arr))
++    return $ text arr 0 len
++    where len = Str.length js
++
++  toJava :: Text -> JString
++  toJava t = unsafeDupablePerformIO $ withForeignPtr fp (populateJString off len)
++    where bs = encodeUtf16BE t
++          (fp, off, len) = toForeignPtr bs
++#endif
+diff --git a/Data/Text/Array.hs b/Data/Text/Array.hs
+index 849c633..ca2969f 100644
+--- a/Data/Text/Array.hs
++++ b/Data/Text/Array.hs
+@@ -53,8 +53,6 @@ if (_k_) < 0 || (_k_) >= (_len_) then error ("Data.Text.Array." ++ (_func_) ++ "
+ # define CHECK_BOUNDS(_func_,_len_,_k_)
+ #endif
+ 
+-#include "MachDeps.h"
+-
+ #if defined(ASSERTS)
+ import Control.Exception (assert)
+ #endif
+@@ -238,12 +236,12 @@ equal arrA offA arrB offB count = inlinePerformIO $ do
+   return $! i == 0
+ {-# INLINE equal #-}
+ 
+-foreign import ccall unsafe "_hs_text_memcpy" memcpyI
++foreign import java unsafe "@static eta.text.Utils.memcpy" memcpyI
+     :: MutableByteArray# s -> CSize -> ByteArray# -> CSize -> CSize -> IO ()
+ 
+-foreign import ccall unsafe "_hs_text_memcmp" memcmp
++foreign import java unsafe "@static eta.text.Utils.memcmp" memcmp
+     :: ByteArray# -> CSize -> ByteArray# -> CSize -> CSize -> IO CInt
+ 
+-foreign import ccall unsafe "_hs_text_memcpy" memcpyM
++foreign import java unsafe "@static eta.text.Utils.memcpy" memcpyM
+     :: MutableByteArray# s -> CSize -> MutableByteArray# s -> CSize -> CSize
+     -> IO ()
+diff --git a/Data/Text/Encoding.hs b/Data/Text/Encoding.hs
+index 8758551..8587610 100644
+--- a/Data/Text/Encoding.hs
++++ b/Data/Text/Encoding.hs
+@@ -476,17 +476,17 @@ encodeUtf32BE :: Text -> ByteString
+ encodeUtf32BE txt = E.unstream (E.restreamUtf32BE (F.stream txt))
+ {-# INLINE encodeUtf32BE #-}
+ 
+-foreign import ccall unsafe "_hs_text_decode_utf8" c_decode_utf8
++foreign import java unsafe "@static eta.text.Utils.decode_utf8" c_decode_utf8
+     :: MutableByteArray# s -> Ptr CSize
+     -> Ptr Word8 -> Ptr Word8 -> IO (Ptr Word8)
+ 
+-foreign import ccall unsafe "_hs_text_decode_utf8_state" c_decode_utf8_with_state
++foreign import java unsafe "@static eta.text.Utils.decode_utf8_state" c_decode_utf8_with_state
+     :: MutableByteArray# s -> Ptr CSize
+     -> Ptr (Ptr Word8) -> Ptr Word8
+     -> Ptr CodePoint -> Ptr DecoderState -> IO (Ptr Word8)
+ 
+-foreign import ccall unsafe "_hs_text_decode_latin1" c_decode_latin1
++foreign import java unsafe "@static eta.text.Utils.decode_latin1" c_decode_latin1
+     :: MutableByteArray# s -> Ptr Word8 -> Ptr Word8 -> IO ()
+ 
+-foreign import ccall unsafe "_hs_text_encode_utf8" c_encode_utf8
++foreign import java unsafe "@static eta.text.Utils.encode_utf8" c_encode_utf8
+     :: Ptr (Ptr Word8) -> ByteArray# -> CSize -> CSize -> IO ()
+diff --git a/Data/Text/Encoding/Error.hs b/Data/Text/Encoding/Error.hs
+index e0cd4fc..cfb8920 100644
+--- a/Data/Text/Encoding/Error.hs
++++ b/Data/Text/Encoding/Error.hs
+@@ -1,9 +1,11 @@
+ {-# LANGUAGE CPP, DeriveDataTypeable #-}
++#ifndef TOOL_VERSION_eta
+ #if __GLASGOW_HASKELL__ >= 704
+ {-# LANGUAGE Safe #-}
+ #elif __GLASGOW_HASKELL__ >= 702
+ {-# LANGUAGE Trustworthy #-}
+ #endif
++#endif
+ -- |
+ -- Module      : Data.Text.Encoding.Error
+ -- Copyright   : (c) Bryan O'Sullivan 2009
+diff --git a/Data/Text/Lazy.hs b/Data/Text/Lazy.hs
+index 0dd965b..b9bb928 100644
+--- a/Data/Text/Lazy.hs
++++ b/Data/Text/Lazy.hs
+@@ -431,10 +431,12 @@ unpack t = S.unstreamList (stream t)
+ {-# INLINE [1] unpack #-}
+ 
+ -- | /O(n)/ Convert a literal string into a Text.
++-- TODO: Convert Addr# related functions to Object# JString
+ unpackCString# :: Addr# -> Text
+-unpackCString# addr# = unstream (S.streamCString# addr#)
++unpackCString# addr# = P.undefined --unstream (S.streamCString# addr#)
+ {-# NOINLINE unpackCString# #-}
+ 
++{-
+ {-# RULES "TEXT literal" forall a.
+     unstream (S.streamList (L.map safe (GHC.unpackCString# a)))
+       = unpackCString# a #-}
+@@ -442,6 +444,7 @@ unpackCString# addr# = unstream (S.streamCString# addr#)
+ {-# RULES "TEXT literal UTF8" forall a.
+     unstream (S.streamList (L.map safe (GHC.unpackCStringUtf8# a)))
+       = unpackCString# a #-}
++-}
+ 
+ {-# RULES "LAZY TEXT empty literal"
+     unstream (S.streamList (L.map safe []))
+diff --git a/Data/Text/Lazy/Builder/Int.hs b/Data/Text/Lazy/Builder/Int.hs
+index 8d6913b..161d11d 100644
+--- a/Data/Text/Lazy/Builder/Int.hs
++++ b/Data/Text/Lazy/Builder/Int.hs
+@@ -37,7 +37,7 @@ import Prelude hiding ((<>))
+ 
+ #ifdef  __GLASGOW_HASKELL__
+ # if defined(INTEGER_GMP)
+-import GHC.Integer.GMP.Internals (Integer(S#))
++import GHC.Integer.BigInteger.Internals (Integer(S#))
+ # elif defined(INTEGER_SIMPLE)
+ import GHC.Integer
+ # else
+diff --git a/Data/Text/Show.hs b/Data/Text/Show.hs
+index 04d2a28..4042aa4 100644
+--- a/Data/Text/Show.hs
++++ b/Data/Text/Show.hs
+@@ -51,7 +51,7 @@ unpack = S.unstreamList . stream
+ unpackCString# :: Addr# -> Text
+ unpackCString# addr# = unstream (S.streamCString# addr#)
+ {-# NOINLINE unpackCString# #-}
+-
++{- TODO: Override streamCString# for Object# JString
+ {-# RULES "TEXT literal" [1] forall a.
+     unstream (S.map safe (S.streamList (GHC.unpackCString# a)))
+       = unpackCString# a #-}
+@@ -59,6 +59,7 @@ unpackCString# addr# = unstream (S.streamCString# addr#)
+ {-# RULES "TEXT literal UTF8" [1] forall a.
+     unstream (S.map safe (S.streamList (GHC.unpackCStringUtf8# a)))
+       = unpackCString# a #-}
++-}
+ 
+ {-# RULES "TEXT empty literal" [1]
+     unstream (S.map safe (S.streamList []))
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..c9ca012
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,178 @@
++package eta.text;
++
++import java.nio.ByteBuffer;
++import eta.runtime.stg.StgClosure;
++import eta.runtime.io.StgByteArray;
++import static eta.runtime.io.MemoryManager.*;
++
++public class Utils {
++    public static void memcpy( StgByteArray destArray, int destOffset
++                             , StgByteArray srcArray,  int srcOffset, int n) {
++        ByteBuffer src = srcArray.buf.duplicate();
++        ByteBuffer dest = destArray.buf.duplicate();
++        destOffset <<= 1;
++        srcOffset <<= 1;
++        n <<= 1;
++        bufSetLimit(src, srcOffset + n);
++        bufSetOffset(dest, destOffset);
++        bufSetOffset(src, srcOffset);
++        dest.put(src);
++    }
++
++    public static int memcmp( StgByteArray aArray, int aOffset
++                            , StgByteArray bArray, int bOffset, int n) {
++        ByteBuffer a = aArray.buf.duplicate();
++        ByteBuffer b = bArray.buf.duplicate();
++        aOffset <<= 1;
++        bOffset <<= 1;
++        n <<= 1;
++        bufSetOffset(a, aOffset);
++        bufSetOffset(b, bOffset);
++        while (n-- != 0) {
++            int c = a.get() & 0xFF;
++            int d = b.get() & 0xFF;
++            if (c != d) {
++                return c - d;
++            }
++        }
++        return 0;
++    }
++
++    public static void decode_latin1(StgByteArray destArray, ByteBuffer src, ByteBuffer srcend) {
++        ByteBuffer dest=destArray.buf.duplicate();
++        ByteBuffer p = src.duplicate();
++        // while (getAddress(p) != getAddress(srcend)) {
++        while (p.position() != srcend.position()) {
++            dest.putShort((short)(p.get() & 0xFF));
++        }
++    }
++
++    public static final int UTF8_ACCEPT = 0;
++    public static final int UTF8_REJECT = 12;
++
++    public static final int[] utf8d = {
++        /*
++        * The first part of the table maps bytes to character classes that
++        * to reduce the size of the transition table and create bitmasks.
++        */
++        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
++        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
++        8,8,2,2,2,2,2,2,2,2,2,2,2,2,2,2,  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
++        10,3,3,3,3,3,3,3,3,3,3,3,3,4,3,3, 11,6,6,6,5,8,8,8,8,8,8,8,8,8,8,8,
++
++        /*
++        * The second part is a transition table that maps a combination of
++        * a state of the automaton and a character class to a state.
++        */
++        0,12,24,36,60,96,84,12,12,12,48,72, 12,12,12,12,12,12,12,12,12,12,12,12,
++        12, 0,12,12,12,12,12, 0,12, 0,12,12, 12,24,12,12,12,12,12,24,12,24,12,12,
++        12,12,12,12,12,12,12,24,12,12,12,12, 12,24,12,12,12,12,12,12,12,24,12,12,
++        12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
++        12,36,12,12,12,12,12,12,12,12,12,12,
++    };
++
++    public static ByteBuffer decode_utf8( StgByteArray destArray, ByteBuffer destOffset
++                                        , ByteBuffer src,  ByteBuffer srcend) {
++        /* TODO: This part of the text implementation can be optimized.
++                 Unnecessary byte buffers are being created. Instead,
++                 we can change the implementation at the Eta level
++                 itself. */
++        ByteBuffer state0 = allocateAnonymousBuffer(4, false);
++        bufPutInt(state0, 0, UTF8_ACCEPT);
++        ByteBuffer codepoint0 = allocateAnonymousBuffer(4, false);
++        ByteBuffer src0 = allocateAnonymousBuffer(4, false);
++        bufPutInt(src0, 0, getAddress(src));
++        ByteBuffer ret = decode_utf8_int(destArray.buf, destOffset, src0, srcend,
++                                         codepoint0, state0);
++        if (bufGetInt(state0, 0) != UTF8_ACCEPT) {
++            bufSetOffset(ret, -1);
++        }
++        return ret;
++    }
++
++    public static ByteBuffer decode_utf8_state
++        (StgByteArray destArray, ByteBuffer destOffset, ByteBuffer src0,
++         ByteBuffer srcend, ByteBuffer codepoint0, ByteBuffer state0)
++    {
++        ByteBuffer ret = decode_utf8_int(destArray.buf, destOffset, src0, srcend,
++                                         codepoint0, state0);
++        if (bufGetInt(state0, 0) != UTF8_ACCEPT) {
++            bufSetOffset(ret, -1);
++        }
++        return ret;
++    }
++
++    public static ByteBuffer decode_utf8_int( ByteBuffer dest, ByteBuffer destOffset
++                                            , ByteBuffer src0, ByteBuffer srcend
++                                            , ByteBuffer codepoint0, ByteBuffer state0) {
++        ByteBuffer d = bufSetOffset(dest.duplicate(), bufGetInt(destOffset, 0));
++        ByteBuffer s = getBuffer(bufGetInt(src0, 0));
++        ByteBuffer last = s.duplicate();
++        int state = bufGetInt(state0, 0);
++        int codepoint = bufGetInt(codepoint0, 0);
++
++        /* Verify srcend condition */
++        //while (getAddress(s) < getAddress(srcend)) {
++        while (s.position() < srcend.position()) {
++            /* Start of inlined decode() */
++            int byte_ = s.get() & 0xFF;
++            int type = utf8d[byte_];
++            codepoint = (state != UTF8_ACCEPT) ?
++                (byte_ & 0x3F) | (codepoint << 6):
++                (0xFF >>> type) & (byte_);
++            state = utf8d[256 + state + type];
++            /* End of inlined decode() */
++            if (state != UTF8_ACCEPT) {
++                if (state != UTF8_REJECT) continue;
++                break;
++            }
++            if (codepoint <= 0xFFFF) {
++                d.putShort((short) codepoint);
++            } else {
++                d.putShort((short) (0xD7C0 + (codepoint >>> 10)));
++                d.putShort((short) (0xDC00 + (codepoint & 0x3FF)));
++            }
++            last.get();
++        }
++        bufPutInt(destOffset, 0, (d.position() - dest.position()) / 2);
++        bufPutInt(codepoint0, 0, codepoint);
++        bufPutInt(state0, 0, state);
++        bufPutInt(src0, 0, getAddress(last));
++        return s;
++    }
++
++
++    public static void encode_utf8(ByteBuffer destp, StgByteArray srcArray,
++                                         int srcoff, int srclen) {
++        ByteBuffer dest = getBuffer(bufGetInt(destp, 0));
++        ByteBuffer src = bufSetOffset(srcArray.buf.duplicate(), srcoff * 2);
++        ByteBuffer srcend = bufSetOffset(src.duplicate(), srclen * 2);
++
++        while (src.position() < srcend.position()) {
++            int w = src.getShort() & 0xFFFF;
++            if (w <= 0x7F) {
++                dest.put((byte) w);
++            } else if (w <= 0x7FF) {
++                dest.put((byte)((w >>> 6) | 0xC0));
++                dest.put((byte)((w & 0x3F) | 0x80));
++            } else if (w < 0xD800 || w > 0xDBFF) {
++                dest.put((byte)((w >>> 12) | 0xE0));
++                dest.put((byte)(((w >>> 6) & 0x3F) | 0x80));
++                dest.put((byte)((w & 0x3F) | 0x80));
++            } else {
++                int c = ((w - 0xD800) << 10)
++                      + ((src.getShort() & 0xFFFF) - 0xDC00)
++                      + 0x10000;
++                dest.put((byte)((c >>> 18) | 0xF0));
++                dest.put((byte)(((c >>> 12) & 0x3F) | 0x80));
++                dest.put((byte)(((c >>> 6) & 0x3F) | 0x80));
++                dest.put((byte)((c & 0x3F) | 0x80));
++            }
++        }
++        bufPutInt(destp, 0, getAddress(dest));
++    }
++}
+diff --git a/java/eta-0.0.9/Utils.java b/java/eta-0.0.9/Utils.java
+new file mode 100644
+index 0000000..b94159e
+--- /dev/null
++++ b/java/eta-0.0.9/Utils.java
+@@ -0,0 +1,213 @@
++package eta.text;
++
++import java.io.UnsupportedEncodingException;
++import java.nio.ByteBuffer;
++import java.nio.charset.Charset;
++import java.nio.charset.CharacterCodingException;
++import eta.runtime.io.ByteArray;
++import eta.runtime.io.MemoryManager;
++
++public class Utils {
++    public static void memcpy(ByteArray destArray, int destOffset
++                             ,ByteArray srcArray,  int srcOffset, int n) {
++        ByteBuffer src  = MemoryManager.getBoundedBuffer(srcArray.bufferAddress);
++        ByteBuffer dest = MemoryManager.getBoundedBuffer(destArray.bufferAddress);
++        destOffset <<= 1;
++        srcOffset <<= 1;
++        n <<= 1;
++        src.position(src.position() + srcOffset);
++        src.limit(src.position() + n);
++        dest.position(dest.position() + destOffset);
++        dest.put(src);
++    }
++
++    public static int memcmp(ByteArray aArray, int aOffset
++                            ,ByteArray bArray, int bOffset, int n) {
++        ByteBuffer a = MemoryManager.getBoundedBuffer(aArray.bufferAddress);
++        ByteBuffer b = MemoryManager.getBoundedBuffer(bArray.bufferAddress);
++        aOffset <<= 1;
++        bOffset <<= 1;
++        n <<= 1;
++        a.position(a.position() + aOffset);
++        b.position(b.position() + bOffset);
++        while (n-- != 0) {
++            int c = a.get() & 0xFF;
++            int d = b.get() & 0xFF;
++            if (c != d) {
++                return c - d;
++            }
++        }
++        return 0;
++    }
++
++    public static void decode_latin1(ByteArray destArray, long src, long srcend) {
++
++        ByteBuffer dest = MemoryManager.getBoundedBuffer(destArray.bufferAddress);
++        ByteBuffer p    = MemoryManager.getBoundedBuffer(src);
++        while (src < srcend) {
++            dest.putShort((short)(p.get() & 0xFF));
++            src++;
++        }
++    }
++
++    public static final int UTF8_ACCEPT = 0;
++    public static final int UTF8_REJECT = 12;
++
++    public static final int[] utf8d = {
++        /*
++        * The first part of the table maps bytes to character classes that
++        * to reduce the size of the transition table and create bitmasks.
++        */
++        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
++        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
++        8,8,2,2,2,2,2,2,2,2,2,2,2,2,2,2,  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
++        10,3,3,3,3,3,3,3,3,3,3,3,3,4,3,3, 11,6,6,6,5,8,8,8,8,8,8,8,8,8,8,8,
++
++        /*
++        * The second part is a transition table that maps a combination of
++        * a state of the automaton and a character class to a state.
++        */
++        0,12,24,36,60,96,84,12,12,12,48,72, 12,12,12,12,12,12,12,12,12,12,12,12,
++        12, 0,12,12,12,12,12, 0,12, 0,12,12, 12,24,12,12,12,12,12,24,12,24,12,12,
++        12,12,12,12,12,12,12,24,12,12,12,12, 12,24,12,12,12,12,12,12,12,24,12,12,
++        12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
++        12,36,12,12,12,12,12,12,12,12,12,12,
++    };
++
++    public static long decode_utf8(ByteArray destArray, long destOffset, long src,
++                                   long srcend) {
++        /* TODO: This part of the text implementation can be optimized.
++                 Unnecessary byte buffers are being created. Instead,
++                 we can change the implementation at the Eta level
++                 itself. */
++        long state0 = MemoryManager.allocateBuffer(4, false);
++        MemoryManager.putInt(state0, UTF8_ACCEPT);
++        long codepoint0 = MemoryManager.allocateBuffer(4, false);
++        MemoryManager.putInt(codepoint0, 0);
++        long src0 = MemoryManager.allocateBuffer(8, false);
++        MemoryManager.putLong(src0, src);
++        long ret = decode_utf8_int(destArray.bufferAddress, destOffset, src0, srcend, codepoint0,
++                                   state0);
++        if (MemoryManager.getInt(state0) != UTF8_ACCEPT) {
++            ret -= 1;
++        }
++        MemoryManager.free(state0);
++        MemoryManager.free(codepoint0);
++        MemoryManager.free(src0);
++        return ret;
++    }
++
++    public static long decode_utf8_state(ByteArray destArray, long destOffset,
++                                         long src0, long srcend, long codepoint0,
++                                         long state0) {
++        long ret = decode_utf8_int(destArray.bufferAddress, destOffset, src0, srcend,
++                                   codepoint0, state0);
++        if (MemoryManager.getInt(state0) != UTF8_ACCEPT) {
++            ret -= 1;
++        }
++        return ret;
++    }
++
++    private static long decode_utf8_int(long destAddress, long destOffset, long src0,
++                                        long srcend, long codepoint0, long state0) {
++        long destInit = destAddress;
++        int doffset = MemoryManager.getInt(destOffset);
++        ByteBuffer d = MemoryManager.getBoundedBuffer(destAddress);
++        d.position(d.position() + 2 * doffset);
++        destAddress += 2 * doffset;
++        long src = MemoryManager.getLong(src0);
++        long last = src;
++        ByteBuffer s = MemoryManager.getBoundedBuffer(src);
++        int state = MemoryManager.getInt(state0);
++        int codepoint = MemoryManager.getInt(codepoint0);
++
++        /* Verify srcend condition */
++        while (src < srcend) {
++            /* Start of inlined decode() */
++            int byte_ = s.get() & 0xFF;
++            src++;
++            int type = utf8d[byte_];
++            codepoint = (state != UTF8_ACCEPT) ?
++                (byte_ & 0x3F) | (codepoint << 6):
++                (0xFF >>> type) & (byte_);
++            state = utf8d[256 + state + type];
++            /* End of inlined decode() */
++            if (state != UTF8_ACCEPT) {
++                if (state != UTF8_REJECT) continue;
++                break;
++            }
++            if (codepoint <= 0xFFFF) {
++                d.putShort((short) codepoint);
++                destAddress += 2;
++            } else {
++                d.putShort((short) (0xD7C0 + (codepoint >>> 10)));
++                d.putShort((short) (0xDC00 + (codepoint & 0x3FF)));
++                destAddress += 4;
++            }
++            last++;
++        }
++        MemoryManager.putInt(destOffset, ((int)(destAddress - destInit)) / 2);
++        MemoryManager.putInt(codepoint0, codepoint);
++        MemoryManager.putInt(state0, state);
++        MemoryManager.putLong(src0, last);
++        return src;
++    }
++
++    public static void encode_utf8(long destp, ByteArray srcArray
++                                  ,int srcoff, int srclen) {
++        long destAddress = MemoryManager.getLong(destp);
++        ByteBuffer dest  = MemoryManager.getBoundedBuffer(destAddress);
++        long srcAddress  = srcArray.bufferAddress;
++        ByteBuffer src   = MemoryManager.getBoundedBuffer(srcAddress);
++        src.position(src.position() + srcoff * 2);
++        long srcend = srcAddress + srclen * 2;
++
++        while (srcAddress < srcend) {
++            int w = src.getShort() & 0xFFFF;
++            srcAddress += 2;
++            if (w <= 0x7F) {
++                dest.put((byte) w);
++                destAddress++;
++            } else if (w <= 0x7FF) {
++                dest.put((byte)((w >>> 6) | 0xC0));
++                dest.put((byte)((w & 0x3F) | 0x80));
++                destAddress += 2;
++            } else if (w < 0xD800 || w > 0xDBFF) {
++                dest.put((byte)((w >>> 12) | 0xE0));
++                dest.put((byte)(((w >>> 6) & 0x3F) | 0x80));
++                dest.put((byte)((w & 0x3F) | 0x80));
++                destAddress += 3;
++            } else {
++                int c = ((w - 0xD800) << 10)
++                      + ((src.getShort() & 0xFFFF) - 0xDC00)
++                      + 0x10000;
++                dest.put((byte)((c >>> 18) | 0xF0));
++                dest.put((byte)(((c >>> 12) & 0x3F) | 0x80));
++                dest.put((byte)(((c >>> 6) & 0x3F) | 0x80));
++                dest.put((byte)((c & 0x3F) | 0x80));
++                destAddress += 4;
++            }
++        }
++        MemoryManager.putLong(destp, destAddress);
++    }
++
++    public static void populateBA(String js, ByteArray ba) throws
++      UnsupportedEncodingException {
++        long addr       = ba.bufferAddress;
++        byte[] bytes    = js.getBytes("UTF-16BE");
++        ByteBuffer dest = MemoryManager.getBoundedBuffer(addr);
++        dest.put(bytes);
++    }
++
++    public static String populateJString(int off, int len, long addr) throws
++        UnsupportedEncodingException, CharacterCodingException {
++        ByteBuffer src = MemoryManager.getBoundedBuffer(addr);
++        src.position(src.position() + off);
++        src.limit(src.position() + len);
++        return Charset.forName("UTF-16BE").newDecoder().decode(src).toString();
++    }
++}
+diff --git a/text.cabal b/text.cabal
+index 27fa646..e864caf 100644
+--- a/text.cabal
++++ b/text.cabal
+@@ -90,7 +90,10 @@ flag integer-simple
+   manual: False
+ 
+ library
+-  c-sources:    cbits/cbits.c
++  if impl(eta >= 0.0.9)
++    java-sources:    java/eta-0.0.9/Utils.java
++  else
++    java-sources:    java/Utils.java
+   include-dirs: include
+ 
+   exposed-modules:
+@@ -148,6 +151,10 @@ library
+     deepseq    >= 1.1.0.0,
+     ghc-prim   >= 0.2
+ 
++  if impl(eta >= 0.0.9.7)
++     build-depends: eta-java-interop
++     cpp-options: -DNO_STRINGUTILS
++
+   if flag(bytestring-builder)
+     build-depends: bytestring         >= 0.9    && < 0.10.4,
+                    bytestring-builder >= 0.10.4
+@@ -166,7 +173,7 @@ library
+     build-depends: integer-simple >= 0.1 && < 0.5
+   else
+     cpp-options: -DINTEGER_GMP
+-    build-depends: integer-gmp >= 0.2
++    build-depends: integer >= 0.2
+ 
+ test-suite tests
+   type:           exitcode-stdio-1.0
+@@ -270,7 +277,7 @@ test-suite tests
+     build-depends: integer-simple >= 0.1 && < 0.5
+   else
+     cpp-options: -DINTEGER_GMP
+-    build-depends: integer-gmp >= 0.2
++    build-depends: integer >= 0.2
+ 
+ source-repository head
+   type:     git
+-- 
+2.7.4 (Apple Git-66)
+

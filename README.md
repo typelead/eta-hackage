@@ -346,7 +346,7 @@ These packages are supported by `etlas`.
 - [temporary-1.2.1.1](http://hackage.haskell.org/package/temporary-1.2.1.1)
 - [terminal-size-0.3.2.1](https://hackage.haskell.org/package/terminal-size-0.3.2.1)
 - [testpack-2.1.3.0](https://hackage.haskell.org/package/testpack-2.1.3.0)
-- [text >= 1.2.2.1 && <= 1.2.2.2](https://hackage.haskell.org/package/text)
+- [text >= 1.2.2.1 && <= 1.2.3.0](https://hackage.haskell.org/package/text)
 - [text-binary-0.2.1.1](https://hackage.haskell.org/package/text-binary-0.2.1.1)
 - [text-short-0.1.1](https://hackage.haskell.org/package/text-short-0.1.1)
 - [tf-random-0.5](https://hackage.haskell.org/package/tf-random-0.5)
