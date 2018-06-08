@@ -377,7 +377,7 @@ These packages are supported by `etlas`.
 - [vector-instances-3.4](https://hackage.haskell.org/package/vector-instances-3.4)
 - [vector-th-unbox-0.2.1.6](https://hackage.haskell.org/package/vector-th-unbox-0.2.1.6)
 - [versions-3.0.1.1](https://hackage.haskell.org/package/versions-3.0.1.1)
-- [vinyl-0.5.1.1](https://hackage.haskell.org/package/vinyl-0.5.1.1)
+- [vinyl >= 0.5.1.1 && <= 0.8.1.1](https://hackage.haskell.org/package/vinyl)
 - [void >= 0.7.1 && <= 0.7.2](https://hackage.haskell.org/package/void)
 - [wai-3.2.1.1](https://hackage.haskell.org/package/wai-3.2.1.1)
 - [wai-extra-3.0.21.0](https://hackage.haskell.org/package/wai-extra-3.0.21.0)

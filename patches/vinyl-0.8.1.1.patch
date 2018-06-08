@@ -1,0 +1,223 @@
+From f5f6ab3db074cc272f0c40ff779e9428bbe7c1eb Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 8 Jun 2018 15:57:39 +0530
+Subject: [PATCH] Patch
+
+---
+ Data/Vinyl/ARec.hs      | 19 ++++++++++---------
+ Data/Vinyl/Core.hs      | 10 +++++-----
+ Data/Vinyl/Derived.hs   | 22 +++++++++++-----------
+ Data/Vinyl/TypeLevel.hs | 15 ++++++++-------
+ 4 files changed, 34 insertions(+), 32 deletions(-)
+
+diff --git a/Data/Vinyl/ARec.hs b/Data/Vinyl/ARec.hs
+index f5e3661..6d8d7a2 100644
+--- a/Data/Vinyl/ARec.hs
++++ b/Data/Vinyl/ARec.hs
+@@ -6,7 +6,8 @@
+ {-# LANGUAGE MultiParamTypeClasses #-}
+ {-# LANGUAGE PolyKinds #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+-{-# LANGUAGE TypeApplications #-}
++-- {-# LANGUAGE TypeApplications #-}
++{-# LANGUAGE MagicHash #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
+ -- | Constant-time field accessors for extensible records. The
+@@ -22,7 +23,7 @@ import Data.Vinyl.TypeLevel
+ import qualified Data.Array as Array
+ import qualified Data.Array.Base as BArray
+ import Data.Proxy
+-import GHC.Exts (Any)
++import GHC.Exts (Any, proxy#, Proxy#)
+ import Unsafe.Coerce
+ 
+ -- | An array-backed extensible record with constant-time field
+@@ -35,7 +36,7 @@ toARec = go id
+   where go :: ([Any] -> [Any]) -> Rec f ts' -> ARec f ts
+         go acc RNil = ARec $! Array.listArray (0, n - 1) (acc [])
+         go acc (x :& xs) = go (acc . (unsafeCoerce x :)) xs
+-        n = natToInt @(RLength ts)
++        n = natToInt (proxy# :: Proxy# (RLength ts))
+ {-# INLINE toARec #-}
+ 
+ -- | Defines a constraint that lets us index into an 'ARec' in order
+@@ -49,20 +50,20 @@ fromARec :: forall f ts.
+          => ARec f ts -> Rec f ts
+ fromARec (ARec arr) = rpureConstrained (Proxy :: Proxy (IndexableField ts)) aux
+   where aux :: forall t. NatToInt (RIndex t ts) => f t
+-        aux = unsafeCoerce (arr Array.! natToInt @(RIndex t ts))
++        aux = unsafeCoerce (arr Array.! (natToInt (proxy# :: Proxy# (RIndex t ts))))
+ {-# INLINE fromARec #-}
+ 
+ -- | Get a field from an 'ARec'.
+ aget :: forall t f ts. (NatToInt (RIndex t ts)) => ARec f ts -> f t
+ aget (ARec arr) =
+-  unsafeCoerce (BArray.unsafeAt arr (natToInt @(RIndex t ts)))
++  unsafeCoerce (BArray.unsafeAt arr (natToInt (proxy# :: Proxy# (RIndex t ts))))
+ {-# INLINE aget #-}
+ 
+ -- | Set a field in an 'ARec'.
+ aput :: forall t f ts. (NatToInt (RIndex t ts))
+       => f t -> ARec f ts -> ARec f ts
+ aput x (ARec arr) = ARec (arr Array.// [(i, unsafeCoerce x)])
+-  where i = natToInt @(RIndex t ts)
++  where i = natToInt (proxy# :: Proxy# (RIndex t ts))
+ {-# INLINE aput #-}
+ 
+ -- | Define a lens for a field of an 'ARec'.
+@@ -81,10 +82,10 @@ arecGetSubset :: forall rs ss f.
+                  (IndexWitnesses (RImage rs ss), NatToInt (RLength rs))
+               => ARec f ss -> ARec f rs
+ arecGetSubset (ARec arr) = ARec (Array.listArray (0, n-1) $
+-                                 go (indexWitnesses @(RImage rs ss)))
++                                 go (indexWitnesses (proxy# :: Proxy# (RImage rs ss))))
+   where go :: [Int] -> [Any]
+         go = map (arr Array.!)
+-        n = natToInt @(RLength rs)
++        n = natToInt (proxy# :: Proxy# (RLength rs))
+ {-# INLINE arecGetSubset #-}
+ 
+ -- | Set a subset of a larger record's fields to all of the fields of
+@@ -92,7 +93,7 @@ arecGetSubset (ARec arr) = ARec (Array.listArray (0, n-1) $
+ arecSetSubset :: forall rs ss f. (IndexWitnesses (RImage rs ss))
+               => ARec f ss -> ARec f rs -> ARec f ss
+ arecSetSubset (ARec arrBig) (ARec arrSmall) = ARec (arrBig Array.// updates)
+-  where updates = zip (indexWitnesses @(RImage rs ss)) (Array.elems arrSmall)
++  where updates = zip (indexWitnesses (proxy# :: Proxy# (RImage rs ss))) (Array.elems arrSmall)
+ {-# INLINE arecSetSubset #-}
+ 
+ instance (is ~ RImage rs ss, IndexWitnesses is, NatToInt (RLength rs))
+diff --git a/Data/Vinyl/Core.hs b/Data/Vinyl/Core.hs
+index 3bf67f6..2c32ae5 100644
+--- a/Data/Vinyl/Core.hs
++++ b/Data/Vinyl/Core.hs
+@@ -15,8 +15,8 @@
+ 
+ module Data.Vinyl.Core where
+ 
+-import Data.Monoid (Monoid)
+-import Data.Semigroup
++import Data.Monoid (Monoid, (<>))
++-- import Data.Semigroup
+ import Foreign.Ptr (castPtr, plusPtr)
+ import Foreign.Storable (Storable(..))
+ import Data.Vinyl.Functor
+@@ -227,9 +227,9 @@ instance RecAll f rs Show => Show (Rec f rs) where
+       . rmap (\(Compose (Dict x)) -> Const $ show x)
+       $ reifyConstraint (Proxy :: Proxy Show) xs
+ 
+-instance Semigroup (Rec f '[]) where
+-instance (Monoid (f r), Monoid (Rec f rs))
+-  => Semigroup (Rec f (r ': rs)) where
++-- instance Semigroup (Rec f '[]) where
++-- instance (Monoid (f r), Monoid (Rec f rs))
++--   => Semigroup (Rec f (r ': rs)) where
+ 
+ instance Monoid (Rec f '[]) where
+   mempty = RNil
+diff --git a/Data/Vinyl/Derived.hs b/Data/Vinyl/Derived.hs
+index 9783863..cef4cf5 100644
+--- a/Data/Vinyl/Derived.hs
++++ b/Data/Vinyl/Derived.hs
+@@ -12,7 +12,7 @@
+ {-# LANGUAGE UndecidableInstances #-}
+ {-# LANGUAGE MultiParamTypeClasses #-}
+ {-# LANGUAGE FlexibleContexts #-}
+-{-# LANGUAGE TypeApplications #-}
++-- {-# LANGUAGE TypeApplications #-}
+ -- | Commonly used 'Rec' instantiations.
+ module Data.Vinyl.Derived where
+ 
+@@ -24,7 +24,7 @@ import Data.Vinyl.Lens
+ import Data.Vinyl.TypeLevel (Fst, Snd, AllConstrained, RIndex)
+ import Foreign.Ptr (castPtr)
+ import Foreign.Storable
+-import GHC.OverloadedLabels
++-- import GHC.OverloadedLabels
+ import GHC.TypeLits
+ 
+ -- | Alias for Field spec
+@@ -131,9 +131,9 @@ instance forall s t. (KnownSymbol s, Storable t)
+   poke ptr (Field x) = poke (castPtr ptr) x
+ 
+ type family FieldType l fs where
+-  FieldType l '[] = TypeError ('Text "Cannot find label "
+-                               ':<>: 'ShowType l
+-                               ':<>: 'Text " in fields")
++  -- FieldType l '[] = TypeError ('Text "Cannot find label "
++  --                              ':<>: 'ShowType l
++  --                              ':<>: 'Text " in fields")
+   FieldType l ((l ::: v) ': fs) = v
+   FieldType l ((l' ::: v') ': fs) = FieldType l fs
+ 
+@@ -146,12 +146,12 @@ type HasField record l fs v =
+ data Label (a :: Symbol) = Label
+   deriving (Eq, Show)
+ 
+-instance s ~ s' => IsLabel s (Label s') where
+-#if __GLASGOW_HASKELL__ < 802
+-  fromLabel _ = Label
+-#else
+-  fromLabel = Label
+-#endif
++-- instance s ~ s' => IsLabel s (Label s') where
++-- #if __GLASGOW_HASKELL__ < 802
++--   fromLabel _ = Label
++-- #else
++--   fromLabel = Label
++-- #endif
+ 
+ -- | Defines a constraint that lets us extract the label from an
+ -- 'ElField'. Used in 'rmapf' and 'rpuref'.
+diff --git a/Data/Vinyl/TypeLevel.hs b/Data/Vinyl/TypeLevel.hs
+index 82a2fc5..504b2fa 100644
+--- a/Data/Vinyl/TypeLevel.hs
++++ b/Data/Vinyl/TypeLevel.hs
+@@ -8,7 +8,8 @@
+ {-# LANGUAGE MultiParamTypeClasses #-}
+ {-# LANGUAGE PolyKinds             #-}
+ {-# LANGUAGE ScopedTypeVariables   #-}
+-{-# LANGUAGE TypeApplications      #-}
++-- {-# LANGUAGE TypeApplications      #-}
++{-# LANGUAGE MagicHash #-}
+ {-# LANGUAGE TypeFamilies          #-}
+ {-# LANGUAGE TypeOperators         #-}
+ 
+@@ -22,27 +23,27 @@ data Nat = Z | S !Nat
+ 
+ -- | Produce a runtime 'Int' value corresponding to a 'Nat' type.
+ class NatToInt (n :: Nat) where
+-  natToInt :: Int
++  natToInt :: Proxy# n -> Int
+ 
+ instance NatToInt 'Z where
+-  natToInt = 0
++  natToInt _ = 0
+   {-# INLINE natToInt #-}
+ 
+ instance NatToInt n => NatToInt ('S n) where
+-  natToInt = 1 + natToInt @n
++  natToInt _ = 1 + natToInt (proxy# :: Proxy# n)
+   {-# INLINE natToInt #-}
+ 
+ -- | Reify a list of type-level natural number indices as runtime
+ -- 'Int's relying on instances of 'NatToInt'.
+ class IndexWitnesses (is :: [Nat]) where
+-  indexWitnesses :: [Int]
++  indexWitnesses :: Proxy# is -> [Int]
+ 
+ instance IndexWitnesses '[] where
+-  indexWitnesses = []
++  indexWitnesses _ = []
+   {-# INLINE indexWitnesses #-}
+ 
+ instance (IndexWitnesses is, NatToInt i) => IndexWitnesses (i ': is) where
+-  indexWitnesses = natToInt @i : indexWitnesses @is
++  indexWitnesses _ = natToInt (proxy# :: Proxy# i) : indexWitnesses (proxy# :: Proxy# is) 
+   {-# INLINE indexWitnesses #-}
+ 
+ -- | Project the first component of a type-level tuple.
+-- 
+2.7.4 (Apple Git-66)
+
