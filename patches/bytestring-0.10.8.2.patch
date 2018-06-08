@@ -1,21 +1,52 @@
-From 53474aaf96e3d1cb4667498ad0b35e912c82cdd9 Mon Sep 17 00:00:00 2001
+From d3a856968ad66a48a992b2b176221bc82f17dbce Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Wed, 2 May 2018 20:47:10 +0530
+Date: Sat, 9 Jun 2018 02:04:17 +0530
 Subject: [PATCH] Patched
 
 ---
+ Data/ByteString/Builder/Internal.hs    |  12 +-
  Data/ByteString/Builder/Prim/ASCII.hs  |  24 +--
  Data/ByteString/Builder/Prim/Binary.hs | 119 +++++---------
  Data/ByteString/Internal.hs            |  42 +++--
  Data/ByteString/Short/Internal.hs      |   2 +-
  Data/ByteString/Unsafe.hs              |   8 +
- bytestring.cabal                       |  13 +-
+ bytestring.cabal                       |  16 +-
  java/Utils.java                        | 283 +++++++++++++++++++++++++++++++++
  java/eta-0.0.9/Utils.java              | 254 +++++++++++++++++++++++++++++
- 8 files changed, 633 insertions(+), 112 deletions(-)
+ 9 files changed, 647 insertions(+), 113 deletions(-)
  create mode 100644 java/Utils.java
  create mode 100644 java/eta-0.0.9/Utils.java
 
+diff --git a/Data/ByteString/Builder/Internal.hs b/Data/ByteString/Builder/Internal.hs
+index 90b35c6..3b345f0 100644
+--- a/Data/ByteString/Builder/Internal.hs
++++ b/Data/ByteString/Builder/Internal.hs
+@@ -171,6 +171,16 @@ import           Foreign
+ import           GHC.IO (unsafeDupablePerformIO)
+ #endif
+ 
++#ifdef TRAMPOLINE
++import qualified GHC.IO as IO
++
++trampolineIO :: IO a -> IO a
++trampolineIO = IO.trampolineIO
++#else
++trampolineIO :: IO a -> IO a
++trampolineIO = id
++#endif
++
+ ------------------------------------------------------------------------------
+ -- Buffers
+ ------------------------------------------------------------------------------
+@@ -334,7 +344,7 @@ fillWithBuildStep
+     -- ^ Buffer range to fill.
+     -> IO b
+     -- ^ Value computed while filling this 'BufferRange'.
+-fillWithBuildStep step fDone fFull fChunk !br = do
++fillWithBuildStep step fDone fFull fChunk !br = trampolineIO $ do
+     signal <- step br
+     case signal of
+         Done op x                      -> fDone op x
 diff --git a/Data/ByteString/Builder/Prim/ASCII.hs b/Data/ByteString/Builder/Prim/ASCII.hs
 index 62bd5be..92c53d7 100644
 --- a/Data/ByteString/Builder/Prim/ASCII.hs
@@ -394,7 +425,7 @@ index 782a42d..60f405a 100644
  
  -- ---------------------------------------------------------------------
 diff --git a/bytestring.cabal b/bytestring.cabal
-index 53d4edf..e056f11 100644
+index 53d4edf..7ed9356 100644
 --- a/bytestring.cabal
 +++ b/bytestring.cabal
 @@ -65,7 +65,7 @@ source-repository head
@@ -406,7 +437,7 @@ index 53d4edf..e056f11 100644
  
  library
    build-depends:     base >= 4.2 && < 5, ghc-prim, deepseq
-@@ -126,17 +126,16 @@ library
+@@ -126,17 +126,19 @@ library
                      -fdicts-cheap
                      -fspec-constr-count=6
  
@@ -419,6 +450,9 @@ index 53d4edf..e056f11 100644
 +    java-sources: java/eta-0.0.9/Utils.java
 +  else
 +    java-sources: java/Utils.java
++
++  if impl(eta >= 0.8.0.3)
++    cpp-options: -DTRAMPOLINE
  
     -- flags for the decimal integer serialization code
    if impl(ghc >= 6.11)

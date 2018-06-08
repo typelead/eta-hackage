@@ -131,6 +131,9 @@ library
   else
     java-sources: java/Utils.java
 
+  if impl(eta >= 0.8.0.3)
+    cpp-options: -DTRAMPOLINE
+
    -- flags for the decimal integer serialization code
   if impl(ghc >= 6.11)
     if !flag(integer-simple)
