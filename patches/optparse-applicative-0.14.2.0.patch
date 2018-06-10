@@ -1,0 +1,49 @@
+From 852201de5d979e7b7e0ef28de80c62b5b3e34ee6 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Sun, 10 Jun 2018 23:21:11 +0200
+Subject: [PATCH] Patched
+
+---
+ Options/Applicative/Builder/Completer.hs | 5 +++--
+ optparse-applicative.cabal               | 2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/Options/Applicative/Builder/Completer.hs b/Options/Applicative/Builder/Completer.hs
+index fea9970..c7f4cbd 100644
+--- a/Options/Applicative/Builder/Completer.hs
++++ b/Options/Applicative/Builder/Completer.hs
+@@ -10,7 +10,7 @@ import Control.Applicative
+ import Prelude
+ import Control.Exception (IOException, try)
+ import Data.List (isPrefixOf)
+-import System.Process (readProcess)
++-- import System.Process (readProcess)
+ 
+ import Options.Applicative.Types
+ 
+@@ -33,7 +33,8 @@ listCompleter = listIOCompleter . pure
+ bashCompleter :: String -> Completer
+ bashCompleter action = Completer $ \word -> do
+   let cmd = unwords ["compgen", "-A", action, "--", requote word]
+-  result <- tryIO $ readProcess "bash" ["-c", cmd] ""
++  result <- tryIO $ error "bashCompleter: unimplemented"
++    -- readProcess "bash" ["-c", cmd] ""
+   return . lines . either (const []) id $ result
+ 
+ tryIO :: IO a -> IO (Either IOException a)
+diff --git a/optparse-applicative.cabal b/optparse-applicative.cabal
+index 2f9a4d2..914c067 100644
+--- a/optparse-applicative.cabal
++++ b/optparse-applicative.cabal
+@@ -78,7 +78,7 @@ library
+   build-depends:       base                            == 4.*
+                      , transformers                    >= 0.2 && < 0.6
+                      , transformers-compat             >= 0.3 && < 0.7
+-                     , process                         >= 1.0 && < 1.7
++                     -- , process                         >= 1.0 && < 1.7
+                      , ansi-wl-pprint                  >= 0.6.6 && < 0.7
+ 
+   if !impl(ghc >= 8)
+-- 
+2.16.2.windows.1
+
