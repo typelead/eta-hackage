@@ -1,14 +1,15 @@
-From e78ef5bbdeb6a0655bb4cf5034a572ecf798e7f7 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sun, 25 Mar 2018 22:22:09 +0530
+From dcebb5ac42780d3509abbcab3dea2db90709002d Mon Sep 17 00:00:00 2001
+From: monser <ouromoros@gmail.com>
+Date: Mon, 11 Jun 2018 15:42:16 +0800
 Subject: [PATCH] Patched
 
 ---
- Data/Streaming/Filesystem.hs    | 58 ++++++++++++++++++++---------------
- Data/Streaming/Text.hs          |  7 ++---
- Data/Streaming/Zlib/Lowlevel.hs | 68 ++++++++++++++++++++---------------------
- streaming-commons.cabal         | 12 --------
- 4 files changed, 70 insertions(+), 75 deletions(-)
+ Data/Streaming/Filesystem.hs    | 58 ++++++++++++++++------------
+ Data/Streaming/Network.hs       |  3 +-
+ Data/Streaming/Text.hs          |  7 ++--
+ Data/Streaming/Zlib/Lowlevel.hs | 68 ++++++++++++++++-----------------
+ streaming-commons.cabal         | 12 ------
+ 5 files changed, 72 insertions(+), 76 deletions(-)
 
 diff --git a/Data/Streaming/Filesystem.hs b/Data/Streaming/Filesystem.hs
 index 6647b91..511d93e 100644
@@ -83,6 +84,27 @@ index 6647b91..511d93e 100644
 +    --         | otherwise -> return FTOther
  
  #endif
+ 
+diff --git a/Data/Streaming/Network.hs b/Data/Streaming/Network.hs
+index 9db77a6..9355d20 100644
+--- a/Data/Streaming/Network.hs
++++ b/Data/Streaming/Network.hs
+@@ -143,6 +143,7 @@ defaultSocketOptions :: SocketType -> [(NS.SocketOption, Int)]
+ defaultSocketOptions sockettype =
+     case sockettype of
+         NS.Datagram -> [(NS.ReuseAddr,1)]
++        NS.ServerSocket _ -> [(NS.ReuseAddr,1)]
+         _           -> [(NS.NoDelay,1), (NS.ReuseAddr,1)]
+ 
+ -- | Attempt to bind a listening @Socket@ on the given host/port using given
+@@ -449,7 +450,7 @@ getSocketTCP host port = getSocketFamilyTCP host port NS.AF_UNSPEC
+ -- the listen queue.
+ bindPortTCP :: Int -> HostPreference -> IO Socket
+ bindPortTCP p s = do
+-    sock <- bindPortGen NS.Stream p s
++    sock <- bindPortGen (NS.ServerSocket NS.Stream) p s
+     NS.listen sock (max 2048 NS.maxListenQueue)
+     return sock
  
 diff --git a/Data/Streaming/Text.hs b/Data/Streaming/Text.hs
 index 543f950..e3ce7c8 100644
@@ -241,5 +263,5 @@ index 6be347c..6e30ced 100644
      build-depends:     bytestring < 0.10.2.0
                       , bytestring-builder
 -- 
-2.7.4 (Apple Git-66)
+2.17.1
 
