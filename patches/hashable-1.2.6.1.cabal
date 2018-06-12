@@ -53,7 +53,7 @@ Library
     Build-depends:   ghc-prim,
                      text >= 0.11.0.5
   if impl(ghc) && flag(integer-gmp)
-    Build-depends:   integer-gmp >= 0.2
+    Build-depends:   integer >= 0.2
 
   if impl(ghc >= 7.2.1)
     CPP-Options:     -DGENERICS
@@ -123,7 +123,7 @@ benchmark benchmarks
     Build-depends:   ghc-prim,
                      text >= 0.11.0.5
   if impl(ghc) && flag(integer-gmp)
-    Build-depends:   integer-gmp >= 0.2
+    Build-depends:   integer >= 0.2
 
   if impl(ghc >= 7.2.1)
     CPP-Options:     -DGENERICS

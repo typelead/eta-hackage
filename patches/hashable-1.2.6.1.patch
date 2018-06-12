@@ -1,14 +1,14 @@
-From 968ce4b8728f1b4a326fc44b919d7566b3327390 Mon Sep 17 00:00:00 2001
+From d896a49c183963960ae03d87754516df2584fc1e Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
 Date: Sat, 14 Apr 2018 00:14:37 +0530
 Subject: [PATCH] Patched
 
 ---
  Data/Hashable/Class.hs    |  8 ++++----
- hashable.cabal            |  6 ++++--
+ hashable.cabal            | 10 ++++++----
  java/Utils.java           | 20 ++++++++++++++++++++
  java/eta-0.0.9/Utils.java | 19 +++++++++++++++++++
- 4 files changed, 47 insertions(+), 6 deletions(-)
+ 4 files changed, 49 insertions(+), 8 deletions(-)
  create mode 100644 java/Utils.java
  create mode 100644 java/eta-0.0.9/Utils.java
 
@@ -46,10 +46,17 @@ index f848d7b..908e02a 100644
  
  -- | Combine two given hash values.  'combine' has zero as a left
 diff --git a/hashable.cabal b/hashable.cabal
-index c782ea4..90aa7fd 100644
+index c782ea4..520b37d 100644
 --- a/hashable.cabal
 +++ b/hashable.cabal
-@@ -59,8 +59,10 @@ Library
+@@ -53,14 +53,16 @@ Library
+     Build-depends:   ghc-prim,
+                      text >= 0.11.0.5
+   if impl(ghc) && flag(integer-gmp)
+-    Build-depends:   integer-gmp >= 0.2
++    Build-depends:   integer >= 0.2
+ 
+   if impl(ghc >= 7.2.1)
      CPP-Options:     -DGENERICS
      Other-modules:   Data.Hashable.Generic
  
@@ -62,6 +69,15 @@ index c782ea4..90aa7fd 100644
  
    Ghc-options:       -Wall
    if impl(ghc >= 6.8)
+@@ -121,7 +123,7 @@ benchmark benchmarks
+     Build-depends:   ghc-prim,
+                      text >= 0.11.0.5
+   if impl(ghc) && flag(integer-gmp)
+-    Build-depends:   integer-gmp >= 0.2
++    Build-depends:   integer >= 0.2
+ 
+   if impl(ghc >= 7.2.1)
+     CPP-Options:     -DGENERICS
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
 index 0000000..b5c124f
