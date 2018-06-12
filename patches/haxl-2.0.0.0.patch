@@ -1,0 +1,33 @@
+From 23eefc89f3cdf51638f0588a5df6af7798ee7a6a Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 12 Jun 2018 13:28:33 +0530
+Subject: [PATCH] Patched
+
+---
+ Haxl/Core/Exception.hs | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/Haxl/Core/Exception.hs b/Haxl/Core/Exception.hs
+index dc210aa..6c4b845 100644
+--- a/Haxl/Core/Exception.hs
++++ b/Haxl/Core/Exception.hs
+@@ -83,7 +83,6 @@ import Data.Typeable
+ import Data.Text (Text)
+ 
+ import Haxl.Core.Util
+-import GHC.Stack
+ 
+ -- | We have a 3-tiered hierarchy of exceptions, with 'HaxlException' at
+ -- the top, and all Haxl exceptions as children of this. Users should
+@@ -117,7 +116,7 @@ type Stack = [String]
+   -- hopefully this will get more informative in the future
+ 
+ instance Show HaxlException where
+-  show (HaxlException (Just stk@(_:_)) e) = show e ++ '\n' : renderStack stk
++  show (HaxlException (Just stk@(_:_)) e) = show e
+   show (HaxlException _ e) = show e
+ 
+ instance Exception HaxlException
+-- 
+2.14.3 (Apple Git-98)
+

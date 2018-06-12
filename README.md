@@ -174,6 +174,7 @@ These packages are supported by `etlas`.
 - [groups-0.4.0.0](https://hackage.haskell.org/package/groups-0.4.0.0)
 - [hashable >= 1.2.4.0 && <= 1.2.6.1](https://hackage.haskell.org/package/hashable)
 - [hashtables >= 1.2.1.0 && <= 1.2.2.1](https://hackage.haskell.org/package/hashtables)
+- [haxl-2.0.0.0](http://hackage.haskell.org/package/haxl)
 - [heap-1.0.3](https://hackage.haskell.org/package/heap-1.0.3)
 - [heaps-0.3.3](https://hackage.haskell.org/package/heaps-0.3.3)
 - [heist-1.0.1.1](https://hackage.haskell.org/package/heist-1.0.1.1)
