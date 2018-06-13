@@ -1,0 +1,60 @@
+name:           crypto-api
+version:        0.13.2
+license:        BSD3
+license-file:   LICENSE
+copyright:      Thomas DuBuisson <thomas.dubuisson@gmail.com>
+author:         Thomas DuBuisson <thomas.dubuisson@gmail.com>, Francisco Blas Izquierdo Riera (klondike)
+maintainer:     Thomas DuBuisson <thomas.dubuisson@gmail.com>
+description:    A generic interface for cryptographic operations (hashes, ciphers, randomness).
+
+                Maintainers of hash and cipher implementations are
+                encouraged to add instances for the classes defined
+                in Crypto.Classes.  Crypto users are similarly
+                encouraged to use the interfaces defined in the Classes
+                module.
+
+                Any concepts or functions of general use to more than
+                one cryptographic algorithm (ex: padding) is within
+                scope of this package.
+synopsis:       A generic interface for cryptographic operations
+category:       Data, Cryptography
+homepage:       https://github.com/TomMD/crypto-api
+bug-reports:    https://github.com/TomMD/crypto-api
+stability:      stable
+build-type:     Simple
+cabal-version:  >= 1.6
+tested-with:    GHC == 7.6.2
+extra-source-files:
+  cbits/misc.c
+  cbits/misc.h
+
+Flag ALL_CPOLYS
+  Description: Build all the CMAC polynomes up to 10000 bits instead of just the usual ones
+  Default:     False
+  Manual:      True
+
+Library
+  Build-Depends: base == 4.*,
+                 bytestring >= 0.9,
+                 cereal >= 0.2,
+                 tagged >= 0.1,
+                 entropy, transformers
+  ghc-options:
+  hs-source-dirs:
+  exposed-modules: Crypto.Classes, Crypto.Types, Crypto.HMAC,
+                   Crypto.Random, Crypto.Padding, Crypto.Modes,
+                   Crypto.Util, Crypto.Classes.Exceptions
+  other-modules: Crypto.CPoly
+  extensions: ForeignFunctionInterface, MultiParamTypeClasses,
+              BangPatterns, FunctionalDependencies, FlexibleInstances,
+              TypeSynonymInstances
+  java-sources: java/Utils.java
+  include-dirs: cbits
+  if flag(ALL_CPOLYS)
+    Build-Depends: array
+    cpp-options: -DALL_CPOLYS
+
+
+source-repository head
+  type:     git
+  location: https://github.com/TomMD/crypto-api

@@ -1,0 +1,63 @@
+From ccb2a72a315bb77fbd5910744bf38b1ceadcefdd Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 13 Jun 2018 06:43:00 +0530
+Subject: [PATCH] Patched
+
+---
+ Crypto/Util.hs   |  2 +-
+ crypto-api.cabal |  2 +-
+ java/Utils.java  | 16 ++++++++++++++++
+ 3 files changed, 18 insertions(+), 2 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Crypto/Util.hs b/Crypto/Util.hs
+index 09cea60..05a0d13 100644
+--- a/Crypto/Util.hs
++++ b/Crypto/Util.hs
+@@ -71,7 +71,7 @@ constTimeEq s1 s2 =
+       then return False
+       else (== 0) `fmap` c_constTimeEq s1_ptr s2_ptr (fromIntegral s1_len)
+ 
+-foreign import ccall unsafe
++foreign import java unsafe "@static eta.cryptoapi.Utils.constTimeEq"
+    c_constTimeEq :: Ptr CChar -> Ptr CChar -> CInt -> IO CInt
+ 
+ -- |Helper function to convert bytestrings to integers
+diff --git a/crypto-api.cabal b/crypto-api.cabal
+index 6923ce0..37d1bd5 100644
+--- a/crypto-api.cabal
++++ b/crypto-api.cabal
+@@ -48,7 +48,7 @@ Library
+   extensions: ForeignFunctionInterface, MultiParamTypeClasses,
+               BangPatterns, FunctionalDependencies, FlexibleInstances,
+               TypeSynonymInstances
+-  c-sources: cbits/misc.c
++  java-sources: java/Utils.java
+   include-dirs: cbits
+   if flag(ALL_CPOLYS)
+     Build-Depends: array
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..da6bf95
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,16 @@
++package eta.cryptoapi;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.MemoryManager;
++
++public class Utils {
++    public int constTimeEq(long address1, long address2, int n) {
++        ByteBuffer b1 = MemoryManager.getBoundedBuffer(address1);
++        ByteBuffer b2 = MemoryManager.getBoundedBuffer(address2);
++        int ret = 0;
++        for (int i = 0; i < n; i++) {
++            ret = ret | ((b1.get() & 0xFF) ^ (b2.get() & 0xFF));
++        }
++        return ret;
++    }
++}
+-- 
+2.7.4 (Apple Git-66)
+

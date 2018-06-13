@@ -118,6 +118,7 @@ These packages are supported by `etlas`.
 - [convertible-1.1.1.0](https://hackage.haskell.org/package/convertible-1.1.1.0)
 - [crackNum-1.9](https://hackage.haskell.org/package/crackNum-1.9)
 - [crdt >= 9.3 && <= 10.0](https://hackage.haskell.org/package/crdt)
+- [crypto-api-0.13.2](https://hackage.haskell.org/package/crypto-api-0.13.2)
 - [crypto-pubkey-types-0.4.3](https://hackage.haskell.org/package/crypto-pubkey-types-0.4.3)
 - [cryptonite-0.24](https://hackage.haskell.org/package/cryptonite-0.24)
 - [cryptohash-md5-0.11.100.1](http://hackage.haskell.org/package/cryptohash-md5)
