@@ -1,19 +1,149 @@
-From 131b781d27ddbca42acd83cafdedfb9d7cfc0595 Mon Sep 17 00:00:00 2001
-From: jneira <atreyu.bbb@gmail.com>
-Date: Tue, 20 Mar 2018 08:27:25 +0100
+From a3fb1fea201d2530ccc679a5cf6fb3deb1b4fe85 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 14 Jun 2018 16:26:15 +0530
 Subject: [PATCH] Patched
 
 ---
- x509-system.cabal | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ System/X509.hs    | 31 +++++++++++++++++-----
+ java/Utils.java   | 77 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ x509-system.cabal | 19 +++++++-------
+ 3 files changed, 111 insertions(+), 16 deletions(-)
+ create mode 100644 java/Utils.java
 
+diff --git a/System/X509.hs b/System/X509.hs
+index 57e004b..e472009 100644
+--- a/System/X509.hs
++++ b/System/X509.hs
+@@ -10,10 +10,27 @@ module System.X509
+     ( getSystemCertificateStore
+     ) where
+ 
+-#if defined(WINDOWS)
+-import System.X509.Win32
+-#elif defined(MACOSX)
+-import System.X509.MacOS
+-#else
+-import System.X509.Unix
+-#endif
++import Data.X509
++import Data.X509.CertificateStore
++
++import Java
++import Data.Either
++import Control.Monad
++import qualified Data.ByteString as B
++import qualified Data.ByteString.Internal as B
++import qualified Data.ByteString.Lazy as B
++import Foreign.Ptr
++
++foreign import java unsafe "@static eta.x509_system.Utils.getSystemCertificates"
++  getSystemCertificates :: IO (List JByteArray)
++
++foreign import java unsafe "@static eta.x509_system.Utils.writeBytes"
++  writeBytes :: JByteArray -> Ptr a -> IO ()
++
++getSystemCertificateStore :: IO CertificateStore
++getSystemCertificateStore = do
++  certs <- getSystemCertificates
++  eCerts<- forM (fromJava certs) $ \bytes -> do
++             len <- javaWith bytes alength
++             decodeSignedCertificate <$> B.create len (writeBytes bytes)
++  return $ makeCertificateStore $ rights eCerts
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..919e257
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,77 @@
++package eta.x509_system;
++
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.List;
++import java.util.Set;
++import java.io.File;
++import java.io.FileInputStream;
++import java.io.IOException;
++import java.security.InvalidAlgorithmParameterException;
++import java.security.KeyStore;
++import java.security.KeyStoreException;
++import java.security.NoSuchAlgorithmException;
++import java.security.cert.CertificateException;
++import java.security.cert.PKIXParameters;
++import java.security.cert.TrustAnchor;
++import java.security.cert.X509Certificate;
++import javax.security.cert.CertificateEncodingException;
++
++import eta.runtime.io.MemoryManager;
++
++public class Utils {
++
++    public static List<byte[]> getSystemCertificates() throws CertificateEncodingException,
++        IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException,
++        InvalidAlgorithmParameterException {
++        Set<TrustAnchor> anchors = getTrustAnchors();
++        ArrayList<byte[]> anchorBytesList = new ArrayList<byte[]>(anchors.size());
++        for (TrustAnchor ta: anchors) {
++            X509Certificate cert = ta.getTrustedCert();
++            if (cert != null) {
++                anchorBytesList.add(cert.getEncoded());
++            }
++        }
++        return anchorBytesList;
++    }
++
++    public static void writeBytes(byte[] bytes, long address) {
++        MemoryManager.getBoundedBuffer(address).put(bytes);
++    }
++
++    private static final String TRUST_STORE =
++        System.getProperty("javax.net.ssl.trustStore");
++    private static final String TRUST_STORE_PASSWORD =
++        System.getProperty("javax.net.ssl.trustStorePassword");
++    private static final String TRUST_STORE_TYPE =
++        System.getProperty("javax.net.ssl.trustStoreType");
++    private static final String JAVA_HOME_ = System.getProperty("java.home");
++    private static final String JAVA_HOME = (JAVA_HOME_ == null)? "" : JAVA_HOME_;
++    private static final String[] DEFAULT_CERT_PATHS =
++        new String[] { TRUST_STORE,
++                       JAVA_HOME + "/lib/security/jssecacerts",
++                       JAVA_HOME + "/lib/security/cacerts" };
++
++
++    private static Set<TrustAnchor> getTrustAnchors() throws
++        IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException,
++        InvalidAlgorithmParameterException {
++        for (String s: DEFAULT_CERT_PATHS) {
++            if (s != null) {
++                File f = new File(s.replace('/', File.separatorChar));
++                if (f.exists()) {
++                    FileInputStream is = new FileInputStream(f);
++                    String trustStoreType = (TRUST_STORE_TYPE == null)?
++                        KeyStore.getDefaultType() : TRUST_STORE_TYPE;
++                    KeyStore keystore = KeyStore.getInstance(trustStoreType);
++                    char[] trustStorePassword = (TRUST_STORE_PASSWORD == null)?
++                        null : TRUST_STORE_PASSWORD.toCharArray();
++                    keystore.load(is, trustStorePassword);
++                    return new PKIXParameters(keystore).getTrustAnchors();
++                }
++            }
++        }
++        return Collections.emptySet();
++    }
++}
++
 diff --git a/x509-system.cabal b/x509-system.cabal
-index 95a21a1..3ee93e1 100644
+index 95a21a1..0da4583 100644
 --- a/x509-system.cabal
 +++ b/x509-system.cabal
-@@ -29,13 +29,13 @@ Library
-                      System.X509.Unix
-                      System.X509.MacOS
+@@ -26,16 +26,17 @@ Library
+                    , x509 >= 1.6
+                    , x509-store >= 1.6.2
+   Exposed-modules:   System.X509
+-                     System.X509.Unix
+-                     System.X509.MacOS
++                     -- System.X509.Unix
++                     -- System.X509.MacOS
    ghc-options:       -Wall
 -  if os(windows)
 -     cpp-options:     -DWINDOWS
@@ -22,6 +152,7 @@ index 95a21a1..3ee93e1 100644
 -     Exposed-modules: System.X509.Win32
 -  if os(OSX)
 -     cpp-options: -DMACOSX
++  java-sources:      java/Utils.java
 +--  if os(windows)
 +--     cpp-options:     -DWINDOWS
 +--     Build-Depends:   Win32, asn1-encoding
@@ -33,5 +164,5 @@ index 95a21a1..3ee93e1 100644
  source-repository head
    type:     git
 -- 
-2.16.2.windows.1
+2.7.4 (Apple Git-66)
 
