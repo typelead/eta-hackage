@@ -1,14 +1,14 @@
-From e6e54ec870645b67a0911d0c358ab0d7d87a1b53 Mon Sep 17 00:00:00 2001
+From 5869c52179c8e2d85c6314a1c795b3ffb7f23a39 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Wed, 24 Jan 2018 19:52:04 +0530
+Date: Thu, 14 Jun 2018 10:13:29 +0530
 Subject: [PATCH] Patched
 
 ---
  Data/Memory/Internal/CompatPrim64.hs |   3 +-
  Data/Memory/MemMap/Posix.hs          | 220 ++++++++++++++++++++++++++++++++++
  Data/Memory/MemMap/Posix.hsc         | 222 -----------------------------------
- Data/Memory/PtrMethods.hs            |   4 +-
- 4 files changed, 223 insertions(+), 226 deletions(-)
+ Data/Memory/PtrMethods.hs            |  14 ++-
+ 4 files changed, 231 insertions(+), 228 deletions(-)
  create mode 100644 Data/Memory/MemMap/Posix.hs
  delete mode 100644 Data/Memory/MemMap/Posix.hsc
 
@@ -481,20 +481,28 @@ index 16bc246..0000000
 -sysconfPageSize :: Int
 -sysconfPageSize = fromIntegral $ c_sysconf (#const _SC_PAGESIZE)
 diff --git a/Data/Memory/PtrMethods.hs b/Data/Memory/PtrMethods.hs
-index 51cb89a..967c397 100644
+index 51cb89a..5c1d469 100644
 --- a/Data/Memory/PtrMethods.hs
 +++ b/Data/Memory/PtrMethods.hs
-@@ -106,8 +106,8 @@ memConstEqual p1 p2 n = loop 0 0
+@@ -106,8 +106,14 @@ memConstEqual p1 p2 n = loop 0 0
              e <- xor <$> peekByteOff p1 i <*> (peekByteOff p2 i :: IO Word8)
              loop (i+1) (acc .|. e)
  
 -foreign import ccall unsafe "memset"
-+foreign import java unsafe "@static eta.base.Utils.c_memset"
-     c_memset :: Ptr Word8 -> Word8 -> CSize -> IO ()
+-    c_memset :: Ptr Word8 -> Word8 -> CSize -> IO ()
++c_memset :: Ptr Word8 -> Word8 -> CSize -> IO ()
++c_memset a b c = c_memset_ a b c >> return ()
  
 -foreign import ccall unsafe "memcpy"
+-    c_memcpy :: Ptr Word8 -> Ptr Word8 -> CSize -> IO ()
++c_memcpy :: Ptr Word8 -> Ptr Word8 -> CSize -> IO ()
++c_memcpy a b c = c_memcpy_ a b c >> return ()
++
++foreign import java unsafe "@static eta.base.Utils.c_memset"
++    c_memset_ :: Ptr Word8 -> Word8 -> CSize -> IO (Ptr Word8)
++
 +foreign import java unsafe "@static eta.base.Utils.c_memcpy"
-     c_memcpy :: Ptr Word8 -> Ptr Word8 -> CSize -> IO ()
++    c_memcpy_ :: Ptr Word8 -> Ptr Word8 -> CSize -> IO (Ptr Word8)
 -- 
 2.7.4 (Apple Git-66)
 
