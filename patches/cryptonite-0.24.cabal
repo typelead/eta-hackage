@@ -234,8 +234,6 @@ Library
   java-sources:      java/Utils.java
   default-language:  Haskell2010
 
-  Other-modules:  Crypto.Random.Entropy.Unix
-
   if impl(ghc) && flag(integer-gmp)
     Build-depends:   integer
 
