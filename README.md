@@ -477,7 +477,7 @@ If you have already forked this repository, then skip to step 3.
 4. If the previous version of the package has already been patched, try out:
 
    ```
-   git apply --ignore-space-change --ignore-whitespace --reject [path-to-path]
+   git apply --reject [path-to-patch]
    ```
 
    This will work in most cases. If not, resolve the changes.
