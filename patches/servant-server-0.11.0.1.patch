@@ -1,0 +1,250 @@
+From 0a8587fc8e7e26e00a178a362b38312570e330ef Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Mon, 18 Jun 2018 14:06:24 +0200
+Subject: [PATCH] Patched
+
+---
+ servant-server.cabal                     | 48 +++++++++++++++--------------
+ src/Servant/Utils/StaticFiles.hs         | 46 ++++++++++++++--------------
+ src/Servant/Utils/StaticFilesWaiPatch.hs | 52 ++++++++++++++++++++++++++++++++
+ 3 files changed, 102 insertions(+), 44 deletions(-)
+ create mode 100644 src/Servant/Utils/StaticFilesWaiPatch.hs
+
+diff --git a/servant-server.cabal b/servant-server.cabal
+index f548d27..61cd780 100644
+--- a/servant-server.cabal
++++ b/servant-server.cabal
+@@ -19,7 +19,7 @@ author:              Servant Contributors
+ maintainer:          haskell-servant-maintainers@googlegroups.com
+ copyright:           2014-2016 Zalora South East Asia Pte Ltd, Servant Contributors
+ category:            Servant Web
+-build-type:          Custom
++build-type:          Simple
+ cabal-version:       >=1.10
+ tested-with:
+   GHC==7.8.4
+@@ -35,11 +35,11 @@ source-repository head
+   type: git
+   location: http://github.com/haskell-servant/servant.git
+ 
+-custom-setup
+-  setup-depends:
+-    base >= 4 && <5,
+-    Cabal,
+-    cabal-doctest >= 1.0.1 && <1.1
++-- custom-setup
++--   setup-depends:
++--     base >= 4 && <5,
++--     Cabal,
++--     cabal-doctest >= 1.0.1 && <1.1
+ 
+ library
+   exposed-modules:
+@@ -54,6 +54,8 @@ library
+     Servant.Server.Internal.RoutingApplication
+     Servant.Server.Internal.ServantErr
+     Servant.Utils.StaticFiles
++  other-modules:
++    Servant.Utils.StaticFilesWaiPatch            
+   build-depends:
+         base               >= 4.7  && < 4.11
+       , base-compat        >= 0.9  && < 0.10
+@@ -82,10 +84,12 @@ library
+       , transformers-base  >= 0.4.4 && < 0.5
+       , transformers-compat>= 0.4  && < 0.6
+       , wai                >= 3.0  && < 3.3
+-      , wai-app-static     >= 3.1  && < 3.2
+-      , warp               >= 3.0  && < 3.3
++      -- , wai-app-static     >= 3.1  && < 3.2
++      -- , warp               >= 3.0  && < 3.3
+       , word8              >= 0.1  && < 0.2
+-
++-- needed for static files temp patch
++      , directory >= 1.3.1.0 && <= 1.3.1.0
++      , mime-types >=0.1.0.7 && <= 0.1.0.7
+   hs-source-dirs: src
+   default-language: Haskell2010
+   ghc-options: -Wall
+@@ -93,19 +97,19 @@ library
+     ghc-options: -Wno-redundant-constraints
+   include-dirs: include
+ 
+-executable greet
+-  main-is: greet.hs
+-  hs-source-dirs: example
+-  ghc-options: -Wall
+-  default-language: Haskell2010
+-  build-depends:
+-      base
+-    , servant
+-    , servant-server
+-    , aeson
+-    , warp
+-    , wai
+-    , text
++-- executable greet
++--   main-is: greet.hs
++--   hs-source-dirs: example
++--   ghc-options: -Wall
++--   default-language: Haskell2010
++--   build-depends:
++--       base
++--     , servant
++--     , servant-server
++--     , aeson
++--     , warp
++--     , wai
++--     , text
+ 
+ test-suite spec
+   type: exitcode-stdio-1.0
+diff --git a/src/Servant/Utils/StaticFiles.hs b/src/Servant/Utils/StaticFiles.hs
+index 12fa5e4..6b18627 100644
+--- a/src/Servant/Utils/StaticFiles.hs
++++ b/src/Servant/Utils/StaticFiles.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE CPP #-}
++-- {-# LANGUAGE CPP #-}
+ -- | This module defines server-side handlers that lets you serve static files.
+ --
+ -- The most common needs for a web application are covered by
+@@ -6,24 +6,26 @@
+ -- different `StaticSettings` and 'serveDirectoryWith' even allows you
+ -- to specify arbitrary 'StaticSettings' to be used for serving static files.
+ module Servant.Utils.StaticFiles
+-  ( serveDirectoryWebApp
+-  , serveDirectoryWebAppLookup
+-  , serveDirectoryFileServer
+-  , serveDirectoryEmbedded
++ ( --serveDirectoryWebApp
++  -- , serveDirectoryWebAppLookup
++    serveDirectoryFileServer
++  -- , serveDirectoryEmbedded
+   , serveDirectoryWith
+   , -- * Deprecated
+     serveDirectory
+   ) where
+ 
+-import           Data.ByteString                (ByteString)
+-import           Network.Wai.Application.Static
++-- import           Data.ByteString                (ByteString)
++import           Servant.Utils.StaticFilesWaiPatch
++-- import           Network.Wai.Application.Static
+ import           Servant.API.Raw                (Raw)
+ import           Servant.Server                 (Server, Tagged (..))
+ import           System.FilePath                (addTrailingPathSeparator)
+-#if !MIN_VERSION_wai_app_static(3,1,0)
+-import           Filesystem.Path.CurrentOS      (decodeString)
+-#endif
+-import WaiAppStatic.Storage.Filesystem          (ETagLookup)
++-- #if !MIN_VERSION_wai_app_static(3,1,0)
++-- import           Filesystem.Path.CurrentOS      (decodeString)
++-- #endif
++-- import WaiAppStatic.Storage.Filesystem          (ETagLookup)
++
+ 
+ -- | Serve anything under the specified directory as a 'Raw' endpoint.
+ --
+@@ -47,21 +49,21 @@ import WaiAppStatic.Storage.Filesystem          (ETagLookup)
+ -- in order.
+ --
+ -- Corresponds to the `defaultWebAppSettings` `StaticSettings` value.
+-serveDirectoryWebApp :: FilePath -> Server Raw
+-serveDirectoryWebApp = serveDirectoryWith . defaultWebAppSettings . fixPath
++--serveDirectoryWebApp :: FilePath -> Server Raw
++--serveDirectoryWebApp = serveDirectoryWith . defaultWebAppSettings . fixPath
+ 
+ -- | Same as 'serveDirectoryWebApp', but uses `defaultFileServerSettings`.
+ serveDirectoryFileServer :: FilePath -> Server Raw
+ serveDirectoryFileServer = serveDirectoryWith . defaultFileServerSettings . fixPath
+ 
+ -- | Same as 'serveDirectoryWebApp', but uses 'webAppSettingsWithLookup'.
+-serveDirectoryWebAppLookup :: ETagLookup -> FilePath -> Server Raw
+-serveDirectoryWebAppLookup etag =
+-  serveDirectoryWith . flip webAppSettingsWithLookup etag . fixPath
++--serveDirectoryWebAppLookup :: ETagLookup -> FilePath -> Server Raw
++--serveDirectoryWebAppLookup etag =
++--  serveDirectoryWith . flip webAppSettingsWithLookup etag . fixPath
+ 
+ -- | Uses 'embeddedSettings'.
+-serveDirectoryEmbedded :: [(FilePath, ByteString)] -> Server Raw
+-serveDirectoryEmbedded files = serveDirectoryWith (embeddedSettings files)
++--serveDirectoryEmbedded :: [(FilePath, ByteString)] -> Server Raw
++--serveDirectoryEmbedded files = serveDirectoryWith (embeddedSettings files)
+ 
+ -- | Alias for 'staticApp'. Lets you serve a directory
+ --   with arbitrary 'StaticSettings'. Useful when you want
+@@ -79,8 +81,8 @@ serveDirectory = serveDirectoryFileServer
+ 
+ fixPath :: FilePath -> FilePath
+ fixPath =
+-#if MIN_VERSION_wai_app_static(3,1,0)
++-- #if MIN_VERSION_wai_app_static(3,1,0)
+     addTrailingPathSeparator
+-#else
+-    decodeString . addTrailingPathSeparator
+-#endif
++-- #else
++--    decodeString . addTrailingPathSeparator
++-- #endif
+diff --git a/src/Servant/Utils/StaticFilesWaiPatch.hs b/src/Servant/Utils/StaticFilesWaiPatch.hs
+new file mode 100644
+index 0000000..19b2c19
+--- /dev/null
++++ b/src/Servant/Utils/StaticFilesWaiPatch.hs
+@@ -0,0 +1,52 @@
++-- temp copy of https://hackage.haskell.org/package/wai-app-static-3.1.6.1/docs/Network-Wai-Application-Static.html
++{-# LANGUAGE OverloadedStrings #-}
++
++module Servant.Utils.StaticFilesWaiPatch where
++
++import qualified Network.Wai as W
++import qualified Network.HTTP.Types as H
++import qualified Network.Mime as M
++import Data.Text (Text)
++import qualified Data.Text as T
++import qualified Data.ByteString.Char8 as BS
++import qualified Data.ByteString.Lazy as LBS 
++import System.FilePath (joinPath)
++import qualified Safe as SF
++import qualified System.Directory as DIR
++
++
++data StaticSettings = StaticSettings FilePath
++
++defaultFileServerSettings :: FilePath -- ^ root folder to serve from
++                      -> StaticSettings
++defaultFileServerSettings = StaticSettings
++
++staticApp :: StaticSettings -> W.Application
++staticApp set req = staticAppPieces set (W.pathInfo req) req
++
++staticAppPieces :: StaticSettings -> [Text] -> W.Application
++staticAppPieces (StaticSettings root) pieces _ respond = 
++     let filePath = joinPath $ map T.unpack (T.pack root : pieces)
++         contentType = M.mimeByExt M.defaultMimeMap "application/text" (SF.lastDef "" pieces)
++     in do 
++        fileExists <- regularFileExistsAndIsReadable filePath
++        res <- if fileExists 
++               then do
++                   contentBody <- LBS.readFile filePath
++                   let contentLength = LBS.length contentBody
++                   respond $ W.responseLBS H.status200
++                            [("Content-Type", contentType), 
++                             ("Content-Length", BS.pack $ show $ contentLength)] 
++                            contentBody
++               else 
++                   respond $ W.responseLBS H.status404 
++                            [("Content-Type", "text/plain")] 
++                            "File not found"
++        return res 
++
++regularFileExistsAndIsReadable:: FilePath -> IO Bool
++regularFileExistsAndIsReadable filePath = do
++     exists <- DIR.doesFileExist filePath
++     if exists
++     then fmap DIR.readable $ DIR.getPermissions filePath
++     else return False
+-- 
+2.16.2.windows.1
+

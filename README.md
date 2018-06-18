@@ -320,7 +320,7 @@ These packages are supported by `etlas`.
 - [selda-0.1.9.0](https://hackage.haskell.org/package/selda-0.1.9.0)
 - [servant >= 0.9.1.1 && <= 0.11](https://hackage.haskell.org/package/servant)
 - [servant-docs >= 0.9.1.1 && <= 0.11](https://hackage.haskell.org/package/servant-docs)
-- [servant-server >= 0.9.1.1 && <= 0.11](https://hackage.haskell.org/package/servant-server)
+- [servant-server >= 0.9.1.1 && <= 0.12](https://hackage.haskell.org/package/servant-server)
 - [setenv-0.1.1.3](https://hackage.haskell.org/package/setenv-0.1.1.3)
 - [scientific >= 0.3.4.9 && <= 0.3.5.1](https://hackage.haskell.org/package/scientific)
 - [semigroups >= 0.18.2 && <= 0.18.3](https://hackage.haskell.org/package/semigroups)
