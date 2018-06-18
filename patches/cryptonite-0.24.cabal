@@ -229,7 +229,7 @@ Library
                    , memory >= 0.14.5
                    , foundation >= 0.0.8
                    , ghc-prim
-  maven-depends:     org.bouncycastle:bcprov-jdk15on:1.58
+  maven-depends:     org.bouncycastle:bcprov-jdk15on:1.59
   ghc-options:       -Wall -fwarn-tabs -optc-O3 -fno-warn-unused-imports
   java-sources:      java/Utils.java
   default-language:  Haskell2010

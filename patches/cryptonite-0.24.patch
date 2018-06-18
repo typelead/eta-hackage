@@ -1,137 +1,239 @@
-From 1f7676058f324b8a3fc1d808a198a404c58b803d Mon Sep 17 00:00:00 2001
+From f8c269d555e49b0e8496da9e68c61dd4627ad673 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
 Date: Thu, 14 Jun 2018 12:49:10 +0530
 Subject: [PATCH] Patched
 
 ---
- Crypto/Cipher/AES/Primitive.hs   |  80 ++++++++++-----------
- Crypto/Cipher/ChaCha.hs          |  97 +++++++++++++------------
- Crypto/Cipher/RC4.hs             |  22 +++---
- Crypto/Cipher/Salsa.hs           |  12 ++--
+ Crypto/Cipher/AES/Primitive.hs   | 131 ++++++++-------
+ Crypto/Cipher/ChaCha.hs          |  97 +++++------
+ Crypto/Cipher/RC4.hs             |  22 +--
+ Crypto/Cipher/Salsa.hs           |  12 +-
  Crypto/Cipher/XSalsa.hs          |   4 +-
- Crypto/Hash.hs                   |  24 ++++---
- Crypto/Hash/Blake2.hs            | 108 ++++++++++++++--------------
- Crypto/Hash/Blake2b.hs           |  47 +++++-------
- Crypto/Hash/Blake2bp.hs          |  22 +++---
- Crypto/Hash/Blake2s.hs           |  39 +++++-----
- Crypto/Hash/Blake2sp.hs          |  30 ++++----
- Crypto/Hash/IO.hs                |  29 +++-----
- Crypto/Hash/Keccak.hs            |  39 ++++------
- Crypto/Hash/MD2.hs               |  19 +++--
- Crypto/Hash/MD4.hs               |  19 +++--
- Crypto/Hash/MD5.hs               |  23 +++---
- Crypto/Hash/RIPEMD160.hs         |  19 +++--
- Crypto/Hash/SHA1.hs              |  19 +++--
- Crypto/Hash/SHA224.hs            |  23 +++---
- Crypto/Hash/SHA256.hs            |  23 +++---
- Crypto/Hash/SHA3.hs              |  38 ++++------
- Crypto/Hash/SHA384.hs            |  23 +++---
- Crypto/Hash/SHA512.hs            |  23 +++---
- Crypto/Hash/SHA512t.hs           |  35 ++++-----
- Crypto/Hash/SHAKE.hs             |  46 ++++++------
- Crypto/Hash/Skein256.hs          |  39 +++++-----
- Crypto/Hash/Skein512.hs          |  58 +++++++--------
- Crypto/Hash/Tiger.hs             |  22 +++---
- Crypto/Hash/Types.hs             |  49 ++++++++++---
- Crypto/Hash/Whirlpool.hs         |  22 +++---
- Crypto/KDF/Argon2.hs             |  16 ++---
- Crypto/KDF/PBKDF2.hs             |  12 ++--
+ Crypto/Hash.hs                   |  24 +--
+ Crypto/Hash/Blake2.hs            | 108 ++++++------
+ Crypto/Hash/Blake2b.hs           |  47 ++----
+ Crypto/Hash/Blake2bp.hs          |  22 ++-
+ Crypto/Hash/Blake2s.hs           |  39 ++---
+ Crypto/Hash/Blake2sp.hs          |  30 ++--
+ Crypto/Hash/IO.hs                |  29 +---
+ Crypto/Hash/Keccak.hs            |  39 ++---
+ Crypto/Hash/MD2.hs               |  19 +--
+ Crypto/Hash/MD4.hs               |  19 +--
+ Crypto/Hash/MD5.hs               |  23 ++-
+ Crypto/Hash/RIPEMD160.hs         |  19 +--
+ Crypto/Hash/SHA1.hs              |  19 +--
+ Crypto/Hash/SHA224.hs            |  23 ++-
+ Crypto/Hash/SHA256.hs            |  23 ++-
+ Crypto/Hash/SHA3.hs              |  38 ++---
+ Crypto/Hash/SHA384.hs            |  23 ++-
+ Crypto/Hash/SHA512.hs            |  23 ++-
+ Crypto/Hash/SHA512t.hs           |  35 ++--
+ Crypto/Hash/SHAKE.hs             |  46 +++--
+ Crypto/Hash/Skein256.hs          |  39 +++--
+ Crypto/Hash/Skein512.hs          |  58 +++----
+ Crypto/Hash/Tiger.hs             |  22 +--
+ Crypto/Hash/Types.hs             |  49 +++++-
+ Crypto/Hash/Whirlpool.hs         |  22 +--
+ Crypto/KDF/Argon2.hs             |  16 +-
+ Crypto/KDF/PBKDF2.hs             |  12 +-
  Crypto/KDF/Scrypt.hs             |   4 +-
- Crypto/MAC/Poly1305.hs           |  57 ++++++++-------
- Crypto/PubKey/Curve25519.hs      |   4 +-
- Crypto/PubKey/Curve448.hs        |  14 ++--
- Crypto/PubKey/ECC/P256.hs        |  79 +++++++++++----------
- Crypto/PubKey/Ed25519.hs         |  38 +++++-----
- Crypto/PubKey/Ed448.hs           |  12 ++--
- Crypto/Random/Entropy/Backend.hs |  32 ++++-----
- Crypto/Random/Entropy/RDRand.hs  |   8 +--
- cryptonite.cabal                 | 131 ++--------------------------------
- java/Utils.java                  | 150 +++++++++++++++++++++++++++++++++++++++
- 43 files changed, 794 insertions(+), 816 deletions(-)
+ Crypto/MAC/Poly1305.hs           |  57 ++++---
+ Crypto/PubKey/Curve25519.hs      |  10 +-
+ Crypto/PubKey/Curve448.hs        |  14 +-
+ Crypto/PubKey/ECC/P256.hs        |  79 ++++-----
+ Crypto/PubKey/Ed25519.hs         |  38 ++---
+ Crypto/PubKey/Ed448.hs           |  12 +-
+ Crypto/Random/Entropy/Backend.hs |  32 ++--
+ Crypto/Random/Entropy/RDRand.hs  |   8 +-
+ cryptonite.cabal                 | 131 +--------------
+ java/Utils.java                  | 350 +++++++++++++++++++++++++++++++++++++++
+ 43 files changed, 1027 insertions(+), 840 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/Crypto/Cipher/AES/Primitive.hs b/Crypto/Cipher/AES/Primitive.hs
-index 5e26174..ec51b8d 100644
+index 5e26174..f4c521b 100644
 --- a/Crypto/Cipher/AES/Primitive.hs
 +++ b/Crypto/Cipher/AES/Primitive.hs
-@@ -448,63 +448,63 @@ ocbFinish ctx ocb taglen = AuthTag $ B.take taglen computeTag
+@@ -58,6 +58,7 @@ import           Crypto.Internal.Compat
+ import           Crypto.Internal.Imports
+ import           Crypto.Internal.ByteArray (ByteArray, ByteArrayAccess, ScrubbedBytes, withByteArray)
+ import qualified Crypto.Internal.ByteArray as B
++import System.IO.Unsafe
+ 
+ instance Cipher AES where
+     cipherName    _ = "AES"
+@@ -98,13 +99,19 @@ ocbMode aes = AEADModeImpl
+ 
+ 
+ -- | AES Context (pre-processed key)
+-newtype AES = AES ScrubbedBytes
++newtype AES = AES AESEngine
+     deriving (NFData)
+ 
++instance NFData AESEngine where
++  rnf x = x `seq` ()
++
+ -- | AESGCM State
+-newtype AESGCM = AESGCM ScrubbedBytes
++newtype AESGCM = AESGCM GCMBlockCipher
+     deriving (NFData)
+ 
++instance NFData GCMBlockCipher where
++  rnf x = x `seq` ()
++
+ -- | AESOCB State
+ newtype AESOCB = AESOCB ScrubbedBytes
+     deriving (NFData)
+@@ -116,7 +123,7 @@ sizeOCB :: Int
+ sizeOCB = 160
+ 
+ keyToPtr :: AES -> (Ptr AES -> IO a) -> IO a
+-keyToPtr (AES b) f = withByteArray b (f . castPtr)
++keyToPtr (AES b) f = error "keyToPtr" -- withByteArray b (f . castPtr)
+ 
+ ivToPtr :: ByteArrayAccess iv => iv -> (Ptr Word8 -> IO a) -> IO a
+ ivToPtr iv f = withByteArray iv (f . castPtr)
+@@ -135,15 +142,14 @@ withKey2AndIV :: ByteArrayAccess iv => AES -> AES -> iv -> (Ptr AES -> Ptr AES -
+ withKey2AndIV key1 key2 iv f =
+     keyToPtr key1 $ \kptr1 -> keyToPtr key2 $ \kptr2 -> ivToPtr iv $ \ivp -> f kptr1 kptr2 ivp
+ 
+-withGCMKeyAndCopySt :: AES -> AESGCM -> (Ptr AESGCM -> Ptr AES -> IO a) -> IO (a, AESGCM)
+-withGCMKeyAndCopySt aes (AESGCM gcmSt) f =
+-    keyToPtr aes $ \aesPtr -> do
+-        newSt <- B.copy gcmSt (\_ -> return ())
+-        a     <- withByteArray newSt $ \gcmStPtr -> f (castPtr gcmStPtr) aesPtr
+-        return (a, AESGCM newSt)
++withGCMKeyAndCopySt :: AES -> AESGCM -> (GCMBlockCipher -> AESEngine -> IO a) -> IO (a, AESGCM)
++withGCMKeyAndCopySt (AES aesSt) (AESGCM gcmSt) f = do
++    let newSt = gcmSt
++    a <- f gcmSt aesSt
++    return (a, AESGCM newSt)
+ 
+-withNewGCMSt :: AESGCM -> (Ptr AESGCM -> IO ()) -> IO AESGCM
+-withNewGCMSt (AESGCM gcmSt) f = B.copy gcmSt (f . castPtr) >>= \sm2 -> return (AESGCM sm2)
++withNewGCMSt :: AESGCM -> (GCMBlockCipher -> IO ()) -> IO AESGCM
++withNewGCMSt (AESGCM gcmSt) f = f gcmSt >> return (AESGCM gcmSt)
+ 
+ withOCBKeyAndCopySt :: AES -> AESOCB -> (Ptr AESOCB -> Ptr AES -> IO a) -> IO (a, AESOCB)
+ withOCBKeyAndCopySt aes (AESOCB gcmSt) f =
+@@ -157,14 +163,14 @@ withOCBKeyAndCopySt aes (AESOCB gcmSt) f =
+ -- Key needs to be of length 16, 24 or 32 bytes. Any other values will return failure
+ initAES :: ByteArrayAccess key => key -> CryptoFailable AES
+ initAES k
+-    | len == 16 = CryptoPassed $ initWithRounds 10
+-    | len == 24 = CryptoPassed $ initWithRounds 12
+-    | len == 32 = CryptoPassed $ initWithRounds 14
++    | len == 16 = CryptoPassed $ init
++    | len == 24 = CryptoPassed $ init
++    | len == 32 = CryptoPassed $ init
+     | otherwise = CryptoFailed CryptoError_KeySizeInvalid
+   where len = B.length k
+-        initWithRounds nbR = AES $ B.allocAndFreeze (16+2*2*16*nbR) aesInit
+-        aesInit ptr = withByteArray k $ \ikey ->
+-            c_aes_init (castPtr ptr) (castPtr ikey) (fromIntegral len)
++        init = AES (unsafePerformIO aesInit)
++        aesInit = withByteArray k $ \ikey ->
++            c_aes_init (castPtr ikey) (fromIntegral len)
+ 
+ -- | encrypt using Electronic Code Book (ECB)
+ {-# NOINLINE encryptECB #-}
+@@ -341,10 +347,9 @@ doXTS f (key1,key2) iv spoint input
+ -- | initialize a gcm context
+ {-# NOINLINE gcmInit #-}
+ gcmInit :: ByteArrayAccess iv => AES -> iv -> AESGCM
+-gcmInit ctx iv = unsafeDoIO $ do
+-    sm <- B.alloc sizeGCM $ \gcmStPtr ->
+-            withKeyAndIV ctx iv $ \k v ->
+-            c_aes_gcm_init (castPtr gcmStPtr) k v (fromIntegral $ B.length iv)
++gcmInit (AES ctx) iv = unsafeDoIO $ do
++    sm <- withByteArray iv $ \ivPtr ->
++            c_aes_gcm_init ctx ivPtr (fromIntegral $ B.length iv)
+     return $ AESGCM sm
+ 
+ -- | append data which is only going to be authenticated to the GCM context.
+@@ -447,64 +452,68 @@ ocbFinish ctx ocb taglen = AuthTag $ B.take taglen computeTag
+   where computeTag = B.allocAndFreeze 16 $ \t ->
                          withOCBKeyAndCopySt ctx ocb (c_aes_ocb_finish (castPtr t)) >> return ()
  
++data AESEngine = AESEngine @eta.cryptonite.Utils$AESEngineImpl
++
  ------------------------------------------------------------------------
 -foreign import ccall "cryptonite_aes.h cryptonite_aes_initkey"
 -    c_aes_init :: Ptr AES -> CString -> CUInt -> IO ()
-+c_aes_init :: Ptr AES -> CString -> CUInt -> IO ()
-+c_aes_init = error "c_aes_init: Not implemented yet."
- 
--foreign import ccall "cryptonite_aes.h cryptonite_aes_encrypt_ecb"
--    c_aes_encrypt_ecb :: CString -> Ptr AES -> CString -> CUInt -> IO ()
++foreign import java unsafe "@static eta.cryptonite.Utils.aesInit"
++  c_aes_init :: CString -> CUInt -> IO AESEngine
++
 +c_aes_encrypt_ecb :: CString -> Ptr AES -> CString -> CUInt -> IO ()
 +c_aes_encrypt_ecb = error "c_aes_encrypt_ecb: Not implemented yet."
  
--foreign import ccall "cryptonite_aes.h cryptonite_aes_decrypt_ecb"
--    c_aes_decrypt_ecb :: CString -> Ptr AES -> CString -> CUInt -> IO ()
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_encrypt_ecb"
+-    c_aes_encrypt_ecb :: CString -> Ptr AES -> CString -> CUInt -> IO ()
 +c_aes_decrypt_ecb :: CString -> Ptr AES -> CString -> CUInt -> IO ()
 +c_aes_decrypt_ecb = error "c_aes_decrypt_ecb: Not implemented yet."
  
--foreign import ccall "cryptonite_aes.h cryptonite_aes_encrypt_cbc"
--    c_aes_encrypt_cbc :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_decrypt_ecb"
+-    c_aes_decrypt_ecb :: CString -> Ptr AES -> CString -> CUInt -> IO ()
 +c_aes_encrypt_cbc :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
 +c_aes_encrypt_cbc = error "c_aes_encrypt_cbc: Not implemented yet."
  
--foreign import ccall "cryptonite_aes.h cryptonite_aes_decrypt_cbc"
--    c_aes_decrypt_cbc :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_encrypt_cbc"
+-    c_aes_encrypt_cbc :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
 +c_aes_decrypt_cbc :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
 +c_aes_decrypt_cbc = error "c_aes_decrypt_cbc: Not implemented yet."
  
--foreign import ccall "cryptonite_aes.h cryptonite_aes_encrypt_xts"
--    c_aes_encrypt_xts :: CString -> Ptr AES -> Ptr AES -> Ptr Word8 -> CUInt -> CString -> CUInt -> IO ()
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_decrypt_cbc"
+-    c_aes_decrypt_cbc :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
 +c_aes_encrypt_xts :: CString -> Ptr AES -> Ptr AES -> Ptr Word8 -> CUInt -> CString -> CUInt -> IO ()
 +c_aes_encrypt_xts = error "c_aes_encrypt_xts: Not implemented yet."
  
--foreign import ccall "cryptonite_aes.h cryptonite_aes_decrypt_xts"
--    c_aes_decrypt_xts :: CString -> Ptr AES -> Ptr AES -> Ptr Word8 -> CUInt -> CString -> CUInt -> IO ()
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_encrypt_xts"
+-    c_aes_encrypt_xts :: CString -> Ptr AES -> Ptr AES -> Ptr Word8 -> CUInt -> CString -> CUInt -> IO ()
 +c_aes_decrypt_xts :: CString -> Ptr AES -> Ptr AES -> Ptr Word8 -> CUInt -> CString -> CUInt -> IO ()
 +c_aes_decrypt_xts = error "c_aes_decrypt_xts: Not implemented yet."
  
--foreign import ccall "cryptonite_aes.h cryptonite_aes_gen_ctr"
--    c_aes_gen_ctr :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_decrypt_xts"
+-    c_aes_decrypt_xts :: CString -> Ptr AES -> Ptr AES -> Ptr Word8 -> CUInt -> CString -> CUInt -> IO ()
 +c_aes_gen_ctr :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
 +c_aes_gen_ctr = error "c_aes_gen_ctr: Not implemented yet."
  
--foreign import ccall unsafe "cryptonite_aes.h cryptonite_aes_gen_ctr_cont"
--    c_aes_gen_ctr_cont :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_gen_ctr"
+-    c_aes_gen_ctr :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
 +c_aes_gen_ctr_cont :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
 +c_aes_gen_ctr_cont = error "c_aes_gen_ctr_cont: Not implemented yet."
  
--foreign import ccall "cryptonite_aes.h cryptonite_aes_encrypt_ctr"
--    c_aes_encrypt_ctr :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
+-foreign import ccall unsafe "cryptonite_aes.h cryptonite_aes_gen_ctr_cont"
+-    c_aes_gen_ctr_cont :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
 +c_aes_encrypt_ctr :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
 +c_aes_encrypt_ctr = error "c_aes_encrypt_ctr: Not implemented yet."
  
+-foreign import ccall "cryptonite_aes.h cryptonite_aes_encrypt_ctr"
+-    c_aes_encrypt_ctr :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
++data GCMBlockCipher = GCMBlockCipher @eta.cryptonite.Utils$GCMBlockCipherImpl
+ 
 -foreign import ccall "cryptonite_aes.h cryptonite_aes_gcm_init"
 -    c_aes_gcm_init :: Ptr AESGCM -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
-+c_aes_gcm_init :: Ptr AESGCM -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
-+c_aes_gcm_init = error "c_aes_gcm_init: Not implemented yet."
++foreign import java unsafe "@static eta.cryptonite.Utils.aesGcmInit"
++  c_aes_gcm_init :: AESEngine -> Ptr Word8 -> CUInt -> IO GCMBlockCipher
  
 -foreign import ccall "cryptonite_aes.h cryptonite_aes_gcm_aad"
 -    c_aes_gcm_aad :: Ptr AESGCM -> CString -> CUInt -> IO ()
-+c_aes_gcm_aad :: Ptr AESGCM -> CString -> CUInt -> IO ()
-+c_aes_gcm_aad = error "c_aes_gcm_aad: Not implemented yet."
++foreign import java unsafe "@static eta.cryptonite.Utils.aesGcmAad"
++  c_aes_gcm_aad :: GCMBlockCipher -> CString -> CUInt -> IO ()
  
 -foreign import ccall "cryptonite_aes.h cryptonite_aes_gcm_encrypt"
 -    c_aes_gcm_encrypt :: CString -> Ptr AESGCM -> Ptr AES -> CString -> CUInt -> IO ()
-+c_aes_gcm_encrypt :: CString -> Ptr AESGCM -> Ptr AES -> CString -> CUInt -> IO ()
-+c_aes_gcm_encrypt = error "c_aes_gcm_encrypt: Not implemented yet."
++foreign import java unsafe "@static eta.cryptonite.Utils.aesGcmEncrypt"
++  c_aes_gcm_encrypt :: CString -> GCMBlockCipher -> AESEngine -> CString -> CUInt -> IO ()
  
 -foreign import ccall "cryptonite_aes.h cryptonite_aes_gcm_decrypt"
 -    c_aes_gcm_decrypt :: CString -> Ptr AESGCM -> Ptr AES -> CString -> CUInt -> IO ()
-+c_aes_gcm_decrypt :: CString -> Ptr AESGCM -> Ptr AES -> CString -> CUInt -> IO ()
-+c_aes_gcm_decrypt = error "c_aes_gcm_decrypt: Not implemented yet."
++foreign import java unsafe "@static eta.cryptonite.Utils.aesGcmDecrypt"
++  c_aes_gcm_decrypt :: CString -> GCMBlockCipher -> AESEngine -> CString -> CUInt -> IO ()
  
 -foreign import ccall "cryptonite_aes.h cryptonite_aes_gcm_finish"
 -    c_aes_gcm_finish :: CString -> Ptr AESGCM -> Ptr AES -> IO ()
-+c_aes_gcm_finish :: CString -> Ptr AESGCM -> Ptr AES -> IO ()
-+c_aes_gcm_finish = error "c_aes_gcm_finish: Not implemented yet."
++foreign import java unsafe "@static eta.cryptonite.Utils.aesGcmFinish"
++  c_aes_gcm_finish :: CString -> GCMBlockCipher -> AESEngine -> IO ()
  
 -foreign import ccall "cryptonite_aes.h cryptonite_aes_ocb_init"
 -    c_aes_ocb_init :: Ptr AESOCB -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
@@ -2022,7 +2124,7 @@ index 196f985..37039b0 100644
 +                    c_poly1305_update ctx dataPtr (fromIntegral $ B.length d)
 +                c_poly1305_finalize ctx dst
 diff --git a/Crypto/PubKey/Curve25519.hs b/Crypto/PubKey/Curve25519.hs
-index e3416c8..bec09ec 100644
+index e3416c8..ef50782 100644
 --- a/Crypto/PubKey/Curve25519.hs
 +++ b/Crypto/PubKey/Curve25519.hs
 @@ -126,8 +126,8 @@ generateSecretKey = tweakToSecretKey <$> getRandomBytes 32
@@ -2031,11 +2133,14 @@ index e3416c8..bec09ec 100644
  
 -foreign import ccall "cryptonite_curve25519_donna"
 -    ccryptonite_curve25519 :: Ptr Word8 -- ^ public
-+ccryptonite_curve25519 :: Ptr Word8 -- ^ public
-                            -> Ptr Word8 -- ^ secret
-                            -> Ptr Word8 -- ^ basepoint
-                            -> IO ()
-+ccryptonite_curve25519 = error "ccryptonite_curve25519: Not implemented yet."
+-                           -> Ptr Word8 -- ^ secret
+-                           -> Ptr Word8 -- ^ basepoint
+-                           -> IO ()
++foreign import java unsafe "@static eta.cryptonite.Utils.curve25519"
++  ccryptonite_curve25519 :: Ptr Word8 -- ^ public
++                         -> Ptr Word8 -- ^ secret
++                         -> Ptr Word8 -- ^ basepoint
++                         -> IO ()
 diff --git a/Crypto/PubKey/Curve448.hs b/Crypto/PubKey/Curve448.hs
 index 95feaf3..8793ce6 100644
 --- a/Crypto/PubKey/Curve448.hs
@@ -2315,7 +2420,7 @@ index d3d3866..905e100 100644
  -- | fake handle to Intel RDRand entropy cpu instruction
  data RDRand = RDRand
 diff --git a/cryptonite.cabal b/cryptonite.cabal
-index 7f91e61..e4847ee 100644
+index 7f91e61..77f00b2 100644
 --- a/cryptonite.cabal
 +++ b/cryptonite.cabal
 @@ -216,6 +216,10 @@ Library
@@ -2333,7 +2438,7 @@ index 7f91e61..e4847ee 100644
                     , memory >= 0.14.5
                     , foundation >= 0.0.8
                     , ghc-prim
-+  maven-depends:     org.bouncycastle:bcprov-jdk15on:1.58
++  maven-depends:     org.bouncycastle:bcprov-jdk15on:1.59
    ghc-options:       -Wall -fwarn-tabs -optc-O3 -fno-warn-unused-imports
 +  java-sources:      java/Utils.java
    default-language:  Haskell2010
@@ -2473,20 +2578,21 @@ index 7f91e61..e4847ee 100644
    type:              exitcode-stdio-1.0
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..b332e5b
+index 0000000..13ae4f2
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,150 @@
+@@ -0,0 +1,350 @@
 +package eta.cryptonite;
 +
 +import java.util.Arrays;
 +import java.nio.ByteBuffer;
 +import java.security.SecureRandom;
-+import java.lang.reflect.Method;
 +import java.lang.reflect.Field;
 +import java.lang.reflect.InvocationTargetException;
 +import eta.runtime.io.MemoryManager;
 +import org.bouncycastle.crypto.Digest;
++import org.bouncycastle.crypto.InvalidCipherTextException;
++import org.bouncycastle.crypto.engines.AESEngine;
 +import org.bouncycastle.crypto.engines.ChaChaEngine;
 +import org.bouncycastle.crypto.digests.Blake2bDigest;
 +import org.bouncycastle.crypto.digests.KeccakDigest;
@@ -2506,10 +2612,15 @@ index 0000000..b332e5b
 +import org.bouncycastle.crypto.digests.TigerDigest;
 +import org.bouncycastle.crypto.digests.WhirlpoolDigest;
 +import org.bouncycastle.crypto.macs.Poly1305;
++import org.bouncycastle.crypto.modes.GCMBlockCipher;
 +import org.bouncycastle.crypto.params.ParametersWithIV;
 +import org.bouncycastle.crypto.params.KeyParameter;
++import org.bouncycastle.math.ec.rfc7748.X25519;
++import java.nio.Buffer;
 +
 +public class Utils {
++    public static boolean debug;
++
 +    private static byte[] getBuffer(long ptr, int size) {
 +        ByteBuffer buf = MemoryManager.getBoundedBuffer(ptr);
 +        byte[] bytes = new byte[size];
@@ -2625,6 +2736,200 @@ index 0000000..b332e5b
 +            chacha.setKey(Arrays.copyOfRange(output, 0, 32),
 +                          Arrays.copyOfRange(output, 32, 40));
 +        }
++    }
++
++    public static void curve25519(long resultPtr, long secretPtr, long basePointPtr) {
++        byte[] result = new byte[32];
++        X25519.scalarMult(getBuffer(secretPtr, 32), 0, getBuffer(basePointPtr, 32), 0,
++                          result, 0);
++        MemoryManager.getBoundedBuffer(resultPtr).put(result);
++    }
++
++    public static class AESEngineImpl extends AESEngine {
++
++        private byte[] key;
++
++        public void init(boolean forEncryption, byte[] key) {
++            init(forEncryption, new KeyParameter(key));
++            this.key = key;
++        }
++
++        public byte[] getKey() {
++            return key;
++        }
++    }
++
++    public static AESEngineImpl aesInit(long keyPtr, int keyLen) {
++        if (debug) {
++            System.err.println("aesInit: " + Arrays.toString(getBuffer(keyPtr, keyLen)) +
++                            ":" + keyLen);
++        }
++        AESEngineImpl engine = new AESEngineImpl();
++        engine.init(true, getBuffer(keyPtr, keyLen));
++        return engine;
++    }
++
++    public static class GCMBlockCipherImpl extends GCMBlockCipher implements Cloneable {
++        private byte[] iv;
++        private byte[] aad;
++        private volatile boolean initialized;
++        private boolean finalized;
++        private boolean forEncryption;
++        private boolean firstDecrypt = true;
++        private static Field BufOffField;
++
++        static {
++            try {
++                BufOffField = GCMBlockCipher.class.getField("bufOff");
++                BufOffField.setAccessible(true);
++            } catch (NoSuchFieldException e) {
++                BufOffField = null;
++            }
++        }
++
++        public GCMBlockCipherImpl(AESEngineImpl impl) {
++            super(impl);
++        }
++
++        public void init(byte[] iv) {
++            this.iv = iv;
++        }
++
++        public void setAAD(byte[] aad) {
++            this.aad = aad;
++        }
++
++        public void checkStatus(boolean forEncryption) {
++            if (!initialized) {
++                synchronized (this) {
++                    if (!initialized) {
++                        this.initialized = true;
++                        this.forEncryption = forEncryption;
++                        init(forEncryption, new ParametersWithIV
++                            (new KeyParameter
++                             (((AESEngineImpl) getUnderlyingCipher()).getKey()), iv));
++                        processAADBytes(aad, 0, aad.length);
++                    }
++                }
++            }
++        }
++
++        public int processBytes(byte[] input, byte[] output, int len) {
++            byte[] realInput = input;
++            int realLen = len;
++            if (!forEncryption) {
++                if (!firstDecrypt) {
++                    if (BufOffField == null) {
++                        throw new RuntimeException
++                            ("Unable to run AES-GCM decryption with a version of " +
++                             "BouncyCastle other than 1.59");
++                    }
++                    try {
++                        BufOffField.set(this, 0);
++                    } catch (IllegalAccessException e) {
++                        throw new RuntimeException
++                            ("Unable to run AES-GCM decryption with a version of " +
++                             "BouncyCastle other than 1.59", e);
++                    }
++                } else {
++                    firstDecrypt = false;
++                }
++                realLen = len + 16;
++                realInput = new byte[realLen];
++                System.arraycopy(input, 0, realInput, 0, len);
++            }
++            return processBytes(realInput, 0, realLen, output, 0);
++        }
++
++        public void finalize(byte[] output, int outputOff) {
++            if (!finalized) {
++                finalized = true;
++                try {
++                    doFinal(output, outputOff);
++                } catch (InvalidCipherTextException icte) {
++                    // NOTE: This is a low-level function and we don't need to be concerned with
++                    // validation.
++                }
++            }
++        }
++    }
++
++    public static GCMBlockCipherImpl aesGcmInit(AESEngineImpl engine, long ivPtr, int ivLen) {
++        if (debug) {
++            System.err.println("aesGcmInit: " + Arrays.toString(getBuffer(ivPtr, ivLen)) +
++                            ":" + ivLen);
++        }
++        GCMBlockCipherImpl cipher = new GCMBlockCipherImpl(engine);
++        if (debug) {
++            System.err.println("aesGcmInit1: cipher: " + cipher);
++        }
++        cipher.init(getBuffer(ivPtr, ivLen));
++        return cipher;
++    }
++
++    public static void aesGcmAad(GCMBlockCipherImpl cipher, long inputPtr, int len) {
++        if (debug) {
++            System.err.println("aesGcmAad: " + cipher + " " +
++                            Arrays.toString(getBuffer(inputPtr, len)) + ":" + len);
++        }
++        cipher.setAAD(getBuffer(inputPtr, len));
++    }
++
++    public static final int BLOCK_SIZE = 16;
++    public static final int MAC_SIZE   = 16;
++
++    public static void aesGcmEncrypt(long outPtr, GCMBlockCipherImpl cipher, AESEngineImpl engine,
++                                     long inputPtr, int len) {
++        if (debug) {
++            System.err.println("aesEncrypt: " + cipher + " " +
++                            Arrays.toString(getBuffer(inputPtr, len)) + ":" + len);
++        }
++        cipher.checkStatus(true);
++        boolean last = (len % BLOCK_SIZE) != 0;
++        int outputLen = len;
++        if (last) outputLen += MAC_SIZE;
++        byte[] output = new byte[outputLen];
++        int processed = cipher.processBytes(getBuffer(inputPtr, len), output, len);
++        if (last) cipher.finalize(output, processed);
++        if (debug) {
++            System.err.println("aesEncrypt1: output: " + cipher + " " +
++                            Arrays.toString(output) + ":" + output.length);
++        }
++        MemoryManager.getBoundedBuffer(outPtr).put(output, 0, len);
++    }
++
++    public static void aesGcmDecrypt(long outPtr, GCMBlockCipherImpl cipher, AESEngineImpl engine,
++                                     long inputPtr, int len) {
++        cipher.checkStatus(false);
++        byte[] input  = getBuffer(inputPtr, len);
++        byte[] output = new byte[len];
++        if (debug) {
++            System.err.println("aesDecrypt: " + cipher + " " + Arrays.toString(input) + ":" + len);
++        }
++        int processed = cipher.processBytes(input, output, len);
++        if ((len % BLOCK_SIZE) != 0) cipher.finalize(output, processed);
++        if (debug) {
++            System.err.println("aesDecrypt1: output: " + cipher + " " +
++                            Arrays.toString(output) + ":" + output.length);
++        }
++        MemoryManager.getBoundedBuffer(outPtr).put(output);
++    }
++
++    public static void aesGcmFinish(long tagPtr, GCMBlockCipherImpl cipher, AESEngineImpl engine) {
++        if (debug) {
++            System.err.println("aesGcmFinish: " + cipher);
++        }
++        byte[] output = new byte[cipher.getOutputSize(0)];
++        cipher.finalize(output, 0);
++        if (debug) {
++            System.err.println("aesGcmFinish1: output: " + cipher + " " + Arrays.toString(output));
++        }
++        byte[] mac = cipher.getMac();
++        MemoryManager.getBoundedBuffer(tagPtr).put(mac);
++        if (debug) {
++            System.err.println("aesGcmFinish2: mac: " + cipher + " " + Arrays.toString(mac));
++        }
++        cipher.reset();
 +    }
 +}
 -- 
