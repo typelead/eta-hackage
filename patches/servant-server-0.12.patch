@@ -1,17 +1,17 @@
-From e2a8a4c5789a93690ae06e8ae59f4c8f3a875b69 Mon Sep 17 00:00:00 2001
+From 26371e5be3bfa9db2e9d985afd734127e227e653 Mon Sep 17 00:00:00 2001
 From: jneira <atreyu.bbb@gmail.com>
-Date: Mon, 18 Jun 2018 14:51:48 +0200
-Subject: [PATCH] Patched
+Date: Mon, 18 Jun 2018 23:10:45 +0200
+Subject: [PATCH] set http-types bounds of hackage
 
 ---
- servant-server.cabal                     | 48 +++++++++++++++--------------
+ servant-server.cabal                     | 50 ++++++++++++++++--------------
  src/Servant/Utils/StaticFiles.hs         | 46 ++++++++++++++--------------
  src/Servant/Utils/StaticFilesWaiPatch.hs | 52 ++++++++++++++++++++++++++++++++
- 3 files changed, 102 insertions(+), 44 deletions(-)
+ 3 files changed, 103 insertions(+), 45 deletions(-)
  create mode 100644 src/Servant/Utils/StaticFilesWaiPatch.hs
 
 diff --git a/servant-server.cabal b/servant-server.cabal
-index 94d1352..9fefc99 100644
+index 94d1352..afa469b 100644
 --- a/servant-server.cabal
 +++ b/servant-server.cabal
 @@ -19,7 +19,7 @@ author:              Servant Contributors
@@ -49,6 +49,15 @@ index 94d1352..9fefc99 100644
    build-depends:
          base               >= 4.7  && < 4.11
        , base-compat        >= 0.9  && < 0.10
+@@ -64,7 +66,7 @@ library
+       , containers         >= 0.5  && < 0.6
+       , exceptions         >= 0.8  && < 0.9
+       , http-api-data      >= 0.3  && < 0.4
+-      , http-types         >= 0.8  && < 0.11
++      , http-types         >= 0.8  && < 0.12
+       , network-uri        >= 2.6  && < 2.7
+       , monad-control      >= 1.0.0.4 && < 1.1
+       , mtl                >= 2    && < 2.3
 @@ -82,10 +84,12 @@ library
        , transformers-base  >= 0.4.4 && < 0.5
        , transformers-compat>= 0.4  && < 0.6
