@@ -1,0 +1,942 @@
+From 3370b1adcb5ba7299824e38b50f368359696bae4 Mon Sep 17 00:00:00 2001
+From: ouromoros <ouromoros@gmail.com>
+Date: Tue, 19 Jun 2018 14:49:58 +0800
+Subject: [PATCH] Patched
+
+---
+ Network/Wai/Handler/Warp/Date.hs          |  18 +--
+ Network/Wai/Handler/Warp/FdCache.hs       | 236 +++++++++++++++---------------
+ Network/Wai/Handler/Warp/File.hs          |   6 +-
+ Network/Wai/Handler/Warp/FileInfoCache.hs |  48 +++---
+ Network/Wai/Handler/Warp/HTTP2/File.hs    |   8 +-
+ Network/Wai/Handler/Warp/HTTP2/Sender.hs  |  84 +++++------
+ Network/Wai/Handler/Warp/Recv.hs          |  31 ++--
+ Network/Wai/Handler/Warp/Run.hs           |  22 +--
+ Network/Wai/Handler/Warp/SendFile.hs      | 120 +++++++--------
+ warp.cabal                                |  47 +++---
+ 10 files changed, 312 insertions(+), 308 deletions(-)
+
+diff --git a/Network/Wai/Handler/Warp/Date.hs b/Network/Wai/Handler/Warp/Date.hs
+index c01975a..34c0d8f 100644
+--- a/Network/Wai/Handler/Warp/Date.hs
++++ b/Network/Wai/Handler/Warp/Date.hs
+@@ -9,13 +9,13 @@ import Control.AutoUpdate (defaultUpdateSettings, updateAction, mkAutoUpdate)
+ import Data.ByteString
+ import Network.HTTP.Date
+ 
+-#if WINDOWS
++-- #if WINDOWS
+ import Data.Time (UTCTime, getCurrentTime)
+ import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+ import Foreign.C.Types (CTime(..))
+-#else
+-import System.Posix (epochTime)
+-#endif
++-- #else
++-- import System.Posix (epochTime)
++-- #endif
+ 
+ -- | The type of the Date header value.
+ type GMTDate = ByteString
+@@ -29,13 +29,13 @@ initialize = mkAutoUpdate defaultUpdateSettings {
+                             updateAction = formatHTTPDate <$> getCurrentHTTPDate
+                           }
+ 
+-#ifdef WINDOWS
++-- #ifdef WINDOWS
+ uToH :: UTCTime -> HTTPDate
+ uToH = epochTimeToHTTPDate . CTime . truncate . utcTimeToPOSIXSeconds
+ 
+ getCurrentHTTPDate :: IO HTTPDate
+ getCurrentHTTPDate =  uToH <$> getCurrentTime
+-#else
+-getCurrentHTTPDate :: IO HTTPDate
+-getCurrentHTTPDate = epochTimeToHTTPDate <$> epochTime
+-#endif
++-- #else
++-- getCurrentHTTPDate :: IO HTTPDate
++-- getCurrentHTTPDate = epochTimeToHTTPDate <$> epochTime
++-- #endif
+diff --git a/Network/Wai/Handler/Warp/FdCache.hs b/Network/Wai/Handler/Warp/FdCache.hs
+index a449a96..c9ed3bf 100644
+--- a/Network/Wai/Handler/Warp/FdCache.hs
++++ b/Network/Wai/Handler/Warp/FdCache.hs
+@@ -6,20 +6,20 @@ module Network.Wai.Handler.Warp.FdCache (
+     withFdCache
+   , Fd
+   , Refresh
+-#ifndef WINDOWS
+-  , openFile
+-  , closeFile
+-  , setFileCloseOnExec
+-#endif
++-- #ifndef WINDOWS
++  -- , openFile
++  -- , closeFile
++  -- , setFileCloseOnExec
++-- #endif
+   ) where
+ 
+-#ifndef WINDOWS
+-import Control.Exception (bracket)
+-import Control.Reaper
+-import Data.IORef
+-import Network.Wai.Handler.Warp.MultiMap
+-import System.Posix.IO (openFd, OpenFileFlags(..), defaultFileFlags, OpenMode(ReadOnly), closeFd, FdOption(CloseOnExec), setFdOption)
+-#endif
++-- #ifndef WINDOWS
++-- import Control.Exception (bracket)
++-- import Control.Reaper
++-- import Data.IORef
++-- import Network.Wai.Handler.Warp.MultiMap
++-- import System.Posix.IO (openFd, OpenFileFlags(..), defaultFileFlags, OpenMode(ReadOnly), closeFd, FdOption(CloseOnExec), setFdOption)
++-- #endif
+ import System.Posix.Types (Fd)
+ 
+ ----------------------------------------------------------------
+@@ -37,110 +37,110 @@ getFdNothing _ _ = return (Nothing, return ())
+ -- | Creating 'MutableFdCache' and executing the action in the second
+ --   argument. The first argument is a cache duration in second.
+ withFdCache :: Int -> ((Hash -> FilePath -> IO (Maybe Fd, Refresh)) -> IO a) -> IO a
+-#ifdef WINDOWS
++-- #ifdef WINDOWS
+ withFdCache _        action = action getFdNothing
+-#else
+-withFdCache 0        action = action getFdNothing
+-withFdCache duration action = bracket (initialize duration)
+-                                      terminate
+-                                      (action . getFd)
+-
+-----------------------------------------------------------------
+-
+-data Status = Active | Inactive
+-
+-newtype MutableStatus = MutableStatus (IORef Status)
+-
+-status :: MutableStatus -> IO Status
+-status (MutableStatus ref) = readIORef ref
+-
+-newActiveStatus :: IO MutableStatus
+-newActiveStatus = MutableStatus <$> newIORef Active
+-
+-refresh :: MutableStatus -> Refresh
+-refresh (MutableStatus ref) = writeIORef ref Active
+-
+-inactive :: MutableStatus -> IO ()
+-inactive (MutableStatus ref) = writeIORef ref Inactive
+-
+-----------------------------------------------------------------
+-
+-data FdEntry = FdEntry !FilePath !Fd !MutableStatus
+-
+-openFile :: FilePath -> IO Fd
+-openFile path = do
+-    fd <- openFd path ReadOnly Nothing defaultFileFlags{nonBlock=False}
+-    setFileCloseOnExec fd
+-    return fd
+-
+-closeFile :: Fd -> IO ()
+-closeFile = closeFd
+-
+-newFdEntry :: FilePath -> IO FdEntry
+-newFdEntry path = FdEntry path <$> openFile path <*> newActiveStatus
+-
+-setFileCloseOnExec :: Fd -> IO ()
+-setFileCloseOnExec fd = setFdOption fd CloseOnExec True
+-
+-----------------------------------------------------------------
+-
+-type FdCache = MMap FdEntry
+-
+--- | Mutable Fd cacher.
+-newtype MutableFdCache = MutableFdCache (Reaper FdCache (Hash, FdEntry))
+-
+-fdCache :: MutableFdCache -> IO FdCache
+-fdCache (MutableFdCache reaper) = reaperRead reaper
+-
+-look :: MutableFdCache -> FilePath -> Hash -> IO (Maybe FdEntry)
+-look mfc path key = searchWith key check <$> fdCache mfc
+-  where
+-    check (FdEntry path' _ _) = path == path'
+-
+-----------------------------------------------------------------
+-
+--- The first argument is a cache duration in second.
+-initialize :: Int -> IO MutableFdCache
+-initialize duration = MutableFdCache <$> mkReaper settings
+-  where
+-    settings = defaultReaperSettings {
+-        reaperAction = clean
+-      , reaperDelay = duration
+-      , reaperCons = uncurry insert
+-      , reaperNull = isEmpty
+-      , reaperEmpty = empty
+-      }
+-
+-clean :: FdCache -> IO (FdCache -> FdCache)
+-clean old = do
+-    new <- pruneWith old prune
+-    return $ merge new
+-  where
+-    prune (FdEntry _ fd mst) = status mst >>= act
+-      where
+-        act Active   = inactive mst >> return True
+-        act Inactive = closeFd fd   >> return False
+-
+-----------------------------------------------------------------
+-
+-terminate :: MutableFdCache -> IO ()
+-terminate (MutableFdCache reaper) = do
+-    !t <- reaperStop reaper
+-    mapM_ closeIt $ toList t
+-  where
+-    closeIt (FdEntry _ fd _) = closeFd fd
+-
+-----------------------------------------------------------------
+-
+--- | Getting 'Fd' and 'Refresh' from the mutable Fd cacher.
+-getFd :: MutableFdCache -> Hash -> FilePath -> IO (Maybe Fd, Refresh)
+-getFd mfc@(MutableFdCache reaper) h path = look mfc path h >>= get
+-  where
+-    get Nothing = do
+-        ent@(FdEntry _ fd mst) <- newFdEntry path
+-        reaperAdd reaper (h, ent)
+-        return (Just fd, refresh mst)
+-    get (Just (FdEntry _ fd mst)) = do
+-        refresh mst
+-        return (Just fd, refresh mst)
+-#endif
++-- #else
++-- withFdCache 0        action = action getFdNothing
++-- withFdCache duration action = bracket (initialize duration)
++--                                       terminate
++--                                       (action . getFd)
++
++-- ----------------------------------------------------------------
++
++-- data Status = Active | Inactive
++
++-- newtype MutableStatus = MutableStatus (IORef Status)
++
++-- status :: MutableStatus -> IO Status
++-- status (MutableStatus ref) = readIORef ref
++
++-- newActiveStatus :: IO MutableStatus
++-- newActiveStatus = MutableStatus <$> newIORef Active
++
++-- refresh :: MutableStatus -> Refresh
++-- refresh (MutableStatus ref) = writeIORef ref Active
++
++-- inactive :: MutableStatus -> IO ()
++-- inactive (MutableStatus ref) = writeIORef ref Inactive
++
++-- ----------------------------------------------------------------
++
++-- data FdEntry = FdEntry !FilePath !Fd !MutableStatus
++
++-- openFile :: FilePath -> IO Fd
++-- openFile path = do
++--     fd <- openFd path ReadOnly Nothing defaultFileFlags{nonBlock=False}
++--     setFileCloseOnExec fd
++--     return fd
++
++-- closeFile :: Fd -> IO ()
++-- closeFile = closeFd
++
++-- newFdEntry :: FilePath -> IO FdEntry
++-- newFdEntry path = FdEntry path <$> openFile path <*> newActiveStatus
++
++-- setFileCloseOnExec :: Fd -> IO ()
++-- setFileCloseOnExec fd = setFdOption fd CloseOnExec True
++
++-- ----------------------------------------------------------------
++
++-- type FdCache = MMap FdEntry
++
++-- -- | Mutable Fd cacher.
++-- newtype MutableFdCache = MutableFdCache (Reaper FdCache (Hash, FdEntry))
++
++-- fdCache :: MutableFdCache -> IO FdCache
++-- fdCache (MutableFdCache reaper) = reaperRead reaper
++
++-- look :: MutableFdCache -> FilePath -> Hash -> IO (Maybe FdEntry)
++-- look mfc path key = searchWith key check <$> fdCache mfc
++--   where
++--     check (FdEntry path' _ _) = path == path'
++
++-- ----------------------------------------------------------------
++
++-- -- The first argument is a cache duration in second.
++-- initialize :: Int -> IO MutableFdCache
++-- initialize duration = MutableFdCache <$> mkReaper settings
++--   where
++--     settings = defaultReaperSettings {
++--         reaperAction = clean
++--       , reaperDelay = duration
++--       , reaperCons = uncurry insert
++--       , reaperNull = isEmpty
++--       , reaperEmpty = empty
++--       }
++
++-- clean :: FdCache -> IO (FdCache -> FdCache)
++-- clean old = do
++--     new <- pruneWith old prune
++--     return $ merge new
++--   where
++--     prune (FdEntry _ fd mst) = status mst >>= act
++--       where
++--         act Active   = inactive mst >> return True
++--         act Inactive = closeFd fd   >> return False
++
++-- ----------------------------------------------------------------
++
++-- terminate :: MutableFdCache -> IO ()
++-- terminate (MutableFdCache reaper) = do
++--     !t <- reaperStop reaper
++--     mapM_ closeIt $ toList t
++--   where
++--     closeIt (FdEntry _ fd _) = closeFd fd
++
++-- ----------------------------------------------------------------
++
++-- -- | Getting 'Fd' and 'Refresh' from the mutable Fd cacher.
++-- getFd :: MutableFdCache -> Hash -> FilePath -> IO (Maybe Fd, Refresh)
++-- getFd mfc@(MutableFdCache reaper) h path = look mfc path h >>= get
++--   where
++--     get Nothing = do
++--         ent@(FdEntry _ fd mst) <- newFdEntry path
++--         reaperAdd reaper (h, ent)
++--         return (Just fd, refresh mst)
++--     get (Just (FdEntry _ fd mst)) = do
++--         refresh mst
++--         return (Just fd, refresh mst)
++-- #endif
+diff --git a/Network/Wai/Handler/Warp/File.hs b/Network/Wai/Handler/Warp/File.hs
+index ad3e33b..f907909 100644
+--- a/Network/Wai/Handler/Warp/File.hs
++++ b/Network/Wai/Handler/Warp/File.hs
+@@ -58,8 +58,8 @@ ifModifiedSince reqidx = reqidx ! fromEnum ReqIfModifiedSince >>= parseHTTPDate
+ ifUnmodifiedSince :: IndexedHeader -> Maybe HTTPDate
+ ifUnmodifiedSince reqidx = reqidx ! fromEnum ReqIfUnmodifiedSince >>= parseHTTPDate
+ 
+-ifRange :: IndexedHeader -> Maybe HTTPDate
+-ifRange reqidx = reqidx ! fromEnum ReqIfRange >>= parseHTTPDate
++ifrange' :: IndexedHeader -> Maybe HTTPDate
++ifrange' reqidx = reqidx ! fromEnum ReqIfRange >>= parseHTTPDate
+ 
+ ----------------------------------------------------------------
+ 
+@@ -79,7 +79,7 @@ ifunmodified reqidx size mtime = do
+ 
+ ifrange :: IndexedHeader -> Integer -> HTTPDate -> Maybe RspFileInfo
+ ifrange reqidx size mtime = do
+-    date <- ifRange reqidx
++    date <- ifrange' reqidx
+     rng  <- reqidx ! fromEnum ReqRange
+     return $ if date == mtime
+              then parseRange rng size
+diff --git a/Network/Wai/Handler/Warp/FileInfoCache.hs b/Network/Wai/Handler/Warp/FileInfoCache.hs
+index cffc7c8..35c824f 100644
+--- a/Network/Wai/Handler/Warp/FileInfoCache.hs
++++ b/Network/Wai/Handler/Warp/FileInfoCache.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE RecordWildCards, CPP #-}
++{-# LANGUAGE RecordWildCards, CPP, DoAndIfThenElse, ForeignFunctionInterface #-}
+ 
+ module Network.Wai.Handler.Warp.FileInfoCache (
+     FileInfo(..)
+@@ -10,11 +10,17 @@ module Network.Wai.Handler.Warp.FileInfoCache (
+ import Control.Exception as E
+ import Control.Reaper
+ import Network.HTTP.Date
+-import System.PosixCompat.Files
++-- import System.PosixCompat.Files
+ 
+ import Network.Wai.Handler.Warp.HashMap (HashMap)
+ import qualified Network.Wai.Handler.Warp.HashMap as M
+ import Network.Wai.Handler.Warp.Imports
++#ifdef INTEROP
++import qualified Interop.Java.IO as JIO
++#else
++import qualified Java.IO as JIO
++#endif
++import Java
+ 
+ ----------------------------------------------------------------
+ 
+@@ -34,25 +40,29 @@ type FileInfoCache = Reaper Cache (Int,FilePath,Entry)
+ 
+ ----------------------------------------------------------------
+ 
++foreign import java unsafe "@new" newFile :: String -> Java a JIO.File
++
++
+ -- | Getting the file information corresponding to the file.
+ getInfo :: FilePath -> IO FileInfo
+-getInfo path = do
+-    fs <- getFileStatus path -- file access
+-    let regular = not (isDirectory fs)
+-        readable = fileMode fs `intersectFileModes` ownerReadMode /= 0
+-    if regular && readable then do
+-        let time = epochTimeToHTTPDate $ modificationTime fs
+-            date = formatHTTPDate time
+-            size = fromIntegral $ fileSize fs
+-            info = FileInfo {
+-                fileInfoName = path
+-              , fileInfoSize = size
+-              , fileInfoTime = time
+-              , fileInfoDate = date
+-              }
+-        return info
+-      else
+-        throwIO (userError "FileInfoCache:getInfo")
++getInfo path =  java $ do
++  file <- newFile path
++  withObject file $ do 
++    regular <- fmap not JIO.isDirectory
++    readable <- JIO.canRead
++    if (regular && readable) then do
++      lastMod <- JIO.lastModified
++      let epoch = fromIntegral $ lastMod `div` 1000
++          time  = epochTimeToHTTPDate epoch
++      size <- fmap fromIntegral $ JIO.length
++      let date = formatHTTPDate time
++      return $ FileInfo { fileInfoName = path
++                        , fileInfoSize = size
++                        , fileInfoTime = time
++                        , fileInfoDate = date }
++    else do
++      absolutePath <- file <.> JIO.getAbsolutePath
++      io $ throwIO (userError $ "File:getInfo: " ++ absolutePath)
+ 
+ getInfoNaive :: Hash -> FilePath -> IO FileInfo
+ getInfoNaive _ = getInfo
+diff --git a/Network/Wai/Handler/Warp/HTTP2/File.hs b/Network/Wai/Handler/Warp/HTTP2/File.hs
+index 3fac45f..ddd3537 100644
+--- a/Network/Wai/Handler/Warp/HTTP2/File.hs
++++ b/Network/Wai/Handler/Warp/HTTP2/File.hs
+@@ -56,9 +56,9 @@ ifModifiedSince reqtbl = getHeaderValue tokenIfModifiedSince reqtbl >>= parseHTT
+ ifUnmodifiedSince :: ValueTable -> Maybe HTTPDate
+ ifUnmodifiedSince reqtbl = getHeaderValue tokenIfUnmodifiedSince reqtbl >>= parseHTTPDate
+ 
+-{-# INLINE ifRange #-}
+-ifRange :: ValueTable -> Maybe HTTPDate
+-ifRange reqtbl = getHeaderValue tokenIfRange reqtbl >>= parseHTTPDate
++{-# INLINE ifrange' #-}
++ifrange' :: ValueTable -> Maybe HTTPDate
++ifrange' reqtbl = getHeaderValue tokenIfRange reqtbl >>= parseHTTPDate
+ 
+ ----------------------------------------------------------------
+ 
+@@ -81,7 +81,7 @@ ifunmodified reqtbl size mtime = do
+ {-# INLINE ifrange #-}
+ ifrange :: ValueTable -> Integer -> HTTPDate -> Maybe RspFileInfo
+ ifrange reqtbl size mtime = do
+-    date <- ifRange reqtbl
++    date <- ifrange' reqtbl
+     rng  <- getHeaderValue tokenRange reqtbl
+     return $ if date == mtime
+              then parseRange rng size
+diff --git a/Network/Wai/Handler/Warp/HTTP2/Sender.hs b/Network/Wai/Handler/Warp/HTTP2/Sender.hs
+index d249a94..54a6ee7 100644
+--- a/Network/Wai/Handler/Warp/HTTP2/Sender.hs
++++ b/Network/Wai/Handler/Warp/HTTP2/Sender.hs
+@@ -17,13 +17,13 @@ import Network.HTTP2
+ import Network.HTTP2.Priority (isEmptySTM, dequeueSTM, Precedence)
+ import Network.Wai
+ 
+-#ifdef WINDOWS
++-- #ifdef WINDOWS
+ import qualified System.IO as IO
+-#else
+-import Network.Wai.Handler.Warp.FdCache
+-import Network.Wai.Handler.Warp.SendFile (positionRead)
+-import qualified Network.Wai.Handler.Warp.Timeout as T
+-#endif
++-- #else
++-- import Network.Wai.Handler.Warp.FdCache
++-- import Network.Wai.Handler.Warp.SendFile (positionRead)
++-- import qualified Network.Wai.Handler.Warp.Timeout as T
++-- #endif
+ 
+ import Network.Wai.Handler.Warp.Buffer
+ import Network.Wai.Handler.Warp.HTTP2.EncodeFrame
+@@ -338,7 +338,7 @@ fillBuilderBodyGetNext Connection{connWriteBuffer,connBufferSize}
+     return $ nextForBuilder len signal
+ 
+ fillFileBodyGetNext :: Connection -> InternalInfo -> Int -> WindowSize -> FilePath -> Maybe FilePart -> IO Next
+-#ifdef WINDOWS
++-- #ifdef WINDOWS
+ fillFileBodyGetNext Connection{connWriteBuffer,connBufferSize}
+                         _ off lim path mpart = do
+     let datBuf = connWriteBuffer `plusPtr` off
+@@ -351,24 +351,24 @@ fillFileBodyGetNext Connection{connWriteBuffer,connBufferSize}
+     let bytes' = bytes - fromIntegral len
+     -- fixme: connWriteBuffer connBufferSize
+     return $ nextForFile len hdl bytes' (return ())
+-#else
+-fillFileBodyGetNext Connection{connWriteBuffer,connBufferSize}
+-                        ii off lim path mpart = do
+-    (mfd, refresh') <- getFd ii path
+-    (fd, refresh) <- case mfd of
+-        Nothing -> do
+-            fd' <- openFile path
+-            th <- T.register (timeoutManager ii) (closeFile fd')
+-            return (fd', T.tickle th)
+-        Just fd  -> return (fd, refresh')
+-    let datBuf = connWriteBuffer `plusPtr` off
+-        room = min (connBufferSize - off) lim
+-    (start, bytes) <- fileStartEnd path mpart
+-    len <- positionRead fd datBuf (mini room bytes) start
+-    refresh
+-    let len' = fromIntegral len
+-    return $ nextForFile len fd (start + len') (bytes - len') refresh
+-#endif
++-- #else
++-- fillFileBodyGetNext Connection{connWriteBuffer,connBufferSize}
++--                         ii off lim path mpart = do
++--     (mfd, refresh') <- getFd ii path
++--     (fd, refresh) <- case mfd of
++--         Nothing -> do
++--             fd' <- openFile path
++--             th <- T.register (timeoutManager ii) (closeFile fd')
++--             return (fd', T.tickle th)
++--         Just fd  -> return (fd, refresh')
++--     let datBuf = connWriteBuffer `plusPtr` off
++--         room = min (connBufferSize - off) lim
++--     (start, bytes) <- fileStartEnd path mpart
++--     len <- positionRead fd datBuf (mini room bytes) start
++--     refresh
++--     let len' = fromIntegral len
++--     return $ nextForFile len fd (start + len') (bytes - len') refresh
++-- #endif
+ 
+ fileStartEnd :: FilePath -> Maybe FilePart -> IO (Integer, Integer)
+ fileStartEnd _ (Just part) =
+@@ -480,7 +480,7 @@ nextForStream sq strm leftOrZero True len =
+ 
+ ----------------------------------------------------------------
+ 
+-#ifdef WINDOWS
++-- #ifdef WINDOWS
+ fillBufFile :: IO.Handle -> Integer -> IO () -> DynaNext
+ fillBufFile h bytes refresh buf siz lim = do
+     let payloadBuf = buf `plusPtr` frameHeaderLength
+@@ -495,22 +495,22 @@ nextForFile 0   _ _     _       = Next 0   Nothing
+ nextForFile len _ 0     _       = Next len Nothing
+ nextForFile len h bytes refresh =
+     Next len $ Just (fillBufFile h bytes refresh)
+-#else
+-fillBufFile :: Fd -> Integer -> Integer -> IO () -> DynaNext
+-fillBufFile fd start bytes refresh buf siz lim = do
+-    let payloadBuf = buf `plusPtr` frameHeaderLength
+-        room = min (siz - frameHeaderLength) lim
+-    len <- positionRead fd payloadBuf (mini room bytes) start
+-    let len' = fromIntegral len
+-    refresh
+-    return $ nextForFile len fd (start + len') (bytes - len') refresh
+-
+-nextForFile :: BytesFilled -> Fd -> Integer -> Integer -> IO () -> Next
+-nextForFile 0   _  _     _     _       = Next 0   Nothing
+-nextForFile len _  _     0     _       = Next len Nothing
+-nextForFile len fd start bytes refresh =
+-    Next len $ Just (fillBufFile fd start bytes refresh)
+-#endif
++-- #else
++-- fillBufFile :: Fd -> Integer -> Integer -> IO () -> DynaNext
++-- fillBufFile fd start bytes refresh buf siz lim = do
++--     let payloadBuf = buf `plusPtr` frameHeaderLength
++--         room = min (siz - frameHeaderLength) lim
++--     len <- positionRead fd payloadBuf (mini room bytes) start
++--     let len' = fromIntegral len
++--     refresh
++--     return $ nextForFile len fd (start + len') (bytes - len') refresh
++
++-- nextForFile :: BytesFilled -> Fd -> Integer -> Integer -> IO () -> Next
++-- nextForFile 0   _  _     _     _       = Next 0   Nothing
++-- nextForFile len _  _     0     _       = Next len Nothing
++-- nextForFile len fd start bytes refresh =
++--     Next len $ Just (fillBufFile fd start bytes refresh)
++-- #endif
+ 
+ {-# INLINE mini #-}
+ mini :: Int -> Integer -> Int
+diff --git a/Network/Wai/Handler/Warp/Recv.hs b/Network/Wai/Handler/Warp/Recv.hs
+index 6be505d..626fc62 100644
+--- a/Network/Wai/Handler/Warp/Recv.hs
++++ b/Network/Wai/Handler/Warp/Recv.hs
+@@ -17,17 +17,19 @@ import Foreign.C.Types
+ import Foreign.ForeignPtr (withForeignPtr)
+ import Foreign.Ptr (Ptr, castPtr, plusPtr)
+ import GHC.Conc (threadWaitRead)
++-- import Control.Concurrent.Fiber.Network.Internal (threadWaitRead)
+ import Network.Socket (Socket, fdSocket)
+-import System.Posix.Types (Fd(..))
+ 
+ import Network.Wai.Handler.Warp.Buffer
+ import Network.Wai.Handler.Warp.Imports
+ import Network.Wai.Handler.Warp.Types
+ 
+-#ifdef mingw32_HOST_OS
+-import GHC.IO.FD (FD(..), readRawBufferPtr)
+-import Network.Wai.Handler.Warp.Windows
+-#endif
++-- #ifdef mingw32_HOST_OS
++import GHC.IO.FD (FD(..), FDType(..), readRawBufferPtr)
++import System.Posix.Types (Channel)
++-- import Control.Concurrent.Fiber.Network (readRawBufferPtr)
++-- import Control.Concurrent.Fiber
++-- #endif
+ 
+ ----------------------------------------------------------------
+ 
+@@ -108,17 +110,18 @@ receiveBuf sock buf0 siz0 = loop buf0 siz0
+             loop (buf `plusPtr` n) (siz - n)
+     fd = fdSocket sock
+ 
+-receiveloop :: CInt -> Ptr Word8 -> CSize -> IO CInt
++receiveloop :: Channel -> Ptr Word8 -> CSize -> IO CInt
+ receiveloop sock ptr size = do
+-#ifdef mingw32_HOST_OS
+-    bytes <- windowsThreadBlockHack $ fromIntegral <$> readRawBufferPtr "recv" (FD sock 1) (castPtr ptr) 0 size
+-#else
+-    bytes <- c_recv sock (castPtr ptr) size 0
+-#endif
++-- #ifdef mingw32_HOST_OS
++    -- bytes <- windowsThreadBlockHack $ fromIntegral <$> readRawBufferPtr "recv" (FD sock 1) (castPtr ptr) 0 size
++    bytes <- fromIntegral <$> readRawBufferPtr "recv" (FD (FDGeneric sock) True)(castPtr ptr) 0 size
++-- #else
++--     bytes <- c_recv sock (castPtr ptr) size 0
++-- #endif
+     if bytes == -1 then do
+         errno <- getErrno
+         if errno == eAGAIN then do
+-            threadWaitRead (Fd sock)
++            threadWaitRead sock
+             receiveloop sock ptr size
+           else
+             throwErrno "receiveloop"
+@@ -126,5 +129,5 @@ receiveloop sock ptr size = do
+         return bytes
+ 
+ -- fixme: the type of the return value
+-foreign import ccall unsafe "recv"
+-    c_recv :: CInt -> Ptr CChar -> CSize -> CInt -> IO CInt
++-- foreign import ccall unsafe "recv"
++--     c_recv :: CInt -> Ptr CChar -> CSize -> CInt -> IO CInt
+diff --git a/Network/Wai/Handler/Warp/Run.hs b/Network/Wai/Handler/Warp/Run.hs
+index 84dd4fd..c5f9b6a 100644
+--- a/Network/Wai/Handler/Warp/Run.hs
++++ b/Network/Wai/Handler/Warp/Run.hs
+@@ -44,12 +44,6 @@ import qualified Network.Wai.Handler.Warp.Timeout as T
+ import Network.Wai.Handler.Warp.Types
+ 
+ 
+-#if WINDOWS
+-import Network.Wai.Handler.Warp.Windows
+-#else
+-import Network.Socket (fdSocket)
+-#endif
+-
+ -- | Creating 'Connection' for plain HTTP based on a given socket.
+ socketConnection :: Socket -> IO Connection
+ socketConnection s = do
+@@ -119,11 +113,11 @@ runSettingsSocket set socket app = do
+     runSettingsConnection set getConn app
+   where
+     getConn = do
+-#if WINDOWS
+-        (s, sa) <- windowsThreadBlockHack $ accept socket
+-#else
++-- #if WINDOWS
++--         (s, sa) <- windowsThreadBlockHack $ accept socket
++-- #else
+         (s, sa) <- accept socket
+-#endif
++-- #endif
+         setSocketCloseOnExec s
+         -- NoDelay causes an error for AF_UNIX.
+         setSocketOption s NoDelay 1 `E.catch` \(E.SomeException _) -> return ()
+@@ -528,11 +522,11 @@ wrappedRecvN th istatus slowlorisSize readN bufsize = do
+ --
+ -- @since 3.2.17
+ setSocketCloseOnExec :: Socket -> IO ()
+-#if WINDOWS
++-- #if WINDOWS
+ setSocketCloseOnExec _ = return ()
+-#else
+-setSocketCloseOnExec socket = F.setFileCloseOnExec $ fromIntegral $ fdSocket socket
+-#endif
++-- #else
++-- setSocketCloseOnExec socket = F.setFileCloseOnExec $ fromIntegral $ fdSocket socket
++-- #endif
+ 
+ gracefulShutdown :: Settings -> Counter -> IO ()
+ gracefulShutdown set counter =
+diff --git a/Network/Wai/Handler/Warp/SendFile.hs b/Network/Wai/Handler/Warp/SendFile.hs
+index 4ef6d3b..14e6fd5 100644
+--- a/Network/Wai/Handler/Warp/SendFile.hs
++++ b/Network/Wai/Handler/Warp/SendFile.hs
+@@ -4,27 +4,27 @@ module Network.Wai.Handler.Warp.SendFile (
+     sendFile
+   , readSendFile
+   , packHeader -- for testing
+-#ifndef WINDOWS
+-  , positionRead
+-#endif
++-- #ifndef WINDOWS
++--   , positionRead
++-- #endif
+   ) where
+ 
+ import qualified Data.ByteString as BS
+ import Network.Socket (Socket)
+ 
+-#ifdef WINDOWS
++-- #ifdef WINDOWS
+ import Foreign.ForeignPtr (newForeignPtr_)
+ import Foreign.Ptr (plusPtr)
+ import qualified System.IO as IO
+-#else
+-import Control.Exception
+-import Foreign.C.Error (throwErrno)
+-import Foreign.C.Types
+-import Foreign.Ptr (Ptr, castPtr, plusPtr)
+-import Network.Sendfile
+-import Network.Wai.Handler.Warp.FdCache (openFile, closeFile)
+-import System.Posix.Types
+-#endif
++-- #else
++-- import Control.Exception
++-- import Foreign.C.Error (throwErrno)
++-- import Foreign.C.Types
++-- import Foreign.Ptr (Ptr, castPtr, plusPtr)
++-- import Network.Sendfile
++-- import Network.Wai.Handler.Warp.FdCache (openFile, closeFile)
++-- import System.Posix.Types
++-- #endif
+ 
+ import Network.Wai.Handler.Warp.Buffer
+ import Network.Wai.Handler.Warp.Imports
+@@ -38,17 +38,17 @@ import Network.Wai.Handler.Warp.Types
+ --
+ -- Since: 3.1.0
+ sendFile :: Socket -> Buffer -> BufSize -> (ByteString -> IO ()) -> SendFile
+-#ifdef SENDFILEFD
+-sendFile s _ _ _ fid off len act hdr = case mfid of
+-    -- settingsFdCacheDuration is 0
+-    Nothing -> sendfileWithHeader   s path (PartOfFile off len) act hdr
+-    Just fd -> sendfileFdWithHeader s fd   (PartOfFile off len) act hdr
+-  where
+-    mfid = fileIdFd fid
+-    path = fileIdPath fid
+-#else
++-- #ifdef SENDFILEFD
++-- sendFile s _ _ _ fid off len act hdr = case mfid of
++--     -- settingsFdCacheDuration is 0
++--     Nothing -> sendfileWithHeader   s path (PartOfFile off len) act hdr
++--     Just fd -> sendfileFdWithHeader s fd   (PartOfFile off len) act hdr
++--   where
++--     mfid = fileIdFd fid
++--     path = fileIdPath fid
++-- #else
+ sendFile _ = readSendFile
+-#endif
++-- #endif
+ 
+ ----------------------------------------------------------------
+ 
+@@ -83,7 +83,7 @@ mini i n
+ --   For Windows, this is emulated by 'Handle'.
+ --
+ -- Since: 3.1.0
+-#ifdef WINDOWS
++-- #ifdef WINDOWS
+ readSendFile :: Buffer -> BufSize -> (ByteString -> IO ()) -> SendFile
+ readSendFile buf siz send fid off0 len0 hook headers = do
+     hn <- packHeader buf siz send hook headers 0
+@@ -109,41 +109,41 @@ readSendFile buf siz send fid off0 len0 hook headers = do
+             send bs
+             hook
+             loop h fptr (len - n')
+-#else
+-readSendFile :: Buffer -> BufSize -> (ByteString -> IO ()) -> SendFile
+-readSendFile buf siz send fid off0 len0 hook headers =
+-  bracket setup teardown $ \fd -> do
+-    hn <- packHeader buf siz send hook headers 0
+-    let room = siz - hn
+-        buf' = buf `plusPtr` hn
+-    n <- positionRead fd buf' (mini room len0) off0
+-    bufferIO buf (hn + n) send
+-    hook
+-    let n' = fromIntegral n
+-    loop fd (len0 - n') (off0 + n')
+-  where
+-    path = fileIdPath fid
+-    setup = case fileIdFd fid of
+-       Just fd -> return fd
+-       Nothing -> openFile path
+-    teardown fd = case fileIdFd fid of
+-       Just _  -> return ()
+-       Nothing -> closeFile fd
+-    loop fd len off
+-      | len <= 0  = return ()
+-      | otherwise = do
+-          n <- positionRead fd buf (mini siz len) off
+-          bufferIO buf n send
+-          let n' = fromIntegral n
+-          hook
+-          loop fd (len - n') (off + n')
++-- #else
++-- readSendFile :: Buffer -> BufSize -> (ByteString -> IO ()) -> SendFile
++-- readSendFile buf siz send fid off0 len0 hook headers =
++--   bracket setup teardown $ \fd -> do
++--     hn <- packHeader buf siz send hook headers 0
++--     let room = siz - hn
++--         buf' = buf `plusPtr` hn
++--     n <- positionRead fd buf' (mini room len0) off0
++--     bufferIO buf (hn + n) send
++--     hook
++--     let n' = fromIntegral n
++--     loop fd (len0 - n') (off0 + n')
++--   where
++--     path = fileIdPath fid
++--     setup = case fileIdFd fid of
++--        Just fd -> return fd
++--        Nothing -> openFile path
++--     teardown fd = case fileIdFd fid of
++--        Just _  -> return ()
++--        Nothing -> closeFile fd
++--     loop fd len off
++--       | len <= 0  = return ()
++--       | otherwise = do
++--           n <- positionRead fd buf (mini siz len) off
++--           bufferIO buf n send
++--           let n' = fromIntegral n
++--           hook
++--           loop fd (len - n') (off + n')
+ 
+-positionRead :: Fd -> Buffer -> BufSize -> Integer -> IO Int
+-positionRead fd buf siz off = do
+-    bytes <- fromIntegral <$> c_pread fd (castPtr buf) (fromIntegral siz) (fromIntegral off)
+-    when (bytes < 0) $ throwErrno "positionRead"
+-    return bytes
++-- positionRead :: Fd -> Buffer -> BufSize -> Integer -> IO Int
++-- positionRead fd buf siz off = do
++--     bytes <- fromIntegral <$> c_pread fd (castPtr buf) (fromIntegral siz) (fromIntegral off)
++--     when (bytes < 0) $ throwErrno "positionRead"
++--     return bytes
+ 
+-foreign import ccall unsafe "pread"
+-  c_pread :: Fd -> Ptr CChar -> ByteCount -> FileOffset -> IO CSsize
+-#endif
++-- foreign import ccall unsafe "pread"
++--   c_pread :: Fd -> Ptr CChar -> ByteCount -> FileOffset -> IO CSsize
++-- #endif
+diff --git a/warp.cabal b/warp.cabal
+index 344095b..ce64107 100644
+--- a/warp.cabal
++++ b/warp.cabal
+@@ -33,7 +33,7 @@ Flag warp-debug
+     Default:     False
+ 
+ Library
+-  Build-Depends:     base                      >= 4.8        && < 5
++  Build-Depends:     base                      >= 4.8        && < 4.9
+                    , array
+                    , async
+                    , auto-update               >= 0.1.3    && < 0.2
+@@ -45,8 +45,8 @@ Library
+                    , http-types                >= 0.9.1
+                    , iproute                   >= 1.3.1
+                    , http2                     >= 1.6      && < 1.7
+-                   , simple-sendfile           >= 0.2.7    && < 0.3
+-                   , unix-compat               >= 0.2
++                   -- , simple-sendfile           >= 0.2.7    && < 0.3
++                   , time
+                    , wai                       >= 3.2      && < 3.3
+                    , text
+                    , streaming-commons         >= 0.1.10
+@@ -55,6 +55,9 @@ Library
+                    , word8
+                    , hashable
+                    , http-date
++  if impl(eta >= 0.0.9.7)
++     build-depends:    eta-java-interop
++     cpp-options:      -DINTEROP
+   if impl(ghc < 8)
+       Build-Depends: semigroups
+   if flag(network-bytestring)
+@@ -104,14 +107,13 @@ Library
+ 
+   if flag(warp-debug)
+       Cpp-Options:   -DWARP_DEBUG
+-  if (os(linux) || os(freebsd) || os(darwin)) && flag(allow-sendfilefd)
+-      Cpp-Options:   -DSENDFILEFD
+-  if os(windows)
+-      Cpp-Options:   -DWINDOWS
+-      Build-Depends: time
+-  else
+-      Build-Depends: unix
+-      Other-modules: Network.Wai.Handler.Warp.MultiMap
++--   if (os(linux) || os(freebsd) || os(darwin)) && flag(allow-sendfilefd)
++--       Cpp-Options:   -DSENDFILEFD
++--   if os(windows)
++--       Cpp-Options:   -DWINDOWS
++--       Build-Depends: time
++--   else
++--       Other-modules: Network.Wai.Handler.Warp.MultiMap
+ 
+ Test-Suite doctest
+   Type:                 exitcode-stdio-1.0
+@@ -189,9 +191,8 @@ Test-Suite spec
+                    , http-types                >= 0.8.5
+                    , iproute                   >= 1.3.1
+                    , lifted-base               >= 0.1
+-                   , simple-sendfile           >= 0.2.4    && < 0.3
++                   -- , simple-sendfile           >= 0.2.4    && < 0.3
+                    , transformers              >= 0.2.2
+-                   , unix-compat               >= 0.2
+                    , wai                       >= 3.2      && < 3.3
+                    , network
+                    , HUnit
+@@ -215,11 +216,10 @@ Test-Suite spec
+   if impl(ghc < 8)
+       Build-Depends: semigroups
+ 
+-  if (os(linux) || os(freebsd) || os(darwin)) && flag(allow-sendfilefd)
+-    Cpp-Options:   -DSENDFILEFD
+-    Build-Depends: unix
+-  if os(windows)
+-      Cpp-Options:   -DWINDOWS
++--   if (os(linux) || os(freebsd) || os(darwin)) && flag(allow-sendfilefd)
++--     Cpp-Options:   -DSENDFILEFD
++--   if os(windows)
++--       Cpp-Options:   -DWINDOWS
+ 
+ Benchmark parser
+     Type:           exitcode-stdio-1.0
+@@ -242,16 +242,13 @@ Benchmark parser
+                   , http-date
+                   , http-types
+                   , network
+-                  , network
+-                  , unix-compat
+   if impl(ghc < 8)
+       Build-Depends: semigroups
+ 
+-  if (os(linux) || os(freebsd) || os(darwin)) && flag(allow-sendfilefd)
+-    Cpp-Options:   -DSENDFILEFD
+-    Build-Depends: unix
+-  if os(windows)
+-      Cpp-Options:   -DWINDOWS
++--   if (os(linux) || os(freebsd) || os(darwin)) && flag(allow-sendfilefd)
++--     Cpp-Options:   -DSENDFILEFD
++--   if os(windows)
++--       Cpp-Options:   -DWINDOWS
+ 
+ Source-Repository head
+   Type:     git
+-- 
+2.16.1.windows.4
+
