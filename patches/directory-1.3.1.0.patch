@@ -1,6 +1,6 @@
-From fb370529066211fbba59c6f5ba6239604f414958 Mon Sep 17 00:00:00 2001
+From ee3c5709928cfe3695e41abba5421171eb173d48 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 4 Jun 2018 10:57:34 +0530
+Date: Wed, 27 Jun 2018 12:48:56 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -9,12 +9,12 @@ Subject: [PATCH] Patched
  System/Directory/Internal/Config.hs  |   8 +-
  System/Directory/Internal/Prelude.hs |  27 +-
  directory.cabal                      |  20 +-
- java/Utils.java                      | 134 ++++++
- 6 files changed, 398 insertions(+), 613 deletions(-)
+ java/Utils.java                      | 138 ++++++
+ 6 files changed, 402 insertions(+), 613 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/System/Directory.hs b/System/Directory.hs
-index 0f32863..375e33f 100644
+index 0f32863..0d145ab 100644
 --- a/System/Directory.hs
 +++ b/System/Directory.hs
 @@ -1,4 +1,4 @@
@@ -744,7 +744,7 @@ index 0f32863..375e33f 100644
 -#endif
 +createFileLink target link = createSymbolicLink (toPath link) (toPath target)
 +
-+foreign import java unsafe "@static java.nio.file.Files.createSymbolicLink"
++foreign import java unsafe "@static eta.directory.Utils.createSymbolicLink"
 +  createSymbolicLink :: Path -> Path -> IO ()
  
  -- | Create a /directory/ symbolic link.  The target path can be either
@@ -1289,10 +1289,10 @@ index 3f73c9a..0867cb9 100644
  test-suite test
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..2be7754
+index 0000000..65c3ee1
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,134 @@
+@@ -0,0 +1,138 @@
 +package eta.directory;
 +
 +import java.io.IOException;
@@ -1425,6 +1425,10 @@ index 0000000..2be7754
 +
 +    public static String canonicalize(String path) throws IOException {
 +        return new File(path).getCanonicalPath();
++    }
++
++    public static void createSymbolicLink(Path from, Path to) throws IOException {
++        Files.createSymbolicLink(from, to);
 +    }
 +}
 -- 
