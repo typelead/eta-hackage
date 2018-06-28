@@ -1,0 +1,25 @@
+From 1d50af7f2c89ce02b2e84b96b950c4b4c39d27c5 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 28 Jun 2018 19:04:13 +0530
+Subject: [PATCH] Patched
+
+---
+ Network/HPACK/Huffman/ByteString.hs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Network/HPACK/Huffman/ByteString.hs b/Network/HPACK/Huffman/ByteString.hs
+index 96d501f..067650b 100644
+--- a/Network/HPACK/Huffman/ByteString.hs
++++ b/Network/HPACK/Huffman/ByteString.hs
+@@ -47,7 +47,7 @@ copy dst (PS fptr off len) = withForeignPtr fptr $ \ptr -> do
+     let beg = ptr `plusPtr` off
+     memcpy dst beg (fromIntegral len)
+ 
+-foreign import ccall unsafe "string.h memcpy" c_memcpy
++foreign import java unsafe "@static eta.base.Utils.c_memcpy" c_memcpy
+     :: Ptr Word8 -> Ptr Word8 -> CSize -> IO (Ptr Word8)
+ 
+ memcpy :: Ptr Word8 -> Ptr Word8 -> Int -> IO ()
+-- 
+2.7.4 (Apple Git-66)
+
