@@ -4,13 +4,14 @@ module Main where
 import Data.Aeson
 import Data.Text (Text)
 import qualified Data.Text as T
-import System.Directory (getAppUserDataDirectory, getDirectoryContents, getCurrentDirectory)
+import System.Directory
 import System.FilePath ((</>), dropExtension)
 import qualified Data.ByteString.Lazy as BS
 
 import Data.Monoid ((<>))
 import Data.List
 import Control.Applicative
+import Control.Exception
 import Control.Monad
 import Data.String
 import GHC.IO.Exception (ExitCode(..))
@@ -55,7 +56,9 @@ ignoredPackageVersions :: [Text]
 ignoredPackageVersions = []
 
 filterLibraries :: [Text] -> [Text]
-filterLibraries set0 = recentVersions ++ remoteVersions ++ concat restVersions
+filterLibraries set0 = recentVersions
+  -- TODO: Find a way to validate older versions too that isn't crazy slow.
+  -- ++ remoteVersions ++ concat restVersions
   where (recentVersions, restVersions) = unzip $ map findAndExtractMaximum
                                                $ groupBy grouping set1
         remoteVersions = map actualName recentVersions
@@ -67,7 +70,10 @@ actualName :: Text -> Text
 actualName = T.dropEnd 1 . T.dropWhileEnd (/= '-')
 
 actualVersion :: Text -> [Int]
-actualVersion = map (read . T.unpack) . T.split (== '.') .  T.takeWhileEnd (/= '-')
+actualVersion = map (read . T.unpack) . T.split (== '.') . actualVersion'
+
+actualVersion' :: Text -> Text
+actualVersion' = T.takeWhileEnd (/= '-')
 
 cmpVersion :: [Int] -> [Int] -> Ordering
 cmpVersion xs ys
@@ -79,19 +85,10 @@ findAndExtractMaximum :: [Text] -> (Text, [Text])
 findAndExtractMaximum g = (last pkgVersions, init pkgVersions)
   where pkgVersions = sortBy (\a b -> cmpVersion (actualVersion a) (actualVersion b)) g
 
-buildPackage :: Text -> IO ()
-buildPackage pkg = do
-  let outString = "Installing package " ++ T.unpack pkg ++ "..."
-      lenOutString = length outString
-      dashes = replicate lenOutString '-'
-  putStrLn dashes
-  putStrLn outString
-  putStrLn dashes
-  procExitOnError "etlas" ["--patches-dir", ".", "install", T.unpack pkg]
-
-procExitOnError :: String -> [String] -> IO ()
-procExitOnError prog args = do
-  exitCode <- rawSystem prog args
+procExitOnError :: String -> String -> [String] -> IO ()
+procExitOnError dir prog args = do
+  (_, _, _, ph) <- createProcess (proc prog args) { cwd = Just dir }
+  exitCode <- waitForProcess ph
   case exitCode of
     ExitFailure code -> die ("ExitCode " ++ show code)
     ExitSuccess -> return ()
@@ -105,4 +102,19 @@ main = do
     Nothing -> die "Problem parsing your packages.json file"
     Just pkg' -> do
       let packages = (patched pkg') <> (vanilla pkg')
-      mapM_ buildPackage packages
+          constraints = map (\p -> T.unpack $ actualName p <> "==" <> actualVersion' p) packages
+          packageNames = map (T.unpack . actualName) packages
+          tmpDir  = "testing"
+          tmpFile = "testing/cabal.project"
+      etaHackageRoot <- makeAbsolute "."
+      bracket (createDirectoryIfMissing True tmpDir)
+              (const (removeFile tmpFile)) $ \_ -> do
+        forM (zip packageNames constraints) $ \(pkg, constr) -> do
+          let projectFile = (unlines ["independent-goals: True",
+                                      "extra-packages: " <> constr,
+                                      "tests: False",
+                                      "benchmarks: False"])
+          writeFile tmpFile projectFile
+          putStrLn $ "[BUILDING] " <> constr
+          procExitOnError tmpDir "etlas" ["--patches-dir", etaHackageRoot, "build", pkg]
+        return ()
