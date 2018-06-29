@@ -1,0 +1,27 @@
+From f80dd51eadd97cca77570f1b8c5ea4dc6209f8dd Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 29 Jun 2018 17:52:24 +0530
+Subject: [PATCH] Patched
+
+---
+ log-domain.cabal | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/log-domain.cabal b/log-domain.cabal
+index 16ebd4e..451360a 100644
+--- a/log-domain.cabal
++++ b/log-domain.cabal
+@@ -67,8 +67,8 @@ library
+   if impl(ghc < 7.6)
+     build-depends: ghc-prim
+ 
+-  if flag(ffi) && !(os(windows) && !impl(ghc >= 8.0))
+-    cpp-options: -D__USE_FFI__
++  -- if flag(ffi) && !(os(windows) && !impl(ghc >= 8.0))
++  --   cpp-options: -D__USE_FFI__
+ 
+   ghc-options: -Wall -fwarn-tabs -O2
+   hs-source-dirs: src
+-- 
+2.7.4 (Apple Git-66)
+
