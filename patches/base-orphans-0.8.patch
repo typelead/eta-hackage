@@ -1,0 +1,39 @@
+From 9335c435b699989518d265449ca0a839595ada37 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 4 Jul 2018 17:04:49 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Data/Orphans.hs         | 2 +-
+ src/Data/Orphans/Prelude.hs | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/Data/Orphans.hs b/src/Data/Orphans.hs
+index be17742..0d65db9 100644
+--- a/src/Data/Orphans.hs
++++ b/src/Data/Orphans.hs
+@@ -84,7 +84,7 @@ import           GHC.ConsoleHandler as Console
+ import           Data.Orphans.Prelude
+ #endif
+ 
+-#include "HsBaseConfig.h"
++#define HTYPE_DEV_T 1
+ 
+ -------------------------------------------------------------------------------
+ 
+diff --git a/src/Data/Orphans/Prelude.hs b/src/Data/Orphans/Prelude.hs
+index 4746a92..bb9ea27 100644
+--- a/src/Data/Orphans/Prelude.hs
++++ b/src/Data/Orphans/Prelude.hs
+@@ -84,7 +84,7 @@ import Control.Monad.Zip as OrphansPrelude
+ import GHC.Fingerprint as OrphansPrelude
+ import GHC.IO.Encoding.Failure as OrphansPrelude
+ 
+-#  if !defined(mingw32_HOST_OS) && !defined(__GHCJS__)
++#  if !defined(mingw32_HOST_OS) && !defined(__GHCJS__) && !defined(ETA_VERSION)
+ import GHC.Event as OrphansPrelude
+ #  endif
+ 
+-- 
+2.7.4 (Apple Git-66)
+
