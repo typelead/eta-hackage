@@ -1,16 +1,25 @@
-From 334384bc82fc9adfffbf224c83c716eed6a92d80 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 29 May 2018 12:35:54 +0530
-Subject: [PATCH] Patched
+From bd1cddab4366ad06c4cdbefaad12c4a2f1f484bc Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Thu, 5 Jul 2018 08:46:47 +0200
+Subject: [PATCH] Patched, including hackage rev 2
 
 ---
- lens.cabal                  |  16 +--
+ cabal.project               |   2 -
+ lens.cabal                  |  18 +--
  src/Control/Lens/Empty.hs   |   4 +-
  src/Control/Lens/Wrapped.hs | 314 ++++++++++++++++++++++----------------------
- 3 files changed, 166 insertions(+), 168 deletions(-)
+ 4 files changed, 167 insertions(+), 171 deletions(-)
 
+diff --git a/cabal.project b/cabal.project
+index b91f16f..e6fdbad 100644
+--- a/cabal.project
++++ b/cabal.project
+@@ -1,3 +1 @@
+ packages: .
+-          ./examples
+-          ./lens-properties
 diff --git a/lens.cabal b/lens.cabal
-index 2331f59..949f325 100644
+index 2331f59..1301137 100644
 --- a/lens.cabal
 +++ b/lens.cabal
 @@ -10,7 +10,7 @@ stability:     provisional
@@ -41,6 +50,15 @@ index 2331f59..949f325 100644
  
  -- Enable benchmarking against Neil Mitchell's uniplate library for comparative performance analysis. Defaults to being turned off to avoid
  -- the extra dependency.
+@@ -202,7 +202,7 @@ library
+     exceptions                >= 0.1.1    && < 1,
+     mtl                       >= 2.0.1    && < 2.3,
+     parallel                  >= 3.1.0.1  && < 3.3,
+-    profunctors               >= 5.2.1    && < 6,
++    profunctors               <5.3 && >=5.2.1 && <6,
+     reflection                >= 2.1      && < 3,
+     semigroupoids             >= 5        && < 6,
+     semigroups                >= 0.8.4    && < 1,
 @@ -309,7 +309,7 @@ library
    other-modules:
      Paths_lens
@@ -426,5 +444,5 @@ index 9ea5071..bc89352 100644
  #if MIN_VERSION_base(4,10,0)
  instance Rewrapped CBool t
 -- 
-2.7.4 (Apple Git-66)
+2.16.2.windows.1
 
