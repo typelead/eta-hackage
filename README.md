@@ -134,6 +134,7 @@ These packages are supported by `etlas`.
 - [deepseq-1.4.2.0](https://hackage.haskell.org/package/deepseq-1.4.2.0)
 - [deepseq-generics-0.2.0.0](https://hackage.haskell.org/package/deepseq-generics-0.2.0.0)
 - [dhall >= 1.14.0](https://hackage.haskell.org/package/dhall-1.14.0)
+- [dhall-json >= 1.2.1](https://hackage.haskell.org/package/dhall-json-1.2.1)
 - [diagrams-solve-0.1.1](https://hackage.haskell.org/package/diagrams-solve-0.1.1)
 - [digest 0.0.1.2](https://hackage.haskell.org/package/digest)
 - [directory >= 1.3.0.0 && <= 1.3.1.0](https://hackage.haskell.org/package/directory)
