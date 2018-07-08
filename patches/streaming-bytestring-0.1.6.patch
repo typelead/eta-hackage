@@ -1,0 +1,24 @@
+From c46f571cf8dea4a0f14d15f5da781d37cdcceebd Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 8 Jul 2018 11:15:38 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/ByteString/Streaming/Internal.hs | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/Data/ByteString/Streaming/Internal.hs b/Data/ByteString/Streaming/Internal.hs
+index 9eccf03..588aa11 100644
+--- a/Data/ByteString/Streaming/Internal.hs
++++ b/Data/ByteString/Streaming/Internal.hs
+@@ -200,7 +200,6 @@ bracketByteString alloc free inside = do
+ 
+ 
+ data SPEC = SPEC | SPEC2
+-{-# ANN type SPEC ForceSpecConstr #-}
+ 
+ -- -- ------------------------------------------------------------------------
+ --
+-- 
+2.7.4 (Apple Git-66)
+
