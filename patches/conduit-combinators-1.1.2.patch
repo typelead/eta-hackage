@@ -1,0 +1,36 @@
+From 43f9aa5c4cfedf249033da67cf08c15ae263a00b Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 8 Jul 2018 10:55:24 +0530
+Subject: [PATCH] Patched
+
+---
+ conduit-combinators.cabal | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/conduit-combinators.cabal b/conduit-combinators.cabal
+index c459c1f..0f94f59 100644
+--- a/conduit-combinators.cabal
++++ b/conduit-combinators.cabal
+@@ -54,7 +54,6 @@ library
+     , text
+     , transformers
+     , transformers-base
+-    , unix-compat
+     , vector
+     , void
+   if flag(monotrav1)
+@@ -65,11 +64,6 @@ library
+     build-depends:
+         chunked-data <0.3
+       , mono-traversable >=0.5 && <1.0
+-  if os(windows)
+-    cpp-options: -DWINDOWS
+-  else
+-    build-depends:
+-        unix
+   exposed-modules:
+       Conduit
+       Data.Conduit.Combinators
+-- 
+2.7.4 (Apple Git-66)
+

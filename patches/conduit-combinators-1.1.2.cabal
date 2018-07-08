@@ -1,0 +1,109 @@
+-- This file has been generated from package.yaml by hpack version 0.20.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: c9fb108db74e0e70db397f63afc970b475b22ca7c0f48ebe17eafec927475bd7
+
+name:           conduit-combinators
+version:        1.1.2
+synopsis:       Commonly used conduit functions, for both chunked and unchunked data
+description:    See docs and README at <http://www.stackage.org/package/conduit-combinators>
+category:       Data, Conduit
+homepage:       https://github.com/snoyberg/mono-traversable#readme
+bug-reports:    https://github.com/snoyberg/mono-traversable/issues
+author:         Michael Snoyman
+maintainer:     michael@snoyman.com
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+
+extra-source-files:
+    ChangeLog.md
+    fusion-macros.h
+    README.md
+    test/subdir/dummyfile.txt
+
+source-repository head
+  type: git
+  location: https://github.com/snoyberg/mono-traversable
+
+flag monotrav1
+  description: Use mono-traversable 1.0 or later
+  manual: False
+  default: True
+
+library
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -O2
+  include-dirs:
+      ./.
+  build-depends:
+      base >=4 && <5
+    , base16-bytestring
+    , base64-bytestring >=0.1.1.1
+    , bytestring
+    , conduit >=1.2.8
+    , conduit-extra >=1.1.1
+    , filepath
+    , monad-control
+    , mwc-random
+    , primitive
+    , resourcet
+    , text
+    , transformers
+    , transformers-base
+    , vector
+    , void
+  if flag(monotrav1)
+    build-depends:
+        chunked-data >=0.3
+      , mono-traversable >=1.0
+  else
+    build-depends:
+        chunked-data <0.3
+      , mono-traversable >=0.5 && <1.0
+  exposed-modules:
+      Conduit
+      Data.Conduit.Combinators
+      Data.Conduit.Combinators.Internal
+      Data.Conduit.Combinators.Stream
+  other-modules:
+      Data.Conduit.Combinators.Unqualified
+  default-language: Haskell2010
+
+test-suite test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs:
+      test
+  ghc-options: -Wall
+  cpp-options: -DTEST
+  build-depends:
+      QuickCheck >=2.5
+    , base
+    , base16-bytestring
+    , base64-bytestring
+    , bytestring
+    , chunked-data
+    , conduit
+    , conduit-combinators
+    , containers
+    , directory
+    , filepath
+    , hspec >=1.3
+    , mono-traversable
+    , mtl
+    , mwc-random
+    , safe
+    , silently
+    , text
+    , transformers
+    , vector
+  if os(windows)
+    cpp-options: -DWINDOWS
+  other-modules:
+      StreamSpec
+      Paths_conduit_combinators
+  default-language: Haskell2010

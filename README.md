@@ -108,6 +108,7 @@ These packages are supported by `etlas`.
 - [conceit-0.4.0.0](https://hackage.haskell.org/package/conceit-0.4.0.0)
 - [concurrent-machines-0.2.3.3](https://hackage.haskell.org/package/concurrent-machines-0.2.3.3)
 - [conduit-1.2.8](https://hackage.haskell.org/package/conduit-1.2.8)
+- [conduit-combinators-1.1.2](https://hackage.haskell.org/package/conduit-combinators-1.1.2)
 - [conduit-extra-1.2.1](https://hackage.haskell.org/package/conduit-extra-1.2.1)
 - [cookie >= 0.4.2.1 && <= 0.4.3](https://hackage.haskell.org/package/cookie)
 - [connection-0.2.8](https://hackage.haskell.org/package/connection-0.2.8)
