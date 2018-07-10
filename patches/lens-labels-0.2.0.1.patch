@@ -1,0 +1,25 @@
+From 75436341281edd9c4841c08d36975b56dc6b715f Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Wed, 11 Jul 2018 00:20:46 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Lens/Labels.hs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Lens/Labels.hs b/src/Lens/Labels.hs
+index 3588832..c02de7d 100644
+--- a/src/Lens/Labels.hs
++++ b/src/Lens/Labels.hs
+@@ -59,7 +59,7 @@ import GHC.OverloadedLabels (IsLabel(..))
+ import GHC.TypeLits (Symbol)
+ 
+ import Data.Function ((&))
+-import Data.Functor.Const (Const(..))
++import Control.Applicative (Const(..))
+ import Data.Functor.Identity(Identity(..))
+ 
+ 
+-- 
+2.15.2 (Apple Git-101.1)
+

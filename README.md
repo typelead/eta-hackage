@@ -223,6 +223,7 @@ These packages are supported by `etlas`.
 - [lens-aeson-1.0.2](https://hackage.haskell.org/package/lens-aeson-1.0.2)
 - [lens-family-1.2.1](https://hackage.haskell.org/package/lens-family-1.2.1)
 - [lens-family-core-1.2.1](https://hackage.haskell.org/package/lens-family-core-1.2.1)
+- [lens-labels-0.2.0.1](http://hackage.haskell.org/package/lens-labels)
 - [lca-0.3](https://hackage.haskell.org/package/lca-0.3)
 - [lifted-async-0.9.0](https://hackage.haskell.org/package/lifted-async-0.9.0)
 - [lifted-base >= 0.2.3.8 && <= 0.2.3.11](https://hackage.haskell.org/package/lifted-base)
