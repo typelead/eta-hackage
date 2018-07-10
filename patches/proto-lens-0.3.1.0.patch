@@ -1,0 +1,155 @@
+From 6898044feabe62cf853b2246264913da62c4ca28 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Wed, 11 Jul 2018 00:40:03 +0530
+Subject: [PATCH] Patched
+
+---
+ proto-lens.cabal                    | 1 +
+ src/Data/ProtoLens/Encoding.hs      | 3 +--
+ src/Data/ProtoLens/Message.hs       | 9 ++++-----
+ src/Data/ProtoLens/Service/Types.hs | 4 +---
+ src/Data/ProtoLens/TextFormat.hs    | 9 ++++-----
+ 5 files changed, 11 insertions(+), 15 deletions(-)
+
+diff --git a/proto-lens.cabal b/proto-lens.cabal
+index e0afc84..2e38610 100644
+--- a/proto-lens.cabal
++++ b/proto-lens.cabal
+@@ -54,6 +54,7 @@ library
+     , text ==1.2.*
+     , transformers >=0.4 && <0.6
+     , void ==0.7.*
++    , semigroups
+   exposed-modules:
+       Data.ProtoLens
+       Data.ProtoLens.Encoding
+diff --git a/src/Data/ProtoLens/Encoding.hs b/src/Data/ProtoLens/Encoding.hs
+index 6283ae9..8779b89 100644
+--- a/src/Data/ProtoLens/Encoding.hs
++++ b/src/Data/ProtoLens/Encoding.hs
+@@ -14,7 +14,6 @@
+ {-# LANGUAGE PatternGuards #-}
+ {-# LANGUAGE RankNTypes #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+-{-# LANGUAGE TypeApplications #-}
+ module Data.ProtoLens.Encoding(
+     encodeMessage,
+     buildMessage,
+@@ -54,7 +53,7 @@ decodeMessage input = parseOnly (parseMessage endOfInput) input
+ -- | Parse a message with the given ending delimiter (which will be EndGroup in
+ -- the case of a group, and end-of-input otherwise).
+ parseMessage :: forall msg . Message msg => Parser () -> Parser msg
+-parseMessage end = (Parse.<?> T.unpack (messageName (Proxy @msg))) $ do
++parseMessage end = (Parse.<?> T.unpack (messageName (Proxy :: Proxy msg))) $ do
+     (msg, unsetFields) <- loop def requiredFields
+     if Map.null unsetFields
+         then return $ over unknownFields reverse
+diff --git a/src/Data/ProtoLens/Message.hs b/src/Data/ProtoLens/Message.hs
+index d4fae43..8ae3d7c 100644
+--- a/src/Data/ProtoLens/Message.hs
++++ b/src/Data/ProtoLens/Message.hs
+@@ -11,7 +11,6 @@
+ {-# LANGUAGE RankNTypes #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE StandaloneDeriving #-}
+-{-# LANGUAGE TypeApplications #-}
+ -- | Datatypes for reflection of protocol buffer messages.
+ module Data.ProtoLens.Message (
+     -- * Reflection of Messages
+@@ -210,11 +209,11 @@ deriving instance Show (ScalarField value)
+ 
+ matchAnyMessage :: forall value . FieldTypeDescriptor value -> Maybe (AnyMessageDescriptor value)
+ matchAnyMessage (MessageField _)
+-    | messageName (Proxy @value) == "google.protobuf.Any"
++    | messageName (Proxy :: Proxy value) == "google.protobuf.Any"
+     , Just (FieldDescriptor _ (ScalarField StringField) (PlainField Optional typeUrlLens))
+-        <- Map.lookup 1 (fieldsByTag @value)
++        <- Map.lookup 1 (fieldsByTag :: Map Tag (FieldDescriptor value))
+     , Just (FieldDescriptor _ (ScalarField BytesField) (PlainField Optional valueLens))
+-        <- Map.lookup 2 (fieldsByTag @value)
++        <- Map.lookup 2 (fieldsByTag :: Map Tag (FieldDescriptor value))
+         = Just $ AnyMessageDescriptor typeUrlLens valueLens
+ matchAnyMessage _ = Nothing
+ 
+@@ -293,7 +292,7 @@ newtype Registry = Registry (Map.Map T.Text SomeMessageType)
+ --   Example:
+ -- > register (Proxy :: Proxy Proto.My.Proto.Type)
+ register :: forall msg . Message msg => Proxy msg -> Registry
+-register p = Registry $ Map.singleton (messageName (Proxy @msg)) (SomeMessageType p)
++register p = Registry $ Map.singleton (messageName (Proxy :: Proxy msg)) (SomeMessageType p)
+ 
+ -- | Look up a message type by name (e.g.,
+ -- @"type.googleapis.com/google.protobuf.FloatValue"@). The URL corresponds to
+diff --git a/src/Data/ProtoLens/Service/Types.hs b/src/Data/ProtoLens/Service/Types.hs
+index 45e8f11..3687257 100644
+--- a/src/Data/ProtoLens/Service/Types.hs
++++ b/src/Data/ProtoLens/Service/Types.hs
+@@ -10,7 +10,6 @@
+ {-# LANGUAGE TypeFamilies          #-}
+ {-# LANGUAGE TypeOperators         #-}
+ {-# LANGUAGE UndecidableInstances  #-}
+-{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+ 
+ -- | This module provides typeclasses for describing protobuf service metadata.
+ -- It is intended to be used by library authors to generating bindings against
+@@ -23,7 +22,7 @@ module Data.ProtoLens.Service.Types
+   , StreamingType (..)
+   ) where
+ 
+-import Data.Kind (Constraint)
++import GHC.Exts
+ import Data.ProtoLens.Message (Message)
+ import GHC.TypeLits
+ 
+@@ -123,4 +122,3 @@ type family ShowList (ls :: [k]) :: ErrorMessage where
+   ShowList '[x] = 'ShowType x
+   ShowList (x ': xs) =
+     'ShowType x ':<>: 'Text ", " ':<>: ShowList xs
+-
+diff --git a/src/Data/ProtoLens/TextFormat.hs b/src/Data/ProtoLens/TextFormat.hs
+index 84ad8ee..df7d8a1 100644
+--- a/src/Data/ProtoLens/TextFormat.hs
++++ b/src/Data/ProtoLens/TextFormat.hs
+@@ -10,7 +10,6 @@
+ {-# LANGUAGE NamedFieldPuns #-}
+ {-# LANGUAGE PatternGuards #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+-{-# LANGUAGE TypeApplications #-}
+ 
+ module Data.ProtoLens.TextFormat(
+     showMessage,
+@@ -219,7 +218,7 @@ readMessageWithRegistry reg str = left show (parse Parser.parser "" str) >>= bui
+ 
+ buildMessage :: forall msg . Message msg => Registry -> Parser.Message -> Either String msg
+ buildMessage reg fields
+-    | missing <- missingFields (Proxy @msg) fields, not $ null missing
++    | missing <- missingFields (Proxy :: Proxy msg) fields, not $ null missing
+         = Left $ "Missing fields " ++ show missing
+     | otherwise = reverseRepeatedFields fieldsByTag
+                       <$> buildMessageFromDescriptor reg def fields
+@@ -230,11 +229,11 @@ missingFields _ = Set.toList . foldl' deleteField requiredFieldNames
+     requiredFieldNames :: Set.Set String
+     requiredFieldNames = Set.fromList $ Map.keys
+                             $ Map.filter isRequired
+-                            $ fieldsByTextFormatName @msg
++                            $ (fieldsByTextFormatName :: Map.Map String (FieldDescriptor msg))
+     deleteField :: Set.Set String -> Parser.Field -> Set.Set String
+     deleteField fs (Parser.Field (Parser.Key name) _) = Set.delete name fs
+     deleteField fs (Parser.Field (Parser.UnknownKey n) _)
+-        | Just d <- Map.lookup (Tag (fromIntegral n)) (fieldsByTag @msg)
++        | Just d <- Map.lookup (Tag (fromIntegral n)) (fieldsByTag :: Map.Map Tag (FieldDescriptor msg))
+         = Set.delete (fieldDescriptorName d) fs
+     deleteField fs _ = fs
+ 
+@@ -286,7 +285,7 @@ makeValue name reg field@(MessageField MessageType) (Parser.MessageValue (Just t
+               Right value' -> Right (def & anyTypeUrlLens .~ typeUri
+                                          & anyValueLens .~ encodeMessage value')
+     | otherwise = Left ("Type mismatch parsing explicitly typed message. Expected " ++
+-                        show (messageName (Proxy @value))  ++
++                        show (messageName (Proxy :: Proxy value))  ++
+                         ", got " ++ show typeUri)
+ makeValue _ reg (MessageField _) (Parser.MessageValue _ x) = buildMessage reg x
+ makeValue name _ (MessageField _) val =
+-- 
+2.15.2 (Apple Git-101.1)
+

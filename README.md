@@ -303,6 +303,7 @@ These packages are supported by `etlas`.
 - [process-1.6.2.0](https://hackage.haskell.org/package/process-1.6.2.0)
 - [profunctors-5.2](https://hackage.haskell.org/package/profunctors-5.2)
 - [protolude-0.1.10](https://hackage.haskell.org/package/protolude-0.1.10)
+- [proto-lens-0.3.1.0](https://hackage.haskell.org/package/proto-lens)
 - [pure-zlib-0.6](https://hackage.haskell.org/package/pure-zlib-0.6)
 - [queue-0.1.2](https://hackage.haskell.org/package/queue-0.1.2)
 - [QuickCheck >= 2.7.6 && <= 2.10.0.1](https://hackage.haskell.org/package/QuickCheck)
