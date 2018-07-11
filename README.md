@@ -279,6 +279,7 @@ These packages are supported by `etlas`.
 - [optparse-applicative >= 0.13.2.0 && <= 0.14.0.0 || == 0.14.0.2](https://hackage.haskell.org/package/optparse-applicative)
 - [parallel-3.2.1.0](https://hackage.haskell.org/package/parallel-3.2.1.0)
 - [parsec-3.1.11](https://hackage.haskell.org/package/parsec-3.1.11)
+- [parsec-3.1.13.0](https://hackage.haskell.org/package/parsec-3.1.13.0)
 - [patch-combinators-0.2.2](https://hackage.haskell.org/package/patch-combinators-0.2.2)
 - [path-pieces-0.2.1](https://hackage.haskell.org/package/path-pieces-0.2.1)
 - [pem-0.2.2](https://hackage.haskell.org/package/pipes-0.2.2)
