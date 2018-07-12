@@ -1,0 +1,68 @@
+-- This file has been generated from package.yaml by hpack version 0.15.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           superbuffer
+version:        0.3.1.1
+synopsis:       Efficiently build a bytestring from smaller chunks
+description:    Efficiently (both fast and memory efficient) build a bytestring from smaller chunks
+category:       Web
+homepage:       https://github.com/agrafix/superbuffer#readme
+author:         Alexander Thiemann
+maintainer:     mail@athiemann.net
+copyright:      2016 - 2017 Alexander Thiemann <mail@athiemann.net>
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+
+extra-source-files:
+    package.yaml
+    README.md
+    stack.yaml
+
+library
+  hs-source-dirs:
+      src
+  ghc-options: -Wall
+  java-sources: java/SuperBuffer.java
+  build-depends:
+      base >= 4.8 && < 5
+    , bytestring < 0.11
+  exposed-modules:
+      Data.ByteString.SuperBuffer
+      Data.ByteString.SuperBuffer.Pure
+  other-modules:
+      Paths_superbuffer
+  default-language: Haskell2010
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Test.hs
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -funfolding-use-threshold=16 -O2 -optc-Ofast
+  cpp-options: -DTest
+  build-depends:
+      base >= 4.8 && < 5
+    , bytestring < 0.11
+    , HTF < 0.14
+    , QuickCheck < 2.10
+    , async
+    , superbuffer
+  default-language: Haskell2010
+
+benchmark sbuf-bench
+  type: exitcode-stdio-1.0
+  main-is: Bench.hs
+  hs-source-dirs:
+      bench
+  ghc-options: -Wall -funfolding-use-threshold=16 -O2 -optc-Ofast
+  build-depends:
+      base >= 4.8 && < 5
+    , bytestring < 0.11
+    , criterion < 1.3
+    , superbuffer
+    , buffer-builder
+    , async
+  default-language: Haskell2010

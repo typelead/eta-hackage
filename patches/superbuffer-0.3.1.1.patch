@@ -1,0 +1,110 @@
+From 96cea2a78b5c197b3956f3bdc1c2157d875212fa Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 12 Jul 2018 09:55:01 +0530
+Subject: [PATCH] Patched
+
+---
+ java/SuperBuffer.java              | 49 ++++++++++++++++++++++++++++++++++++++
+ src/Data/ByteString/SuperBuffer.hs | 17 ++++++-------
+ superbuffer.cabal                  |  3 +--
+ 3 files changed, 59 insertions(+), 10 deletions(-)
+ create mode 100644 java/SuperBuffer.java
+
+diff --git a/java/SuperBuffer.java b/java/SuperBuffer.java
+new file mode 100644
+index 0000000..984227a
+--- /dev/null
++++ b/java/SuperBuffer.java
+@@ -0,0 +1,49 @@
++package eta.superbuffer;
++
++import eta.base.Utils;
++import eta.runtime.io.MemoryManager;
++
++public class SuperBuffer {
++  private long contentsPtr;
++  private int currentSize;
++  private int maxSize;
++
++  public SuperBuffer(int initSize) {
++    long contentsPtr = MemoryManager.allocateBuffer(initSize + 1, false);
++    MemoryManager.put(contentsPtr, (byte)0);
++    this.contentsPtr = contentsPtr;
++    this.currentSize = 0;
++    this.maxSize = initSize;
++  }
++
++  public void append(long valPtr, int len) {
++    if (len == 0) return;
++    int nextSize = currentSize + len;
++    if (nextSize > maxSize) {
++      maxSize = nextSize + (nextSize >>> 1);
++      contentsPtr = Utils._realloc(contentsPtr, maxSize);
++    }
++    long targetPtr = contentsPtr + currentSize;
++    MemoryManager.copy(valPtr, 0, targetPtr, 0, len);
++    currentSize = nextSize;
++  }
++
++  public long read(long lenPtr) {
++    if (currentSize < maxSize) {
++      contentsPtr = Utils._realloc(contentsPtr, currentSize);
++      maxSize = currentSize;
++    }
++    MemoryManager.putInt(lenPtr, currentSize);
++    return contentsPtr;
++  }
++
++  public void destroyContents() {
++    MemoryManager.free(contentsPtr);
++  }
++
++  public void destroy() {}
++
++  public int size() {
++    return currentSize;
++  }
++}
+diff --git a/src/Data/ByteString/SuperBuffer.hs b/src/Data/ByteString/SuperBuffer.hs
+index dd60c40..e11afb8 100644
+--- a/src/Data/ByteString/SuperBuffer.hs
++++ b/src/Data/ByteString/SuperBuffer.hs
+@@ -88,12 +88,13 @@ size (SuperBuffer (ptr, _)) =
+     fromIntegral <$> size_sbuf ptr
+ {-# INLINE size #-}
+ 
+-data SBuf
+-type SuperBufferP = Ptr SBuf
++data SBuf = SBuf @eta.superbuffer.SuperBuffer
+ 
+-foreign import ccall unsafe "new_sbuf" new_sbuf :: CSize -> IO SuperBufferP
+-foreign import ccall unsafe "append_sbuf" append_sbuf :: SuperBufferP -> CString -> CSize -> IO ()
+-foreign import ccall unsafe "read_sbuf" read_sbuf :: SuperBufferP -> Ptr CSize -> IO CString
+-foreign import ccall unsafe "destroy_sbuf" destroy_sbuf :: SuperBufferP -> IO ()
+-foreign import ccall unsafe "destroyContents_sbuf" destroyContents_sbuf :: SuperBufferP -> IO ()
+-foreign import ccall unsafe "size_sbuf" size_sbuf :: SuperBufferP -> IO CSize
++type SuperBufferP = SBuf
++
++foreign import java unsafe "@new" new_sbuf :: CSize -> IO SuperBufferP
++foreign import java unsafe "append" append_sbuf :: SuperBufferP -> CString -> CSize -> IO ()
++foreign import java unsafe "read" read_sbuf :: SuperBufferP -> Ptr CSize -> IO CString
++foreign import java unsafe "destroy" destroy_sbuf :: SuperBufferP -> IO ()
++foreign import java unsafe "destroyContents" destroyContents_sbuf :: SuperBufferP -> IO ()
++foreign import java unsafe "size" size_sbuf :: SuperBufferP -> IO CSize
+diff --git a/superbuffer.cabal b/superbuffer.cabal
+index 161de3b..c2ad02e 100644
+--- a/superbuffer.cabal
++++ b/superbuffer.cabal
+@@ -25,8 +25,7 @@ library
+   hs-source-dirs:
+       src
+   ghc-options: -Wall
+-  c-sources:
+-      cbits/superbuffer.c
++  java-sources: java/SuperBuffer.java
+   build-depends:
+       base >= 4.8 && < 5
+     , bytestring < 0.11
+-- 
+2.15.2 (Apple Git-101.1)
+

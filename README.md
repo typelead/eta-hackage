@@ -339,6 +339,7 @@ These packages are supported by `etlas`.
 - [socks-0.5.5](https://hackage.haskell.org/package/socks-0.5.5)
 - [sorted-list-0.2.0.0](https://hackage.haskell.org/package/sorted-list-0.2.0.0)
 - [split >= 0.2.3.1 && <= 0.2.3.2](https://hackage.haskell.org/package/split-0.2.3.2)
+- [superbuffer-0.3.1.1](https://hackage.haskell.org/package/superbuffer-0.3.1.1)
 - [stable-marriage-0.1.1.0](https://hackage.haskell.org/package/stable-marriage-0.1.1.0)
 - [statistics-0.14.0.2](https://hackage.haskell.org/package/statistics-0.14.0.2)
 - [stm-2.4.4.1](https://hackage.haskell.org/package/stm-2.4.4.1)
