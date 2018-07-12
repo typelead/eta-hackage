@@ -1,0 +1,65 @@
+From 66edd65835083ffb910913c2e0b37b248fcf62a6 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 12 Jul 2018 10:41:08 +0530
+Subject: [PATCH] Patched
+
+---
+ java/Utils.java                       | 18 ++++++++++++++++++
+ src/Network/WebSockets/Hybi13/Mask.hs |  2 +-
+ websockets.cabal                      |  2 +-
+ 3 files changed, 20 insertions(+), 2 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..f58daed
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,18 @@
++package eta.websockets;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.MemoryManager;
++
++public class Utils {
++  public static void mask_chunk (int mask, int mask_offset, long srcPtr, int len, long dstPtr) {
++    long src_end = srcPtr + len;
++    ByteBuffer mask_ptr = ByteBuffer.allocate(4);
++    while (srcPtr != src_end) {
++        MemoryManager.put(dstPtr, (byte)((MemoryManager.get(srcPtr) & 0xFF)
++                                       ^ (mask_ptr.get(mask_offset) & 0xFF)));
++        srcPtr++;
++        dstPtr++;
++        mask_offset = (mask_offset + 1) & 0x3;
++    }
++  }
++}
+diff --git a/src/Network/WebSockets/Hybi13/Mask.hs b/src/Network/WebSockets/Hybi13/Mask.hs
+index e04cfa8..614df4b 100644
+--- a/src/Network/WebSockets/Hybi13/Mask.hs
++++ b/src/Network/WebSockets/Hybi13/Mask.hs
+@@ -30,7 +30,7 @@ import           System.Random                 (RandomGen, random)
+ 
+ 
+ --------------------------------------------------------------------------------
+-foreign import ccall unsafe "_hs_mask_chunk" c_mask_chunk
++foreign import java unsafe "@static eta.websockets.Utils.mask_chunk" c_mask_chunk
+     :: Word32 -> CInt -> Ptr CChar -> CSize -> Ptr Word8 -> IO ()
+ 
+ 
+diff --git a/websockets.cabal b/websockets.cabal
+index a927224..dcc1377 100644
+--- a/websockets.cabal
++++ b/websockets.cabal
+@@ -55,7 +55,7 @@ Flag Example
+ Library
+   Hs-source-dirs: src
+   Ghc-options:    -Wall
+-  C-sources:      cbits/cbits.c
++  java-sources:   java/Utils.java
+ 
+   Exposed-modules:
+     Network.WebSockets
+-- 
+2.15.2 (Apple Git-101.1)
+
