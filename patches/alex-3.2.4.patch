@@ -1,0 +1,303 @@
+From bec16f3bacf6843830c0e2a224d9527ddd5cf2fa Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sat, 14 Jul 2018 14:37:35 +0530
+Subject: [PATCH] Patched
+
+---
+ alex.cabal  |  2 +-
+ src/Main.hs | 56 +++++++++++++++++++++++++---------------
+ src/Scan.hs | 85 +++++++++++++++++++++++++++----------------------------------
+ 3 files changed, 74 insertions(+), 69 deletions(-)
+
+diff --git a/alex.cabal b/alex.cabal
+index a60605c..fa85499 100644
+--- a/alex.cabal
++++ b/alex.cabal
+@@ -113,7 +113,7 @@ executable alex
+   else
+     build-depends: base >= 1.0
+ 
+-  build-depends: base < 5
++  build-depends: base < 5, file-embed
+ 
+   extensions: CPP
+   ghc-options: -Wall -rtsopts
+diff --git a/src/Main.hs b/src/Main.hs
+index e643d02..985305a 100644
+--- a/src/Main.hs
++++ b/src/Main.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE CPP #-}
++{-# LANGUAGE CPP, TemplateHaskell #-}
+ -- -----------------------------------------------------------------------------
+ --
+ -- Main.hs, part of Alex
+@@ -22,7 +22,8 @@ import ParseMonad ( runP )
+ import Parser
+ import Scan
+ import Util ( hline )
+-import Paths_alex ( version, getDataDir )
++import Data.FileEmbed
++import Paths_alex ( version )
+ 
+ #if __GLASGOW_HASKELL__ < 610
+ import Control.Exception as Exception ( block, unblock, catch, throw )
+@@ -67,6 +68,29 @@ alexOpenFile file mode = do
+ alexOpenFile = openFile
+ #endif
+ 
++templates :: [(FilePath, String)]
++templates = [
++  ("AlexTemplate", $(embedStringFile "data/AlexTemplate")),
++  ("AlexTemplate-debug", $(embedStringFile "data/AlexTemplate-debug")),
++  ("AlexTemplate-ghc", $(embedStringFile "data/AlexTemplate-ghc")),
++  ("AlexTemplate-ghc-debug", $(embedStringFile "data/AlexTemplate-ghc-debug")),
++  ("AlexTemplate-ghc-nopred", $(embedStringFile "data/AlexTemplate-ghc-nopred")),
++  ("AlexWrapper-basic", $(embedStringFile "data/AlexWrapper-basic")),
++  ("AlexWrapper-basic-bytestring", $(embedStringFile "data/AlexWrapper-basic-bytestring")),
++  ("AlexWrapper-gscan", $(embedStringFile "data/AlexWrapper-gscan")),
++  ("AlexWrapper-monad", $(embedStringFile "data/AlexWrapper-monad")),
++  ("AlexWrapper-monad-bytestring", $(embedStringFile "data/AlexWrapper-monad-bytestring")),
++  ("AlexWrapper-monadUserState", $(embedStringFile "data/AlexWrapper-monadUserState")),
++  ("AlexWrapper-monadUserState-bytestring", $(embedStringFile "data/AlexWrapper-monadUserState-bytestring")),
++  ("AlexWrapper-posn", $(embedStringFile "data/AlexWrapper-posn")),
++  ("AlexWrapper-posn-bytestring", $(embedStringFile "data/AlexWrapper-posn-bytestring")),
++  ("AlexWrapper-strict-bytestring", $(embedStringFile "data/AlexWrapper-strict-bytestring"))]
++
++getTemplate :: FilePath -> String
++getTemplate template = case lookup template templates of
++  Just contents -> contents
++  Nothing -> error $ "Unable to find template: " ++ template
++
+ -- `main' decodes the command line arguments and calls `alex'.
+ 
+ main:: IO ()
+@@ -146,8 +170,6 @@ alex cli file basename script = do
+         | OptLatin1 `elem` cli = [Latin1]
+         | otherwise            = []
+ 
+-   template_dir  <- templateDir getDataDir cli
+-
+    let (maybe_header, directives, scanner1, maybe_footer) = script
+ 
+    scheme <- getScheme directives
+@@ -159,7 +181,7 @@ alex cli file basename script = do
+         $ \out_h -> do
+ 
+    let
+-         wrapper_name = wrapperFile template_dir scheme
++         wrapper_name = wrapperFile scheme
+          (scanner2, scs, sc_hdr) = encodeStartCodes scanner1
+          (scanner_final, actions) = extractActions scheme scanner2
+          encodingsScript = [ e | EncodingDirective e <- directives ]
+@@ -177,7 +199,7 @@ alex cli file basename script = do
+ 
+    -- add the wrapper, if necessary
+    when (isJust wrapper_name) $
+-        do str <- alexReadFile (fromJust wrapper_name)
++        do let str = getTemplate (fromJust wrapper_name)
+            hPutStr out_h str
+ 
+    -- Inject the tab size
+@@ -208,8 +230,8 @@ alex cli file basename script = do
+    hPutStr out_h (actions "")
+ 
+    -- add the template
+-   let template_name = templateFile template_dir target usespreds cli
+-   tmplt <- alexReadFile template_name
++   let template_name = templateFile target usespreds cli
++       tmplt = getTemplate template_name
+    hPutStr out_h tmplt
+ 
+    hClose out_h
+@@ -383,15 +405,9 @@ import_debug   = "#if __GLASGOW_HASKELL__ >= 503\n" ++
+                  "import IOExts\n" ++
+                  "#endif\n"
+ 
+-templateDir :: IO FilePath -> [CLIFlags] -> IO FilePath
+-templateDir def cli
+-  = case [ d | OptTemplateDir d <- cli ] of
+-      [] -> def
+-      ds -> return (last ds)
+-
+-templateFile :: FilePath -> Target -> UsesPreds -> [CLIFlags] -> FilePath
+-templateFile dir target usespreds cli
+-  = dir ++ "/AlexTemplate" ++ maybe_ghc ++ maybe_debug ++ maybe_nopred
++templateFile :: Target -> UsesPreds -> [CLIFlags] -> FilePath
++templateFile target usespreds cli
++  = "AlexTemplate" ++ maybe_ghc ++ maybe_debug ++ maybe_nopred
+   where
+         maybe_ghc = case target of
+                       GhcTarget -> "-ghc"
+@@ -407,11 +423,11 @@ templateFile dir target usespreds cli
+                           && null maybe_debug -> "-nopred"
+             _                                 -> ""
+ 
+-wrapperFile :: FilePath -> Scheme -> Maybe FilePath
+-wrapperFile dir scheme =
++wrapperFile :: Scheme -> Maybe FilePath
++wrapperFile scheme =
+   do
+     f <- wrapperName scheme
+-    return (dir ++ "/AlexWrapper-" ++ f)
++    return ("AlexWrapper-" ++ f)
+ 
+ infoStart :: FilePath -> FilePath -> IO (String -> IO (), IO ())
+ infoStart x_file info_file = do
+diff --git a/src/Scan.hs b/src/Scan.hs
+index 5d8386c..d979955 100644
+--- a/src/Scan.hs
++++ b/src/Scan.hs
+@@ -7,24 +7,13 @@ import Data.Char
+ import ParseMonad
+ --import Debug.Trace
+ 
+-#if __GLASGOW_HASKELL__ >= 603
+-#include "ghcconfig.h"
+-#elif defined(__GLASGOW_HASKELL__)
+-#include "config.h"
+-#endif
+-#if __GLASGOW_HASKELL__ >= 503
++
+ import Data.Array
+ import Data.Char (ord)
+ import Data.Array.Base (unsafeAt)
+-#else
+-import Array
+-import Char (ord)
+-#endif
+-#if __GLASGOW_HASKELL__ >= 503
++
+ import GHC.Exts
+-#else
+-import GlaExts
+-#endif
++
+ alex_base :: AlexAddr
+ alex_base = AlexA# "\xf8\xff\xff\xff\x72\x00\x00\x00\xe5\x00\x00\x00\xd9\xff\xff\xff\xda\xff\xff\xff\xea\x00\x00\x00\xa1\xff\xff\xff\x96\xff\xff\xff\xc3\x01\x00\x00\x17\x02\x00\x00\x77\x00\x00\x00\x15\x02\x00\x00\x7c\x00\x00\x00\x0b\x03\x00\x00\x8b\x03\x00\x00\x0b\x04\x00\x00\xa5\xff\xff\xff\x9c\xff\xff\xff\xa7\xff\xff\xff\x9a\xff\xff\xff\x8b\x04\x00\x00\x0b\x05\x00\x00\xe8\x02\x00\x00\xca\x05\x00\x00\xe1\xff\xff\xff\xe2\xff\xff\xff\xc5\x05\x00\x00\x45\x06\x00\x00\xc5\x06\x00\x00\x45\x07\x00\x00\xe3\xff\xff\xff\xa8\xff\xff\xff\xa9\xff\xff\xff\xaa\xff\xff\xff\xb2\xff\xff\xff\xc5\x07\x00\x00\x45\x08\x00\x00\xc5\x08\x00\x00\x45\x09\x00\x00\xc5\x09\x00\x00\x45\x0a\x00\x00\xc5\x0a\x00\x00\x1b\x00\x00\x00\x45\x0b\x00\x00\xc5\x0b\x00\x00\x45\x0c\x00\x00\xb3\xff\xff\xff\x09\x00\x00\x00\xb4\xff\xff\xff\x16\x00\x00\x00\x17\x00\x00\x00\xb1\xff\xff\xff\x1c\x00\x00\x00\x1d\x00\x00\x00\x1e\x00\x00\x00\x2c\x00\x00\x00\x00\x00\x00\x00\xb6\x0c\x00\x00\x00\x00\x00\x00\x27\x0d\x00\x00\x00\x00\x00\x00\x98\x0d\x00\x00\x22\x00\x00\x00\x1f\x00\x00\x00\x2b\x00\x00\x00\x25\x00\x00\x00\x00\x00\x00\x00\xd9\x0d\x00\x00\x00\x00\x00\x00\x4a\x0e\x00\x00\x00\x00\x00\x00\xbb\x0e\x00\x00\x00\x00\x00\x00\xfc\x0e\x00\x00\x00\x00\x00\x00\x3d\x0f\x00\x00\x00\x00\x00\x00\xae\x0f\x00\x00\x00\x00\x00\x00\x1f\x10\x00\x00\x26\x00\x00\x00\x1f\x11\x00\x00\xdf\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x20\x11\x00\x00\x00\x00\x00\x00\x91\x11\x00\x00\x00\x00\x00\x00\x02\x12\x00\x00\x00\x00\x00\x00\x43\x12\x00\x00\x43\x13\x00\x00\x03\x13\x00\x00\x00\x00\x00\x00\x03\x14\x00\x00\xc3\x13\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x14\x00\x00\x00\x00\x00\x00\x45\x14\x00\x00\x2a\x00\x00\x00\x3b\x15\x00\x00\x32\x16\x00\x00\x3d\x15\x00\x00\xad\x16\x00\x00\xb8\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x6e\x16\x00\x00\x00\x00\x00\x00\xaf\x16\x00\x00\xaf\x17\x00\x00\xff\x17\x00\x00\x79\x17\x00\x00\x00\x00\x00\x00\xff\x18\x00\x00\xbf\x18\x00\x00\x00\x00\x00\x00\xbf\x19\x00\x00\x7f\x19\x00\x00\x00\x00\x00\x00\x2d\x00\x00\x00\x2f\x00\x00\x00\x27\x00\x00\x00\x75\x1a\x00\x00\x75\x1b\x00\x00\xd8\x19\x00\x00\x00\x00\x00\x00\xf5\x1b\x00\x00\x45\x1c\x00\x00\xbf\x1b\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xec\x00\x00\x00\x3b\x1d\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x31\x1e\x00\x00\x00\x00\x00\x00\x6d\x00\x00\x00\x05\x1d\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x74\x00\x00\x00\x51\x1d\x00\x00\xca\x00\x00\x00\x00\x00\x00\x00\xe8\x00\x00\x00\x0c\x1e\x00\x00\x71\x00\x00\x00\x32\x1e\x00\x00\x00\x00\x00\x00\x28\x1f\x00\x00\x83\x1f\x00\x00\xf9\x1f\x00\x00\xf0\x20\x00\x00\xfc\x1f\x00\x00\x62\x21\x00\x00\x01\x20\x00\x00\x80\x21\x00\x00\x00\x00\x00\x00\x76\x22\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x73\x22\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"#
+ 
+@@ -211,32 +200,32 @@ andBegin act sc inp len = setStartCode sc >> act inp len
+ afterstartcodes,startcodes :: Int
+ afterstartcodes = 1
+ startcodes = 2
+-alex_action_0 =  skip 
+-alex_action_1 =  string 
+-alex_action_2 =  bind 
+-alex_action_3 =  code 
+-alex_action_4 =  special 
+-alex_action_5 =  wrapper 
+-alex_action_6 =  encoding 
+-alex_action_7 =  actionty 
+-alex_action_8 =  tokenty 
+-alex_action_9 =  typeclass 
+-alex_action_10 =  decch 
+-alex_action_11 =  hexch 
+-alex_action_12 =  octch 
+-alex_action_13 =  escape 
+-alex_action_14 =  char 
+-alex_action_15 =  smac 
+-alex_action_16 =  rmac 
+-alex_action_17 =  smacdef 
+-alex_action_18 =  rmacdef 
+-alex_action_19 =  special `andBegin` startcodes 
+-alex_action_20 =  zero 
+-alex_action_21 =  startcode 
+-alex_action_22 =  special 
+-alex_action_23 =  special `andBegin` afterstartcodes 
+-alex_action_24 =  special `andBegin` 0 
+-alex_action_25 =  skip `andBegin` 0 
++alex_action_0 =  skip
++alex_action_1 =  string
++alex_action_2 =  bind
++alex_action_3 =  code
++alex_action_4 =  special
++alex_action_5 =  wrapper
++alex_action_6 =  encoding
++alex_action_7 =  actionty
++alex_action_8 =  tokenty
++alex_action_9 =  typeclass
++alex_action_10 =  decch
++alex_action_11 =  hexch
++alex_action_12 =  octch
++alex_action_13 =  escape
++alex_action_14 =  char
++alex_action_15 =  smac
++alex_action_16 =  rmac
++alex_action_17 =  smacdef
++alex_action_18 =  rmacdef
++alex_action_19 =  special `andBegin` startcodes
++alex_action_20 =  zero
++alex_action_21 =  startcode
++alex_action_22 =  special
++alex_action_23 =  special `andBegin` afterstartcodes
++alex_action_24 =  special `andBegin` 0
++alex_action_25 =  skip `andBegin` 0
+ {-# LINE 1 "templates/GenericTemplate.hs" #-}
+ {-# LINE 1 "templates/GenericTemplate.hs" #-}
+ {-# LINE 1 "<built-in>" #-}
+@@ -358,7 +347,7 @@ alexIndexInt16OffAddr (AlexA# arr) off =
+ 
+ 
+ {-# INLINE alexIndexInt32OffAddr #-}
+-alexIndexInt32OffAddr (AlexA# arr) off = 
++alexIndexInt32OffAddr (AlexA# arr) off =
+ #ifdef WORDS_BIGENDIAN
+   narrow32Int# i
+   where
+@@ -406,7 +395,7 @@ alexScanUser user input (I# (sc))
+   = case alex_scan_tkn user input 0# input sc AlexNone of
+ 	(AlexNone, input') ->
+ 		case alexGetByte input of
+-			Nothing -> 
++			Nothing ->
+ 
+ 
+ 
+@@ -435,13 +424,13 @@ alexScanUser user input (I# (sc))
+ 
+ alex_scan_tkn user orig_input len input s last_acc =
+   input `seq` -- strict in the input
+-  let 
++  let
+ 	new_acc = (check_accs (alex_accept `quickIndex` (I# (s))))
+   in
+   new_acc `seq`
+   case alexGetByte input of
+      Nothing -> (new_acc, input)
+-     Just (c, new_input) -> 
++     Just (c, new_input) ->
+ 
+ 
+ 
+@@ -450,7 +439,7 @@ alex_scan_tkn user orig_input len input s last_acc =
+                 base   = alexIndexInt32OffAddr alex_base s
+                 offset = (base +# ord_c)
+                 check  = alexIndexInt16OffAddr alex_check offset
+-		
++
+                 new_s = if GTE(offset,0#) && EQ(check,ord_c)
+ 			  then alexIndexInt16OffAddr alex_table offset
+ 			  else alexIndexInt16OffAddr alex_deflt s
+@@ -506,16 +495,16 @@ type AlexAccPred user = user -> AlexInput -> Int -> AlexInput -> Bool
+ alexAndPred p1 p2 user in1 len in2
+   = p1 user in1 len in2 && p2 user in1 len in2
+ 
+---alexPrevCharIsPred :: Char -> AlexAccPred _ 
++--alexPrevCharIsPred :: Char -> AlexAccPred _
+ alexPrevCharIs c _ input _ _ = c == alexInputPrevChar input
+ 
+ alexPrevCharMatches f _ input _ _ = f (alexInputPrevChar input)
+ 
+---alexPrevCharIsOneOfPred :: Array Char Bool -> AlexAccPred _ 
++--alexPrevCharIsOneOfPred :: Array Char Bool -> AlexAccPred _
+ alexPrevCharIsOneOf arr _ input _ _ = arr ! alexInputPrevChar input
+ 
+ --alexRightContext :: Int -> AlexAccPred _
+-alexRightContext (I# (sc)) user _ _ input = 
++alexRightContext (I# (sc)) user _ _ input =
+      case alex_scan_tkn user input 0# input sc AlexNone of
+ 	  (AlexNone, _) -> False
+ 	  _ -> True
+-- 
+2.15.2 (Apple Git-101.1)
+
