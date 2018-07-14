@@ -215,6 +215,7 @@ These packages are supported by `etlas`.
 - [integer-logarithms-1.0.2](https://hackage.haskell.org/package/integer-logarithms-1.0.2)
 - [integration-0.2.1](https://hackage.haskell.org/package/integration-0.2.1)
 - [interval-1.20160821](https://hackage.haskell.org/package/interval-1.20160821)
+- [invariant-0.5](https://hackage.haskell.org/package/invariant-0.5)
 - [iproute-1.7.1](https://hackage.haskell.org/package/iproute-1.7.1)
 - [iso8601-time-0.1.4](https://hackage.haskell.org/package/iso8601-time-0.1.4)
 - [ix-shapable-0.1.0](https://hackage.haskell.org/package/ix-shapable-0.1.0)
