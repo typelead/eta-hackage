@@ -1,0 +1,50 @@
+From 3b77078f92bacdfdc594181ccc1d63eb7c490012 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sat, 14 Jul 2018 13:28:16 +0530
+Subject: [PATCH] Patched
+
+---
+ Network/HTTP/Simple.hs | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/Network/HTTP/Simple.hs b/Network/HTTP/Simple.hs
+index bac1b5e..52a4c70 100644
+--- a/Network/HTTP/Simple.hs
++++ b/Network/HTTP/Simple.hs
+@@ -20,7 +20,7 @@
+ module Network.HTTP.Simple
+     ( -- * Perform requests
+       httpBS
+-    , httpLBS
++    , httpLBS1
+     , httpNoBody
+     , httpJSON
+     , httpJSONEither
+@@ -115,8 +115,8 @@ httpBS req = liftIO $ do
+ -- in-memory representation.
+ --
+ -- @since 2.1.10
+-httpLBS :: MonadIO m => H.Request -> m (H.Response L.ByteString)
+-httpLBS req = liftIO $ do
++httpLBS1 :: MonadIO m => H.Request -> m (H.Response L.ByteString)
++httpLBS1 req = liftIO $ do
+     man <- H.getGlobalManager
+     H.httpLbs req man
+ 
+@@ -259,11 +259,11 @@ parseRequestThrow = HC.parseUrlThrow
+ parseRequestThrow_ :: String -> HC.Request
+ parseRequestThrow_ = either throw id . HC.parseUrlThrow
+ 
+--- | Alternate spelling of 'httpLBS'
++-- | Alternate spelling of 'httpLBS1'
+ --
+ -- @since 2.1.10
+ httpLbs :: MonadIO m => H.Request -> m (H.Response L.ByteString)
+-httpLbs = httpLBS
++httpLbs = httpLBS1
+ 
+ -- | Set the request method
+ --
+-- 
+2.15.2 (Apple Git-101.1)
+
