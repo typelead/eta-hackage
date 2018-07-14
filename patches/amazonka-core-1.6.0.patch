@@ -1,0 +1,25 @@
+From 46ef20d27e9bc792e4e3943ae0acdedfdc7686a9 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sat, 14 Jul 2018 16:35:54 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Network/AWS/Data/Log.hs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Network/AWS/Data/Log.hs b/src/Network/AWS/Data/Log.hs
+index b0a297c..fe2b5b0 100644
+--- a/src/Network/AWS/Data/Log.hs
++++ b/src/Network/AWS/Data/Log.hs
+@@ -4,7 +4,7 @@
+ {-# LANGUAGE RecordWildCards   #-}
+ {-# LANGUAGE CPP               #-}
+ 
+-{-# OPTIONS_GHC -fsimpl-tick-factor=110 #-}
++{-# OPTIONS_GHC -fsimpl-tick-factor=56080 #-}
+ 
+ -- |
+ -- Module      : Network.AWS.Data.Log
+-- 
+2.15.2 (Apple Git-101.1)
+
