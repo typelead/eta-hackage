@@ -1,0 +1,25 @@
+From 19479f43fc2c3662b02f05e775be744f0a2b6e8b Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 13 Jul 2018 09:00:04 +0530
+Subject: [PATCH] Patched
+
+---
+ transient.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/transient.cabal b/transient.cabal
+index bdce173..5b80a15 100644
+--- a/transient.cabal
++++ b/transient.cabal
+@@ -36,7 +36,7 @@ library
+                      , stm
+                      , random
+  
+-                     ,atomic-primops
++                    -- ,atomic-primops
+ 
+     exposed-modules: Transient.Backtrack
+                      Transient.Base
+-- 
+2.7.4 (Apple Git-66)
+
