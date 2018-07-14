@@ -1,0 +1,25 @@
+From f9ae9e2aadc05cd9ec6dc695a8132a19a2779160 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sat, 14 Jul 2018 15:50:04 +0530
+Subject: [PATCH] Patched
+
+---
+ base-compat.cabal | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/base-compat.cabal b/base-compat.cabal
+index eda9a85..45bb1f5 100644
+--- a/base-compat.cabal
++++ b/base-compat.cabal
+@@ -65,8 +65,6 @@ library
+       -Wall
+   build-depends:
+       base >= 4.3 && < 5
+-  if !os(windows) && !os(halvm)
+-      build-depends: unix
+   ghc-options:
+       -fno-warn-duplicate-exports
+   if impl(ghc >= 7.10)
+-- 
+2.15.2 (Apple Git-101.1)
+

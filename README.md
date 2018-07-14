@@ -69,7 +69,7 @@ These packages are supported by `etlas`.
 - [authenticate-oauth-1.6](https://hackage.haskell.org/package/authenticate-oauth-1.6)
 - [avro >= 0.1.0.1 && <= 0.2.0.0](https://hackage.haskell.org/package/avro-0.1.0.1)
 - [basement >= 0.0.4 && <= 0.0.6](https://hackage.haskell.org/package/basement)
-- [base-compat >= 0.9.1 && <= 0.9.3 && == 0.10.1](https://hackage.haskell.org/package/base-compat)
+- [base-compat >= 0.9.1 && <= 0.10.4](https://hackage.haskell.org/package/base-compat)
 - [base-orphans >= 0.5.4 && <= 0.8](https://hackage.haskell.org/package/base-orphans)
 - [base-prelude-1.2.0.1](https://hackage.haskell.org/package/base-prelude-1.2.0.1)
 - [base16-bytestring-0.1.1.6](https://hackage.haskell.org/package/base16-bytestring-0.1.1.6)
