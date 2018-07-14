@@ -64,6 +64,7 @@ These packages are supported by `etlas`.
 - [attoparsec >= 0.13.1.0 && <= 0.13.2.0](https://hackage.haskell.org/package/attoparsec)
 - [attoparsec-iso8601-1.0.0.0](https://hackage.haskell.org/package/attoparsec-iso8601-1.0.0.0)
 - [auto-update-0.1.4](https://hackage.haskell.org/package/auto-update-0.1.4)
+- [authenticate-1.3.4](https://hackage.haskell.org/package/authenticate-1.3.4)
 - [avro >= 0.1.0.1 && <= 0.2.0.0](https://hackage.haskell.org/package/avro-0.1.0.1)
 - [basement >= 0.0.4 && <= 0.0.6](https://hackage.haskell.org/package/basement)
 - [base-compat >= 0.9.1 && <= 0.9.3 && == 0.10.1](https://hackage.haskell.org/package/base-compat)
