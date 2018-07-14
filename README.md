@@ -45,6 +45,7 @@ If you would like to have a given package/version made compatible with `etlas`, 
 
 These packages are supported by `etlas`.
 
+- [amazonka-1.6.0](https://hackage.haskell.org/package/amazonka-1.6.0)
 - [amazonka-core-1.6.0](https://hackage.haskell.org/package/amazonka-core-1.6.0)
 - [abstract-deque-0.3](https://hackage.haskell.org/package/abstract-deque-0.3)
 - [abstract-par-0.3.3](https://hackage.haskell.org/package/abstract-par-0.3.3)
