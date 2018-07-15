@@ -1,0 +1,56 @@
+From 33225b5d06466d015d5528ecbd5a8e0603641f1c Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 15 Jul 2018 23:58:57 +0530
+Subject: [PATCH] Patched
+
+---
+ Control/DeepSeq.hs | 12 ++++++------
+ deepseq.cabal      |  2 +-
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/Control/DeepSeq.hs b/Control/DeepSeq.hs
+index 7296b97..f2f70c3 100644
+--- a/Control/DeepSeq.hs
++++ b/Control/DeepSeq.hs
+@@ -114,7 +114,7 @@ import Data.Proxy ( Proxy(Proxy) )
+ #endif
+ 
+ #if MIN_VERSION_base(4,10,0)
+-import Data.Type.Equality ( (:~:), (:~~:) )
++import Data.Type.Equality ( (:~:) )
+ #elif MIN_VERSION_base(4,9,0)
+ import Data.Type.Equality ( (:~:) )
+ #elif MIN_VERSION_base(4,7,0)
+@@ -444,11 +444,11 @@ instance NFData2 (:~:) where liftRnf2 _ _ = rwhnf
+ 
+ #if MIN_VERSION_base(4,10,0)
+ -- | @since 1.4.3.0
+-instance NFData (a :~~: b) where rnf = rwhnf
+--- | @since 1.4.3.0
+-instance NFData1 ((:~~:) a) where liftRnf _ = rwhnf
+--- | @since 1.4.3.0
+-instance NFData2 (:~~:) where liftRnf2 _ _ = rwhnf
++-- instance NFData (a :~~: b) where rnf = rwhnf
++-- -- | @since 1.4.3.0
++-- instance NFData1 ((:~~:) a) where liftRnf _ = rwhnf
++-- -- | @since 1.4.3.0
++-- instance NFData2 (:~~:) where liftRnf2 _ _ = rwhnf
+ #endif
+ 
+ #if MIN_VERSION_base(4,8,0)
+diff --git a/deepseq.cabal b/deepseq.cabal
+index 7f54e2a..7191fa9 100644
+--- a/deepseq.cabal
++++ b/deepseq.cabal
+@@ -61,7 +61,7 @@ library
+   if impl(ghc>=7.8)
+     other-extensions: EmptyCase
+ 
+-  build-depends: base       >= 4.5 && < 4.11,
++  build-depends: base       >= 4.5 && < 4.12,
+                  array      >= 0.4 && < 0.6
+   ghc-options: -Wall
+ 
+-- 
+2.15.2 (Apple Git-101.1)
+

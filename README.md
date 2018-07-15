@@ -137,7 +137,7 @@ These packages are supported by `etlas`.
 - [data-default-instances-old-locale-0.0.1](https://hackage.haskell.org/package/data-default-instances-old-locale-0.0.1)
 - [data-reify-0.6.1](https://hackage.haskell.org/package/data-reify-0.6.1)
 - [DecisionTree-0.0](https://hackage.haskell.org/package/DecisionTree-0.0)
-- [deepseq-1.4.2.0](https://hackage.haskell.org/package/deepseq-1.4.2.0)
+- [deepseq >= 1.4.2.0 && <= 1.4.3.0](https://hackage.haskell.org/package/deepseq-1.4.2.0)
 - [deepseq-generics-0.2.0.0](https://hackage.haskell.org/package/deepseq-generics-0.2.0.0)
 - [dhall >= 1.14.0](https://hackage.haskell.org/package/dhall-1.14.0)
 - [dhall-json >= 1.2.1](https://hackage.haskell.org/package/dhall-json-1.2.1)
