@@ -1,13 +1,14 @@
-From f48637c74f53b2c64b73e60ef6ceb45b109d7022 Mon Sep 17 00:00:00 2001
+From b4c0c853046c22c8477798f280631cd907366ba1 Mon Sep 17 00:00:00 2001
 From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Tue, 4 Apr 2017 11:24:08 +0530
+Date: Mon, 16 Jul 2018 00:24:26 +0530
 Subject: [PATCH] Patched
 
 ---
- Data/IntSet/Internal.hs | 12 +++++++++---
- containers.cabal        |  1 +
- java/Utils.java         | 11 +++++++++++
- 3 files changed, 21 insertions(+), 3 deletions(-)
+ Data/IntSet/Internal.hs   | 12 +++++++++---
+ Data/Sequence/Internal.hs |  9 ++++++---
+ containers.cabal          |  1 +
+ java/Utils.java           | 11 +++++++++++
+ 4 files changed, 27 insertions(+), 6 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/Data/IntSet/Internal.hs b/Data/IntSet/Internal.hs
@@ -57,6 +58,47 @@ index 7eece21..207798a 100644
  lowestBitMask :: Nat -> Nat
  lowestBitMask x = x .&. negate x
  {-# INLINE lowestBitMask #-}
+diff --git a/Data/Sequence/Internal.hs b/Data/Sequence/Internal.hs
+index 9879321..ff2179e 100644
+--- a/Data/Sequence/Internal.hs
++++ b/Data/Sequence/Internal.hs
+@@ -191,6 +191,9 @@ module Data.Sequence.Internal (
+ 
+ import Prelude hiding (
+     Functor(..),
++#if MIN_VERSION_base(4,11,0)
++    (<>),
++#endif
+ #if MIN_VERSION_base(4,8,0)
+     Applicative, (<$>), foldMap, Monoid,
+ #endif
+@@ -2118,7 +2121,7 @@ adjustDigit f i (Four a b c d)
+ -- insertAt 4 x (fromList [a,b,c,d]) = insertAt 10 x (fromList [a,b,c,d])
+ --                                   = fromList [a,b,c,d,x]
+ -- @
+--- 
++--
+ -- prop> insertAt i x xs = take i xs >< singleton x >< drop i xs
+ --
+ -- @since 0.5.8
+@@ -3285,7 +3288,7 @@ splitMiddleE i s spr pr ml (Node3 _ a b c) mr sf = case i of
+     sprmla  = 1 + sprml
+     sprmlab = sprmla + 1
+ 
+-splitPrefixE :: Int -> Int -> Digit (Elem a) -> FingerTree (Node (Elem a)) -> Digit (Elem a) -> 
++splitPrefixE :: Int -> Int -> Digit (Elem a) -> FingerTree (Node (Elem a)) -> Digit (Elem a) ->
+                     StrictPair (FingerTree (Elem a)) (FingerTree (Elem a))
+ splitPrefixE !_i !s (One a) m sf = EmptyT :*: Deep s (One a) m sf
+ splitPrefixE i s (Two a b) m sf = case i of
+@@ -3301,7 +3304,7 @@ splitPrefixE i s (Four a b c d) m sf = case i of
+   2 -> Deep 2 (One a) EmptyT (One b) :*: Deep (s - 2) (Two c d) m sf
+   _ -> Deep 3 (Two a b) EmptyT (One c) :*: Deep (s - 3) (One d) m sf
+ 
+-splitPrefixN :: Int -> Int -> Digit (Node a) -> FingerTree (Node (Node a)) -> Digit (Node a) -> 
++splitPrefixN :: Int -> Int -> Digit (Node a) -> FingerTree (Node (Node a)) -> Digit (Node a) ->
+                     Split a
+ splitPrefixN !_i !s (One a) m sf = Split EmptyT a (pullL (s - size a) m sf)
+ splitPrefixN i s (Two a b) m sf
 diff --git a/containers.cabal b/containers.cabal
 index 987755d..7538a2b 100644
 --- a/containers.cabal
@@ -88,5 +130,5 @@ index 0000000..caa7261
 +}
 \ No newline at end of file
 -- 
-2.10.1 (Apple Git-78)
+2.15.2 (Apple Git-101.1)
 
