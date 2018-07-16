@@ -1,6 +1,6 @@
-From b18e65cf3c37d21a24f64d2d7220b11e32eeab92 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 29 May 2018 12:04:27 +0530
+From 970df122f8e91acc2aefd42851d127e7c51161fd Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 16 Jul 2018 10:14:50 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -9,11 +9,11 @@ Subject: [PATCH] Patched
  Language/Haskell/TH/Lib.hs                | 12 +++++++++++-
  Language/Haskell/TH/Lib/Map.hs            |  8 ++++++++
  Language/Haskell/TH/Ppr.hs                | 12 +++++++++++-
- Language/Haskell/TH/PprLib.hs             |  5 +++++
+ Language/Haskell/TH/PprLib.hs             | 12 ++++++++++--
  Language/Haskell/TH/Quote.hs              |  6 +++++-
  Language/Haskell/TH/Syntax.hs             | 12 ++++++++++++
  template-haskell.cabal                    | 19 +++++++++++++------
- 9 files changed, 75 insertions(+), 9 deletions(-)
+ 9 files changed, 80 insertions(+), 11 deletions(-)
 
 diff --git a/Language/Haskell/TH.hs b/Language/Haskell/TH.hs
 index 3bca8ea..a777a89 100644
@@ -123,20 +123,41 @@ index a57eeff..c83afa8 100644
 +
 +#endif
 diff --git a/Language/Haskell/TH/PprLib.hs b/Language/Haskell/TH/PprLib.hs
-index acef327..56144a2 100644
+index acef327..6536a84 100644
 --- a/Language/Haskell/TH/PprLib.hs
 +++ b/Language/Haskell/TH/PprLib.hs
-@@ -34,6 +34,9 @@ module Language.Haskell.TH.PprLib (
+@@ -34,6 +34,12 @@ module Language.Haskell.TH.PprLib (
      to_HPJ_Doc, pprName, pprName'
    ) where
  
 +#ifdef ETA_META
 +import Language.Eta.Meta.PprLib
++#if MIN_VERSION_base(4,10,0)
++import Prelude hiding ((<>))
++#endif
 +#else
  
  import Language.Haskell.TH.Syntax
      (Name(..), showName', NameFlavour(..), NameIs(..))
-@@ -227,3 +230,5 @@ punctuate p (d:ds) = go d ds
+@@ -45,7 +51,7 @@ import qualified Language.Haskell.TH.Lib.Map as Map ( lookup, insert, empty )
+ import Control.Applicative( Applicative(..) )
+ #endif
+ 
+-infixl 6 <> 
++infixl 6 <>
+ infixl 6 <+>
+ infixl 5 $$, $+$
+ 
+@@ -140,7 +146,7 @@ instance Show Name where
+   show (Name occ (NameU u))    = occString occ ++ "_" ++ show (I# u)
+   show (Name occ NameS)        = occString occ
+   show (Name occ (NameG ns m)) = modString m ++ "." ++ occString occ
+-      
++
+ data Name = Name OccName NameFlavour
+ 
+ data NameFlavour
+@@ -227,3 +233,5 @@ punctuate p (d:ds) = go d ds
                     where
                       go d' [] = [d']
                       go d' (e:es) = (d' <> p) : go e es
@@ -191,7 +212,7 @@ index ec6e1ca..65bc62b 100644
 +
 +#endif
 diff --git a/template-haskell.cabal b/template-haskell.cabal
-index e413e3d..dfa3eb8 100644
+index e413e3d..2f5f54c 100644
 --- a/template-haskell.cabal
 +++ b/template-haskell.cabal
 @@ -25,9 +25,9 @@ source-repository head
@@ -216,11 +237,11 @@ index e413e3d..dfa3eb8 100644
 +    if impl(eta >= 0.8)
 +      cpp-options: -DETA_META
 +      build-depends:
-+          base        >= 4.7 && < 4.10,
++          base        >= 4.7 && < 4.12,
 +          eta-meta
 +    else
 +      build-depends:
-+          base        >= 4.7 && < 4.10,
++          base        >= 4.7 && < 4.12,
 +          ghc-boot-th == 8.0.*,
 +          pretty      == 1.1.*
 +
@@ -235,5 +256,5 @@ index e413e3d..dfa3eb8 100644
      else
          if impl( ghc >= 7.9 )
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
