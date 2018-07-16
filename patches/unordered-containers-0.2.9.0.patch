@@ -1,0 +1,86 @@
+From 9838bd4d12627827c6efc13b3e7432c47561d9d5 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 16 Jul 2018 15:33:51 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/HashMap/Base.hs | 6 +++---
+ Data/HashSet.hs      | 6 +++---
+ cabal.project        | 3 +++
+ 3 files changed, 9 insertions(+), 6 deletions(-)
+ create mode 100644 cabal.project
+
+diff --git a/Data/HashMap/Base.hs b/Data/HashMap/Base.hs
+index b7fe7b8..93353ab 100644
+--- a/Data/HashMap/Base.hs
++++ b/Data/HashMap/Base.hs
+@@ -97,7 +97,7 @@ import Data.Monoid (Monoid(mempty, mappend))
+ import Data.Traversable (Traversable(..))
+ import Data.Word (Word)
+ #endif
+-#if __GLASGOW_HASKELL__ >= 711
++#if MIN_VERSION_base(4,10,0)
+ import Data.Semigroup (Semigroup((<>)))
+ #endif
+ import Control.DeepSeq (NFData(rnf))
+@@ -170,7 +170,7 @@ instance Functor (HashMap k) where
+ instance Foldable.Foldable (HashMap k) where
+     foldr f = foldrWithKey (const f)
+ 
+-#if __GLASGOW_HASKELL__ >= 711
++#if MIN_VERSION_base(4,10,0)
+ instance (Eq k, Hashable k) => Semigroup (HashMap k v) where
+   (<>) = union
+   {-# INLINE (<>) #-}
+@@ -179,7 +179,7 @@ instance (Eq k, Hashable k) => Semigroup (HashMap k v) where
+ instance (Eq k, Hashable k) => Monoid (HashMap k v) where
+   mempty = empty
+   {-# INLINE mempty #-}
+-#if __GLASGOW_HASKELL__ >= 711
++#if MIN_VERSION_base(4,10,0)
+   mappend = (<>)
+ #else
+   mappend = union
+diff --git a/Data/HashSet.hs b/Data/HashSet.hs
+index ac40cbd..aca2876 100644
+--- a/Data/HashSet.hs
++++ b/Data/HashSet.hs
+@@ -76,7 +76,7 @@ import Control.DeepSeq (NFData(..))
+ import Data.Data hiding (Typeable)
+ import Data.HashMap.Base (HashMap, foldrWithKey, equalKeys)
+ import Data.Hashable (Hashable(hashWithSalt))
+-#if __GLASGOW_HASKELL__ >= 711
++#if MIN_VERSION_base(4,10,0)
+ import Data.Semigroup (Semigroup(..))
+ #elif __GLASGOW_HASKELL__ < 709
+ import Data.Monoid (Monoid(..))
+@@ -136,7 +136,7 @@ instance Foldable.Foldable HashSet where
+     foldr = Data.HashSet.foldr
+     {-# INLINE foldr #-}
+ 
+-#if __GLASGOW_HASKELL__ >= 711
++#if MIN_VERSION_base(4,10,0)
+ instance (Hashable a, Eq a) => Semigroup (HashSet a) where
+     (<>) = union
+     {-# INLINE (<>) #-}
+@@ -145,7 +145,7 @@ instance (Hashable a, Eq a) => Semigroup (HashSet a) where
+ instance (Hashable a, Eq a) => Monoid (HashSet a) where
+     mempty = empty
+     {-# INLINE mempty #-}
+-#if __GLASGOW_HASKELL__ >= 711
++#if MIN_VERSION_base(4,10,0)
+     mappend = (<>)
+ #else
+     mappend = union
+diff --git a/cabal.project b/cabal.project
+new file mode 100644
+index 0000000..18c7370
+--- /dev/null
++++ b/cabal.project
+@@ -0,0 +1,3 @@
++packages: .
++tests: False
++benchmarks: False
+-- 
+2.15.2 (Apple Git-101.1)
+

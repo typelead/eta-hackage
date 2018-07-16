@@ -390,7 +390,7 @@ These packages are supported by `etlas`.
 - [union-find-array-0.1.0.2](https://hackage.haskell.org/package/union-find-array-0.1.0.2)
 - [unix-time-0.3.7](https://hackage.haskell.org/package/unix-time-0.3.7)
 - [unliftio-core-0.1.1.0](https://hackage.haskell.org/package/unliftio-core-0.1.1.0)
-- [unordered-containers >= 0.2.7.1 && <= 0.2.8.0](https://hackage.haskell.org/package/unordered-containers)
+- [unordered-containers >= 0.2.7.1 && <= 0.2.9.0](https://hackage.haskell.org/package/unordered-containers)
 - [uri-bytestring >= 0.2.2.1 && <= 0.3.0.1](https://hackage.haskell.org/package/uri-bytestring)
 - [utf8-string-1.0.1.1](https://hackage.haskell.org/package/utf8-string-1.0.1.1)
 - [uuid-types-1.0.3](https://hackage.haskell.org/package/uuid-types-1.0.3)
