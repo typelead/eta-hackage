@@ -1,0 +1,71 @@
+From 2019119891c248d1e37c1f464d563530ecc36907 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 16 Jul 2018 09:29:30 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Text/PrettyPrint/Annotated/HughesPJ.hs | 13 +++++++++----
+ src/Text/PrettyPrint/HughesPJ.hs           |  6 +++++-
+ 2 files changed, 14 insertions(+), 5 deletions(-)
+
+diff --git a/src/Text/PrettyPrint/Annotated/HughesPJ.hs b/src/Text/PrettyPrint/Annotated/HughesPJ.hs
+index 44cce28..a0e4d0f 100644
+--- a/src/Text/PrettyPrint/Annotated/HughesPJ.hs
++++ b/src/Text/PrettyPrint/Annotated/HughesPJ.hs
+@@ -82,6 +82,11 @@ module Text.PrettyPrint.Annotated.HughesPJ (
+     ) where
+ #endif
+ 
++#if ETA_VERSION >= 84
++#undef __GLASGOW_HASKELL__
++#define __GLASGOW_HASKELL__ 803
++#endif
++
+ import Control.DeepSeq ( NFData(rnf) )
+ import Data.Function   ( on )
+ #if __GLASGOW_HASKELL__ >= 803
+@@ -937,16 +942,16 @@ style :: Style
+ style = Style { lineLength = 100, ribbonsPerLine = 1.5, mode = PageMode }
+ 
+ -- | Rendering mode.
+-data Mode = PageMode    
++data Mode = PageMode
+             -- ^ Normal rendering ('lineLength' and 'ribbonsPerLine'
+             -- respected').
+-          | ZigZagMode  
++          | ZigZagMode
+             -- ^ With zig-zag cuts.
+-          | LeftMode    
++          | LeftMode
+             -- ^ No indentation, infinitely long lines ('lineLength' ignored),
+             -- but explicit new lines, i.e., @text "one" $$ text "two"@, are
+             -- respected.
+-          | OneLineMode 
++          | OneLineMode
+             -- ^ All on one line, 'lineLength' ignored and explicit new lines
+             -- (@$$@) are turned into spaces.
+ #if __GLASGOW_HASKELL__ >= 701
+diff --git a/src/Text/PrettyPrint/HughesPJ.hs b/src/Text/PrettyPrint/HughesPJ.hs
+index 5d06aeb..9a94c12 100644
+--- a/src/Text/PrettyPrint/HughesPJ.hs
++++ b/src/Text/PrettyPrint/HughesPJ.hs
+@@ -80,6 +80,11 @@ module Text.PrettyPrint.HughesPJ (
+     ) where
+ #endif
+ 
++#if ETA_VERSION >= 84
++#undef __GLASGOW_HASKELL__
++#define __GLASGOW_HASKELL__ 803
++#endif
++
+ import           Text.PrettyPrint.Annotated.HughesPJ
+                      ( TextDetails(..), Mode(..), Style(..), style )
+ import qualified Text.PrettyPrint.Annotated.HughesPJ as Ann
+@@ -454,4 +459,3 @@ fullRender :: Mode                     -- ^ Rendering mode.
+ fullRender m lineLen ribbons txt rest (Doc doc)
+   = Ann.fullRender m lineLen ribbons txt rest doc
+ {-# INLINE fullRender #-}
+-
+-- 
+2.15.2 (Apple Git-101.1)
+
