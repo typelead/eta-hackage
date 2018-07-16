@@ -1,0 +1,25 @@
+From 46713e9397163c820fb5d2ccc60d39a5cd0e24fe Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 16 Jul 2018 15:30:34 +0530
+Subject: [PATCH] Patched
+
+---
+ transformers.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/transformers.cabal b/transformers.cabal
+index 8583b12..5fd70da 100644
+--- a/transformers.cabal
++++ b/transformers.cabal
+@@ -46,7 +46,7 @@ library
+     -- NB: using impl(ghc>=7.9) instead of fragile Cabal flags
+     hs-source-dirs: legacy/pre709
+     exposed-modules: Data.Functor.Identity
+-  if !impl(ghc>=7.11)
++  if !impl(ghc>=7.11) || impl(eta<0.8.4)
+     -- modules moved into base-4.9.0 (GHC 8.0)
+     -- see https://ghc.haskell.org/trac/ghc/ticket/10773
+     -- see https://ghc.haskell.org/trac/ghc/ticket/11135
+-- 
+2.15.2 (Apple Git-101.1)
+

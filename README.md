@@ -377,7 +377,7 @@ These packages are supported by `etlas`.
 - [time >= 1.6.0.1 <= 1.8.0.3](https://hackage.haskell.org/package/time)
 - [time-locale-compat-0.1.1.3](https://hackage.haskell.org/package/time-locale-compat-0.1.1.3)
 - [tls-1.4.0](https://hackage.haskell.org/package/tls-1.4.0)
-- [transformers >= 0.5.2.0 && <= 0.5.4.0](https://hackage.haskell.org/package/transformers)
+- [transformers >= 0.5.2.0 && <= 0.5.5.0](https://hackage.haskell.org/package/transformers)
 - [transformers-base-0.4.4](http://hackage.haskell.org/package/transformers-base-0.4.4)
 - [transformers-compat-0.5.1.4](http://hackage.haskell.org/package/transformers-compat-0.5.1.4)
 - [tree-fun-0.8.1.0](https://hackage.haskell.org/package/tree-fun-0.8.1.0)
