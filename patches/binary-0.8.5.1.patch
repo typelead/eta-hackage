@@ -1,12 +1,13 @@
-From 44972f1df7b98dd7b3321a6260d43df444e3cd39 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 26 Dec 2017 19:30:56 +0530
+From 36e6ec5119087395f09fac817725ad465e33eb3c Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 16 Jul 2018 08:12:19 +0530
 Subject: [PATCH] Patched
 
 ---
  binary.cabal                    |  3 +++
+ src/Data/Binary/Class.hs        |  5 ++---
  src/Data/Binary/Get/Internal.hs | 13 ++++++++++++-
- 2 files changed, 15 insertions(+), 1 deletion(-)
+ 3 files changed, 17 insertions(+), 4 deletions(-)
 
 diff --git a/binary.cabal b/binary.cabal
 index aa1561c..4a6d3df 100644
@@ -22,6 +23,33 @@ index aa1561c..4a6d3df 100644
    if impl(ghc >= 8.0)
      ghc-options: -Wcompat -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
  
+diff --git a/src/Data/Binary/Class.hs b/src/Data/Binary/Class.hs
+index 4d1c436..9364447 100644
+--- a/src/Data/Binary/Class.hs
++++ b/src/Data/Binary/Class.hs
+@@ -73,7 +73,7 @@ import qualified Data.ByteString.Builder.Prim as Prim
+ import Data.List    (unfoldr, foldl')
+ 
+ -- And needed for the instances:
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined(ETA_VERSION)
+ import Type.Reflection
+ import Type.Reflection.Unsafe
+ import Data.Kind (Type)
+@@ -828,7 +828,7 @@ instance Binary a => Binary (NE.NonEmpty a) where
+ ------------------------------------------------------------------------
+ -- Typeable/Reflection
+ 
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined(ETA_VERSION)
+ 
+ -- $typeable-instances
+ --
+@@ -1010,4 +1010,3 @@ instance Binary SomeTypeRep where
+     put (SomeTypeRep rep) = putTypeRep rep
+     get = getSomeTypeRep
+ #endif
+-
 diff --git a/src/Data/Binary/Get/Internal.hs b/src/Data/Binary/Get/Internal.hs
 index c2ebcff..bbcbc35 100644
 --- a/src/Data/Binary/Get/Internal.hs
@@ -56,5 +84,5 @@ index c2ebcff..bbcbc35 100644
  failOnEOF :: [B.ByteString] -> Get a
  failOnEOF bs = C $ \_ _ -> Fail (B.concat bs) "not enough bytes"
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
