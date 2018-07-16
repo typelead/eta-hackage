@@ -67,12 +67,9 @@ library
   other-modules:        Generics.Deriving.Base.Internal
                         -- Generics.Deriving.TH.Internal
                         Paths_generic_deriving
-  -- if flag(base-4-9)
-  --   build-depends:      base >= 4.9 && < 5
-  --   other-modules:      Generics.Deriving.TH.Post4_9
-  -- else
+
   build-depends:      base >= 4.3 && < 4.9
-    -- other-modules:      Generics.Deriving.TH.Pre4_9
+  other-modules:      Generics.Deriving.TH.Pre4_9
 
   build-depends:        containers       >= 0.1 && < 0.6
                       , ghc-prim                   < 1

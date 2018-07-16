@@ -1,16 +1,20 @@
-From 0303f52b54274d447d9baac4120e628e0fdb89b6 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sun, 25 Mar 2018 19:54:27 +0530
+From fb5a45e5d5c7e7c28c7fe96c3f9457f2914d61ed Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 16 Jul 2018 14:01:44 +0530
 Subject: [PATCH] Patched
 
 ---
- generic-deriving.cabal        |  18 +++----
- src/Generics/Deriving/Enum.hs | 114 +++++++++++++++++++++---------------------
- src/Generics/Deriving/Eq.hs   |   2 -
- 3 files changed, 65 insertions(+), 69 deletions(-)
+ generic-deriving.cabal                 |  15 ++---
+ src/Generics/Deriving/Base/Internal.hs |   9 +--
+ src/Generics/Deriving/Enum.hs          | 120 ++++++++++++++++-----------------
+ src/Generics/Deriving/Eq.hs            |  38 +++++------
+ src/Generics/Deriving/Monoid.hs        |   2 +-
+ src/Generics/Deriving/Semigroup.hs     |   2 +-
+ src/Generics/Deriving/Show.hs          |  20 +++---
+ 7 files changed, 100 insertions(+), 106 deletions(-)
 
 diff --git a/generic-deriving.cabal b/generic-deriving.cabal
-index 795d168..1b88502 100644
+index 795d168..272c3e8 100644
 --- a/generic-deriving.cabal
 +++ b/generic-deriving.cabal
 @@ -43,7 +43,7 @@ source-repository head
@@ -22,7 +26,7 @@ index 795d168..1b88502 100644
  
  library
    hs-source-dirs:       src
-@@ -62,17 +62,17 @@ library
+@@ -62,17 +62,14 @@ library
                          Generics.Deriving.Traversable
                          Generics.Deriving.Uniplate
  
@@ -39,17 +43,61 @@ index 795d168..1b88502 100644
 -  else
 -    build-depends:      base >= 4.3 && < 4.9
 -    other-modules:      Generics.Deriving.TH.Pre4_9
-+  -- if flag(base-4-9)
-+  --   build-depends:      base >= 4.9 && < 5
-+  --   other-modules:      Generics.Deriving.TH.Post4_9
-+  -- else
++
 +  build-depends:      base >= 4.3 && < 4.9
-+    -- other-modules:      Generics.Deriving.TH.Pre4_9
++  other-modules:      Generics.Deriving.TH.Pre4_9
  
    build-depends:        containers       >= 0.1 && < 0.6
                        , ghc-prim                   < 1
+diff --git a/src/Generics/Deriving/Base/Internal.hs b/src/Generics/Deriving/Base/Internal.hs
+index 07d4a0e..ff18d3a 100644
+--- a/src/Generics/Deriving/Base/Internal.hs
++++ b/src/Generics/Deriving/Base/Internal.hs
+@@ -1,5 +1,6 @@
+ {-# LANGUAGE CPP #-}
+ {-# LANGUAGE DeriveDataTypeable #-}
++{-# LANGUAGE DeriveGeneric #-}
+ {-# LANGUAGE DeriveFunctor #-}
+ {-# LANGUAGE DeriveFoldable #-}
+ {-# LANGUAGE DeriveTraversable #-}
+@@ -614,7 +615,7 @@ module Generics.Deriving.Base.Internal (
+ #else
+   module GHC.Generics,
+ #endif
+-#if !(MIN_VERSION_base(4,9,0))
++#if !(MIN_VERSION_base(4,9,0)) || defined(ETA_VERSION)
+   -- ** Unboxed representation types
+     URec(..), UAddr, UChar, UDouble, UFloat, UInt, UWord
+ #endif
+@@ -641,7 +642,7 @@ import Data.Traversable ( Traversable(..) )
+ import Data.Word ( Word )
+ #endif
+ 
+-#if !(MIN_VERSION_base(4,9,0))
++#if !(MIN_VERSION_base(4,9,0)) || defined(ETA_VERSION)
+ import Data.Typeable
+ import GHC.Prim ( Addr#, Char#, Double#, Float#, Int#, Word# )
+ import GHC.Ptr ( Ptr )
+@@ -992,7 +993,7 @@ class Generic1 f where
+ 
+ #endif
+ 
+-#if !(MIN_VERSION_base(4,9,0))
++#if !(MIN_VERSION_base(4,9,0)) || defined(ETA_VERSION)
+ -- | Constants of kind @#@
+ data family URec (a :: *) (p :: *)
+ 
+@@ -1055,7 +1056,7 @@ instance Traversable (URec Double) where
+ -- | Used for marking occurrences of 'Float#'
+ data instance URec Float p = UFloat { uFloat# :: Float# }
+   deriving (Eq, Ord, Show)
+-
++  
+ instance Functor (URec Float) where
+   fmap _ (UFloat f) = UFloat f
+ 
 diff --git a/src/Generics/Deriving/Enum.hs b/src/Generics/Deriving/Enum.hs
-index 14770e2..d149d82 100644
+index 14770e2..9c764a7 100644
 --- a/src/Generics/Deriving/Enum.hs
 +++ b/src/Generics/Deriving/Enum.hs
 @@ -14,8 +14,6 @@
@@ -245,6 +293,24 @@ index 14770e2..d149d82 100644
  
  instance GEnum a => GEnum (Monoid.First a) where
    genum = genumDefault
+@@ -493,7 +491,7 @@ instance GEnum a => GEnum (Product a) where
+ 
+ #if MIN_VERSION_base(4,7,0)
+ instance GEnum
+-# if MIN_VERSION_base(4,9,0)
++# if MIN_VERSION_base(4,9,0) && !defined(ETA_VERSION)
+                (Proxy s)
+ # else
+                (Proxy (s :: *))
+@@ -537,7 +535,7 @@ instance GEnum m => GEnum (WrappedMonoid m) where
+ instance GEnum a => GEnum (ZipList a) where
+   genum = genumDefault
+ 
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined(ETA_VERSION)
+ instance GEnum CBool where
+   genum = coerce (genum :: [HTYPE_BOOL])
+ 
 @@ -912,10 +910,10 @@ instance GIx ExitCode where
    index   = indexDefault
    inRange = inRangeDefault
@@ -260,8 +326,17 @@ index 14770e2..d149d82 100644
  
  instance (GEq a, GEnum a, GIx a) => GIx (Monoid.First a) where
    range   = rangeDefault
+@@ -1040,7 +1038,7 @@ instance (GEq a, GEnum a, GIx a) => GIx (Product a) where
+ 
+ #if MIN_VERSION_base(4,7,0)
+ instance GIx
+-# if MIN_VERSION_base(4,9,0)
++# if MIN_VERSION_base(4,9,0) && !defined(ETA_VERSION)
+              (Proxy s)
+ # else
+              (Proxy (s :: *))
 diff --git a/src/Generics/Deriving/Eq.hs b/src/Generics/Deriving/Eq.hs
-index ac3537b..9f46417 100644
+index ac3537b..d02fe87 100644
 --- a/src/Generics/Deriving/Eq.hs
 +++ b/src/Generics/Deriving/Eq.hs
 @@ -16,8 +16,6 @@
@@ -273,6 +348,133 @@ index ac3537b..9f46417 100644
  module Generics.Deriving.Eq (
    -- * Generic Eq class
      GEq(..)
+@@ -354,7 +352,7 @@ instance GEq CUShort where
+ instance GEq CWchar where
+   geq = (==)
+ 
+-#if MIN_VERSION_base(4,9,0)
++#if MIN_VERSION_base(4,9,0) && !defined (ETA_VERSION)
+ instance GEq DecidedStrictness where
+   geq = geqdefault
+ #endif
+@@ -490,7 +488,7 @@ instance GEq a => GEq (Product a) where
+ 
+ #if MIN_VERSION_base(4,7,0)
+ instance GEq
+-# if MIN_VERSION_base(4,9,0)
++# if MIN_VERSION_base(4,9,0) && !defined(ETA_VERSION) 
+              (Proxy s)
+ # else
+              (Proxy (s :: *))
+@@ -511,7 +509,7 @@ instance GEq SeekMode where
+ instance GEq (StablePtr a) where
+   geq = (==)
+ 
+-#if MIN_VERSION_base(4,9,0)
++#if MIN_VERSION_base(4,9,0) && !defined (ETA_VERSION)
+ instance GEq SourceStrictness where
+   geq = geqdefault
+ 
+@@ -525,23 +523,23 @@ instance GEq a => GEq (Sum a) where
+ instance GEq (U1 p) where
+   geq = geqdefault
+ 
+-instance GEq (UAddr p) where
+-  geq = geqdefault
+-
+-instance GEq (UChar p) where
+-  geq = geqdefault
+-
+-instance GEq (UDouble p) where
+-  geq = geqdefault
+-
+-instance GEq (UFloat p) where
+-  geq = geqdefault
++-- instance GEq (UAddr p) where
++--   geq = geqdefault
+ 
+-instance GEq (UInt p) where
+-  geq = geqdefault
++-- instance GEq (UChar p) where
++--   geq = geqdefault
++--
++-- instance GEq (UDouble p) where
++--   geq = geqdefault
+ 
+-instance GEq (UWord p) where
+-  geq = geqdefault
++-- instance GEq (UFloat p) where
++--   geq = geqdefault
++--
++-- instance GEq (UInt p) where
++--   geq = geqdefault
++--
++-- instance GEq (UWord p) where
++--   geq = geqdefault
+ 
+ instance GEq Version where
+   geq = (==)
+diff --git a/src/Generics/Deriving/Monoid.hs b/src/Generics/Deriving/Monoid.hs
+index 7e99fd0..eb68385 100644
+--- a/src/Generics/Deriving/Monoid.hs
++++ b/src/Generics/Deriving/Monoid.hs
+@@ -222,7 +222,7 @@ instance GMonoid a => GMonoid (Const a b) where
+ 
+ #if MIN_VERSION_base(4,7,0)
+ instance GMonoid
+-# if MIN_VERSION_base(4,9,0)
++# if MIN_VERSION_base(4,9,0) && !defined(ETA_VERSION)
+                  (Proxy s)
+ # else
+                  (Proxy (s :: *))
+diff --git a/src/Generics/Deriving/Semigroup.hs b/src/Generics/Deriving/Semigroup.hs
+index 887e20a..c7d827d 100644
+--- a/src/Generics/Deriving/Semigroup.hs
++++ b/src/Generics/Deriving/Semigroup.hs
+@@ -145,7 +145,7 @@ instance GSemigroup (Either a b) where
+ 
+ #if MIN_VERSION_base(4,7,0)
+ instance GSemigroup
+-# if MIN_VERSION_base(4,9,0)
++# if MIN_VERSION_base(4,9,0) && !defined(ETA_VERSION)
+                  (Proxy s)
+ # else
+                  (Proxy (s :: *))
+diff --git a/src/Generics/Deriving/Show.hs b/src/Generics/Deriving/Show.hs
+index f8a7949..aaf6df1 100644
+--- a/src/Generics/Deriving/Show.hs
++++ b/src/Generics/Deriving/Show.hs
+@@ -567,20 +567,20 @@ instance GShow a => GShow (Sum a) where
+ instance GShow (U1 p) where
+   gshowsPrec = gshowsPrecdefault
+ 
+-instance GShow (UChar p) where
+-  gshowsPrec = gshowsPrecdefault
++-- instance GShow (UChar p) where
++--   gshowsPrec = gshowsPrecdefault
+ 
+-instance GShow (UDouble p) where
+-  gshowsPrec = gshowsPrecdefault
++-- instance GShow (UDouble p) where
++--   gshowsPrec = gshowsPrecdefault
+ 
+-instance GShow (UFloat p) where
+-  gshowsPrec = gshowsPrecdefault
++-- instance GShow (UFloat p) where
++--   gshowsPrec = gshowsPrecdefault
+ 
+-instance GShow (UInt p) where
+-  gshowsPrec = gshowsPrecdefault
++-- instance GShow (UInt p) where
++--   gshowsPrec = gshowsPrecdefault
+ 
+-instance GShow (UWord p) where
+-  gshowsPrec = gshowsPrecdefault
++-- instance GShow (UWord p) where
++--   gshowsPrec = gshowsPrecdefault
+ 
+ instance GShow Version where
+   gshowsPrec = gshowsPrecdefault
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
