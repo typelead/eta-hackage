@@ -1,12 +1,13 @@
-From a4c17ac1da7764f5d9aec108d3f554385bd737e7 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 23 Jan 2018 10:45:33 +0530
+From 33365e810903c3b616766d2077732882916d388f Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 17 Jul 2018 17:07:08 +0530
 Subject: [PATCH] Patched
 
 ---
  Basement/Bindings/Memory.hs      |  12 +--
  Basement/Block/Base.hs           |  10 +-
  Basement/Compat/Primitive.hs     |  27 +++---
+ Basement/Error.hs                |   9 ++
  Basement/Numerical/Additive.hs   |   4 -
  Basement/Numerical/Conversion.hs |   4 -
  Basement/PrimType.hs             |   6 +-
@@ -16,7 +17,7 @@ Subject: [PATCH] Patched
  Basement/Types/OffsetSize.hs     |   4 -
  basement.cabal                   |  10 --
  java/Utils.java                  |  62 +++++++++++++
- 12 files changed, 290 insertions(+), 239 deletions(-)
+ 13 files changed, 299 insertions(+), 239 deletions(-)
  create mode 100644 Basement/Terminal/Size.hs
  delete mode 100644 Basement/Terminal/Size.hsc
  create mode 100644 java/Utils.java
@@ -119,6 +120,32 @@ index 2b3f606..0a61c62 100644
 +-- foreign import ccall unsafe "foundation_is_bytearray_pinned"
 +--     compatIsMutableByteArrayPinned# :: MutableByteArray# s -> Pinned#
 +-- #endif
+diff --git a/Basement/Error.hs b/Basement/Error.hs
+index 3180b9a..d35f67c 100644
+--- a/Basement/Error.hs
++++ b/Basement/Error.hs
+@@ -16,12 +16,21 @@ import           Basement.Compat.CallStack
+ 
+ #if MIN_VERSION_base(4,9,0)
+ 
++#if defined(ETA_VERSION)
++import GHC.Err (errorWithoutStackTrace)
++
++-- | stop execution and displays an error message
++error :: String -> a
++error s = errorWithoutStackTrace (sToList s)
++
++#else
+ import           GHC.Types (RuntimeRep)
+ import           GHC.Exception (errorCallWithCallStackException)
+ 
+ -- | stop execution and displays an error message
+ error :: forall (r :: RuntimeRep) . forall (a :: TYPE r) . HasCallStack => String -> a
+ error s = raise# (errorCallWithCallStackException (sToList s) ?callstack)
++#endif
+ 
+ #elif MIN_VERSION_base(4,7,0)
+ 
 diff --git a/Basement/Numerical/Additive.hs b/Basement/Numerical/Additive.hs
 index b3a4ebb..da334e6 100644
 --- a/Basement/Numerical/Additive.hs
@@ -699,5 +726,5 @@ index 0000000..342fa61
 +    }
 +}
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
