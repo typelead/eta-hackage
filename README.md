@@ -343,7 +343,7 @@ These packages are supported by `etlas`.
 - [setenv-0.1.1.3](https://hackage.haskell.org/package/setenv-0.1.1.3)
 - [scientific >= 0.3.4.9 && <= 0.3.5.1](https://hackage.haskell.org/package/scientific)
 - [semigroups >= 0.18.2 && <= 0.18.3](https://hackage.haskell.org/package/semigroups)
-- [semigroupoids >= 5.1 && <= 5.2.1](https://hackage.haskell.org/package/semigroupoids)
+- [semigroupoids >= 5.1 && <= 5.3.1](https://hackage.haskell.org/package/semigroupoids)
 - [shake >= 0.16.2 && <= 0.16.4](https://hackage.haskell.org/package/shake)
 - [silently-1.2.5](https://hackage.haskell.org/package/silently-1.2.5)
 - [singletons-2.0.1](https://hackage.haskell.org/package/singletons-2.0.1)
