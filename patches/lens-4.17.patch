@@ -1,13 +1,16 @@
-From 6001e8120b410fdc2eca7fc53ed5964bc1dee15d Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Wed, 4 Jul 2018 17:26:12 +0530
+From 8207c62efb1bbc4eccb9f1aee8ac605a842f1957 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 17 Jul 2018 21:32:07 +0530
 Subject: [PATCH] Patched
 
 ---
- lens.cabal                  |  16 +--
- src/Control/Lens/Empty.hs   |   4 +-
- src/Control/Lens/Wrapped.hs | 314 ++++++++++++++++++++++----------------------
- 3 files changed, 166 insertions(+), 168 deletions(-)
+ lens.cabal                    |  16 +--
+ src/Control/Exception/Lens.hs |   5 +-
+ src/Control/Lens/Empty.hs     |   4 +-
+ src/Control/Lens/Wrapped.hs   | 320 +++++++++++++++++++++---------------------
+ src/GHC/Generics/Lens.hs      |   2 +-
+ src/Numeric/Lens.hs           |   6 +-
+ 6 files changed, 175 insertions(+), 178 deletions(-)
 
 diff --git a/lens.cabal b/lens.cabal
 index d0fcbd8..251a209 100644
@@ -50,6 +53,33 @@ index d0fcbd8..251a209 100644
  
    if flag(safe)
      cpp-options: -DSAFE=1
+diff --git a/src/Control/Exception/Lens.hs b/src/Control/Exception/Lens.hs
+index 259156e..3a0f0e4 100644
+--- a/src/Control/Exception/Lens.hs
++++ b/src/Control/Exception/Lens.hs
+@@ -172,7 +172,7 @@ module Control.Exception.Lens
+   , AsTypeError(..)
+   , pattern TypeError_
+ #endif
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined(ETA_VERSION)
+   -- ** Compaction Failed
+   , AsCompactionFailed(..)
+   , pattern CompactionFailed_
+@@ -1208,7 +1208,7 @@ pattern TypeError_ e <- (preview _TypeError -> Just e) where
+   TypeError_ e = review _TypeError e
+ #endif
+ 
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined(ETA_VERSION)
+ ----------------------------------------------------------------------------
+ -- CompactionFailed
+ ----------------------------------------------------------------------------
+@@ -1270,4 +1270,3 @@ pattern HandlingException_ <- (has _HandlingException -> True) where
+ 
+ trivial :: t -> Iso' t ()
+ trivial t = const () `iso` const t
+-
 diff --git a/src/Control/Lens/Empty.hs b/src/Control/Lens/Empty.hs
 index 466f1be..19c1f00 100644
 --- a/src/Control/Lens/Empty.hs
@@ -73,7 +103,7 @@ index 466f1be..19c1f00 100644
  #endif
  instance (Eq a, Num a) => AsEmpty (Product a)
 diff --git a/src/Control/Lens/Wrapped.hs b/src/Control/Lens/Wrapped.hs
-index 9ea5071..bc89352 100644
+index 9ea5071..d0d5fd1 100644
 --- a/src/Control/Lens/Wrapped.hs
 +++ b/src/Control/Lens/Wrapped.hs
 @@ -82,8 +82,6 @@ module Control.Lens.Wrapped
@@ -103,6 +133,24 @@ index 9ea5071..bc89352 100644
  
  #if MIN_VERSION_base(4,6,0)
  import           Data.Ord (Down(Down))
+@@ -863,7 +861,7 @@ getTypeError (TypeError x) = x
+ {-# INLINE getTypeError #-}
+ #endif
+ 
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined(ETA_VERSION)
+ instance (t ~ CompactionFailed) => Rewrapped CompactionFailed t
+ instance Wrapped CompactionFailed where
+   type Unwrapped CompactionFailed = String
+@@ -876,7 +874,7 @@ getCompactionFailed (CompactionFailed x) = x
+ #endif
+ 
+ getErrorCall :: ErrorCall -> String
+-#if __GLASGOW_HASKELL__ < 800
++#if !MIN_VERSION_base(4,10,0)
+ getErrorCall (ErrorCall x) = x
+ #else
+ getErrorCall (ErrorCallWithLocation x _) = x
 @@ -909,155 +907,155 @@ failedAssertion (AssertionFailed x) = x
  
  -- * Foreign.C.Types
@@ -408,7 +456,7 @@ index 9ea5071..bc89352 100644
  
  -- * GHC.Generics
  
-@@ -1197,11 +1195,11 @@ instance Wrapped CRLim where
+@@ -1197,13 +1195,13 @@ instance Wrapped CRLim where
    {-# INLINE _Wrapped' #-}
  #endif
  
@@ -423,8 +471,54 @@ index 9ea5071..bc89352 100644
 +--   _Wrapped' = iso (\(Fd x) -> x) Fd
 +--   {-# INLINE _Wrapped' #-}
  
- #if MIN_VERSION_base(4,10,0)
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined(ETA_VERSION)
  instance Rewrapped CBool t
+ instance Wrapped CBool where
+   type Unwrapped CBool = HTYPE_BOOL
+diff --git a/src/GHC/Generics/Lens.hs b/src/GHC/Generics/Lens.hs
+index d56be69..02e725e 100644
+--- a/src/GHC/Generics/Lens.hs
++++ b/src/GHC/Generics/Lens.hs
+@@ -58,7 +58,7 @@ import           GHC.Exts (Char(..), Double(..), Float(..),
+ import qualified GHC.Generics as Generic
+ import           GHC.Generics hiding (from, to)
+ 
+-#if !(MIN_VERSION_base(4,9,0))
++#if !(MIN_VERSION_base(4,9,0)) || defined(ETA_VERSION)
+ import           Generics.Deriving.Base hiding (from, to)
+ #endif
+ 
+diff --git a/src/Numeric/Lens.hs b/src/Numeric/Lens.hs
+index c54d59f..96b460f 100644
+--- a/src/Numeric/Lens.hs
++++ b/src/Numeric/Lens.hs
+@@ -70,7 +70,7 @@ pattern Integral a <- (preview integral -> Just a) where
+ --
+ -- >>> 1767707668033969 ^. re (base 36)
+ -- "helloworld"
+-base :: (HasCallStack, Integral a) => Int -> Prism' String a
++base :: Integral a => Int -> Prism' String a
+ base b
+   | b < 2 || b > 36 = error ("base: Invalid base " ++ show b)
+   | otherwise       = prism intShow intRead
+@@ -84,14 +84,14 @@ base b
+ {-# INLINE base #-}
+ 
+ -- | Like 'Data.Char.intToDigit', but handles up to base-36
+-intToDigit' :: HasCallStack => Int -> Char
++intToDigit' :: Int -> Char
+ intToDigit' i
+   | i >= 0  && i < 10 = chr (ord '0' + i)
+   | i >= 10 && i < 36 = chr (ord 'a' + i - 10)
+   | otherwise = error ("intToDigit': Invalid int " ++ show i)
+ 
+ -- | Like 'Data.Char.digitToInt', but handles up to base-36
+-digitToInt' :: HasCallStack => Char -> Int
++digitToInt' :: Char -> Int
+ digitToInt' c = fromMaybe (error ("digitToInt': Invalid digit " ++ show c))
+                           (digitToIntMay c)
+ 
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
