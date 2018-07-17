@@ -1,0 +1,38 @@
+From c6ce223d5e59b768416cc1ec3866b510ca205b8f Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 17 Jul 2018 16:30:37 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/FileEmbed.hs | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/Data/FileEmbed.hs b/Data/FileEmbed.hs
+index 3514099..00b2c8c 100644
+--- a/Data/FileEmbed.hs
++++ b/Data/FileEmbed.hs
+@@ -1,6 +1,6 @@
+ {-# LANGUAGE TemplateHaskell #-}
+ {-# LANGUAGE CPP #-}
+-{-# LANGUAGE OverloadedStrings #-}
++{-# LANGUAGE OverloadedStrings, PatternSynonyms #-}
+ -- | This module uses template Haskell. Following is a simplified explanation of usage for those unfamiliar with calling Template Haskell functions.
+ --
+ -- The function @embedFile@ in this modules embeds a file into the executable
+@@ -59,7 +59,12 @@ import Language.Haskell.TH.Syntax
+     )
+ import System.Directory (doesDirectoryExist, doesFileExist,
+                          getDirectoryContents, canonicalizePath)
+-import Control.Exception (throw, ErrorCall(..))
++
++import Control.Exception (throw, ErrorCall(..),
++#if MIN_VERSION_base(4,10,0)
++  pattern ErrorCall
++#endif
++  )
+ import Control.Monad (filterM)
+ import qualified Data.ByteString as B
+ import qualified Data.ByteString.Char8 as B8
+-- 
+2.15.2 (Apple Git-101.1)
+

@@ -165,6 +165,7 @@ These packages are supported by `etlas`.
 - [fingertree-psqueue-0.3](https://hackage.haskell.org/package/fingertree-psqueue-0.3)
 - [fingertree-tf-0.1.0.0](https://hackage.haskell.org/package/fingertree-tf-0.1.0.0)
 - [filepath >= 1.4.1.0 && <= 1.4.1.1](hackage.haskell.org/package/filepath)
+- [file-embed-0.0.10.1](hackage.haskell.org/package/file-embed-0.0.10.1)
 - [fgl-5.5.3.0](https://hackage.haskell.org/package/fgl-5.5.3.0)
 - [fmlist-0.9](https://hackage.haskell.org/package/fmlist-0.9)
 - [formatting >= 6.3.2 && <= 6.3.4](https://hackage.haskell.org/package/formatting-6.3.4)
