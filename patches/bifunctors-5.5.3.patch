@@ -1,0 +1,30 @@
+From aedebb3fb713040d383da661ac30cb35b4d36a61 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 17 Jul 2018 18:44:34 +0530
+Subject: [PATCH] Patched
+
+---
+ bifunctors.cabal | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/bifunctors.cabal b/bifunctors.cabal
+index 132ebbb..89a5751 100644
+--- a/bifunctors.cabal
++++ b/bifunctors.cabal
+@@ -69,7 +69,7 @@ library
+     hs-source-dirs: old-src/ghc709
+     exposed-modules: Data.Bifunctor
+ 
+-  if impl(ghc<8.1)
++  if impl(ghc<8.1) && impl(eta<0.8.4)
+     hs-source-dirs: old-src/ghc801
+     exposed-modules:
+       Data.Bifoldable
+@@ -115,4 +115,3 @@ test-suite bifunctors-spec
+     template-haskell,
+     transformers,
+     transformers-compat
+-
+-- 
+2.15.2 (Apple Git-101.1)
+

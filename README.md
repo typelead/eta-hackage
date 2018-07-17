@@ -82,7 +82,7 @@ These packages are supported by `etlas`.
 - [binary-orphans-0.1.8.0](https://hackage.haskell.org/package/binary-orphans-0.1.8.0)
 - [binary-search-1.0.0.3](https://hackage.haskell.org/package/binary-search-1.0.0.3)
 - [bindings-DSL-1.0.23](https://hackage.haskell.org/package/bindings-DSL-1.0.23)
-- [bifunctors-5.4.1](https://hackage.haskell.org/package/bifunctors-5.4.1)
+- [bifunctors >= 5.4.1 && <= 5.5.3](https://hackage.haskell.org/package/bifunctors-5.4.1)
 - [bitarray-0.0.1.1](https://hackage.haskell.org/package/bitarray-0.0.1.1)
 - [Binpack-0.4.1](https://hackage.haskell.org/package/Binpack-0.4.1)
 - [blaze-builder-0.4.0.2](https://hackage.haskell.org/package/blaze-builder-0.4.0.2)
