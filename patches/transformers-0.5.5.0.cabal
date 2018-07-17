@@ -46,7 +46,7 @@ library
     -- NB: using impl(ghc>=7.9) instead of fragile Cabal flags
     hs-source-dirs: legacy/pre709
     exposed-modules: Data.Functor.Identity
-  if !impl(ghc>=7.11) || impl(eta<0.8.4)
+  if !impl(ghc>=7.11) && impl(eta<0.8.4)
     -- modules moved into base-4.9.0 (GHC 8.0)
     -- see https://ghc.haskell.org/trac/ghc/ticket/10773
     -- see https://ghc.haskell.org/trac/ghc/ticket/11135
