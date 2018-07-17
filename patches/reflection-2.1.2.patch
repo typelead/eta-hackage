@@ -1,14 +1,51 @@
-From c1f95e59877fddfb28c3a3f87d364ed5a4208b2b Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Fri, 30 Dec 2016 00:49:42 +0530
+From e24d7964a16f0b678f8f8521b6bcb8740c45764b Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 17 Jul 2018 18:12:05 +0530
 Subject: [PATCH] Patched
 
 ---
- reflection.cabal | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fast/Data/Reflection.hs | 10 ++++++++--
+ reflection.cabal        |  8 ++++++--
+ 2 files changed, 14 insertions(+), 4 deletions(-)
 
+diff --git a/fast/Data/Reflection.hs b/fast/Data/Reflection.hs
+index b87a256..3614c7d 100644
+--- a/fast/Data/Reflection.hs
++++ b/fast/Data/Reflection.hs
+@@ -121,6 +121,7 @@ import Data.Foldable
+ import Data.Monoid
+ #endif
+ 
++import Data.Semigroup as Sem
+ import Data.Proxy
+ 
+ #if __GLASGOW_HASKELL__ < 710
+@@ -358,7 +359,7 @@ onProxyType1 f
+     | proxyName == ''Proxy = ConE 'Proxy `SigE` (ConT ''Proxy `AppT` f ta)
+ onProxyType1 f a =
+         LamE [SigP WildP na] body `AppE` a
+-    where 
++    where
+           body = ConE 'Proxy `SigE` (ConT ''Proxy `AppT` f na)
+           na = VarT (mkName "na")
+ 
+@@ -553,8 +554,13 @@ reifyTypeable a k = unsafePerformIO $ do
+ 
+ data ReifiedMonoid a = ReifiedMonoid { reifiedMappend :: a -> a -> a, reifiedMempty :: a }
+ 
++instance Reifies s (ReifiedMonoid a) => Sem.Semigroup (ReflectedMonoid a s) where
++  ReflectedMonoid x <> ReflectedMonoid y = reflectResult (\m -> ReflectedMonoid (reifiedMappend m x y))
++
+ instance Reifies s (ReifiedMonoid a) => Monoid (ReflectedMonoid a s) where
+-  mappend (ReflectedMonoid x) (ReflectedMonoid y) = reflectResult (\m -> ReflectedMonoid (reifiedMappend m x y))
++#if !(MIN_VERSION_base(4,11,0))
++  mappend = (<>)
++#endif
+   mempty = reflectResult (\m -> ReflectedMonoid (reifiedMempty  m    ))
+ 
+ reflectResult :: forall f s a. Reifies s a => (a -> f s) -> f s
 diff --git a/reflection.cabal b/reflection.cabal
-index 4d42881..9f717c6 100644
+index 4d42881..4a6e326 100644
 --- a/reflection.cabal
 +++ b/reflection.cabal
 @@ -50,8 +50,8 @@ flag template-haskell
@@ -19,8 +56,20 @@ index 4d42881..9f717c6 100644
 -  manual: True
 +  default: False
 +  manual: False
-
+ 
  source-repository head
    type: git
---
-2.7.4 (Apple Git-66)
+@@ -70,6 +70,10 @@ library
+     build-depends:
+       tagged >= 0.4.4 && < 1
+ 
++  if !impl(ghc >= 8.0) && impl(eta < 0.8.4)
++    build-depends:
++      semigroups >= 0.11 && < 0.19
++
+   default-language: Haskell98
+ 
+   if flag(template-haskell) && impl(ghc)
+-- 
+2.15.2 (Apple Git-101.1)
+
