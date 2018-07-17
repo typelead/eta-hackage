@@ -1,13 +1,14 @@
-From bec16f3bacf6843830c0e2a224d9527ddd5cf2fa Mon Sep 17 00:00:00 2001
+From 55da9a54b729aeab829e9bbf61aa538e165253e1 Mon Sep 17 00:00:00 2001
 From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Sat, 14 Jul 2018 14:37:35 +0530
+Date: Tue, 17 Jul 2018 16:38:48 +0530
 Subject: [PATCH] Patched
 
 ---
- alex.cabal  |  2 +-
- src/Main.hs | 56 +++++++++++++++++++++++++---------------
- src/Scan.hs | 85 +++++++++++++++++++++++++++----------------------------------
- 3 files changed, 74 insertions(+), 69 deletions(-)
+ alex.cabal                   |  2 +-
+ src/Data/Ranged/RangedSet.hs |  2 +-
+ src/Main.hs                  | 56 ++++++++++++++++++-----------
+ src/Scan.hs                  | 85 +++++++++++++++++++-------------------------
+ 4 files changed, 75 insertions(+), 70 deletions(-)
 
 diff --git a/alex.cabal b/alex.cabal
 index a60605c..fa85499 100644
@@ -22,6 +23,19 @@ index a60605c..fa85499 100644
  
    extensions: CPP
    ghc-options: -Wall -rtsopts
+diff --git a/src/Data/Ranged/RangedSet.hs b/src/Data/Ranged/RangedSet.hs
+index 0212c14..972adb2 100644
+--- a/src/Data/Ranged/RangedSet.hs
++++ b/src/Data/Ranged/RangedSet.hs
+@@ -44,7 +44,7 @@ infixl 5 -<=-, -<-, -?-
+ newtype DiscreteOrdered v => RSet v = RSet {rSetRanges :: [Range v]}
+    deriving (Eq, Show, Ord)
+ 
+-#if __GLASGOW_HASKELL__ >= 800
++#if MIN_VERSION_base(4,10,0)
+ instance DiscreteOrdered a => Semigroup (RSet a) where
+     (<>) = rSetUnion
+ 
 diff --git a/src/Main.hs b/src/Main.hs
 index e643d02..985305a 100644
 --- a/src/Main.hs
