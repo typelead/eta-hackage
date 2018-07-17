@@ -1,12 +1,26 @@
-From c0d6fbd00a45f51ee6016b8e9f231c8c6a621771 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 14 Aug 2017 16:50:43 -0400
+From 50106ad77c4fdcf1ba42547ca692266f34a1e613 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 17 Jul 2018 15:49:25 +0530
 Subject: [PATCH] Patched
 
 ---
+ semigroups.cabal           | 2 +-
  src-ghc7/Data/Semigroup.hs | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/semigroups.cabal b/semigroups.cabal
+index 0980a3f..3f1e5ac 100644
+--- a/semigroups.cabal
++++ b/semigroups.cabal
+@@ -116,7 +116,7 @@ library
+       Data.Semigroup.Generic
+ 
+   -- legacy configuration
+-  if impl(ghc < 7.11.20151002)
++  if impl(ghc < 7.11.20151002) && impl(eta < 0.8.4)
+     -- starting with GHC 8 these modules are provided by `base`
+     hs-source-dirs: src-ghc7
+     exposed-modules:
 diff --git a/src-ghc7/Data/Semigroup.hs b/src-ghc7/Data/Semigroup.hs
 index e72427e..d2e2ba5 100644
 --- a/src-ghc7/Data/Semigroup.hs
@@ -30,5 +44,5 @@ index e72427e..d2e2ba5 100644
  instance Semigroup Event where
      (<>) = mappend
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
