@@ -1,15 +1,29 @@
-From a5d4c19431b7422bf5734e4e825aaa50b45dae93 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Wed, 6 Dec 2017 18:08:40 +0530
+From dd58db58cd2e8cc0f3182a98e58a204a17d8ec3c Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 17 Jul 2018 16:17:39 +0530
 Subject: [PATCH] Patched
 
 ---
+ Data/Aeson/Types/Generic.hs  |  2 +-
  Data/Aeson/Types/Internal.hs | 50 ++++++++++++++++++++++++++------------------
  aeson.cabal                  |  6 ++++--
- 2 files changed, 34 insertions(+), 22 deletions(-)
+ 3 files changed, 35 insertions(+), 23 deletions(-)
 
+diff --git a/Data/Aeson/Types/Generic.hs b/Data/Aeson/Types/Generic.hs
+index 21e079e..63e20b7 100644
+--- a/Data/Aeson/Types/Generic.hs
++++ b/Data/Aeson/Types/Generic.hs
+@@ -50,7 +50,7 @@ class IsRecord (f :: * -> *) isRecord | f -> isRecord
+ 
+ instance (IsRecord f isRecord) => IsRecord (f :*: g) isRecord
+   where isUnary = const False
+-#if MIN_VERSION_base(4,9,0)
++#if MIN_VERSION_base(4,9,0) && !defined (ETA_VERSION)
+ instance OVERLAPPING_ IsRecord (M1 S ('MetaSel 'Nothing u ss ds) f) False
+ #else
+ instance OVERLAPPING_ IsRecord (M1 S NoSelector f) False
 diff --git a/Data/Aeson/Types/Internal.hs b/Data/Aeson/Types/Internal.hs
-index 46ec9f1..1027bb4 100644
+index 46ec9f1..9e83eae 100644
 --- a/Data/Aeson/Types/Internal.hs
 +++ b/Data/Aeson/Types/Internal.hs
 @@ -78,10 +78,13 @@ import Prelude ()
@@ -144,5 +158,5 @@ index 957913a..9a84ab5 100644
  test-suite tests
    default-language: Haskell2010
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
