@@ -1,0 +1,106 @@
+From 73e6af0f1db6e5a31e786c375999851577bf63f2 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Wed, 18 Jul 2018 08:59:19 +0530
+Subject: [PATCH] Patched
+
+---
+ conduit.cabal                    |  6 ----
+ src/Data/Streaming/Filesystem.hs | 60 +++++++++++++++++++++++-----------------
+ 2 files changed, 35 insertions(+), 31 deletions(-)
+
+diff --git a/conduit.cabal b/conduit.cabal
+index fcdc8e8..cc47d23 100644
+--- a/conduit.cabal
++++ b/conduit.cabal
+@@ -56,12 +56,6 @@ Library
+                      , filepath
+                      , directory
+ 
+-  if os(windows)
+-    build-depends:     Win32
+-    other-modules:     System.Win32File
+-    cpp-options:       -DWINDOWS
+-  else
+-    build-depends:     unix
+ 
+   ghc-options:         -Wall
+   include-dirs:        .
+diff --git a/src/Data/Streaming/Filesystem.hs b/src/Data/Streaming/Filesystem.hs
+index 6647b91..1fc0365 100644
+--- a/src/Data/Streaming/Filesystem.hs
++++ b/src/Data/Streaming/Filesystem.hs
+@@ -58,36 +58,46 @@ getFileType fp = do
+ 
+ #else
+ 
+-import System.Posix.Directory (DirStream, openDirStream, closeDirStream)
+-import qualified System.Posix.Directory as Posix
+-import qualified System.Posix.Files as PosixF
++-- import System.Posix.Directory (DirStream, openDirStream, closeDirStream)
++-- import qualified System.Posix.Directory as Posix
++-- import qualified System.Posix.Files as PosixF
+ import Control.Exception (try, IOException)
+ 
++newtype DirStream = DirStream ()
++
++openDirStream :: FilePath -> IO DirStream
++openDirStream = error "openDirStream: Not implemented yet."
++
++closeDirStream :: DirStream -> IO ()
++closeDirStream = error "closeDirStream: Not implemented yet."
++
+ readDirStream :: DirStream -> IO (Maybe FilePath)
+-readDirStream ds = do
+-    fp <- Posix.readDirStream ds
+-    case fp of
+-        "" -> return Nothing
+-        "." -> readDirStream ds
+-        ".." -> readDirStream ds
+-        _ -> return $ Just fp
++readDirStream ds = error "readDirStream: Not implemented yet."
++-- readDirStream ds = do
++--     fp <- Posix.readDirStream ds
++--     case fp of
++--         "" -> return Nothing
++--         "." -> readDirStream ds
++--         ".." -> readDirStream ds
++--         _ -> return $ Just fp
+ 
+ getFileType :: FilePath -> IO FileType
+-getFileType fp = do
+-    s <- PosixF.getSymbolicLinkStatus fp
+-    case () of
+-        ()
+-            | PosixF.isRegularFile s -> return FTFile
+-            | PosixF.isDirectory s -> return FTDirectory
+-            | PosixF.isSymbolicLink s -> do
+-                es' <- try $ PosixF.getFileStatus fp
+-                case es' of
+-                    Left (_ :: IOException) -> return FTOther
+-                    Right s'
+-                        | PosixF.isRegularFile s' -> return FTFileSym
+-                        | PosixF.isDirectory s' -> return FTDirectorySym
+-                        | otherwise -> return FTOther
+-            | otherwise -> return FTOther
++getFileType fp = error "getFileType: Not implemented yet."
++-- getFileType fp = do
++--     s <- PosixF.getSymbolicLinkStatus fp
++--     case () of
++--         ()
++--             | PosixF.isRegularFile s -> return FTFile
++--             | PosixF.isDirectory s -> return FTDirectory
++--             | PosixF.isSymbolicLink s -> do
++--                 es' <- try $ PosixF.getFileStatus fp
++--                 case es' of
++--                     Left (_ :: IOException) -> return FTOther
++--                     Right s'
++--                         | PosixF.isRegularFile s' -> return FTFileSym
++--                         | PosixF.isDirectory s' -> return FTDirectorySym
++--                         | otherwise -> return FTOther
++--             | otherwise -> return FTOther
+ 
+ #endif
+ 
+-- 
+2.15.2 (Apple Git-101.1)
+
