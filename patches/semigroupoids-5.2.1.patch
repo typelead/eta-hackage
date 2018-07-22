@@ -1,11 +1,12 @@
-From 086ca33a8e19942eefd2acb69ef5ee0dfa1784c0 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 1 Aug 2017 21:53:55 -0400
+From 3cdce27d94040a855f69299818ff0d4da8eb5a79 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 22 Jul 2018 15:02:53 +0530
 Subject: [PATCH] Patched
 
 ---
- semigroupoids.cabal | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ semigroupoids.cabal     | 12 ++++++------
+ src/Data/Functor/Alt.hs |  6 ++++++
+ 2 files changed, 12 insertions(+), 6 deletions(-)
 
 diff --git a/semigroupoids.cabal b/semigroupoids.cabal
 index 96a1420..03ace98 100644
@@ -37,6 +38,33 @@ index 96a1420..03ace98 100644
  
  flag containers
    description:
+diff --git a/src/Data/Functor/Alt.hs b/src/Data/Functor/Alt.hs
+index 464891e..dd86a6a 100644
+--- a/src/Data/Functor/Alt.hs
++++ b/src/Data/Functor/Alt.hs
+@@ -63,6 +63,10 @@ import qualified Data.Map as Map
+ import Data.Map (Map)
+ #endif
+ 
++#if MIN_VERSION_base(4,10,0)
++import GHC.Base (mappend)
++#endif
++
+ #if defined(MIN_VERSION_tagged) || (MIN_VERSION_base(4,7,0))
+ import Data.Proxy
+ #endif
+@@ -183,9 +187,11 @@ instance Ord k => Alt (Map k) where
+ instance Alt IntMap where
+   (<!>) = IntMap.union
+ 
++#if MIN_VERSION_base(4,10,0)
+ instance Alt Seq where
+   (<!>) = mappend
+ #endif
++#endif
+ 
+ instance Alt NonEmpty where
+   (a :| as) <!> ~(b :| bs) = a :| (as ++ b : bs)
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
