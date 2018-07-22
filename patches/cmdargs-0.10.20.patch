@@ -1,12 +1,35 @@
-From b75f21ea2329202d9c8155e7d6e50cddabd5e477 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 23 Jan 2018 12:18:09 +0530
+From 1600bc275da3279395109293e7416e1e3eb3fa6b Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 22 Jul 2018 11:34:26 +0530
 Subject: [PATCH] Patched
 
 ---
- cmdargs.cabal | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ System/Console/CmdArgs/Explicit.hs | 4 ++--
+ cmdargs.cabal                      | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/System/Console/CmdArgs/Explicit.hs b/System/Console/CmdArgs/Explicit.hs
+index 1ea4b06..6b46f4f 100644
+--- a/System/Console/CmdArgs/Explicit.hs
++++ b/System/Console/CmdArgs/Explicit.hs
+@@ -119,7 +119,7 @@ processArgs m = do
+                         Left err -> do
+                             hPutStrLn stderr $ "Error when running helper " ++ cmd
+                             hPutStrLn stderr err
+-                            exitFailure               
++                            exitFailure
+                         Right args -> processValueIO m args
+ 
+ 
+@@ -129,7 +129,7 @@ readMay s = case [x | (x,t) <- reads s, ("","") <- lex t] of
+                 _ -> Nothing
+ 
+ 
+-#if __GLASGOW_HASKELL__ < 800
++#if __GLASGOW_HASKELL__ < 800 && (ETA_VERSION > 84)
+ errorWithoutStackTrace :: String -> a
+ errorWithoutStackTrace = error
+ #endif
 diff --git a/cmdargs.cabal b/cmdargs.cabal
 index 4bed37d..cdb9210 100644
 --- a/cmdargs.cabal
@@ -21,5 +44,5 @@ index 4bed37d..cdb9210 100644
      description: Build the Quote module
  
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
