@@ -1,13 +1,29 @@
-From 35d9e460bf5a709206856aae68f54953f3276bc2 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 15 Jan 2018 16:10:14 +0530
+From 42b75943f243d36728089708abadbf8e301181ef Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 22 Jul 2018 18:30:50 +0530
 Subject: [PATCH] Patched
 
 ---
+ Data/SBV/Compilers/C.hs   | 3 +++
  Data/SBV/Core/Symbolic.hs | 6 +++---
- sbv.cabal                 | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ GHC/SrcLoc/Compat.hs      | 2 +-
+ sbv.cabal                 | 3 ++-
+ 4 files changed, 9 insertions(+), 5 deletions(-)
 
+diff --git a/Data/SBV/Compilers/C.hs b/Data/SBV/Compilers/C.hs
+index b949a8f..2030606 100644
+--- a/Data/SBV/Compilers/C.hs
++++ b/Data/SBV/Compilers/C.hs
+@@ -33,6 +33,9 @@ import GHC.Stack.Compat
+ #if !MIN_VERSION_base(4,9,0)
+ import GHC.SrcLoc.Compat
+ #endif
++#if MIN_VERSION_base(4,11,0)
++import Prelude hiding ((<>))
++#endif
+ 
+ ---------------------------------------------------------------------------
+ -- * API
 diff --git a/Data/SBV/Core/Symbolic.hs b/Data/SBV/Core/Symbolic.hs
 index 2e62a93..2152932 100644
 --- a/Data/SBV/Core/Symbolic.hs
@@ -25,8 +41,21 @@ index 2e62a93..2152932 100644
  #endif
  
  instance NFData Result where
+diff --git a/GHC/SrcLoc/Compat.hs b/GHC/SrcLoc/Compat.hs
+index 38a011c..925585b 100644
+--- a/GHC/SrcLoc/Compat.hs
++++ b/GHC/SrcLoc/Compat.hs
+@@ -5,7 +5,7 @@
+ module GHC.SrcLoc.Compat (module X) where
+ 
+ #if MIN_VERSION_base(4,9,0)
+-import SrcLoc as X hiding (srcLocFile)
++import GHC.Stack.Types as X hiding (srcLocFile)
+ #else
+ import GHC.SrcLoc as X
+ #endif
 diff --git a/sbv.cabal b/sbv.cabal
-index cb5f8bd..f81b803 100644
+index cb5f8bd..7248e79 100644
 --- a/sbv.cabal
 +++ b/sbv.cabal
 @@ -47,7 +47,7 @@ Library
@@ -38,6 +67,14 @@ index cb5f8bd..f81b803 100644
                    , QuickCheck >= 2.9.2
                    , crackNum >= 1.9
                    , array, async, containers, deepseq, directory, filepath, old-time
+@@ -141,6 +141,7 @@ Library
+                   , GHC.Stack.Compat
+ 
+ Executable SBVUnitTests
++  buildable: False
+   default-language: Haskell2010
+   ghc-options     : -Wall
+   other-extensions: DeriveAnyClass
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
