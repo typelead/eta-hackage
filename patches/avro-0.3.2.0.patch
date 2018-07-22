@@ -1,0 +1,25 @@
+From 98197eae9bc6d932c36152848f7291fc13d04114 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 22 Jul 2018 10:42:34 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Data/Avro/Deriving.hs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Data/Avro/Deriving.hs b/src/Data/Avro/Deriving.hs
+index a768a29..eb184c3 100644
+--- a/src/Data/Avro/Deriving.hs
++++ b/src/Data/Avro/Deriving.hs
+@@ -332,7 +332,7 @@ schemaDef' = mkSchema
+           where numericLit = litE . IntegerL . fromIntegral
+ 
+         mkMap (HM.toList -> xs) = [e| HM.fromList $(ListE <$> mapM mkKVPair xs) |]
+-        mkKVPair (k, v)         = [e| ($(mkText k), $(mkDefaultValue v)) e|]
++        mkKVPair (k, v)         = [e| ($(mkText k), $(mkDefaultValue v)) |]
+ 
+         mkNE (NE.toList -> xs) = [e| NE.fromList $(ListE <$> mapM mkSchema xs) |]
+ 
+-- 
+2.15.2 (Apple Git-101.1)
+
