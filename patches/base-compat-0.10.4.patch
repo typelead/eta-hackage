@@ -1,11 +1,14 @@
-From f9ae9e2aadc05cd9ec6dc695a8132a19a2779160 Mon Sep 17 00:00:00 2001
+From d4ca479eb3b630a15471ae20a0d70faffd0e40bb Mon Sep 17 00:00:00 2001
 From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Sat, 14 Jul 2018 15:50:04 +0530
+Date: Sun, 22 Jul 2018 10:59:42 +0530
 Subject: [PATCH] Patched
 
 ---
- base-compat.cabal | 2 --
- 1 file changed, 2 deletions(-)
+ base-compat.cabal               |  2 --
+ src/Control/Exception/Compat.hs | 13 +++++++++++--
+ src/Prelude/Compat.hs           | 12 ++++++++++--
+ src/Type/Reflection/Compat.hs   |  4 +++-
+ 4 files changed, 24 insertions(+), 7 deletions(-)
 
 diff --git a/base-compat.cabal b/base-compat.cabal
 index eda9a85..45bb1f5 100644
@@ -20,6 +23,104 @@ index eda9a85..45bb1f5 100644
    ghc-options:
        -fno-warn-duplicate-exports
    if impl(ghc >= 7.10)
+diff --git a/src/Control/Exception/Compat.hs b/src/Control/Exception/Compat.hs
+index 1bffdd7..13150ad 100644
+--- a/src/Control/Exception/Compat.hs
++++ b/src/Control/Exception/Compat.hs
+@@ -5,8 +5,10 @@
+ #if MIN_VERSION_base(4,10,0)
+ {-# LANGUAGE MagicHash #-}
+ {-# LANGUAGE RankNTypes #-}
++#if !defined(ETA_VERSION)
+ {-# LANGUAGE TypeInType #-}
+ #endif
++#endif
+ module Control.Exception.Compat (
+   module Base
+ , throw
+@@ -15,11 +17,18 @@ module Control.Exception.Compat (
+ import Control.Exception as Base
+ #if MIN_VERSION_base(4,10,0) && !(MIN_VERSION_base(4,12,0))
+   hiding (throw)
+-import GHC.Exts (RuntimeRep, TYPE, raise#)
++import GHC.Exts (
++#if !defined(ETA_VERSION)
++  RuntimeRep, TYPE,
++#endif
++  raise#)
+ 
+ -- | Throw an exception.  Exceptions may be thrown from purely
+ -- functional code, but may only be caught within the 'IO' monad.
+-throw :: forall (r :: RuntimeRep). forall (a :: TYPE r). forall e.
++throw ::
++#if !defined(ETA_VERSION)
++         forall (r :: RuntimeRep). forall (a :: TYPE r). forall e.
++#endif
+          Exception e => e -> a
+ throw e = raise# (toException e)
+ #endif
+diff --git a/src/Prelude/Compat.hs b/src/Prelude/Compat.hs
+index 1b13a29..c636fe5 100644
+--- a/src/Prelude/Compat.hs
++++ b/src/Prelude/Compat.hs
+@@ -4,7 +4,11 @@
+ #endif
+ #if MIN_VERSION_base(4,10,0) && !(MIN_VERSION_base(4,12,0))
+ {-# LANGUAGE RankNTypes #-}
++#if !defined(ETA_VERSION)
+ {-# LANGUAGE TypeInType #-}
++#else
++{-# LANGUAGE BangPatterns #-}
++#endif
+ #endif
+ module Prelude.Compat (
+ #if MIN_VERSION_base(4,12,0)
+@@ -321,7 +325,7 @@ import Data.Word
+ import Data.Semigroup as Base (Semigroup((<>)))
+ #endif
+ 
+-#if MIN_VERSION_base(4,10,0) && !(MIN_VERSION_base(4,12,0))
++#if MIN_VERSION_base(4,10,0) && !(MIN_VERSION_base(4,12,0)) && !defined(ETA_VERSION)
+ import GHC.Exts (TYPE)
+ #endif
+ 
+@@ -339,6 +343,10 @@ errorWithoutStackTrace s = error s
+ -- argument, evaluates the argument to weak head normal form (WHNF), then calls
+ -- the function with that value.
+ infixr 0 $!
+-($!) :: forall r a (b :: TYPE r). (a -> b) -> a -> b
++($!) ::
++#if !defined(ETA_VERSION)
++        forall r a (b :: TYPE r).
++#endif
++        (a -> b) -> a -> b
+ f $! x = let !vx = x in f vx  -- see #2273
+ #endif
+diff --git a/src/Type/Reflection/Compat.hs b/src/Type/Reflection/Compat.hs
+index a097690..1a9fbdb 100644
+--- a/src/Type/Reflection/Compat.hs
++++ b/src/Type/Reflection/Compat.hs
+@@ -8,17 +8,19 @@
+ {-# LANGUAGE TypeInType #-}
+ #endif
+ module Type.Reflection.Compat (
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined(ETA_VERSION)
+   module Base
+ , withTypeable
+ #endif
+ ) where
+ 
++#if !defined(ETA_VERSION)
+ #if MIN_VERSION_base(4,11,0)
+ import Type.Reflection as Base
+ #elif MIN_VERSION_base(4,10,0)
+ import Type.Reflection as Base hiding (withTypeable)
+ #endif
++#endif
+ 
+ #if MIN_VERSION_base(4,10,0) && !(MIN_VERSION_base(4,11,0))
+ import GHC.Exts (TYPE)
 -- 
 2.15.2 (Apple Git-101.1)
 
