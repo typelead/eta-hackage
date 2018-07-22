@@ -1,19 +1,28 @@
-From 2ba1d411bd22b3042aa0c5f9a8a98551672c6bae Mon Sep 17 00:00:00 2001
-From: jneira <atreyu.bbb@gmail.com>
-Date: Sun, 8 Jul 2018 01:08:59 +0200
-Subject: [PATCH] Patched using jackson to encode yaml
+From c22aa14c224bf3ccef6fa70d774ec4c03c2efbf4 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 22 Jul 2018 16:32:46 +0530
+Subject: [PATCH] Patched
 
 ---
- dhall-json.cabal      |  8 +++++++-
+ dhall-json.cabal      | 10 ++++++++--
  dhall-to-yaml/Main.hs | 17 +++++++++++------
  java/Utils.java       | 17 +++++++++++++++++
- 3 files changed, 35 insertions(+), 7 deletions(-)
+ 3 files changed, 36 insertions(+), 8 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/dhall-json.cabal b/dhall-json.cabal
-index f16d238..9249fe6 100644
+index f16d238..aa4d5e1 100644
 --- a/dhall-json.cabal
 +++ b/dhall-json.cabal
+@@ -31,7 +31,7 @@ Library
+     Build-Depends:
+         base                      >= 4.8.0.0  && < 5   ,
+         aeson                     >= 1.0.0.0  && < 1.5 ,
+-        dhall                     >= 1.15.0   && < 1.16,
++        dhall                     >= 1.15.0   && < 1.17,
+         insert-ordered-containers                < 1.14,
+         optparse-applicative      >= 0.14.0.0 && < 0.15,
+         text                      >= 0.11.1.0 && < 1.3 ,
 @@ -58,10 +58,16 @@ Executable dhall-to-yaml
      Main-Is: Main.hs
      Build-Depends:
@@ -32,7 +41,6 @@ index f16d238..9249fe6 100644
 +                   com.fasterxml.jackson.core:jackson-databind:2.9.6,
 +                   com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.6
 +    Java-Sources: java/Utils.java
-\ No newline at end of file
 diff --git a/dhall-to-yaml/Main.hs b/dhall-to-yaml/Main.hs
 index 56b7485..c9483fa 100644
 --- a/dhall-to-yaml/Main.hs
@@ -104,5 +112,5 @@ index 0000000..6f8c233
 +    
 +}
 -- 
-2.16.2.windows.1
+2.15.2 (Apple Git-101.1)
 
