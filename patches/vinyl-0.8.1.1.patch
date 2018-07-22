@@ -1,14 +1,14 @@
-From f5f6ab3db074cc272f0c40ff779e9428bbe7c1eb Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Fri, 8 Jun 2018 15:57:39 +0530
-Subject: [PATCH] Patch
+From fc5e29f615caa890e0462d77560d2f5d19957a35 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 22 Jul 2018 19:26:19 +0530
+Subject: [PATCH] Patched
 
 ---
  Data/Vinyl/ARec.hs      | 19 ++++++++++---------
- Data/Vinyl/Core.hs      | 10 +++++-----
+ Data/Vinyl/Core.hs      |  4 ++--
  Data/Vinyl/Derived.hs   | 22 +++++++++++-----------
  Data/Vinyl/TypeLevel.hs | 15 ++++++++-------
- 4 files changed, 34 insertions(+), 32 deletions(-)
+ 4 files changed, 31 insertions(+), 29 deletions(-)
 
 diff --git a/Data/Vinyl/ARec.hs b/Data/Vinyl/ARec.hs
 index f5e3661..6d8d7a2 100644
@@ -89,7 +89,7 @@ index f5e3661..6d8d7a2 100644
  
  instance (is ~ RImage rs ss, IndexWitnesses is, NatToInt (RLength rs))
 diff --git a/Data/Vinyl/Core.hs b/Data/Vinyl/Core.hs
-index 3bf67f6..2c32ae5 100644
+index 3bf67f6..ce670f6 100644
 --- a/Data/Vinyl/Core.hs
 +++ b/Data/Vinyl/Core.hs
 @@ -15,8 +15,8 @@
@@ -103,19 +103,6 @@ index 3bf67f6..2c32ae5 100644
  import Foreign.Ptr (castPtr, plusPtr)
  import Foreign.Storable (Storable(..))
  import Data.Vinyl.Functor
-@@ -227,9 +227,9 @@ instance RecAll f rs Show => Show (Rec f rs) where
-       . rmap (\(Compose (Dict x)) -> Const $ show x)
-       $ reifyConstraint (Proxy :: Proxy Show) xs
- 
--instance Semigroup (Rec f '[]) where
--instance (Monoid (f r), Monoid (Rec f rs))
--  => Semigroup (Rec f (r ': rs)) where
-+-- instance Semigroup (Rec f '[]) where
-+-- instance (Monoid (f r), Monoid (Rec f rs))
-+--   => Semigroup (Rec f (r ': rs)) where
- 
- instance Monoid (Rec f '[]) where
-   mempty = RNil
 diff --git a/Data/Vinyl/Derived.hs b/Data/Vinyl/Derived.hs
 index 9783863..cef4cf5 100644
 --- a/Data/Vinyl/Derived.hs
@@ -219,5 +206,5 @@ index 82a2fc5..504b2fa 100644
  
  -- | Project the first component of a type-level tuple.
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
