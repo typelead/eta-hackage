@@ -1,15 +1,30 @@
-From c68ee6b8c2278097e2f33d4291c8099c8315ae95 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 7 Oct 2017 22:30:20 -0400
+From 9f2ed2c91000ab29f8711dcc5f1b2a256d3244c0 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 22 Jul 2018 12:00:00 +0530
 Subject: [PATCH] Patched
 
 ---
- src/URI/ByteString/Types.hs | 114 ++++++++++++++++++++++----------------------
- uri-bytestring.cabal        |  12 ++---
- 2 files changed, 63 insertions(+), 63 deletions(-)
+ src/URI/ByteString/Internal.hs |   3 ++
+ src/URI/ByteString/Types.hs    | 120 +++++++++++++++++++++--------------------
+ uri-bytestring.cabal           |  12 ++---
+ 3 files changed, 71 insertions(+), 64 deletions(-)
 
+diff --git a/src/URI/ByteString/Internal.hs b/src/URI/ByteString/Internal.hs
+index 4b980bc..6d2e8c5 100644
+--- a/src/URI/ByteString/Internal.hs
++++ b/src/URI/ByteString/Internal.hs
+@@ -791,6 +791,9 @@ urlDecode' = urlDecode plusToSpace
+ newtype Parser' e a = Parser' { unParser' :: Parser a}
+                     deriving ( Functor
+                              , Applicative
++#if (ETA_VERSION >= 84)
++                             , Semigroup
++#endif                            
+                              , Alternative
+                              , Monad
+                              , MonadPlus
 diff --git a/src/URI/ByteString/Types.hs b/src/URI/ByteString/Types.hs
-index 11f69d9..0f0a503 100644
+index 11f69d9..bdc41bb 100644
 --- a/src/URI/ByteString/Types.hs
 +++ b/src/URI/ByteString/Types.hs
 @@ -4,11 +4,11 @@
@@ -118,7 +133,7 @@ index 11f69d9..0f0a503 100644
  
  -------------------------------------------------------------------------------
  data Authority = Authority {
-@@ -81,39 +81,39 @@ data Authority = Authority {
+@@ -81,39 +81,43 @@ data Authority = Authority {
      , authorityPort     :: Maybe Port
      } deriving (Show, Eq, Generic, Typeable, Ord)
  
@@ -135,13 +150,18 @@ index 11f69d9..0f0a503 100644
  
  -------------------------------------------------------------------------------
  newtype Query = Query { queryPairs :: [(ByteString, ByteString)] }
-               deriving (Show, Eq, Monoid, Generic, Typeable, Ord)
- 
+-              deriving (Show, Eq, Monoid, Generic, Typeable, Ord)
+-
 -#ifdef LIFT_COMPAT
 -deriveLift ''Query
 -#else
 -deriving instance Lift Query
--#endif
++              deriving (Show, Eq,
++#if (ETA_VERSION >= 84)
++                        Semigroup,
+ #endif
++                        Monoid, Generic, Typeable, Ord)
++
 +-- #ifdef LIFT_COMPAT
 +-- deriveLift ''Query
 +-- #else
@@ -178,7 +198,7 @@ index 11f69d9..0f0a503 100644
  
  -------------------------------------------------------------------------------
  -- | Note: URI fragment does not include the #
-@@ -134,11 +134,11 @@ deriving instance Show (URIRef a)
+@@ -134,11 +138,11 @@ deriving instance Show (URIRef a)
  deriving instance Eq (URIRef a)
  -- deriving instance Generic (URIRef a)
  deriving instance Ord (URIRef a)
@@ -233,5 +253,5 @@ index 336d974..61de2eb 100644
    if flag(lib-Werror)
      ghc-options: -Werror
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
