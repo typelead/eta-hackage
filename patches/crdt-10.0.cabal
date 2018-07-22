@@ -22,7 +22,7 @@ source-repository head
 
 library
     hs-source-dirs: lib
-    build-depends:  base >= 4.8 && < 4.11
+    build-depends:  base >= 4.8 && < 4.12
                   , binary
                   , bytestring
                   , containers

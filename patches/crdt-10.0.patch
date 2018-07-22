@@ -1,17 +1,26 @@
-From b9e8142b3a8d78332644376611e2978941251794 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Fri, 1 Jun 2018 11:16:01 +0530
+From 8f7aa9d837f840886f2fd252277144d71dd3748c Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 22 Jul 2018 13:54:36 +0530
 Subject: [PATCH] Patched
 
 ---
- crdt.cabal | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ crdt.cabal    | 4 ++--
+ lib/Compat.hs | 5 +++++
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/crdt.cabal b/crdt.cabal
-index 972c339..6951b5b 100644
+index 972c339..2b1c4aa 100644
 --- a/crdt.cabal
 +++ b/crdt.cabal
-@@ -29,7 +29,7 @@ library
+@@ -22,14 +22,14 @@ source-repository head
+ 
+ library
+     hs-source-dirs: lib
+-    build-depends:  base >= 4.8 && < 4.11
++    build-depends:  base >= 4.8 && < 4.12
+                   , binary
+                   , bytestring
+                   , containers
                    , Diff
                    , hashable
                    , mtl
@@ -20,6 +29,25 @@ index 972c339..6951b5b 100644
                    , safe
                    , stm
                    , time
+diff --git a/lib/Compat.hs b/lib/Compat.hs
+index f37c6ed..2732ea0 100644
+--- a/lib/Compat.hs
++++ b/lib/Compat.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ {-# OPTIONS_GHC -fno-warn-orphans #-}
+ 
+ module Compat where
+@@ -7,5 +8,9 @@ import           Prelude hiding (fail)
+ import           Control.Monad.Fail (MonadFail, fail)
+ import           Control.Monad.Reader (ReaderT, lift)
+ 
++#if (ETA_VERSION < 84)
++
+ instance MonadFail m => MonadFail (ReaderT r m) where
+     fail = lift . fail
++
++#endif
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
