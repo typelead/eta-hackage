@@ -1,0 +1,39 @@
+From fe1b5c609ac7acc282c34297ff86a402e511ee8a Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 22 Jul 2018 18:01:37 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Data/Groupoid.hs     | 2 +-
+ src/Data/Semigroupoid.hs | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/Data/Groupoid.hs b/src/Data/Groupoid.hs
+index 864fe75..c73ba03 100644
+--- a/src/Data/Groupoid.hs
++++ b/src/Data/Groupoid.hs
+@@ -43,7 +43,7 @@ instance Groupoid (Eq.:~:) where
+   inv = Eq.sym
+ #endif
+ 
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined (ETA_VERSION)
+ instance Groupoid (Eq.:~~:) where
+   inv Eq.HRefl = Eq.HRefl
+ #endif
+diff --git a/src/Data/Semigroupoid.hs b/src/Data/Semigroupoid.hs
+index 9d0768e..01ce555 100644
+--- a/src/Data/Semigroupoid.hs
++++ b/src/Data/Semigroupoid.hs
+@@ -111,7 +111,7 @@ instance Semigroupoid (Eq.:~:) where
+   o = flip Eq.trans
+ #endif
+ 
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined (ETA_VERSION)
+ instance Semigroupoid (Eq.:~~:) where
+   o Eq.HRefl Eq.HRefl = Eq.HRefl
+ #endif
+-- 
+2.15.2 (Apple Git-101.1)
+
