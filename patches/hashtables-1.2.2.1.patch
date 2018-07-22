@@ -1,11 +1,12 @@
-From 40c0e2a716ba842bfacc345aadb6ba598e1dcd1d Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 2 Oct 2017 15:56:30 -0400
+From efba8a7402da11053ce080efa81ad54ba21e7857 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 22 Jul 2018 17:03:54 +0530
 Subject: [PATCH] Patched
 
 ---
- hashtables.cabal | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ hashtables.cabal               | 2 +-
+ src/Data/HashTable/ST/Basic.hs | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/hashtables.cabal b/hashtables.cabal
 index 42a4da7..ed7b650 100644
@@ -20,6 +21,21 @@ index 42a4da7..ed7b650 100644
  
  
  Library
+diff --git a/src/Data/HashTable/ST/Basic.hs b/src/Data/HashTable/ST/Basic.hs
+index 7b3983c..4471ee6 100644
+--- a/src/Data/HashTable/ST/Basic.hs
++++ b/src/Data/HashTable/ST/Basic.hs
+@@ -486,6 +486,10 @@ growTable ht@(HashTable sz _ _ _ _) = do
+ -- Helper data structure for findSafeSlots
+ newtype Slot = Slot { _slot :: Int } deriving (Show)
+ 
++#if MIN_VERSION_base(4,9,0)
++instance Semigroup Slot where
++ (<>) = mappend
++#endif
+ 
+ ------------------------------------------------------------------------------
+ instance Monoid Slot where
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
