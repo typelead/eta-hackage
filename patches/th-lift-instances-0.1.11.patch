@@ -1,0 +1,25 @@
+From 311d8f46363e1ef8e1ba2216bcf65d1fc1882ece Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 22 Jul 2018 11:42:29 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Instances/TH/Lift.hs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Instances/TH/Lift.hs b/src/Instances/TH/Lift.hs
+index 1151b73..2b53db1 100644
+--- a/src/Instances/TH/Lift.hs
++++ b/src/Instances/TH/Lift.hs
+@@ -134,7 +134,7 @@ instance Lift a => Lift (Sequence.Seq a) where
+ instance Lift a => Lift (Set.Set a) where
+   lift s = [| Set.fromList $(lift $ Set.toList s) |]
+ 
+-deriveLift ''Tree.Tree
++-- deriveLift ''Tree.Tree
+ 
+ --------------------------------------------------------------------------------
+ -- Text
+-- 
+2.15.2 (Apple Git-101.1)
+

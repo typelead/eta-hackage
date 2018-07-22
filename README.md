@@ -374,6 +374,7 @@ These packages are supported by `etlas`.
 - [text >= 1.2.2.1 && <= 1.2.3.0](https://hackage.haskell.org/package/text)
 - [text-binary-0.2.1.1](https://hackage.haskell.org/package/text-binary-0.2.1.1)
 - [text-short-0.1.1](https://hackage.haskell.org/package/text-short-0.1.1)
+- [th-lift-instances-0.1.11](https://hackage.haskell.org/package/th-lift-instances-0.1.11)
 - [tf-random-0.5](https://hackage.haskell.org/package/tf-random-0.5)
 - [time >= 1.6.0.1 <= 1.8.0.3](https://hackage.haskell.org/package/time)
 - [time-locale-compat-0.1.1.3](https://hackage.haskell.org/package/time-locale-compat-0.1.1.3)
