@@ -1,15 +1,17 @@
-From 5ce2bf6dda9a6aa9139a57d56657f748529a736d Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 14 Apr 2018 00:24:36 +0530
+From 628e9fc07aa1166852e829a25c3ec8a6d201ff6a Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 22 Jul 2018 16:55:14 +0530
 Subject: [PATCH] Patched
 
 ---
- extra.cabal                   |  3 +--
- java/Utils.java               | 40 ++++++++++++++++++++++++++++++++++++++++
- src/System/Directory/Extra.hs | 10 ++++------
- src/System/IO/Extra.hs        |  2 +-
- src/System/Info/Extra.hs      | 14 ++------------
- 5 files changed, 48 insertions(+), 21 deletions(-)
+ extra.cabal                    |  3 +--
+ java/Utils.java                | 40 ++++++++++++++++++++++++++++++++++++++++
+ src/Control/Exception/Extra.hs |  2 +-
+ src/Data/Either/Extra.hs       |  2 +-
+ src/System/Directory/Extra.hs  | 10 ++++------
+ src/System/IO/Extra.hs         |  2 +-
+ src/System/Info/Extra.hs       | 14 ++------------
+ 7 files changed, 50 insertions(+), 23 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/extra.cabal b/extra.cabal
@@ -72,6 +74,32 @@ index 0000000..044a4ea
 +    public static boolean isMac = osName.startsWith("mac")
 +                               || osName.startsWith("darwin");
 +}
+diff --git a/src/Control/Exception/Extra.hs b/src/Control/Exception/Extra.hs
+index 379e4a3..2cf66f5 100644
+--- a/src/Control/Exception/Extra.hs
++++ b/src/Control/Exception/Extra.hs
+@@ -56,7 +56,7 @@ displayException :: Exception e => e -> String
+ displayException = show
+ #endif
+ 
+-#if __GLASGOW_HASKELL__ < 800
++#if !MIN_VERSION_base(4,9,0)
+ -- | A variant of 'error' that does not produce a stack trace.
+ errorWithoutStackTrace :: String -> a
+ errorWithoutStackTrace = error
+diff --git a/src/Data/Either/Extra.hs b/src/Data/Either/Extra.hs
+index e54baef..aff74e7 100644
+--- a/src/Data/Either/Extra.hs
++++ b/src/Data/Either/Extra.hs
+@@ -15,7 +15,7 @@ import Data.Either
+ import Partial
+ 
+ 
+-#if __GLASGOW_HASKELL__ < 801
++#if !MIN_VERSION_base(4,10,0)
+ 
+ -- | Return the contents of a 'Left'-value or a default value otherwise.
+ --
 diff --git a/src/System/Directory/Extra.hs b/src/System/Directory/Extra.hs
 index b2d4f07..14f6002 100644
 --- a/src/System/Directory/Extra.hs
@@ -136,5 +164,5 @@ index 0097c09..edba30b 100644
 -#endif
 +foreign import java unsafe "@static @field eta.extra.Utils.isMac" isMac :: Bool
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
