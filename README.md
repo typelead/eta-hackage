@@ -353,6 +353,7 @@ These packages are supported by `etlas`.
 - [superbuffer-0.3.1.1](https://hackage.haskell.org/package/superbuffer-0.3.1.1)
 - [stable-marriage-0.1.1.0](https://hackage.haskell.org/package/stable-marriage-0.1.1.0)
 - [statistics-0.14.0.2](https://hackage.haskell.org/package/statistics-0.14.0.2)
+- [StateVar-1.1.1.0](https://hackage.haskell.org/package/StateVar-1.1.1.0)
 - [stm-2.4.4.1](https://hackage.haskell.org/package/stm-2.4.4.1)
 - [stm-chans-3.0.0.4](https://hackage.haskell.org/package/stm-chans-3.0.0.4)
 - [storable-complex-0.2.2](https://hackage.haskell.org/package/storable-complex-0.2.2)
