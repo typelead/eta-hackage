@@ -45,6 +45,8 @@ If you would like to have a given package/version made compatible with `etlas`, 
 
 These packages are supported by `etlas`.
 
+- [abstract-deque-0.3](https://hackage.haskell.org/package/abstract-deque-0.3)
+- [abstract-par-0.3.3](https://hackage.haskell.org/package/abstract-par-0.3.3)
 - [amazonka-1.6.0](https://hackage.haskell.org/package/amazonka-1.6.0)
 - [amazonka-core-1.6.0](https://hackage.haskell.org/package/amazonka-core-1.6.0)
 - [abstract-deque-0.3](https://hackage.haskell.org/package/abstract-deque-0.3)
@@ -185,7 +187,7 @@ These packages are supported by `etlas`.
 - [happy-1.19.9](https://hackage.haskell.org/package/happy-1.19.9)
 - [haskeline-0.7.4.3](https://hackage.haskell.org/package/haskeline-0.7.4.3)
 - [hashable >= 1.2.4.0 && <= 1.2.6.1](https://hackage.haskell.org/package/hashable)
-- [hashtables >= 1.2.1.0 && <= 1.2.2.1](https://hackage.haskell.org/package/hashtables)
+- [hashtables >= 1.2.1.0 && <= 1.2.3.1](https://hackage.haskell.org/package/hashtables)
 - [haxl >= 2.0.0.0 && <= 2.0.1.0](http://hackage.haskell.org/package/haxl)
 - [heap-1.0.3](https://hackage.haskell.org/package/heap-1.0.3)
 - [heaps-0.3.3](https://hackage.haskell.org/package/heaps-0.3.3)
