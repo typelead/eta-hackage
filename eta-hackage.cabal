@@ -7,7 +7,7 @@ cabal-version:       >=1.10
 
 executable eta-hackage
   main-is:             test/Main.hs
-  build-depends:       base >=4.8 && <4.9
+  build-depends:       base >=4.8 && <4.12
                      , aeson
                      , bytestring
                      , directory
