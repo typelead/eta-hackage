@@ -1,6 +1,6 @@
-From 1600bc275da3279395109293e7416e1e3eb3fa6b Mon Sep 17 00:00:00 2001
+From 8dfba9ba947cfb1c40411f4433e4fcf3635d80eb Mon Sep 17 00:00:00 2001
 From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Sun, 22 Jul 2018 11:34:26 +0530
+Date: Mon, 23 Jul 2018 12:22:40 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH] Patched
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/System/Console/CmdArgs/Explicit.hs b/System/Console/CmdArgs/Explicit.hs
-index 1ea4b06..6b46f4f 100644
+index 1ea4b06..2c31ffc 100644
 --- a/System/Console/CmdArgs/Explicit.hs
 +++ b/System/Console/CmdArgs/Explicit.hs
 @@ -119,7 +119,7 @@ processArgs m = do
@@ -26,7 +26,7 @@ index 1ea4b06..6b46f4f 100644
  
  
 -#if __GLASGOW_HASKELL__ < 800
-+#if __GLASGOW_HASKELL__ < 800 && (ETA_VERSION > 84)
++#if (ETA_VERSION < 84)
  errorWithoutStackTrace :: String -> a
  errorWithoutStackTrace = error
  #endif
