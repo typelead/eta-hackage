@@ -326,7 +326,7 @@ These packages are supported by `etlas`.
 - [reflection-2.1.2](https://hackage.haskell.org/package/reflection-2.1.2)
 - [regex-base-0.93.2](https://hackage.haskell.org/package/regex-base-0.93.2)
 - [regex-posix-0.95.2](https://hackage.haskell.org/package/regex-posix-0.95.2)
-- [regex-tdfa >= 1.2.1 && <= 1.2.2](https://hackage.haskell.org/package/regex-tdfa)
+- [regex-tdfa >= 1.2.1 && <= 1.2.3.1](https://hackage.haskell.org/package/regex-tdfa)
 - [relacion-0.1](https://hackage.haskell.org/package/relacion-0.1)
 - [repa-3.4.1.2](https://hackage.haskell.org/package/repa-3.4.1.2)
 - [repa-algorithms-3.4.1.1](https://hackage.haskell.org/package/repa-algorithms-3.4.1.1)
