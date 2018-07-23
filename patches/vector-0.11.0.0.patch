@@ -1,15 +1,20 @@
-From 962f7f1c79dcedaeac2069881a48e147bc11a02a Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 31 Mar 2018 18:03:45 +0530
+From 1e0c8009b6c3b7e686817ec767240cd28041fb74 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 23 Jul 2018 13:33:25 +0530
 Subject: [PATCH] Patched
 
 ---
- Data/Vector.hs | 2 +-
- vector.cabal   | 3 +++
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ Data/Vector.hs           | 15 +++++++++------
+ Data/Vector/Primitive.hs | 13 ++++++++-----
+ Data/Vector/Storable.hs  | 13 ++++++++-----
+ Data/Vector/Unboxed.hs   | 12 ++++++++----
+ cabal.project            |  2 ++
+ vector.cabal             |  5 ++++-
+ 6 files changed, 39 insertions(+), 21 deletions(-)
+ create mode 100644 cabal.project
 
 diff --git a/Data/Vector.hs b/Data/Vector.hs
-index db6dfb7..d3292d0 100644
+index db6dfb7..0ca8c28 100644
 --- a/Data/Vector.hs
 +++ b/Data/Vector.hs
 @@ -161,7 +161,7 @@ module Data.Vector (
@@ -21,11 +26,149 @@ index db6dfb7..d3292d0 100644
  import qualified Data.Vector.Fusion.Bundle as Bundle
  
  import Control.DeepSeq ( NFData, rnf )
+@@ -196,7 +196,6 @@ import qualified Data.Traversable as Traversable
+ import qualified GHC.Exts as Exts (IsList(..))
+ #endif
+ 
+-
+ -- | Boxed vectors, supporting efficient slicing.
+ data Vector a = Vector {-# UNPACK #-} !Int
+                        {-# UNPACK #-} !Int
+@@ -285,11 +284,16 @@ instance Monoid (Vector a) where
+   {-# INLINE mempty #-}
+   mempty = empty
+ 
+-  {-# INLINE mappend #-}
+-  mappend = (++)
+-
+   {-# INLINE mconcat #-}
+   mconcat = concat
++#if !MIN_VERSION_base(4,10,0)
++  {-# INLINE mappend #-}
++  mappend = (++)
++#else
++instance Semigroup (Vector a) where
++  {-# INLINE (<>) #-}
++  (<>) = (++)
++#endif
+ 
+ instance Functor Vector where
+   {-# INLINE fmap #-}
+@@ -1572,4 +1576,3 @@ unsafeCopy = G.unsafeCopy
+ copy :: PrimMonad m => MVector (PrimState m) a -> Vector a -> m ()
+ {-# INLINE copy #-}
+ copy = G.copy
+-
+diff --git a/Data/Vector/Primitive.hs b/Data/Vector/Primitive.hs
+index 251b595..92bf845 100644
+--- a/Data/Vector/Primitive.hs
++++ b/Data/Vector/Primitive.hs
+@@ -252,11 +252,16 @@ instance Prim a => Monoid (Vector a) where
+   {-# INLINE mempty #-}
+   mempty = empty
+ 
+-  {-# INLINE mappend #-}
+-  mappend = (++)
+-
+   {-# INLINE mconcat #-}
+   mconcat = concat
++#if !MIN_VERSION_base(4,10,0)
++  {-# INLINE mappend #-}
++  mappend = (++)
++#else
++instance Prim a => Semigroup (Vector a) where
++  {-# INLINE (<>) #-}
++  (<>) = (++)
++#endif
+ 
+ #if __GLASGOW_HASKELL__ >= 708
+ 
+@@ -1336,5 +1341,3 @@ unsafeCopy = G.unsafeCopy
+ copy :: (Prim a, PrimMonad m) => MVector (PrimState m) a -> Vector a -> m ()
+ {-# INLINE copy #-}
+ copy = G.copy
+-
+-
+diff --git a/Data/Vector/Storable.hs b/Data/Vector/Storable.hs
+index 1d0f46e..c7a5260 100644
+--- a/Data/Vector/Storable.hs
++++ b/Data/Vector/Storable.hs
+@@ -261,11 +261,16 @@ instance Storable a => Monoid (Vector a) where
+   {-# INLINE mempty #-}
+   mempty = empty
+ 
+-  {-# INLINE mappend #-}
+-  mappend = (++)
+-
+   {-# INLINE mconcat #-}
+   mconcat = concat
++#if !MIN_VERSION_base(4,10,0)
++  {-# INLINE mappend #-}
++  mappend = (++)
++#else
++instance Storable a => Semigroup (Vector a) where
++  {-# INLINE (<>) #-}
++  (<>) = (++)
++#endif
+ 
+ #if __GLASGOW_HASKELL__ >= 708
+ 
+@@ -1432,5 +1437,3 @@ unsafeToForeignPtr0 (Vector n fp) = (fp, n)
+ unsafeWith :: Storable a => Vector a -> (Ptr a -> IO b) -> IO b
+ {-# INLINE unsafeWith #-}
+ unsafeWith (Vector _ fp) = withForeignPtr fp
+-
+-
+diff --git a/Data/Vector/Unboxed.hs b/Data/Vector/Unboxed.hs
+index 1b2062f..ed8c79a 100644
+--- a/Data/Vector/Unboxed.hs
++++ b/Data/Vector/Unboxed.hs
+@@ -224,11 +224,16 @@ instance Unbox a => Monoid (Vector a) where
+   {-# INLINE mempty #-}
+   mempty = empty
+ 
+-  {-# INLINE mappend #-}
+-  mappend = (++)
+-
+   {-# INLINE mconcat #-}
+   mconcat = concat
++#if !MIN_VERSION_base(4,10,0)
++  {-# INLINE mappend #-}
++  mappend = (++)
++#else
++instance Unbox a => Semigroup (Vector a) where
++  {-# INLINE (<>) #-}
++  (<>) = (++)
++#endif
+ 
+ instance (Show a, Unbox a) => Show (Vector a) where
+   showsPrec = G.showsPrec
+@@ -1431,4 +1436,3 @@ copy = G.copy
+ 
+ #define DEFINE_IMMUTABLE
+ #include "unbox-tuple-instances"
+-
+diff --git a/cabal.project b/cabal.project
+new file mode 100644
+index 0000000..99b0b40
+--- /dev/null
++++ b/cabal.project
+@@ -0,0 +1,2 @@
++packages: .
++benchmarks: False
 diff --git a/vector.cabal b/vector.cabal
-index ffc5099..cd15add 100644
+index ffc5099..4cd3baa 100644
 --- a/vector.cabal
 +++ b/vector.cabal
-@@ -144,6 +144,9 @@ Library
+@@ -137,13 +137,16 @@ Library
+   Install-Includes:
+         vector.h
+ 
+-  Build-Depends: base >= 4.3 && < 4.9
++  Build-Depends: base >= 4.3 && < 5
+                , primitive >= 0.5.0.1 && < 0.7
+                , ghc-prim >= 0.2 && < 0.5
+                , deepseq >= 1.1 && < 1.5
  
    Ghc-Options: -O2 -Wall -fno-warn-orphans
  
@@ -36,5 +179,5 @@ index ffc5099..cd15add 100644
      cpp-options: -DVECTOR_BOUNDS_CHECKS
  
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
