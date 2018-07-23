@@ -1,0 +1,66 @@
+From 166fc3eda00540fe92e82fdb448dd210797963c1 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 23 Jul 2018 22:51:59 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Control/Monad/Trans/Iter.hs | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+
+diff --git a/src/Control/Monad/Trans/Iter.hs b/src/Control/Monad/Trans/Iter.hs
+index c4ab6db..200d20c 100644
+--- a/src/Control/Monad/Trans/Iter.hs
++++ b/src/Control/Monad/Trans/Iter.hs
+@@ -388,6 +388,8 @@ interleave_ [] = return ()
+ interleave_ xs = IterT $ liftM (Right . interleave_ . rights) $ mapM runIterT xs
+ {-# INLINE interleave_ #-}
+ 
++
++#if !MIN_VERSION_base(4,10,0)
+ instance (Monad m, Monoid a) => Monoid (IterT m a) where
+   mempty = return mempty
+   x `mappend` y = IterT $ do
+@@ -418,6 +420,40 @@ instance (Monad m, Monoid a) => Monoid (IterT m a) where
+       compact' a (r@(Right _):xs) = (Left a):(r:(compact xs))
+       compact' a (  (Left a'):xs) = compact' (a <> a') xs
+ 
++#else
++instance (Monad m, Semigroup a, Monoid a) => Monoid (IterT m a) where
++  mempty = return mempty
++  mappend = (<>)
++  mconcat = mconcat' . map Right
++    where
++      mconcat' :: (Monad m, Monoid a) => [Either a (IterT m a)] -> IterT m a
++      mconcat' ms = IterT $ do
++        xs <- mapM (either (return . Left) runIterT) ms
++        case compact xs of
++          [l@(Left _)] -> return l
++          xs' -> return . Right $ mconcat' xs'
++      {-# INLINE mconcat' #-}
++
++      compact :: (Monoid a) => [Either a b] -> [Either a b]
++      compact []               = []
++      compact (r@(Right _):xs) = r:(compact xs)
++      compact (   Left a  :xs)  = compact' a xs
++
++      compact' a []               = [Left a]
++      compact' a (r@(Right _):xs) = (Left a):(r:(compact xs))
++      compact' a (  (Left a'):xs) = compact' (a `mappend` a') xs
++
++instance (Monad m, Semigroup a) => Semigroup (IterT m a) where
++  x <> y = IterT $ do
++    x' <- runIterT x
++    y' <- runIterT y
++    case (x', y') of
++      ( Left a, Left b)  -> return . Left  $ a <> b
++      ( Left a, Right b) -> return . Right $ liftM (a <>) b
++      (Right a, Left b)  -> return . Right $ liftM (<> b) a
++      (Right a, Right b) -> return . Right $ a <> b
++#endif
++
+ #if __GLASGOW_HASKELL__ < 707
+ instance Typeable1 m => Typeable1 (IterT m) where
+   typeOf1 t = mkTyConApp freeTyCon [typeOf1 (f t)] where
+-- 
+2.15.2 (Apple Git-101.1)
+
