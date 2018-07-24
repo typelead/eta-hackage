@@ -1,0 +1,146 @@
+From da33b98934896ac0efe02079d95e7a66a022fed8 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 24 Jul 2018 22:08:08 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Hashable/Class.hs    |  8 ++++----
+ cabal.project             |  3 +++
+ hashable.cabal            | 10 ++++++----
+ java/Utils.java           | 20 ++++++++++++++++++++
+ java/eta-0.0.9/Utils.java | 19 +++++++++++++++++++
+ 5 files changed, 52 insertions(+), 8 deletions(-)
+ create mode 100644 cabal.project
+ create mode 100644 java/Utils.java
+ create mode 100644 java/eta-0.0.9/Utils.java
+
+diff --git a/Data/Hashable/Class.hs b/Data/Hashable/Class.hs
+index 93470db..e3b557a 100644
+--- a/Data/Hashable/Class.hs
++++ b/Data/Hashable/Class.hs
+@@ -640,8 +640,8 @@ instance Hashable TL.Text where
+ hashThreadId :: ThreadId -> Int
+ hashThreadId (ThreadId t) = hash (fromIntegral (getThreadId t) :: Int)
+ 
+-foreign import ccall unsafe "rts_getThreadId" getThreadId
+-    :: ThreadId# -> CInt
++foreign import java unsafe "@static eta.runtime.stg.TSO.getThreadId"
++  getThreadId :: ThreadId# -> CInt
+ 
+ instance Hashable ThreadId where
+     hash = hashThreadId
+@@ -724,7 +724,7 @@ hashPtrWithSalt p len salt =
+     fromIntegral `fmap` c_hashCString (castPtr p) (fromIntegral len)
+     (fromIntegral salt)
+ 
+-foreign import ccall unsafe "hashable_fnv_hash" c_hashCString
++foreign import java unsafe "@static eta.hashable.Utils.fnv_hash" c_hashCString
+     :: CString -> CLong -> CLong -> IO CLong
+ 
+ -- | Compute a hash value for the content of this 'ByteArray#',
+@@ -752,7 +752,7 @@ hashByteArrayWithSalt ba !off !len !h =
+     fromIntegral $ c_hashByteArray ba (fromIntegral off) (fromIntegral len)
+     (fromIntegral h)
+ 
+-foreign import ccall unsafe "hashable_fnv_hash_offset" c_hashByteArray
++foreign import java unsafe "@static eta.hashable.Utils.fnv_hash_offset" c_hashByteArray
+     :: ByteArray# -> CLong -> CLong -> CLong -> CLong
+ 
+ -- | Combine two given hash values.  'combine' has zero as a left
+diff --git a/cabal.project b/cabal.project
+new file mode 100644
+index 0000000..18c7370
+--- /dev/null
++++ b/cabal.project
+@@ -0,0 +1,3 @@
++packages: .
++tests: False
++benchmarks: False
+diff --git a/hashable.cabal b/hashable.cabal
+index 74f6512..821a338 100644
+--- a/hashable.cabal
++++ b/hashable.cabal
+@@ -55,14 +55,16 @@ Library
+     Build-depends:   ghc-prim,
+                      text >= 0.11.0.5
+   if impl(ghc) && flag(integer-gmp)
+-    Build-depends:   integer-gmp >= 0.2
++    Build-depends:   integer >= 0.2
+ 
+   if impl(ghc >= 7.2.1)
+     CPP-Options:     -DGENERICS
+     Other-modules:   Data.Hashable.Generic
+ 
+-  C-sources:
+-                     cbits/fnv.c
++  if impl(eta >= 0.0.9)
++     Java-sources: java/eta-0.0.9/Utils.java
++  else
++     Java-sources: java/Utils.java
+ 
+   Ghc-options:       -Wall
+   if impl(ghc >= 6.8)
+@@ -127,7 +129,7 @@ benchmark benchmarks
+     Build-depends:   ghc-prim,
+                      text >= 0.11.0.5
+   if impl(ghc) && flag(integer-gmp)
+-    Build-depends:   integer-gmp >= 0.2
++    Build-depends:   integer >= 0.2
+ 
+   if impl(ghc >= 7.2.1)
+     CPP-Options:     -DGENERICS
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..b5c124f
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,20 @@
++package eta.hashable;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.StgByteArray;
++
++import static eta.runtime.io.MemoryManager.bufSetOffset;
++
++public class Utils {
++    public static long fnv_hash(ByteBuffer str, long len, long hash) {
++        str = str.duplicate();
++        while (len-- > 0) {
++            hash = (hash * 16777619) ^ (str.get() & 0xFF);
++        }
++        return hash;
++    }
++
++    public static long fnv_hash_offset(StgByteArray str, long offset, long len, long hash) {
++        return fnv_hash(bufSetOffset(str.buf.duplicate(), (int) offset), len, hash);
++    }
++}
+\ No newline at end of file
+diff --git a/java/eta-0.0.9/Utils.java b/java/eta-0.0.9/Utils.java
+new file mode 100644
+index 0000000..c1c4157
+--- /dev/null
++++ b/java/eta-0.0.9/Utils.java
+@@ -0,0 +1,19 @@
++package eta.hashable;
++
++import java.nio.ByteBuffer;
++import eta.runtime.io.ByteArray;
++import eta.runtime.io.MemoryManager;
++
++public class Utils {
++    public static long fnv_hash(long strAddress, long len, long hash) {
++        ByteBuffer str = MemoryManager.getBoundedBuffer(strAddress);
++        while (len-- > 0) {
++            hash = (hash * 16777619) ^ (str.get() & 0xFF);
++        }
++        return hash;
++    }
++
++    public static long fnv_hash_offset(ByteArray strArray, long offset, long len, long hash) {
++        return fnv_hash(strArray.bufferAddress + offset, len, hash);
++    }
++}
+-- 
+2.15.2 (Apple Git-101.1)
+
