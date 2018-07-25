@@ -1,0 +1,148 @@
+From 6794998e70e348383f94f112c56f74bcce33c923 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Wed, 25 Jul 2018 17:52:58 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Named/Internal.hs | 42 +++++++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
+
+diff --git a/src/Named/Internal.hs b/src/Named/Internal.hs
+index 02c50aa..c45442f 100644
+--- a/src/Named/Internal.hs
++++ b/src/Named/Internal.hs
+@@ -1,15 +1,15 @@
+ {-# LANGUAGE KindSignatures, DataKinds, FlexibleInstances, FlexibleContexts,
+              FunctionalDependencies, TypeFamilies, TypeOperators,
+              PatternSynonyms, UndecidableInstances, ConstraintKinds,
+-             TypeApplications, ScopedTypeVariables, CPP,
+-             AllowAmbiguousTypes #-}
++             ScopedTypeVariables, CPP,
++             AllowAmbiguousTypes, MagicHash #-}
+ 
+ module Named.Internal where
+ 
+ import Prelude (id, Maybe(..))
+ import Data.Maybe (fromMaybe)
+ import Data.Functor.Identity (Identity(..))
+-import Data.Kind (Type)
++import GHC.Exts (Proxy#, proxy#)
+ import GHC.TypeLits (Symbol, TypeError, ErrorMessage(..))
+ import GHC.OverloadedLabels (IsLabel(..))
+ 
+@@ -22,7 +22,7 @@ Assign a name to a value of type @a@ wrapped in @f@.
+ @
+ 
+ -}
+-newtype NamedF f (a :: Type) (name :: Symbol) =
++newtype NamedF f (a :: *) (name :: Symbol) =
+   ArgF (f a) -- ^ Match on an F-argument without specifying its name.
+              -- See also: 'argF'.
+ 
+@@ -34,7 +34,7 @@ pattern Arg a = ArgF (Identity a)
+ {-# COMPLETE Arg #-}
+ #endif
+ 
+--- | Infix notation for the type of a named parameter.
++-- | Infix notation for the * of a named parameter.
+ type name :! a = NamedF Identity a name
+ 
+ -- | Infix notation for the type of an optional named parameter.
+@@ -50,7 +50,7 @@ instance InjValue Maybe where
+   injValue = Just
+ 
+ instance (name ~ name', a ~ a', InjValue f) => IsLabel name (a -> NamedF f a' name') where
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined (ETA_VERSION)
+   fromLabel a = ArgF (injValue a)
+ #else
+   fromLabel _ a = ArgF (injValue a)
+@@ -60,7 +60,7 @@ instance (name ~ name', a ~ a', InjValue f) => IsLabel name (a -> NamedF f a' na
+ newtype Param p = Param p
+ 
+ instance (p ~ NamedF f a name, InjValue f) => IsLabel name (a -> Param p) where
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined (ETA_VERSION)
+   fromLabel a = Param (fromLabel @name a)
+ #else
+   fromLabel pName a = Param (fromLabel pName a)
+@@ -120,7 +120,7 @@ class WithParam p fn fn' | p fn -> fn' where
+   with :: Param p -> fn -> fn'
+ 
+ instance WithParam' (Decide p fn) p fn fn' => WithParam p fn fn' where
+-  with (Param p) fn = withParam @(Decide p fn) p fn
++  with (Param p) fn = withParam (proxy# :: Proxy# (Decide p fn)) p fn
+   {-# INLINE with #-}
+ 
+ data Defaults = Defaults
+@@ -151,7 +151,7 @@ A proxy for a name, intended for use with @-XOverloadedLabels@:
+ data Name (name :: Symbol) = Name
+ 
+ instance name ~ name' => IsLabel name' (Name name) where
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined (ETA_VERSION)
+   fromLabel = Name
+ #else
+   fromLabel _ = Name
+@@ -217,38 +217,38 @@ data DApply
+ data DFill
+ data DPass
+ 
+-type family Decide (p :: Type) (fn :: Type) :: [Type] where
++type family Decide (p :: *) (fn :: *) :: [*] where
+   Decide (NamedF f' a' name) (NamedF f a name -> r) = '[DApply]
+-  Decide Defaults (NamedF Maybe a name -> r) = DFill : Decide Defaults r
+-  Decide p (x -> r) = DPass : Decide p r
++  Decide Defaults (NamedF Maybe a name -> r) = DFill ': Decide Defaults r
++  Decide p (x -> r) = DPass ': Decide p r
+   Decide (NamedF f' a' name) t =
+     TypeError (Text "Named parameter '" :<>: Text name :<>:
+                Text "' was supplied, but not expected")
+   Decide Defaults t = '[]
+ 
+-class WithParam' (ds :: [Type]) p fn fn' | ds p fn -> fn' where
+-  withParam :: p -> fn -> fn'
++class WithParam' (ds :: [*]) p fn fn' | ds p fn -> fn' where
++  withParam :: Proxy# ds -> p -> fn -> fn'
+ 
+ instance fn ~ fn' => WithParam' '[] p fn fn' where
+-  withParam _ = id
++  withParam _ _ = id
+   {-# INLINE withParam #-}
+ 
+ instance
+     ( WithParam' ds p r r',
+       fn ~ (p -> r),
+       fn' ~ r'
+-    ) => WithParam' (DApply : ds) p fn fn'
++    ) => WithParam' (DApply ': ds) p fn fn'
+   where
+-    withParam p fn = withParam @ds p (fn p)
++    withParam _ p fn = withParam (proxy# :: Proxy# ds) p (fn p)
+     {-# INLINE withParam #-}
+ 
+ instance
+     ( WithParam' ds p r r',
+       fn ~ (x -> r),
+       fn' ~ (x -> r')
+-    ) => WithParam' (DPass : ds) p fn fn'
++    ) => WithParam' (DPass ': ds) p fn fn'
+   where
+-    withParam a fn = \x -> withParam @ds a (fn x)
++    withParam _ a fn = \x -> withParam (proxy# :: Proxy# ds) a (fn x)
+     {-# INLINE withParam #-}
+ 
+ instance
+@@ -256,7 +256,7 @@ instance
+       fn ~ (NamedF f x name -> r),
+       fn' ~ r',
+       f ~ Maybe
+-    ) => WithParam' (DFill : ds) p fn fn'
++    ) => WithParam' (DFill ': ds) p fn fn'
+   where
+-    withParam p fn = withParam @ds p (fn (ArgF Nothing))
++    withParam _ p fn = withParam (proxy# :: Proxy# ds) p (fn (ArgF Nothing))
+     {-# INLINE withParam #-}
+-- 
+2.15.2 (Apple Git-101.1)
+

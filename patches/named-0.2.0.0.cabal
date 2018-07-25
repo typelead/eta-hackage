@@ -1,0 +1,61 @@
+name:                named
+version:             0.2.0.0
+synopsis:            Named parameters (keyword arguments) for Haskell
+description:
+    `named` is a lightweight library for named function parameters (keyword
+    arguments) based on overloaded labels. Keyword arguments have several
+    advantages over positional arguments:
+    .
+    * they can be supplied in arbitrary order
+    * their names serve as documentation at call site
+    * it is impossible to accidentally mix them up
+    .
+    Unlike @newtype@ wrappers, keyword arguments don't pollute the global
+    namespace, don't require top-level definitions, and don't need to be
+    exported.
+    .
+    This implementation of named parameters is typesafe, provides good type
+    inference, descriptive type errors, and has no runtime overhead.
+    .
+    Example usage:
+    .
+    > import Named
+    >
+    > createSymLink :: "from" :! FilePath -> "to" :! FilePath -> IO ()
+    > createSymLink (Arg from) (Arg to) = ...
+    >
+    > main = createSymLink ! #from "/path/to/source"
+    >                      ! #to "/target/path"
+
+
+license:             BSD3
+license-file:        LICENSE
+author:              Vladislav Zavialov
+maintainer:          Vladislav Zavialov <vlad.z.4096@gmail.com>
+category:            Control
+build-type:          Simple
+extra-source-files:  ChangeLog.md
+tested-with:         GHC ==8.0.2, GHC ==8.2.2, GHC ==8.4.1
+cabal-version:       >=1.10
+
+source-repository head
+  type: git
+  location: git@github.com:int-index/named.git
+
+library
+  exposed-modules:     Named, Named.Internal
+  build-depends:       base >=4.9 && <4.12
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+                       -fno-warn-unticked-promoted-constructors
+
+test-suite regression
+  type:                exitcode-stdio-1.0
+  main-is:             Test.hs
+  build-depends:       base >=4.9 && <4.12,
+                       named
+  hs-source-dirs:      test
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+                       -fno-warn-missing-signatures

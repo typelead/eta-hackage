@@ -275,6 +275,7 @@ These packages are supported by `etlas`.
 - [multiset-0.3.3](https://hackage.haskell.org/package/multiset-0.3.3)
 - [mwc-random >= 0.13.5.0 && <= 0.13.6.0](https://hackage.haskell.org/package/mwc-random)
 - [nats-1.1.1](https://hackage.haskell.org/package/nats-1.1.1)
+- [named-0.2.0.0](https://hackage.haskell.org/package/named-0.2.0.0)
 - [nested-sequence-0.2](https://hackage.haskell.org/package/nested-sequence-0.2)
 - [nested-sets-0.0.1.1](https://hackage.haskell.org/package/nested-sets-0.0.1.1)
 - [network-2.6.3.2](https://hackage.haskell.org/package/network-2.6.3.2)
