@@ -1,12 +1,12 @@
-From 3da70ab933b7b04881f6880153a638191258375f Mon Sep 17 00:00:00 2001
+From b83a5e2d5ed819bfe45854dbdef9b775ed9abb48 Mon Sep 17 00:00:00 2001
 From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Sun, 22 Jul 2018 17:36:46 +0530
+Date: Thu, 26 Jul 2018 20:38:12 +0530
 Subject: [PATCH] Patched
 
 ---
  http-api-data.cabal                | 14 ++++++++------
- src/Web/Internal/FormUrlEncoded.hs |  2 +-
- 2 files changed, 9 insertions(+), 7 deletions(-)
+ src/Web/Internal/FormUrlEncoded.hs |  6 ++++++
+ 2 files changed, 14 insertions(+), 6 deletions(-)
 
 diff --git a/http-api-data.cabal b/http-api-data.cabal
 index e934369..4c4fbf5 100644
@@ -48,15 +48,21 @@ index e934369..4c4fbf5 100644
        cpp-options: -DUSE_TEXT_SHOW
        build-depends: text-show        >= 2
 diff --git a/src/Web/Internal/FormUrlEncoded.hs b/src/Web/Internal/FormUrlEncoded.hs
-index 90d4e06..8229b71 100644
+index 90d4e06..e1e906c 100644
 --- a/src/Web/Internal/FormUrlEncoded.hs
 +++ b/src/Web/Internal/FormUrlEncoded.hs
-@@ -182,7 +182,7 @@ instance FromFormKey Natural  where parseFormKey = parseQueryParam
+@@ -181,8 +181,14 @@ instance FromFormKey Natural  where parseFormKey = parseQueryParam
+ -- | The contents of a form, not yet URL-encoded.
  --
  -- 'Form' can be URL-encoded with 'urlEncodeForm' and URL-decoded with 'urlDecodeForm'.
++#if !MIN_VERSION_base(4,10,0)
  newtype Form = Form { unForm :: HashMap Text [Text] }
--  deriving (Eq, Read, Generic, Monoid)
+   deriving (Eq, Read, Generic, Monoid)
++#else
++newtype Form = Form { unForm :: HashMap Text [Text] }
 +  deriving (Eq, Read, Generic, Semigroup, Monoid)
++#endif
++
  
  instance Show Form where
    showsPrec d form = showParen (d > 10) $
