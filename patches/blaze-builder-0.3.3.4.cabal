@@ -1,0 +1,78 @@
+Name:                blaze-builder
+Version:             0.3.3.4
+Synopsis:            Efficient buffered output.
+
+Description:         
+                     This library provides an abstraction of buffered output of
+                     byte streams and several convenience functions to exploit
+                     it. For example, it allows to efficiently serialize
+                     Haskell values to lazy bytestrings with a large average
+                     chunk size. The large average chunk size allows to make
+                     good use of cache prefetching in later processing steps
+                     (e.g. compression) and reduces the system call overhead
+                     when writing the resulting lazy bytestring to a file or
+                     sending it over the network.
+
+Author:              Jasper Van der Jeugt, Simon Meier
+Copyright:           2010-2014 Simon Meier
+                     2010 Jasper Van der Jeugt
+Maintainer:          Simon Meier <iridcode@gmail.com>
+
+License:             BSD3
+License-file:        LICENSE
+
+Homepage:            http://github.com/meiersi/blaze-builder
+Bug-Reports:         http://github.com/meiersi/blaze-builder/issues
+Stability:           Experimental
+
+Category:            Data
+Build-type:          Simple
+Cabal-version:       >= 1.6
+
+Extra-source-files:  
+                     Makefile
+                     README.markdown
+                     TODO
+                     CHANGES
+
+                     benchmarks/*.hs
+                     benchmarks/Throughput/*.hs
+                     benchmarks/Throughput/*.h
+                     benchmarks/Throughput/*.c
+
+                     tests/*.hs
+
+Source-repository head
+  Type: git
+  Location: https://github.com/meiersi/blaze-builder.git
+
+Library
+  ghc-options:       -Wall
+
+  -- Earlier versions of GHC did not split off unsafe functions in "Foreign"
+  if impl(ghc >= 7.4)
+      cpp-options:   -DHAS_FOREIGN_UNSAFE_MODULE
+
+  -- GHC 7.0.x and lower required MonoPatBinds feature
+  if impl(ghc < 7.2)
+      cpp-options:   -DUSE_MONO_PAT_BINDS
+
+  exposed-modules:   Blaze.ByteString.Builder
+                     Blaze.ByteString.Builder.Int
+                     Blaze.ByteString.Builder.Word
+                     Blaze.ByteString.Builder.ByteString
+                     Blaze.ByteString.Builder.Char.Utf8
+                     Blaze.ByteString.Builder.Char8
+                     Blaze.ByteString.Builder.Html.Utf8
+                     Blaze.ByteString.Builder.HTTP
+
+                     Blaze.ByteString.Builder.Internal
+                     Blaze.ByteString.Builder.Internal.Write
+                     Blaze.ByteString.Builder.Internal.Types
+                     Blaze.ByteString.Builder.Internal.Buffer
+
+  other-modules:     Blaze.ByteString.Builder.Internal.UncheckedShifts
+  
+  build-depends:     base == 4.* ,
+                     bytestring >= 0.9 && < 1.0 ,
+                     text >= 0.10 && < 1.3

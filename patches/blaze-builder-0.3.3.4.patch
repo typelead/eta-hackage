@@ -1,0 +1,56 @@
+From 8c20208a76b21ee757580d45bd213a551effa3ec Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 29 Jul 2018 21:42:18 +0530
+Subject: [PATCH] Patched
+
+---
+ Blaze/ByteString/Builder/Internal/Types.hs | 5 +++++
+ Blaze/ByteString/Builder/Internal/Write.hs | 9 +++++++++
+ 2 files changed, 14 insertions(+)
+
+diff --git a/Blaze/ByteString/Builder/Internal/Types.hs b/Blaze/ByteString/Builder/Internal/Types.hs
+index 2b91235..f5a421a 100644
+--- a/Blaze/ByteString/Builder/Internal/Types.hs
++++ b/Blaze/ByteString/Builder/Internal/Types.hs
+@@ -75,6 +75,11 @@ instance Monoid Builder where
+   {-# INLINE mappend #-}
+   mconcat = foldr mappend mempty
+   {-# INLINE mconcat #-}
++#if MIN_VERSION_base(4,10,0)
++instance Semigroup Builder where
++  (Builder b1) <> (Builder b2) = Builder $ b1 . b2
++#endif
++
+ 
+ newtype Put a = Put {
+     unPut :: forall r. (a -> BuildStep r) -> BuildStep r
+diff --git a/Blaze/ByteString/Builder/Internal/Write.hs b/Blaze/ByteString/Builder/Internal/Write.hs
+index dcc695f..288fac9 100644
+--- a/Blaze/ByteString/Builder/Internal/Write.hs
++++ b/Blaze/ByteString/Builder/Internal/Write.hs
+@@ -131,6 +131,10 @@ instance Monoid Poke where
+ 
+   {-# INLINE mconcat #-}
+   mconcat = foldr mappend mempty
++#if MIN_VERSION_base(4,10,0)
++instance Semigroup Poke where
++  (Poke po1) <> (Poke po2) = Poke $ po1 >=> po2
++#endif
+ 
+ instance Monoid Write where
+   {-# INLINE mempty #-}
+@@ -142,6 +146,11 @@ instance Monoid Write where
+ 
+   {-# INLINE mconcat #-}
+   mconcat = foldr mappend mempty
++#if MIN_VERSION_base(4,10,0)
++instance Semigroup Write where
++  (Write bound1 w1) <> (Write bound2 w2) =
++    Write (bound1 + bound2) (w1 <> w2)
++#endif
+ 
+ 
+ -- | @pokeN size io@ creates a write that denotes the writing of @size@ bytes
+-- 
+2.15.2 (Apple Git-101.1)
+

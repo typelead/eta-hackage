@@ -87,7 +87,7 @@ These packages are supported by `etlas`.
 - [bifunctors >= 5.4.1 && <= 5.5.3](https://hackage.haskell.org/package/bifunctors-5.4.1)
 - [bitarray-0.0.1.1](https://hackage.haskell.org/package/bitarray-0.0.1.1)
 - [Binpack-0.4.1](https://hackage.haskell.org/package/Binpack-0.4.1)
-- [blaze-builder-0.4.0.2](https://hackage.haskell.org/package/blaze-builder-0.4.0.2)
+- [blaze-builder >=0.3.3.4 && <= 0.4.0.2](https://hackage.haskell.org/package/blaze-builder)
 - [blaze-html >= 0.8.1.3 && <= 0.9.0.1](https://hackage.haskell.org/package/blaze-html)
 - [blaze-html-truncate-0.3.0.0](https://hackage.haskell.org/package/blaze-html-truncate-0.3.0.0)
 - [blaze-markup >= 0.7.1.1 && <= 0.8.0.0](https://hackage.haskell.org/package/blaze-markup)
