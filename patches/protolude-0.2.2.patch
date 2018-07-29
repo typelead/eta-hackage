@@ -1,0 +1,51 @@
+From 3a8594382ae41ecec5e6b805abd5a10fbad41e53 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 29 Jul 2018 21:05:41 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Protolude/Error.hs | 6 +-----
+ src/Protolude/Panic.hs | 3 ---
+ 2 files changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/src/Protolude/Error.hs b/src/Protolude/Error.hs
+index 194b5c1..9d494c2 100644
+--- a/src/Protolude/Error.hs
++++ b/src/Protolude/Error.hs
+@@ -7,10 +7,6 @@
+ {-# LANGUAGE TypeInType #-}
+ #endif
+ 
+-#if MIN_VERSION_base(4,9,0)
+-{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+-#endif
+-
+ module Protolude.Error
+ ( error
+ ) where
+@@ -18,7 +14,7 @@ module Protolude.Error
+ import GHC.Prim
+ import Data.Text (Text, unpack)
+ 
+-#if MIN_VERSION_base(4,9,0)
++#if MIN_VERSION_base(4,9,0) && !defined (ETA_VERSION)
+ -- Full stack trace.
+ 
+ import GHC.Types (RuntimeRep)
+diff --git a/src/Protolude/Panic.hs b/src/Protolude/Panic.hs
+index 6471d2c..029dcab 100644
+--- a/src/Protolude/Panic.hs
++++ b/src/Protolude/Panic.hs
+@@ -2,9 +2,6 @@
+ {-# LANGUAGE Trustworthy #-}
+ {-# LANGUAGE ConstraintKinds #-}
+ {-# LANGUAGE DeriveDataTypeable #-}
+-#if MIN_VERSION_base(4,9,0)
+-{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+-#endif
+ 
+ module Protolude.Panic (
+   FatalError(..),
+-- 
+2.15.2 (Apple Git-101.1)
+

@@ -320,7 +320,7 @@ These packages are supported by `etlas`.
 - [primitive >= 0.6.1.0 && <= 0.6.4.0](https://hackage.haskell.org/package/primitive-0.6.4.0)
 - [process-1.6.2.0](https://hackage.haskell.org/package/process-1.6.2.0)
 - [profunctors-5.2](https://hackage.haskell.org/package/profunctors-5.2)
-- [protolude-0.1.10](https://hackage.haskell.org/package/protolude-0.1.10)
+- [protolude >= 0.1.10 && <= 0.2.2](https://hackage.haskell.org/package/protolude)
 - [proto-lens-0.3.1.0](https://hackage.haskell.org/package/proto-lens)
 - [pure-zlib-0.6](https://hackage.haskell.org/package/pure-zlib-0.6)
 - [pureMD5-2.1.3](https://hackage.haskell.org/package/pureMD5-2.1.3)
