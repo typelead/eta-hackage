@@ -1,0 +1,132 @@
+version: 0.5.3
+
+name:
+  hedgehog
+author:
+  Jacob Stanley
+maintainer:
+  Jacob Stanley <jacob@stanley.io>
+homepage:
+  https://hedgehog.qa
+bug-reports:
+  https://github.com/hedgehogqa/haskell-hedgehog/issues
+synopsis:
+  Hedgehog will eat all your bugs.
+description:
+  Hedgehog is a modern property-based testing system, in the spirit of
+  QuickCheck. Hedgehog uses integrated shrinking, so shrinks obey the
+  invariants of generated values by construction.
+  .
+  To get started quickly, see the examples:
+  <https://github.com/hedgehogqa/haskell-hedgehog/tree/master/hedgehog-example>
+category:
+  Testing
+license:
+  BSD3
+license-file:
+  LICENSE
+cabal-version:
+  >= 1.8
+build-type:
+  Simple
+tested-with:
+    GHC == 7.10.2
+  , GHC == 7.10.3
+  , GHC == 8.0.1
+  , GHC == 8.0.2
+  , GHC == 8.2.1
+  , GHC == 8.2.2
+  , GHC == 8.4.1
+extra-source-files:
+  README.md
+  CHANGELOG.md
+
+source-repository head
+  type: git
+  location: git://github.com/hedgehogqa/haskell-hedgehog.git
+
+library
+  build-depends:
+      base                            >= 3          && < 5
+    , ansi-terminal                   >= 0.6        && < 0.9
+    , async                           >= 2.0        && < 2.3
+    , bytestring                      >= 0.10       && < 0.11
+    , concurrent-output               >= 1.7        && < 1.11
+    , containers                      >= 0.4        && < 0.6
+    , directory                       >= 1.2        && < 1.4
+    , exceptions                      >= 0.7        && < 0.11
+    , lifted-async                    >= 0.7        && < 0.11
+    , mmorph                          >= 1.0        && < 1.2
+    , monad-control                   >= 1.0        && < 1.1
+    , mtl                             >= 2.1        && < 2.3
+    , pretty-show                     >= 1.6        && < 1.7
+    , primitive                       >= 0.6        && < 0.7
+    , random                          >= 1.1        && < 1.2
+    , resourcet                       >= 1.1        && < 1.3
+    , semigroups                      >= 0.16       && < 0.19
+    , stm                             >= 2.4        && < 2.5
+    , template-haskell                >= 2.10       && < 2.14
+    , text                            >= 1.1        && < 1.3
+    , th-lift                         >= 0.7        && < 0.8
+    , time                            >= 1.4        && < 1.9
+    , transformers                    >= 0.4        && < 0.6
+    , transformers-base               >= 0.4        && < 0.5
+    , wl-pprint-annotated             >= 0.0        && < 0.2
+
+  ghc-options:
+    -Wall
+
+  hs-source-dirs:
+    src
+
+  exposed-modules:
+    Hedgehog
+    Hedgehog.Gen
+    Hedgehog.Range
+
+    Hedgehog.Internal.Config
+    Hedgehog.Internal.Discovery
+    Hedgehog.Internal.Distributive
+    Hedgehog.Internal.Exception
+    Hedgehog.Internal.Gen
+    Hedgehog.Internal.HTraversable
+    Hedgehog.Internal.Opaque
+    Hedgehog.Internal.Property
+    Hedgehog.Internal.Queue
+    Hedgehog.Internal.Range
+    Hedgehog.Internal.Region
+    Hedgehog.Internal.Report
+    Hedgehog.Internal.Runner
+    Hedgehog.Internal.Seed
+    Hedgehog.Internal.Show
+    Hedgehog.Internal.Shrink
+    Hedgehog.Internal.Source
+    Hedgehog.Internal.State
+    Hedgehog.Internal.TH
+    Hedgehog.Internal.Tree
+    Hedgehog.Internal.Tripping
+
+test-suite test
+  type:
+    exitcode-stdio-1.0
+
+  main-is:
+    test.hs
+
+  ghc-options:
+    -Wall -threaded -O2
+
+  hs-source-dirs:
+    test
+
+  other-modules:
+    Test.Hedgehog.Text
+
+  build-depends:
+      hedgehog
+    , base                            >= 3          && < 5
+    , containers                      >= 0.4        && < 0.6
+    , pretty-show                     >= 1.6        && < 1.7
+    , semigroups                      >= 0.16       && < 0.19
+    , text                            >= 1.1        && < 1.3
+    , transformers                    >= 0.3        && < 0.6
