@@ -184,6 +184,7 @@ These packages are supported by `etlas`.
 - [graph-matchings-0.1.0.0](https://hackage.haskell.org/package/graph-matchings-0.1.0.0)
 - [graph-wrapper-0.2.5.1](https://hackage.haskell.org/package/graph-wrapper-0.2.5.1)
 - [groups-0.4.0.0](https://hackage.haskell.org/package/groups-0.4.0.0)
+- [half-0.3](https://hackage.haskell.org/package/half-0.3)
 - [happy-1.19.9](https://hackage.haskell.org/package/happy-1.19.9)
 - [haskeline-0.7.4.3](https://hackage.haskell.org/package/haskeline-0.7.4.3)
 - [hashable >= 1.2.4.0 && <= 1.2.7.0](https://hackage.haskell.org/package/hashable)

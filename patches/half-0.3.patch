@@ -1,0 +1,118 @@
+From eb96b2ce33259d53a6376c63032bd5c70a5d8072 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 29 Jul 2018 08:14:25 +0530
+Subject: [PATCH] Patched
+
+---
+ half.cabal          |  2 +-
+ java/Utils.java     | 55 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/Numeric/Half.hs |  8 ++------
+ 3 files changed, 58 insertions(+), 7 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/half.cabal b/half.cabal
+index 09c10ac..b7551f0 100644
+--- a/half.cabal
++++ b/half.cabal
+@@ -26,7 +26,7 @@ source-repository head
+ 
+ library
+   hs-source-dirs: src
+-  c-sources: cbits/half.c
++  java-sources: java/Utils.java
+   build-depends: base >= 4.3 && < 5
+                , template-haskell
+   if impl(ghc >= 7.8)
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..b9d72c2
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,55 @@
++package eta.half;
++
++public class Utils {
++  public static int floatToHalf (float f) {
++    int i = Float.floatToRawIntBits(f);
++    int s = (i >>> 16) & 0x8000;
++    int e = ((i >>> 23) & 0xff) - 112;
++    int m = i & 0x7fffff;
++    if (e <= 0) {
++      if (e < -10) return s & 0xffff;
++      m |= 0x800000;
++      int t = 14 - e;
++      int a = (1 << (t - 1)) - 1;
++      int b = (m >> t) & 1;
++      return (s | ((m + a + b) >> t)) & 0xffff;
++    }
++    if (e == 143) {
++      if (m == 0) return (s | 0x7c00) & 0xffff;
++      m >>= 13;
++      return (s | 0x7c00 | m | ((m == 0)? 1: 0)) & 0xffff;
++    }
++    m = m + 0xfff + ((m >> 13) & 1);
++    if ((m & 0x800000) != 0) {
++       m =  0;
++       e += 1;
++    }
++    if (e > 30) return (s | 0x7c00) & 0xffff;
++
++    return (s | (e << 10) | (m >> 13)) & 0xffff;
++  }
++
++  public static int halfToFloatRep(int c) {
++    int s = (c >>> 15) & 0x001;
++    int e = (c >>> 10) & 0x01f;
++    int m = c & 0x3ff;
++    if (e == 0) {
++      if (m == 0) return s << 31;
++      while ((m & 0x400) == 0) {
++        m <<= 1;
++        e -=  1;
++      }
++      e += 1;
++      m &= ~0x400;
++    } else if (e == 31) {
++      return (s << 31) | 0x7f800000 | (m << 13);
++    }
++    e += 112;
++    m <<= 13;
++    return (s << 31) | (e << 23) | m;
++  }
++
++  public static float halfToFloat (int c) {
++    return Float.intBitsToFloat(halfToFloatRep(c));
++  }
++}
+diff --git a/src/Numeric/Half.hs b/src/Numeric/Half.hs
+index ad04960..d64d920 100644
+--- a/src/Numeric/Half.hs
++++ b/src/Numeric/Half.hs
+@@ -61,17 +61,14 @@ import Language.Haskell.TH.Syntax
+ import Text.Read hiding (lift)
+ 
+ -- | Convert a 'Float' to a 'Half' with proper rounding, while preserving NaN and dealing appropriately with infinity
+-foreign import ccall unsafe "hs_floatToHalf" toHalf :: Float -> Half
++foreign import java unsafe "@static eta.half.Utils.floatToHalf" toHalf :: Float -> Half
+ -- {-# RULES "toHalf"  realToFrac = toHalf #-}
+ 
+ -- | Convert a 'Half' to a 'Float' while preserving NaN
+-foreign import ccall unsafe "hs_halfToFloat" fromHalf :: Half -> Float
++foreign import java unsafe "@static eta.half.Utils.halfToFloat" fromHalf :: Half -> Float
+ -- {-# RULES "fromHalf" realToFrac = fromHalf #-}
+ 
+ newtype
+-#if __GLASGOW_HASKELL__ >= 706
+-  {-# CTYPE "unsigned short" #-}
+-#endif
+   Half = Half { getHalf :: CUShort } deriving (Generic, Typeable)
+ 
+ #if __GLASGOW_HASKELL__ >= 708
+@@ -250,4 +247,3 @@ ieee754_f16_decode (Half (CUShort i)) =
+   if high1 .&. complement _HMSBIT == 0
+     then (0,0)
+     else (high4, exp3)
+-
+-- 
+2.15.2 (Apple Git-101.1)
+

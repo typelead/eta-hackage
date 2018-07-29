@@ -1,0 +1,55 @@
+name:          half
+category:      Numeric
+version:       0.3
+license:       BSD3
+cabal-version: >= 1.8
+license-file:  LICENSE
+author:        Edward A. Kmett
+maintainer:    Edward A. Kmett <ekmett@gmail.com>
+stability:     provisional
+homepage:      http://github.com/ekmett/half
+bug-reports:   http://github.com/ekmett/half/issues
+copyright:     Copyright (C) 2014 Edward A. Kmett
+build-type:    Simple
+synopsis:      Half-precision floating-point
+description:   Half-precision floating-point.
+
+extra-source-files:
+  .travis.yml
+  .gitignore
+  README.markdown
+  CHANGELOG.markdown
+
+source-repository head
+  type: git
+  location: git://github.com/ekmett/half.git
+
+library
+  hs-source-dirs: src
+  java-sources: java/Utils.java
+  build-depends: base >= 4.3 && < 5
+               , template-haskell
+  if impl(ghc >= 7.8)
+    build-depends: deepseq >= 1.4 && < 1.5
+  if impl(ghc < 7.6)
+    build-depends: ghc-prim
+  ghc-options: -Wall -fwarn-tabs -O2
+
+  if impl(ghc >= 8)
+    ghc-options: -Wno-missing-pattern-synonym-signatures
+
+  exposed-modules: Numeric.Half
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs: test
+  ghc-options: -Wall
+  if impl(ghc >= 7.8)
+    build-depends:
+        base >= 4.3 && < 5
+      , half
+      , hspec >= 2.4
+      , QuickCheck >= 2.9
+  else
+     buildable: False
