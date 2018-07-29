@@ -1,0 +1,29 @@
+From b2aeb6cfd6300b51d506b460516f6caa66b66b04 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 29 Jul 2018 22:52:31 +0530
+Subject: [PATCH] Patched
+
+---
+ Language/GLSL/Pretty.hs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Language/GLSL/Pretty.hs b/Language/GLSL/Pretty.hs
+index b33555a..8952b76 100644
+--- a/Language/GLSL/Pretty.hs
++++ b/Language/GLSL/Pretty.hs
+@@ -3,6 +3,7 @@ module Language.GLSL.Pretty where
+ 
+ import Text.PrettyPrint.HughesPJClass
+ import Text.Printf
++import Prelude hiding ((<>))
+ 
+ import Language.GLSL.Syntax
+ 
+@@ -342,4 +343,3 @@ instance Pretty Condition where
+ instance Pretty CaseLabel where
+   pPrint  (Case e) = text "case" <+> pPrint e <> colon
+   pPrint Default = text "default:"
+-
+-- 
+2.15.2 (Apple Git-101.1)
+
