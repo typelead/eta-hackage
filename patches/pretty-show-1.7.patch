@@ -1,0 +1,30 @@
+From bfff893824865803349fb5386080e0215b1fbc00 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 29 Jul 2018 15:31:47 +0530
+Subject: [PATCH] Patched
+
+---
+ Text/Show/Pretty.hs | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/Text/Show/Pretty.hs b/Text/Show/Pretty.hs
+index c212c4d..109c19d 100644
+--- a/Text/Show/Pretty.hs
++++ b/Text/Show/Pretty.hs
+@@ -12,7 +12,6 @@
+ --------------------------------------------------------------------------------
+ 
+ {-# LANGUAGE CPP #-}
+-{-# LANGUAGE Safe #-}
+ module Text.Show.Pretty
+   ( -- * Generic representation of values
+     Value(..), Name
+@@ -182,5 +181,3 @@ blockWith :: ([Doc] -> Doc) -> Char -> Char -> [Doc] -> Doc
+ blockWith _ a b []      = char a <> char b
+ blockWith f a b (d:ds)  = f $
+     (char a <+> d) : [ char ',' <+> x | x <- ds ] ++ [ char b ]
+-
+-
+-- 
+2.15.2 (Apple Git-101.1)
+
