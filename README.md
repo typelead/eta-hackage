@@ -114,6 +114,7 @@ These packages are supported by `etlas`.
 - [comonad-5](https://hackage.haskell.org/package/comonad-5)
 - [conceit-0.4.0.0](https://hackage.haskell.org/package/conceit-0.4.0.0)
 - [concurrent-machines-0.2.3.3](https://hackage.haskell.org/package/concurrent-machines-0.2.3.3)
+- [concurrent-output-1.10.6](https://hackage.haskell.org/package/concurrent-output-1.10.6)
 - [conduit >= 1.2.8 && <= 1.3.0.3](https://hackage.haskell.org/package/conduit)
 - [conduit-combinators-1.1.2](https://hackage.haskell.org/package/conduit-combinators-1.1.2)
 - [conduit-extra-1.2.1](https://hackage.haskell.org/package/conduit-extra-1.2.1)

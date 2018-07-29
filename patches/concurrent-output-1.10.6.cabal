@@ -1,0 +1,55 @@
+Name: concurrent-output
+Version: 1.10.6
+Cabal-Version: >= 1.8
+License: BSD2
+Maintainer: Joey Hess <id@joeyh.name>
+Author: Joey Hess, Joachim Breitner
+Stability: Stable
+Copyright: 2015-2017 Joey Hess, 2009 Joachim Breitner
+License-File: LICENSE
+Build-Type: Simple
+Category: User Interfaces
+Synopsis: Ungarble output from several threads or commands
+Description:
+ Lets multiple threads and external processes concurrently output to the
+ console, without it getting all garbled up.
+ .
+ Built on top of that is a way of defining multiple output regions,
+ which are automatically laid out on the screen and can be individually
+ updated by concurrent threads. Can be used for progress displays etc.
+ .
+ <<https://joeyh.name/code/concurrent-output/demo2.gif>>
+Extra-Source-Files:
+  CHANGELOG
+  TODO
+  demo.hs
+  demo2.hs
+  demo3.hs
+  aptdemo.hs
+  stmdemo.hs
+
+Library
+  GHC-Options: -Wall -fno-warn-tabs -O2
+  Build-Depends: base (>= 4.6), base < 5
+    , text (>= 0.11.0 && < 1.3.0)
+    , async (>= 2.0 && < 2.3)
+    , stm (>= 2.0 && < 2.5)
+    , process (>= 1.6.0 && < 1.7.0)
+    , directory (>= 1.2.0 && < 1.4.0)
+    , transformers (>= 0.3.0 && < 0.6.0)
+    , exceptions (>= 0.6.0 && < 0.11.0)
+    , ansi-terminal (>= 0.6.0 && < 0.9.0)
+    , terminal-size (>= 0.3.0 && < 0.4.0)
+  Exposed-Modules:
+    System.Console.Concurrent
+    System.Console.Concurrent.Internal
+    System.Console.Regions
+    System.Process.Concurrent
+  Other-Modules:
+    Utility.Monad
+    Utility.Data
+    Utility.Exception
+
+source-repository head
+  type: git
+  location: git://git.joeyh.name/concurrent-output.git
