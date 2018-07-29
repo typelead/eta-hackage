@@ -1,0 +1,38 @@
+From 218aa6df36f9eb3ee2aa1235419e29233fa30e85 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 29 Jul 2018 06:35:05 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Network/Transport/Internal.hs | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/src/Network/Transport/Internal.hs b/src/Network/Transport/Internal.hs
+index 559b924..45abdac 100644
+--- a/src/Network/Transport/Internal.hs
++++ b/src/Network/Transport/Internal.hs
+@@ -66,11 +66,17 @@ foreign import stdcall unsafe "ntohs" ntohs :: Word16 -> Word16
+ 
+ #else
+ 
+-foreign import ccall unsafe "htonl" htonl :: Word32 -> Word32
+-foreign import ccall unsafe "ntohl" ntohl :: Word32 -> Word32
+-foreign import ccall unsafe "htons" htons :: Word16 -> Word16
+-foreign import ccall unsafe "ntohs" ntohs :: Word16 -> Word16
++htonl :: Word32 -> Word32
++htonl = id
+ 
++ntohl :: Word32 -> Word32
++ntohl = id
++
++htons :: Word16 -> Word16
++htons = id
++
++ntohs :: Word16 -> Word16
++ntohs = id
+ #endif
+ 
+ -- | Serialize 32-bit to network byte order
+-- 
+2.15.2 (Apple Git-101.1)
+
