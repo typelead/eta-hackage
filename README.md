@@ -314,7 +314,7 @@ These packages are supported by `etlas`.
 - [PSQueue-1.1](https://hackage.haskell.org/package/PSQueue-1.1)
 - [prelude-extras-0.4.0.3](https://hackage.haskell.org/package/prelude-extras-0.4.0.3)
 - [pretty >= 1.1.3.4 && <= 1.1.3.6](https://hackage.haskell.org/package/pretty-1.1.3.4)
-- [pretty-show-1.7](https://hackage.haskell.org/package/pretty-show-1.7)
+- [pretty-show >= 1.6.16 && <= 1.7](https://hackage.haskell.org/package/pretty-show)
 - [prettyclass-1.0.0.0](https://hackage.haskell.org/package/prettyclass-1.0.0.0)
 - [primes-0.2.1.0](https://hackage.haskell.org/package/primes-0.2.1.0)
 - [primitive >= 0.6.1.0 && <= 0.6.4.0](https://hackage.haskell.org/package/primitive-0.6.4.0)
