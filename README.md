@@ -211,7 +211,7 @@ These packages are supported by `etlas`.
 - [http-conduit-2.3.2](https://hackage.haskell.org/package/http-conduit-2.3.2)
 - [http-date-0.0.6.1](https://hackage.haskell.org/package/http-date-0.0.6.1)
 - [http-media-0.6.4](https://hackage.haskell.org/package/http-media-0.6.4)
-- [http-types-0.9.1](https://hackage.haskell.org/package/http-types-0.9.1)
+- [http-types >= 0.9.1 && <= 0.12.1](https://hackage.haskell.org/package/http-types)
 - [HTTP-4000.3.8](https://hackage.haskell.org/package/HTTP-4000.3.8)
 - [HoleyMonoid-0.1.1](https://hackage.haskell.org/package/HoleyMonoid-0.1.1)
 - [HDBC-2.4.0.1](https://hackage.haskell.org/package/HDBC-2.4.0.1)
