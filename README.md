@@ -193,6 +193,7 @@ These packages are supported by `etlas`.
 - [haxl >= 2.0.0.0 && <= 2.0.1.0](http://hackage.haskell.org/package/haxl)
 - [heap-1.0.3](https://hackage.haskell.org/package/heap-1.0.3)
 - [heaps-0.3.3](https://hackage.haskell.org/package/heaps-0.3.3)
+- [hedgehog-0.6](https://hackage.haskell.org/package/hedgehog-0.6)
 - [heist-1.0.1.1](https://hackage.haskell.org/package/heist-1.0.1.1)
 - [hetero-map-0.21](https://hackage.haskell.org/package/hetero-map-0.21)
 - [hex-0.1.2](https://hackage.haskell.org/package/hex-0.1.2)

@@ -1,0 +1,68 @@
+From 2554bca7c7ae3d86a0ce241c67a16b5de641ed66 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 29 Jul 2018 16:12:55 +0530
+Subject: [PATCH] Patched
+
+---
+ hedgehog.cabal                    |  4 ----
+ src/Hedgehog/Internal/Config.hs   | 10 +---------
+ src/Hedgehog/Internal/Tripping.hs |  1 +
+ 3 files changed, 2 insertions(+), 13 deletions(-)
+
+diff --git a/hedgehog.cabal b/hedgehog.cabal
+index 2bb2449..5bba118 100644
+--- a/hedgehog.cabal
++++ b/hedgehog.cabal
+@@ -73,10 +73,6 @@ library
+     , transformers-base               >= 0.4        && < 0.5
+     , wl-pprint-annotated             >= 0.0        && < 0.2
+ 
+-  if !os(windows)
+-    build-depends:
+-      unix                            >= 2.6        && < 2.8
+-
+   ghc-options:
+     -Wall
+ 
+diff --git a/src/Hedgehog/Internal/Config.hs b/src/Hedgehog/Internal/Config.hs
+index 91b661c..c8e6fdd 100644
+--- a/src/Hedgehog/Internal/Config.hs
++++ b/src/Hedgehog/Internal/Config.hs
+@@ -31,10 +31,6 @@ import           System.Console.ANSI (hSupportsANSI)
+ import           System.Environment (lookupEnv)
+ import           System.IO (stdout)
+ 
+-#if !mingw32_HOST_OS
+-import           System.Posix.User (getEffectiveUserName)
+-#endif
+-
+ import           Text.Read (readMaybe)
+ 
+ 
+@@ -64,12 +60,8 @@ newtype WorkerCount =
+ 
+ detectMark :: MonadIO m => m Bool
+ detectMark = do
+-#if mingw32_HOST_OS
+    pure False
+-#else
+-   user <- liftIO getEffectiveUserName
+-   pure $ user == "mth"
+-#endif
++
+ 
+ lookupBool :: MonadIO m => String -> m (Maybe Bool)
+ lookupBool key =
+diff --git a/src/Hedgehog/Internal/Tripping.hs b/src/Hedgehog/Internal/Tripping.hs
+index ee0a4a3..7577f9b 100644
+--- a/src/Hedgehog/Internal/Tripping.hs
++++ b/src/Hedgehog/Internal/Tripping.hs
+@@ -1,4 +1,5 @@
+ {-# OPTIONS_HADDOCK not-home #-}
++{-# LANGUAGE FlexibleContexts #-}
+ module Hedgehog.Internal.Tripping (
+     tripping
+   ) where
+-- 
+2.15.2 (Apple Git-101.1)
+
