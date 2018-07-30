@@ -1,6 +1,6 @@
-From d02a37431559810a8c1bbd8182805a1490e76c98 Mon Sep 17 00:00:00 2001
+From 4337738aa3e7b7a328d18ba723695c460e7a32c5 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 30 Jul 2018 09:28:05 +0530
+Date: Mon, 30 Jul 2018 11:06:56 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -8,12 +8,12 @@ Subject: [PATCH] Patched
  src/CharSet.hs               |  5 ++-
  src/DFAMin.hs                |  9 +++--
  src/Data/Ranged/RangedSet.hs |  8 +++-
- src/Main.hs                  | 60 ++++++++++++++++++-----------
+ src/Main.hs                  | 62 +++++++++++++++++++-----------
  src/NFA.hs                   | 14 ++++++-
  src/ParseMonad.hs            | 11 +++++-
  src/Parser.hs                | 19 ++++++++--
  src/Scan.hs                  | 89 ++++++++++++++++++++------------------------
- 9 files changed, 134 insertions(+), 83 deletions(-)
+ 9 files changed, 136 insertions(+), 83 deletions(-)
 
 diff --git a/alex.cabal b/alex.cabal
 index a60605c..fa85499 100644
@@ -113,7 +113,7 @@ index 0212c14..501eeb8 100644
 +  where forceList (y:ys) = y `seq` forceList ys
 +        forceList _      = ()
 diff --git a/src/Main.hs b/src/Main.hs
-index e643d02..63589b0 100644
+index e643d02..c25f601 100644
 --- a/src/Main.hs
 +++ b/src/Main.hs
 @@ -1,4 +1,4 @@
@@ -200,12 +200,14 @@ index e643d02..63589b0 100644
     hPutStr out_h tmplt
  
     hClose out_h
-@@ -354,11 +376,13 @@ importsToInject _ cli = always_imports ++ debug_imports ++ glaexts_import
+@@ -354,11 +376,15 @@ importsToInject _ cli = always_imports ++ debug_imports ++ glaexts_import
  -- WORDS_BIGENDIAN (see GenericTemplate.hs).
  
  always_imports :: String
 -always_imports = "#if __GLASGOW_HASKELL__ >= 603\n" ++
-+always_imports = "#ifndef ETA_VERSION\n" ++
++always_imports = "#ifdef ETA_VERSION\n" ++
++                 "#define WORDS_BIGENDIAN\n" ++
++                 "#elif ETA_VERSION\n" ++
 +                 "#if __GLASGOW_HASKELL__ >= 603\n" ++
                   "#include \"ghcconfig.h\"\n" ++
                   "#elif defined(__GLASGOW_HASKELL__)\n" ++
@@ -215,7 +217,7 @@ index e643d02..63589b0 100644
                   "#if __GLASGOW_HASKELL__ >= 503\n" ++
                   "import Data.Array\n" ++
                   "import Data.Array.Base (unsafeAt)\n" ++
-@@ -383,15 +407,9 @@ import_debug   = "#if __GLASGOW_HASKELL__ >= 503\n" ++
+@@ -383,15 +409,9 @@ import_debug   = "#if __GLASGOW_HASKELL__ >= 503\n" ++
                   "import IOExts\n" ++
                   "#endif\n"
  
@@ -234,7 +236,7 @@ index e643d02..63589b0 100644
    where
          maybe_ghc = case target of
                        GhcTarget -> "-ghc"
-@@ -407,11 +425,11 @@ templateFile dir target usespreds cli
+@@ -407,11 +427,11 @@ templateFile dir target usespreds cli
                            && null maybe_debug -> "-nopred"
              _                                 -> ""
  
