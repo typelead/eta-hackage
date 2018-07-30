@@ -1,0 +1,32 @@
+From 9882287fc44aa8e075ae13271fc4c3e0222bd1e8 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 31 Jul 2018 01:39:20 +0530
+Subject: [PATCH] Patched
+
+---
+ dist/build/Language/JavaScript/Parser/Lexer.hs | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/dist/build/Language/JavaScript/Parser/Lexer.hs b/dist/build/Language/JavaScript/Parser/Lexer.hs
+index 194890c..6b534fc 100644
+--- a/dist/build/Language/JavaScript/Parser/Lexer.hs
++++ b/dist/build/Language/JavaScript/Parser/Lexer.hs
+@@ -19,11 +19,15 @@ import Language.JavaScript.Parser.Token
+ import qualified Data.Map as Map
+ 
+ 
++#ifdef ETA_VERSION
++#define WORDS_BIGENDIAN
++#else
+ #if __GLASGOW_HASKELL__ >= 603
+ #include "ghcconfig.h"
+ #elif defined(__GLASGOW_HASKELL__)
+ #include "config.h"
+ #endif
++#endif
+ #if __GLASGOW_HASKELL__ >= 503
+ import Data.Array
+ import Data.Array.Base (unsafeAt)
+-- 
+2.7.4 (Apple Git-66)
+
