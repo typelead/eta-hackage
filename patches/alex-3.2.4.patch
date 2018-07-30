@@ -1,14 +1,19 @@
-From 55da9a54b729aeab829e9bbf61aa538e165253e1 Mon Sep 17 00:00:00 2001
-From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Tue, 17 Jul 2018 16:38:48 +0530
+From d02a37431559810a8c1bbd8182805a1490e76c98 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 30 Jul 2018 09:28:05 +0530
 Subject: [PATCH] Patched
 
 ---
  alex.cabal                   |  2 +-
- src/Data/Ranged/RangedSet.hs |  2 +-
- src/Main.hs                  | 56 ++++++++++++++++++-----------
- src/Scan.hs                  | 85 +++++++++++++++++++-------------------------
- 4 files changed, 75 insertions(+), 70 deletions(-)
+ src/CharSet.hs               |  5 ++-
+ src/DFAMin.hs                |  9 +++--
+ src/Data/Ranged/RangedSet.hs |  8 +++-
+ src/Main.hs                  | 60 ++++++++++++++++++-----------
+ src/NFA.hs                   | 14 ++++++-
+ src/ParseMonad.hs            | 11 +++++-
+ src/Parser.hs                | 19 ++++++++--
+ src/Scan.hs                  | 89 ++++++++++++++++++++------------------------
+ 9 files changed, 134 insertions(+), 83 deletions(-)
 
 diff --git a/alex.cabal b/alex.cabal
 index a60605c..fa85499 100644
@@ -23,11 +28,73 @@ index a60605c..fa85499 100644
  
    extensions: CPP
    ghc-options: -Wall -rtsopts
+diff --git a/src/CharSet.hs b/src/CharSet.hs
+index 49733e2..38dd604 100644
+--- a/src/CharSet.hs
++++ b/src/CharSet.hs
+@@ -33,7 +33,8 @@ module CharSet (
+   setUnions,
+   byteSetToArray,
+   byteSetElems,
+-  byteSetElem
++  byteSetElem,
++  forceCharSet
+   ) where
+ 
+ import Data.Array
+@@ -165,3 +166,5 @@ charSetQuote s = "(\\c -> " ++ foldr (\x y -> x ++ " || " ++ y) "False" (map quo
+           quoteH (BoundaryAboveAll) = "True"
+           quoteH (BoundaryBelowAll) = "False"
+ 
++forceCharSet :: CharSet -> CharSet
++forceCharSet = forceRSet
+diff --git a/src/DFAMin.hs b/src/DFAMin.hs
+index e75c593..79bf850 100644
+--- a/src/DFAMin.hs
++++ b/src/DFAMin.hs
+@@ -10,6 +10,7 @@ import Data.IntSet (IntSet)
+ import qualified Data.IntSet as IS
+ import Data.IntMap (IntMap)
+ import qualified Data.IntMap as IM
++import qualified Data.IntMap.Strict as IMS
+ import Data.List as List
+ 
+ 
+@@ -102,8 +103,8 @@ groupEquivStates DFA { dfa_states = statemap }
+     --   a map from state S to the list of states that transition to
+     --   S on token T
+     -- This is a cache of the information needed to compute x below
+-    bigmap :: IntMap (IntMap [SNum])
+-    bigmap = IM.fromListWith (IM.unionWith (++))
++    bigmap :: IMS.IntMap (IntMap [SNum])
++    bigmap = IMS.fromListWith (IM.unionWith (++))
+                 [ (i, IM.singleton to [from])
+                 | (from, state) <- Map.toList statemap,
+                   (i,to) <- IM.toList (state_out state) ]
+@@ -113,8 +114,8 @@ groupEquivStates DFA { dfa_states = statemap }
+     incoming :: Int -> IntSet -> IntSet
+     incoming i a = IS.fromList (concat ss)
+        where
+-         map1 = IM.findWithDefault IM.empty i bigmap
+-         ss = [ IM.findWithDefault [] s map1
++         map1 = IMS.findWithDefault IMS.empty i bigmap
++         ss = [ IMS.findWithDefault [] s map1
+               | s <- IS.toList a ]
+ 
+     -- The outer loop: recurse on each set in Q
 diff --git a/src/Data/Ranged/RangedSet.hs b/src/Data/Ranged/RangedSet.hs
-index 0212c14..972adb2 100644
+index 0212c14..501eeb8 100644
 --- a/src/Data/Ranged/RangedSet.hs
 +++ b/src/Data/Ranged/RangedSet.hs
-@@ -44,7 +44,7 @@ infixl 5 -<=-, -<-, -?-
+@@ -23,6 +23,7 @@ module Data.Ranged.RangedSet (
+    -- ** Useful Sets
+    rSetEmpty,
+    rSetFull,
++   forceRSet
+ ) where
+ 
+ import Data.Ranged.Boundaries
+@@ -44,7 +45,7 @@ infixl 5 -<=-, -<-, -?-
  newtype DiscreteOrdered v => RSet v = RSet {rSetRanges :: [Range v]}
     deriving (Eq, Show, Ord)
  
@@ -36,8 +103,17 @@ index 0212c14..972adb2 100644
  instance DiscreteOrdered a => Semigroup (RSet a) where
      (<>) = rSetUnion
  
+@@ -224,3 +225,8 @@ rSetUnfold bound upperFunc succFunc = RSet $ normalise $ ranges1 bound
+          : case succFunc b of
+             Just b2 -> ranges1 b2
+             Nothing -> []
++
++forceRSet :: DiscreteOrdered a => RSet a -> RSet a
++forceRSet rset@(RSet xs) = forceList xs `seq` rset
++  where forceList (y:ys) = y `seq` forceList ys
++        forceList _      = ()
 diff --git a/src/Main.hs b/src/Main.hs
-index e643d02..985305a 100644
+index e643d02..63589b0 100644
 --- a/src/Main.hs
 +++ b/src/Main.hs
 @@ -1,4 +1,4 @@
@@ -124,7 +200,22 @@ index e643d02..985305a 100644
     hPutStr out_h tmplt
  
     hClose out_h
-@@ -383,15 +405,9 @@ import_debug   = "#if __GLASGOW_HASKELL__ >= 503\n" ++
+@@ -354,11 +376,13 @@ importsToInject _ cli = always_imports ++ debug_imports ++ glaexts_import
+ -- WORDS_BIGENDIAN (see GenericTemplate.hs).
+ 
+ always_imports :: String
+-always_imports = "#if __GLASGOW_HASKELL__ >= 603\n" ++
++always_imports = "#ifndef ETA_VERSION\n" ++
++                 "#if __GLASGOW_HASKELL__ >= 603\n" ++
+                  "#include \"ghcconfig.h\"\n" ++
+                  "#elif defined(__GLASGOW_HASKELL__)\n" ++
+                  "#include \"config.h\"\n" ++
+                  "#endif\n" ++
++                 "#endif\n" ++
+                  "#if __GLASGOW_HASKELL__ >= 503\n" ++
+                  "import Data.Array\n" ++
+                  "import Data.Array.Base (unsafeAt)\n" ++
+@@ -383,15 +407,9 @@ import_debug   = "#if __GLASGOW_HASKELL__ >= 503\n" ++
                   "import IOExts\n" ++
                   "#endif\n"
  
@@ -143,7 +234,7 @@ index e643d02..985305a 100644
    where
          maybe_ghc = case target of
                        GhcTarget -> "-ghc"
-@@ -407,11 +423,11 @@ templateFile dir target usespreds cli
+@@ -407,11 +425,11 @@ templateFile dir target usespreds cli
                            && null maybe_debug -> "-nopred"
              _                                 -> ""
  
@@ -158,11 +249,143 @@ index e643d02..985305a 100644
  
  infoStart :: FilePath -> FilePath -> IO (String -> IO (), IO ())
  infoStart x_file info_file = do
+diff --git a/src/NFA.hs b/src/NFA.hs
+index 5193c9b..121e038 100644
+--- a/src/NFA.hs
++++ b/src/NFA.hs
+@@ -22,6 +22,7 @@ import DFS ( t_close, out )
+ import Map ( Map )
+ import qualified Map hiding ( Map )
+ import Util ( str, space )
++import Data.Function
+ 
+ #if __GLASGOW_HASKELL__ < 710
+ import Control.Applicative ( Applicative(..) )
+@@ -179,9 +180,18 @@ instance Monad NFAM where
+                                  (s', n', a) -> unN (k a) s' n' e
+ 
+ runNFA :: Encoding -> NFAM () -> NFA
+-runNFA e m = case unN m 0 Map.empty e of
++runNFA e m =
++  case
++#ifdef ETA_VERSION
++    trampoline
++#endif
++    (unN m 0 Map.empty e) of
+                 (s, nfa_map, ()) -> -- trace ("runNfa.." ++ show (Map.toAscList nfa_map)) $ 
+-                                    e_close (array (0,s-1) (Map.toAscList nfa_map))
++                                    e_close (array (0,s-1) (
++#ifdef ETA_VERSION
++                                      trampoline
++#endif
++                                      (Map.toAscList nfa_map)))
+ 
+ e_close:: Array Int NState -> NFA
+ e_close ar = listArray bds
+diff --git a/src/ParseMonad.hs b/src/ParseMonad.hs
+index 5f85cc6..7bdd711 100644
+--- a/src/ParseMonad.hs
++++ b/src/ParseMonad.hs
+@@ -11,7 +11,10 @@ module ParseMonad (
+         AlexPosn(..), alexStartPos,
+  
+         P, runP, StartCode, failP, lookupSMac, lookupRMac, newSMac, newRMac,
+-        setStartCode, getStartCode, getInput, setInput,
++        setStartCode, getStartCode, getInput, setInput
++#ifdef ETA_VERSION
++ , trampolineP
++#endif
+  ) where
+ 
+ import AbsSyn hiding ( StartCode )
+@@ -19,6 +22,7 @@ import CharSet ( CharSet )
+ import Map ( Map )
+ import qualified Map hiding ( Map )
+ import UTF8
++import Data.Function
+ 
+ #if __GLASGOW_HASKELL__ < 710
+ import Control.Applicative ( Applicative(..) )
+@@ -152,3 +156,8 @@ getInput = P $ \s -> Right (s, input s)
+ 
+ setInput :: AlexInput -> P ()
+ setInput inp = P $ \s -> Right (s{ input = inp }, ())
++
++#ifdef ETA_VERSION
++trampolineP :: P a -> P a
++trampolineP p = P $ \s -> trampoline $ unP p s
++#endif
+diff --git a/src/Parser.hs b/src/Parser.hs
+index 16fc95c..719dd25 100644
+--- a/src/Parser.hs
++++ b/src/Parser.hs
+@@ -15,6 +15,8 @@ import AbsSyn
+ import Scan
+ import CharSet
+ import ParseMonad hiding ( StartCode )
++import Data.Function
++import Data.List
+ 
+ import Data.Char
+ --import Debug.Trace
+@@ -788,7 +790,7 @@ happyReduction_62 happy_x_3
+ 	happy_x_1
+ 	 =  case happyOut30 happy_x_2 of { happy_var_2 -> 
+ 	happyIn29
+-		 (foldr charSetUnion emptyCharSet happy_var_2
++		 (foldl' (\x y -> forceCharSet (charSetUnion x y)) emptyCharSet happy_var_2
+ 	)}
+ 
+ happyReduce_63 = happyMonadReduce 4# 25# happyReduction_63
+@@ -801,7 +803,8 @@ happyReduction_63 (happy_x_4 `HappyStk`
+ 	case happyOut30 happy_x_3 of { happy_var_3 -> 
+ 	( do { dot <- lookupSMac (tokPosn happy_var_1, ".");
+ 		      	        return (dot `charSetMinus`
+-			      		  foldr charSetUnion emptyCharSet happy_var_3) })}}
++			      		  foldl' (\x y -> forceCharSet (charSetUnion x y))
++                                            emptyCharSet happy_var_3) })}}
+ 	) (\r -> happyReturn (happyIn29 r))
+ 
+ happyReduce_64 = happyMonadReduce 2# 25# happyReduction_64
+@@ -865,7 +868,11 @@ happyNewToken action sts stk
+ 	T _ (SpecialT '~') -> cont 16#;
+ 	T _ (SpecialT '-') -> cont 17#;
+ 	T _ (SpecialT '[') -> cont 18#;
+-	T _ (SpecialT ']') -> cont 19#;
++	T _ (SpecialT ']') ->
++#ifdef ETA_VERSION
++          trampoline
++#endif
++          (cont 19#);
+ 	T _ (SpecialT '^') -> cont 20#;
+ 	T _ (SpecialT '/') -> cont 21#;
+ 	T _ ZeroT -> cont 22#;
+@@ -974,7 +981,11 @@ data HappyStk a = HappyStk a (HappyStk a)
+ -----------------------------------------------------------------------------
+ -- starting the parse
+ 
+-happyParse start_state = happyNewToken start_state notHappyAtAll notHappyAtAll
++happyParse start_state =
++#ifdef ETA_VERSION
++ trampolineP $
++#endif
++  happyNewToken start_state notHappyAtAll notHappyAtAll
+ 
+ -----------------------------------------------------------------------------
+ -- Accepting the parse
 diff --git a/src/Scan.hs b/src/Scan.hs
-index 5d8386c..d979955 100644
+index 5d8386c..ed67d49 100644
 --- a/src/Scan.hs
 +++ b/src/Scan.hs
-@@ -7,24 +7,13 @@ import Data.Char
+@@ -3,28 +3,21 @@
+ 
+ module Scan (lexer, AlexPosn(..), Token(..), Tkn(..), tokPosn) where
+ 
++#ifdef ETA_VERSION
++#define WORDS_BIGENDIAN
++#endif
++
+ import Data.Char
  import ParseMonad
  --import Debug.Trace
  
@@ -190,7 +413,7 @@ index 5d8386c..d979955 100644
  alex_base :: AlexAddr
  alex_base = AlexA# "\xf8\xff\xff\xff\x72\x00\x00\x00\xe5\x00\x00\x00\xd9\xff\xff\xff\xda\xff\xff\xff\xea\x00\x00\x00\xa1\xff\xff\xff\x96\xff\xff\xff\xc3\x01\x00\x00\x17\x02\x00\x00\x77\x00\x00\x00\x15\x02\x00\x00\x7c\x00\x00\x00\x0b\x03\x00\x00\x8b\x03\x00\x00\x0b\x04\x00\x00\xa5\xff\xff\xff\x9c\xff\xff\xff\xa7\xff\xff\xff\x9a\xff\xff\xff\x8b\x04\x00\x00\x0b\x05\x00\x00\xe8\x02\x00\x00\xca\x05\x00\x00\xe1\xff\xff\xff\xe2\xff\xff\xff\xc5\x05\x00\x00\x45\x06\x00\x00\xc5\x06\x00\x00\x45\x07\x00\x00\xe3\xff\xff\xff\xa8\xff\xff\xff\xa9\xff\xff\xff\xaa\xff\xff\xff\xb2\xff\xff\xff\xc5\x07\x00\x00\x45\x08\x00\x00\xc5\x08\x00\x00\x45\x09\x00\x00\xc5\x09\x00\x00\x45\x0a\x00\x00\xc5\x0a\x00\x00\x1b\x00\x00\x00\x45\x0b\x00\x00\xc5\x0b\x00\x00\x45\x0c\x00\x00\xb3\xff\xff\xff\x09\x00\x00\x00\xb4\xff\xff\xff\x16\x00\x00\x00\x17\x00\x00\x00\xb1\xff\xff\xff\x1c\x00\x00\x00\x1d\x00\x00\x00\x1e\x00\x00\x00\x2c\x00\x00\x00\x00\x00\x00\x00\xb6\x0c\x00\x00\x00\x00\x00\x00\x27\x0d\x00\x00\x00\x00\x00\x00\x98\x0d\x00\x00\x22\x00\x00\x00\x1f\x00\x00\x00\x2b\x00\x00\x00\x25\x00\x00\x00\x00\x00\x00\x00\xd9\x0d\x00\x00\x00\x00\x00\x00\x4a\x0e\x00\x00\x00\x00\x00\x00\xbb\x0e\x00\x00\x00\x00\x00\x00\xfc\x0e\x00\x00\x00\x00\x00\x00\x3d\x0f\x00\x00\x00\x00\x00\x00\xae\x0f\x00\x00\x00\x00\x00\x00\x1f\x10\x00\x00\x26\x00\x00\x00\x1f\x11\x00\x00\xdf\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x20\x11\x00\x00\x00\x00\x00\x00\x91\x11\x00\x00\x00\x00\x00\x00\x02\x12\x00\x00\x00\x00\x00\x00\x43\x12\x00\x00\x43\x13\x00\x00\x03\x13\x00\x00\x00\x00\x00\x00\x03\x14\x00\x00\xc3\x13\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x14\x00\x00\x00\x00\x00\x00\x45\x14\x00\x00\x2a\x00\x00\x00\x3b\x15\x00\x00\x32\x16\x00\x00\x3d\x15\x00\x00\xad\x16\x00\x00\xb8\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x6e\x16\x00\x00\x00\x00\x00\x00\xaf\x16\x00\x00\xaf\x17\x00\x00\xff\x17\x00\x00\x79\x17\x00\x00\x00\x00\x00\x00\xff\x18\x00\x00\xbf\x18\x00\x00\x00\x00\x00\x00\xbf\x19\x00\x00\x7f\x19\x00\x00\x00\x00\x00\x00\x2d\x00\x00\x00\x2f\x00\x00\x00\x27\x00\x00\x00\x75\x1a\x00\x00\x75\x1b\x00\x00\xd8\x19\x00\x00\x00\x00\x00\x00\xf5\x1b\x00\x00\x45\x1c\x00\x00\xbf\x1b\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xec\x00\x00\x00\x3b\x1d\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x31\x1e\x00\x00\x00\x00\x00\x00\x6d\x00\x00\x00\x05\x1d\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x74\x00\x00\x00\x51\x1d\x00\x00\xca\x00\x00\x00\x00\x00\x00\x00\xe8\x00\x00\x00\x0c\x1e\x00\x00\x71\x00\x00\x00\x32\x1e\x00\x00\x00\x00\x00\x00\x28\x1f\x00\x00\x83\x1f\x00\x00\xf9\x1f\x00\x00\xf0\x20\x00\x00\xfc\x1f\x00\x00\x62\x21\x00\x00\x01\x20\x00\x00\x80\x21\x00\x00\x00\x00\x00\x00\x76\x22\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x73\x22\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"#
  
-@@ -211,32 +200,32 @@ andBegin act sc inp len = setStartCode sc >> act inp len
+@@ -211,32 +204,32 @@ andBegin act sc inp len = setStartCode sc >> act inp len
  afterstartcodes,startcodes :: Int
  afterstartcodes = 1
  startcodes = 2
@@ -249,7 +472,7 @@ index 5d8386c..d979955 100644
  {-# LINE 1 "templates/GenericTemplate.hs" #-}
  {-# LINE 1 "templates/GenericTemplate.hs" #-}
  {-# LINE 1 "<built-in>" #-}
-@@ -358,7 +347,7 @@ alexIndexInt16OffAddr (AlexA# arr) off =
+@@ -358,7 +351,7 @@ alexIndexInt16OffAddr (AlexA# arr) off =
  
  
  {-# INLINE alexIndexInt32OffAddr #-}
@@ -258,7 +481,7 @@ index 5d8386c..d979955 100644
  #ifdef WORDS_BIGENDIAN
    narrow32Int# i
    where
-@@ -406,7 +395,7 @@ alexScanUser user input (I# (sc))
+@@ -406,7 +399,7 @@ alexScanUser user input (I# (sc))
    = case alex_scan_tkn user input 0# input sc AlexNone of
  	(AlexNone, input') ->
  		case alexGetByte input of
@@ -267,7 +490,7 @@ index 5d8386c..d979955 100644
  
  
  
-@@ -435,13 +424,13 @@ alexScanUser user input (I# (sc))
+@@ -435,13 +428,13 @@ alexScanUser user input (I# (sc))
  
  alex_scan_tkn user orig_input len input s last_acc =
    input `seq` -- strict in the input
@@ -283,7 +506,7 @@ index 5d8386c..d979955 100644
  
  
  
-@@ -450,7 +439,7 @@ alex_scan_tkn user orig_input len input s last_acc =
+@@ -450,7 +443,7 @@ alex_scan_tkn user orig_input len input s last_acc =
                  base   = alexIndexInt32OffAddr alex_base s
                  offset = (base +# ord_c)
                  check  = alexIndexInt16OffAddr alex_check offset
@@ -292,7 +515,7 @@ index 5d8386c..d979955 100644
                  new_s = if GTE(offset,0#) && EQ(check,ord_c)
  			  then alexIndexInt16OffAddr alex_table offset
  			  else alexIndexInt16OffAddr alex_deflt s
-@@ -506,16 +495,16 @@ type AlexAccPred user = user -> AlexInput -> Int -> AlexInput -> Bool
+@@ -506,16 +499,16 @@ type AlexAccPred user = user -> AlexInput -> Int -> AlexInput -> Bool
  alexAndPred p1 p2 user in1 len in2
    = p1 user in1 len in2 && p2 user in1 len in2
  
@@ -313,5 +536,5 @@ index 5d8386c..d979955 100644
  	  (AlexNone, _) -> False
  	  _ -> True
 -- 
-2.15.2 (Apple Git-101.1)
+2.7.4 (Apple Git-66)
 
