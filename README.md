@@ -172,6 +172,7 @@ These packages are supported by `etlas`.
 - [fgl-5.5.3.0](https://hackage.haskell.org/package/fgl-5.5.3.0)
 - [fmlist-0.9](https://hackage.haskell.org/package/fmlist-0.9)
 - [formatting >= 6.3.2 && <= 6.3.4](https://hackage.haskell.org/package/formatting-6.3.4)
+- [foldl-1.2.5](https://hackage.haskell.org/package/foldl-1.2.5)
 - [foundation >= 0.0.17 && <= 0.0.18](https://hackage.haskell.org/package/foundation)
 - [free-4.12.4](https://hackage.haskell.org/package/free-4.12.4)
 - [FloatingHex-0.4](https://hackage.haskell.org/package/FloatingHex-0.4)

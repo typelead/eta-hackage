@@ -1,0 +1,79 @@
+From 1ad60ffcc8ecf1e605734c2616793e555d286f70 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 31 Jul 2018 11:44:12 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Control/Foldl.hs | 29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
+
+diff --git a/src/Control/Foldl.hs b/src/Control/Foldl.hs
+index 872b39c..b6b5df1 100644
+--- a/src/Control/Foldl.hs
++++ b/src/Control/Foldl.hs
+@@ -220,6 +220,14 @@ instance Applicative (Fold a) where
+         in  Fold step begin done
+     {-# INLINE (<*>) #-}
+ 
++#if MIN_VERSION_base(4,10,0)
++
++instance Semigroup b => Semigroup (Fold a b) where
++    (<>) = liftA2 (<>)
++    {-# INLINE (<>) #-}
++
++#endif
++
+ instance Monoid b => Monoid (Fold a b) where
+     mempty = pure mempty
+     {-# INLINE mempty #-}
+@@ -355,6 +363,11 @@ instance Monad m => Profunctor (FoldM m) where
+     rmap = fmap
+     lmap = premapM
+ 
++#if MIN_VERSION_base(4,10,0)
++instance (Semigroup b, Monad m) => Semigroup (FoldM m a b) where
++    (<>) = liftA2 (<>)
++    {-# INLINE (<>) #-}
++#endif
+ instance (Monoid b, Monad m) => Monoid (FoldM m a b) where
+     mempty = pure mempty
+     {-# INLINE mempty #-}
+@@ -946,17 +959,17 @@ vector = FoldM step begin done
+ > impurely Pipes.Prelude.foldM
+ >     :: Monad m => FoldM m a b -> Producer a m () -> m b
+ 
+-    Other streaming libraries supporting 'purely' and 'impurely' include @io-streams@ and @streaming@. 
++    Other streaming libraries supporting 'purely' and 'impurely' include @io-streams@ and @streaming@.
+     So for example we have:
+ 
+-> purely System.IO.Streams.fold_ 
++> purely System.IO.Streams.fold_
+ >     :: Fold a b -> Streams.InputStream a -> IO b
+ >
+-> impurely System.IO.Streams.foldM_ 
++> impurely System.IO.Streams.foldM_
+ >     :: FoldM IO a b -> Streams.InputStream a -> IO b
+ 
+-    The @monotraversable@ package makes it convenient to apply a 
+-    'Fold' or 'FoldM' to pure containers that do not allow 
++    The @monotraversable@ package makes it convenient to apply a
++    'Fold' or 'FoldM' to pure containers that do not allow
+     a general 'Foldable' instance, like unboxed vectors:
+ 
+ > purely ofoldlUnwrap
+@@ -1165,6 +1178,12 @@ foldOver l (Fold step begin done) =
+ -}
+ newtype EndoM m a = EndoM { appEndoM :: a -> m a }
+ 
++#if MIN_VERSION_base(4,10,0)
++instance Monad m => Semigroup (EndoM m a) where
++    (EndoM f) <> (EndoM g) = EndoM (f <=< g)
++    {-# INLINE (<>) #-}
++#endif
++
+ instance Monad m => Monoid (EndoM m a) where
+     mempty = EndoM return
+     {-# INLINE mempty #-}
+-- 
+2.15.2 (Apple Git-101.1)
+
