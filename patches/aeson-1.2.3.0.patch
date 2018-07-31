@@ -1,13 +1,13 @@
-From dd58db58cd2e8cc0f3182a98e58a204a17d8ec3c Mon Sep 17 00:00:00 2001
+From 663dd19ade3ef46fdd80981d5652d12925233fca Mon Sep 17 00:00:00 2001
 From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Tue, 17 Jul 2018 16:17:39 +0530
+Date: Tue, 31 Jul 2018 08:47:29 +0530
 Subject: [PATCH] Patched
 
 ---
  Data/Aeson/Types/Generic.hs  |  2 +-
- Data/Aeson/Types/Internal.hs | 50 ++++++++++++++++++++++++++------------------
- aeson.cabal                  |  6 ++++--
- 3 files changed, 35 insertions(+), 23 deletions(-)
+ Data/Aeson/Types/Internal.hs | 18 ++++++++++++++----
+ aeson.cabal                  |  4 +++-
+ 3 files changed, 18 insertions(+), 6 deletions(-)
 
 diff --git a/Data/Aeson/Types/Generic.hs b/Data/Aeson/Types/Generic.hs
 index 21e079e..63e20b7 100644
@@ -23,15 +23,10 @@ index 21e079e..63e20b7 100644
  #else
  instance OVERLAPPING_ IsRecord (M1 S NoSelector f) False
 diff --git a/Data/Aeson/Types/Internal.hs b/Data/Aeson/Types/Internal.hs
-index 46ec9f1..9e83eae 100644
+index 46ec9f1..101077e 100644
 --- a/Data/Aeson/Types/Internal.hs
 +++ b/Data/Aeson/Types/Internal.hs
-@@ -78,10 +78,13 @@ import Prelude ()
- import Prelude.Compat
- 
- import Control.Applicative (Alternative(..))
--import Control.Arrow (first)
-+-- import Control.Arrow (first)
+@@ -82,6 +82,9 @@ import Control.Arrow (first)
  import Control.DeepSeq (NFData(..))
  import Control.Monad (MonadPlus(..), ap)
  import Data.Char (isLower, isUpper, toLower, isAlpha, isAlphaNum)
@@ -41,17 +36,7 @@ index 46ec9f1..9e83eae 100644
  import Data.Data (Data)
  import Data.Foldable (foldl')
  import Data.HashMap.Strict (HashMap)
-@@ -98,14 +101,21 @@ import Data.Vector (Vector)
- import GHC.Generics (Generic)
- import qualified Control.Monad.Fail as Fail
- import qualified Data.HashMap.Strict as H
--import qualified Data.Scientific as S
-+-- import qualified Data.Scientific as S
- import qualified Data.Vector as V
--import qualified Language.Haskell.TH.Syntax as TH
-+-- import qualified Language.Haskell.TH.Syntax as TH
- 
- #if !MIN_VERSION_unordered_containers(0,2,6)
+@@ -106,6 +109,13 @@ import qualified Language.Haskell.TH.Syntax as TH
  import Data.List (sort)
  #endif
  
@@ -65,39 +50,6 @@ index 46ec9f1..9e83eae 100644
  -- | Elements of a JSON path used to describe the location of an
  -- error.
  data JSONPathElement = Key Text
-@@ -393,19 +403,19 @@ instance Hashable Value where
-     hashWithSalt = hashValue
- 
- -- @since 0.11.0.0
--instance TH.Lift Value where
--    lift Null = [| Null |]
--    lift (Bool b) = [| Bool b |]
--    lift (Number n) = [| Number (S.scientific c e) |]
--      where
--        c = S.coefficient n
--        e = S.base10Exponent n
--    lift (String t) = [| String (pack s) |]
--      where s = unpack t
--    lift (Array a) = [| Array (V.fromList a') |]
--      where a' = V.toList a
--    lift (Object o) = [| Object (H.fromList . map (first pack) $ o') |]
--      where o' = map (first unpack) . H.toList $ o
-+-- instance TH.Lift Value where
-+--     lift Null = [| Null |]
-+--     lift (Bool b) = [| Bool b |]
-+--     lift (Number n) = [| Number (S.scientific c e) |]
-+--       where
-+--         c = S.coefficient n
-+--         e = S.base10Exponent n
-+--     lift (String t) = [| String (pack s) |]
-+--       where s = unpack t
-+--     lift (Array a) = [| Array (V.fromList a') |]
-+--       where a' = V.toList a
-+--     lift (Object o) = [| Object (H.fromList . map (first pack) $ o') |]
-+--       where o' = map (first unpack) . H.toList $ o
- 
- -- | The empty array.
- emptyArray :: Value
 @@ -423,23 +433,23 @@ emptyObject = Object H.empty
  
  -- | Run a 'Parser'.
@@ -127,18 +79,9 @@ index 46ec9f1..9e83eae 100644
  {-# INLINE parseEither #-}
  
 diff --git a/aeson.cabal b/aeson.cabal
-index 957913a..9a84ab5 100644
+index 957913a..6a4784b 100644
 --- a/aeson.cabal
 +++ b/aeson.cabal
-@@ -88,7 +88,7 @@ library
-     Data.Aeson.Parser
-     Data.Aeson.Text
-     Data.Aeson.Types
--    Data.Aeson.TH
-+    -- Data.Aeson.TH
- 
-     Data.Aeson.Encoding.Internal
-     Data.Aeson.Internal
 @@ -163,7 +163,7 @@ library
      ghc-options: -O2
  
