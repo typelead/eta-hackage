@@ -1,0 +1,199 @@
+From 6fd9c1136be26413c36001bb32faedb43e6f1826 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 31 Jul 2018 10:58:28 +0530
+Subject: [PATCH] Patched
+
+---
+ Network/Wai/Application/Static.hs  |  4 ++--
+ WaiAppStatic/Listing.hs            |  2 +-
+ WaiAppStatic/Storage/Filesystem.hs | 47 +++++++++++++++++++++++++++-----------
+ WaiAppStatic/Types.hs              |  4 ++--
+ java/Utils.java                    | 21 +++++++++++++++++
+ wai-app-static.cabal               |  3 ++-
+ 6 files changed, 62 insertions(+), 19 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Network/Wai/Application/Static.hs b/Network/Wai/Application/Static.hs
+index 2338b45..a273744 100644
+--- a/Network/Wai/Application/Static.hs
++++ b/Network/Wai/Application/Static.hs
+@@ -42,7 +42,7 @@ import Data.Text (Text)
+ import qualified Data.Text as T
+ import qualified Data.Text.Encoding as TE
+ 
+-import Network.HTTP.Date (parseHTTPDate, epochTimeToHTTPDate, formatHTTPDate)
++import Network.HTTP.Date (parseHTTPDate, utcToHTTPDate, formatHTTPDate)
+ 
+ import WaiAppStatic.Types
+ import Util
+@@ -178,7 +178,7 @@ serveFile StaticSettings {..} req file
+   where
+     mLastSent = lookup "if-modified-since" (W.requestHeaders req) >>= parseHTTPDate
+     lastMod =
+-        case (fmap epochTimeToHTTPDate $ fileGetModified file, mLastSent) of
++        case (fmap utcToHTTPDate $ fileGetModified file, mLastSent) of
+             -- File modified time is equal to the if-modified-since header,
+             -- return a 304.
+             --
+diff --git a/WaiAppStatic/Listing.hs b/WaiAppStatic/Listing.hs
+index fe1f33e..f85d2ab 100644
+--- a/WaiAppStatic/Listing.hs
++++ b/WaiAppStatic/Listing.hs
+@@ -134,7 +134,7 @@ renderDirectoryContentsTable pathInfo' haskellSrc folderSrc fps =
+                        case md of
+                            Right File { fileGetSize = s } -> prettyShow s
+                            Left{} -> ""
+-      formatCalendarTime a b c =  formatTime a b $ posixSecondsToUTCTime (realToFrac c :: POSIXTime)
++      formatCalendarTime a b c =  formatTime a b c
+       prettyShow x
+         | x > 1024 = prettyShowK $ x `div` 1024
+         | otherwise = addCommas "B" x
+diff --git a/WaiAppStatic/Storage/Filesystem.hs b/WaiAppStatic/Storage/Filesystem.hs
+index 665c409..ea324dd 100644
+--- a/WaiAppStatic/Storage/Filesystem.hs
++++ b/WaiAppStatic/Storage/Filesystem.hs
+@@ -1,6 +1,6 @@
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE OverloadedStrings #-}
+-{-# LANGUAGE BangPatterns #-}
++{-# LANGUAGE BangPatterns, DoAndIfThenElse, ForeignFunctionInterface #-}
+ -- | Access files on the filesystem.
+ module WaiAppStatic.Storage.Filesystem
+     ( -- * Types
+@@ -23,12 +23,14 @@ import Control.Exception (SomeException, try)
+ import qualified Network.Wai as W
+ import WaiAppStatic.Listing
+ import Network.Mime
+-import System.PosixCompat.Files (fileSize, getFileStatus, modificationTime, isRegularFile)
++import Data.Int
++-- import System.PosixCompat.Files (fileSize, getFileStatus, modificationTime, isRegularFile)
+ import Data.Maybe (catMaybes)
+ import Data.ByteArray.Encoding
+ import Crypto.Hash (hashlazy, MD5, Digest)
+ import qualified Data.ByteString.Lazy as BL (hGetContents)
+ import qualified Data.Text as T
++import Data.Time.Clock.POSIX
+ 
+ -- | Construct a new path from a root and some @Pieces@.
+ pathFromPieces :: FilePath -> Pieces -> FilePath
+@@ -90,17 +92,36 @@ fileHelper :: ETagLookup
+            -> Piece -- ^ file name
+            -> IO (Maybe File)
+ fileHelper hashFunc fp name = do
+-    efs <- try $ getFileStatus fp
+-    case efs of
+-        Left (_ :: SomeException) -> return Nothing
+-        Right fs | isRegularFile fs -> return $ Just File
+-            { fileGetSize = fromIntegral $ fileSize fs
+-            , fileToResponse = \s h -> W.responseFile s h fp Nothing
+-            , fileName = name
+-            , fileGetHash = hashFunc fp
+-            , fileGetModified = Just $ modificationTime fs
+-            }
+-        Right _ -> return Nothing
++    maybeFileStatus <- getFileStatus fp
++    case maybeFileStatus of
++        Nothing -> return Nothing
++        Just fs -> do
++          regFile <- isRegularFile fs
++          if regFile
++          then do
++            fileModified <- getModifiedTime fs
++            let modTime = posixSecondsToUTCTime (fromIntegral fileModified / 1000000000)
++            fileSize <- size fs
++            return $ Just File
++              { fileGetSize = fromIntegral $ fileSize
++              , fileToResponse = \s h -> W.responseFile s h fp Nothing
++              , fileName = name
++              , fileGetHash = hashFunc fp
++              , fileGetModified = Just $ modTime
++              }
++          else return Nothing
++
++data BasicFileAttributes = BasicFileAttributes @java.nio.file.attribute.BasicFileAttributes
++
++foreign import java unsafe "@static eta.directory.Utils.lastModifiedTime"
++  getModifiedTime :: BasicFileAttributes -> IO Int64
++
++foreign import java unsafe size :: BasicFileAttributes -> IO Int64
++
++foreign import java unsafe isRegularFile :: BasicFileAttributes -> IO Bool
++
++foreign import java unsafe "@static eta.wai_app_static.Utils.getFileStatus" getFileStatus
++  :: String -> IO (Maybe BasicFileAttributes)
+ 
+ -- | How to calculate etags. Can perform filesystem reads on each call, or use
+ -- some caching mechanism.
+diff --git a/WaiAppStatic/Types.hs b/WaiAppStatic/Types.hs
+index 54e2c39..ecd5feb 100644
+--- a/WaiAppStatic/Types.hs
++++ b/WaiAppStatic/Types.hs
+@@ -22,7 +22,7 @@ import Data.Text (Text)
+ import qualified Network.HTTP.Types as H
+ import qualified Network.Wai as W
+ import Data.ByteString (ByteString)
+-import System.Posix.Types (EpochTime)
++import Data.Time (UTCTime)
+ import qualified Data.Text as T
+ import Data.ByteString.Builder (Builder)
+ import Network.Mime (MimeType)
+@@ -88,7 +88,7 @@ data File = File
+       -- | Calculate a hash of the contents of this file, such as for etag.
+     , fileGetHash :: IO (Maybe ByteString)
+       -- | Last modified time, used for both display in listings and if-modified-since.
+-    , fileGetModified :: Maybe EpochTime
++    , fileGetModified :: Maybe UTCTime
+     }
+ 
+ -- | Result of looking up a file in some storage backend.
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..d04fe51
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,21 @@
++package eta.wai_app_static;
++
++import java.nio.file.Path;
++import java.nio.file.attribute.BasicFileAttributes;
++import java.nio.file.Paths;
++import java.nio.file.Files;
++import java.io.IOException;
++import java.util.concurrent.TimeUnit;
++
++public class Utils {
++  public static BasicFileAttributes getFileStatus(String path) {
++    try {
++      return Files.readAttributes(Paths.get(path), BasicFileAttributes.class);
++    } catch(IOException e) {
++      return null;
++    }
++  }
++  public static long lastModifiedTime(BasicFileAttributes attrs) {
++    return attrs.lastModifiedTime().to(TimeUnit.NANOSECONDS);
++  }
++}
+diff --git a/wai-app-static.cabal b/wai-app-static.cabal
+index 4988e7c..600509e 100644
+--- a/wai-app-static.cabal
++++ b/wai-app-static.cabal
+@@ -30,7 +30,7 @@ library
+                    , bytestring                >= 0.10.4
+                    , http-types                >= 0.7
+                    , transformers              >= 0.2.2
+-                   , unix-compat               >= 0.2
++                   -- , unix-compat               >= 0.2
+                    , directory                 >= 1.0.1
+                    , containers                >= 0.2
+                    , time                      >= 1.1.4
+@@ -61,6 +61,7 @@ library
+                      WaiAppStatic.Storage.Embedded.Runtime
+                      WaiAppStatic.Storage.Embedded.TH
+     ghc-options:     -Wall
++    java-sources:  java/Utils.java
+     extensions:     CPP
+ 
+     if flag(print)
+-- 
+2.15.2 (Apple Git-101.1)
+

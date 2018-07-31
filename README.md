@@ -420,6 +420,7 @@ These packages are supported by `etlas`.
 - [wai-3.2.1.1](https://hackage.haskell.org/package/wai-3.2.1.1)
 - [wai-extra-3.0.21.0](https://hackage.haskell.org/package/wai-extra-3.0.21.0)
 - [wai-logger-2.3.1](https://hackage.haskell.org/package/wai-logger-2.3.1)
+- [wai-app-static-3.1.6.2](https://hackage.haskell.org/package/wai-app-static-3.1.6.2)
 - [websockets-0.12.5.1](https://hackage.haskell.org/package/websockets-0.12.5.1)
 - [word8 >= 0.1.2 && <= 0.1.3](https://hackage.haskell.org/package/word8)
 - [x509-1.7.2](https://hackage.haskell.org/package/x509-1.7.2)
