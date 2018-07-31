@@ -1,12 +1,14 @@
-From 377de76a477df8b0946b8fe911ac7deb72219706 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sun, 14 May 2017 11:05:04 +0530
+From 352024b16312cd4db544508790140149921c9d09 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 31 Jul 2018 11:12:17 +0530
 Subject: [PATCH] Patched
 
 ---
  Options/Applicative/Builder/Completer.hs | 5 +++--
+ Options/Applicative/Help/Chunk.hs        | 5 +++++
+ Options/Applicative/Types.hs             | 8 +++++++-
  optparse-applicative.cabal               | 2 +-
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ 4 files changed, 16 insertions(+), 4 deletions(-)
 
 diff --git a/Options/Applicative/Builder/Completer.hs b/Options/Applicative/Builder/Completer.hs
 index 1c53bb5..2a38922 100644
@@ -31,6 +33,49 @@ index 1c53bb5..2a38922 100644
    return . lines . either (const []) id $ result
  
  tryIO :: IO a -> IO (Either IOException a)
+diff --git a/Options/Applicative/Help/Chunk.hs b/Options/Applicative/Help/Chunk.hs
+index 3e87367..2e169ac 100644
+--- a/Options/Applicative/Help/Chunk.hs
++++ b/Options/Applicative/Help/Chunk.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ module Options.Applicative.Help.Chunk
+   ( mappendWith
+   , Chunk(..)
+@@ -69,6 +70,10 @@ listToChunk xs = pure (mconcat xs)
+ instance Monoid a => Monoid (Chunk a) where
+   mempty = Chunk Nothing
+   mappend = chunked mappend
++#if MIN_VERSION_base(4,10,0)
++instance Monoid a => Semigroup (Chunk a) where
++  (<>) = chunked mappend
++#endif
+ 
+ -- | Part of a constrained comonad instance.
+ --
+diff --git a/Options/Applicative/Types.hs b/Options/Applicative/Types.hs
+index 385006d..a8c6d69 100644
+--- a/Options/Applicative/Types.hs
++++ b/Options/Applicative/Types.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE Rank2Types, ExistentialQuantification #-}
++{-# LANGUAGE Rank2Types, ExistentialQuantification, CPP #-}
+ module Options.Applicative.Types (
+   ParseError(..),
+   ParserInfo(..),
+@@ -266,6 +266,12 @@ instance Monoid Completer where
+   mappend (Completer c1) (Completer c2) =
+     Completer $ \s -> (++) <$> c1 s <*> c2 s
+ 
++#if MIN_VERSION_base(4,10,0)
++instance Semigroup Completer where
++  (Completer c1) <> (Completer c2) =
++    Completer $ \s -> (++) <$> c1 s <*> c2 s
++#endif
++
+ newtype CompletionResult = CompletionResult
+   { execCompletion :: String -> IO String }
+ 
 diff --git a/optparse-applicative.cabal b/optparse-applicative.cabal
 index 2c870cf..41bd882 100644
 --- a/optparse-applicative.cabal
@@ -45,5 +90,5 @@ index 2c870cf..41bd882 100644
  
    if !impl(ghc >= 8)
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
