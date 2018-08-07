@@ -1,6 +1,6 @@
-From a192bb6af5864ab7ab51ef6855e1d780ce0c4c7c Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 8 Jan 2018 10:53:41 +0530
+From d8fbd2ddd02b1bd8782d195acb53fc336120e6b2 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 7 Aug 2018 19:41:46 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -76,7 +76,7 @@ index 3f0446e..90da9a1 100644
  getRecursiveContents :: FilePath -> IO (DList FilePath)
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..6aa50ca
+index 0000000..3c00662
 --- /dev/null
 +++ b/java/Utils.java
 @@ -0,0 +1,12 @@
@@ -88,10 +88,10 @@ index 0000000..6aa50ca
 +import java.nio.file.attribute.BasicFileAttributes;
 +
 +public class Utils {
-+    public boolean doesDirectoryExist(String path) throws IOException {
++    public static boolean doesDirectoryExist(String path) throws IOException {
 +        return Files.readAttributes(Paths.get(path), BasicFileAttributes.class).isDirectory();
 +    }
 +}
 -- 
-2.7.4 (Apple Git-66)
+2.15.2 (Apple Git-101.1)
 
