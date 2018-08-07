@@ -1,0 +1,337 @@
+From 8d782ac35f63b075c7b2ce360bb5189041b2297c Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 6 Aug 2018 16:56:13 +0530
+Subject: [PATCH] Patched
+
+---
+ app/Command/Ide.hs                                    |  6 +++---
+ purescript.cabal                                      |  7 ++-----
+ src/Language/PureScript/Docs/Convert/ReExports.hs     |  7 +++++++
+ src/Language/PureScript/Docs/RenderedCode/Types.hs    |  2 +-
+ src/Language/PureScript/Errors.hs                     |  2 +-
+ src/Language/PureScript/Ide/Filter.hs                 |  2 +-
+ src/Language/PureScript/Ide/Matcher.hs                |  2 +-
+ src/Language/PureScript/Ide/Watcher.hs                |  2 +-
+ src/Language/PureScript/Label.hs                      |  2 +-
+ src/Language/PureScript/PSString.hs                   |  2 +-
+ src/Language/PureScript/Pretty/Common.hs              |  9 +++++++--
+ src/Language/PureScript/Pretty/Types.hs               |  2 +-
+ src/Language/PureScript/Pretty/Values.hs              |  2 +-
+ src/Language/PureScript/Publish/ErrorsWarnings.hs     |  7 +++++++
+ src/Language/PureScript/Sugar/TypeClasses/Deriving.hs |  9 ++++++++-
+ src/Language/PureScript/TypeChecker/Entailment.hs     | 10 +++++++++-
+ 16 files changed, 52 insertions(+), 21 deletions(-)
+
+diff --git a/app/Command/Ide.hs b/app/Command/Ide.hs
+index a33c33d..64b6f32 100644
+--- a/app/Command/Ide.hs
++++ b/app/Command/Ide.hs
+@@ -36,7 +36,7 @@ import           Language.PureScript.Ide.Command
+ import           Language.PureScript.Ide.Util
+ import           Language.PureScript.Ide.Error
+ import           Language.PureScript.Ide.Types
+-import           Language.PureScript.Ide.Watcher
++-- import           Language.PureScript.Ide.Watcher
+ import           Network                           hiding (socketPort, accept)
+ import           Network.BSD                       (getProtocolNumber)
+ import           Network.Socket                    hiding (PortNumber, Type,
+@@ -119,8 +119,8 @@ command = Opts.helper <*> subcommands where
+       putText "Your output directory didn't exist. This usually means you didn't compile your project yet."
+       putText "psc-ide needs you to compile your project (for example by running pulp build)"
+ 
+-    unless (noWatch || editorMode) $
+-      void (forkFinally (watcher polling logLevel ideState fullOutputPath) print)
++    -- unless (noWatch || editorMode) $
++    --   void (forkFinally (watcher polling logLevel ideState fullOutputPath) print)
+     let
+       conf = IdeConfiguration
+         { confLogLevel = logLevel
+diff --git a/purescript.cabal b/purescript.cabal
+index e5bc04f..3993908 100644
+--- a/purescript.cabal
++++ b/purescript.cabal
+@@ -752,7 +752,6 @@ library
+     , edit-distance
+     , file-embed
+     , filepath
+-    , fsnotify >=0.2.1
+     , haskeline >=0.7.0.0
+     , language-javascript >=0.6.0.9 && <0.7
+     , lens ==4.*
+@@ -858,14 +857,14 @@ library
+       Language.PureScript.Ide.Logging
+       Language.PureScript.Ide.Matcher
+       Language.PureScript.Ide.Prim
+-      Language.PureScript.Ide.Rebuild
++      -- Language.PureScript.Ide.Rebuild
+       Language.PureScript.Ide.Reexports
+       Language.PureScript.Ide.SourceFile
+       Language.PureScript.Ide.State
+       Language.PureScript.Ide.Types
+       Language.PureScript.Ide.Usage
+       Language.PureScript.Ide.Util
+-      Language.PureScript.Ide.Watcher
++      -- Language.PureScript.Ide.Watcher
+       Language.PureScript.Interactive
+       Language.PureScript.Interactive.Completion
+       Language.PureScript.Interactive.Directive
+@@ -970,7 +969,6 @@ executable purs
+     , edit-distance
+     , file-embed
+     , filepath
+-    , fsnotify >=0.2.1
+     , haskeline >=0.7.0.0
+     , http-types
+     , language-javascript >=0.6.0.9 && <0.7
+@@ -1056,7 +1054,6 @@ test-suite tests
+     , edit-distance
+     , file-embed
+     , filepath
+-    , fsnotify >=0.2.1
+     , haskeline >=0.7.0.0
+     , hspec
+     , hspec-discover
+diff --git a/src/Language/PureScript/Docs/Convert/ReExports.hs b/src/Language/PureScript/Docs/Convert/ReExports.hs
+index 4d48cb1..046469b 100644
+--- a/src/Language/PureScript/Docs/Convert/ReExports.hs
++++ b/src/Language/PureScript/Docs/Convert/ReExports.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ module Language.PureScript.Docs.Convert.ReExports
+   ( updateReExports
+   ) where
+@@ -421,6 +422,12 @@ instance Monoid TypeClassEnv where
+   mappend (TypeClassEnv a1 b1 c1)
+           (TypeClassEnv a2 b2 c2) =
+     TypeClassEnv (a1 <> a2) (b1 <> b2) (c1 <> c2)
++#if MIN_VERSION_base(4,10,0)
++instance Semigroup TypeClassEnv where
++  (<>) (TypeClassEnv a1 b1 c1)
++          (TypeClassEnv a2 b2 c2) =
++    TypeClassEnv (a1 <> a2) (b1 <> b2) (c1 <> c2)
++#endif
+ 
+ -- |
+ -- Take a TypeClassEnv and handle all of the type class members in it, either
+diff --git a/src/Language/PureScript/Docs/RenderedCode/Types.hs b/src/Language/PureScript/Docs/RenderedCode/Types.hs
+index 0d64e30..59ea57c 100644
+--- a/src/Language/PureScript/Docs/RenderedCode/Types.hs
++++ b/src/Language/PureScript/Docs/RenderedCode/Types.hs
+@@ -248,7 +248,7 @@ asRenderedCodeElement =
+ --
+ newtype RenderedCode
+   = RC { unRC :: [RenderedCodeElement] }
+-  deriving (Show, Eq, Ord, Monoid)
++  deriving (Show, Eq, Ord, Monoid, Semigroup)
+ 
+ instance A.ToJSON RenderedCode where
+   toJSON (RC elems) = A.toJSON elems
+diff --git a/src/Language/PureScript/Errors.hs b/src/Language/PureScript/Errors.hs
+index 135f98a..45c3dd1 100644
+--- a/src/Language/PureScript/Errors.hs
++++ b/src/Language/PureScript/Errors.hs
+@@ -186,7 +186,7 @@ errorCode em = case unwrapErrorMessage em of
+ -- | A stack trace for an error
+ newtype MultipleErrors = MultipleErrors
+   { runMultipleErrors :: [ErrorMessage]
+-  } deriving (Show, Monoid)
++  } deriving (Show, Monoid, Semigroup)
+ 
+ -- | Check whether a collection of errors is empty or not.
+ nonEmpty :: MultipleErrors -> Bool
+diff --git a/src/Language/PureScript/Ide/Filter.hs b/src/Language/PureScript/Ide/Filter.hs
+index cdb29f4..adc68f5 100644
+--- a/src/Language/PureScript/Ide/Filter.hs
++++ b/src/Language/PureScript/Ide/Filter.hs
+@@ -35,7 +35,7 @@ import           Language.PureScript.Ide.Util
+ import qualified Language.PureScript           as P
+ 
+ newtype Filter = Filter (Endo [Module])
+-  deriving (Monoid)
++  deriving (Monoid, Semigroup)
+ 
+ type Module = (P.ModuleName, [IdeDeclarationAnn])
+ 
+diff --git a/src/Language/PureScript/Ide/Matcher.hs b/src/Language/PureScript/Ide/Matcher.hs
+index 531a29e..3120182 100644
+--- a/src/Language/PureScript/Ide/Matcher.hs
++++ b/src/Language/PureScript/Ide/Matcher.hs
+@@ -35,7 +35,7 @@ import           Text.Regex.TDFA               ((=~))
+ 
+ type ScoredMatch a = (Match a, Double)
+ 
+-newtype Matcher a = Matcher (Endo [Match a]) deriving (Monoid)
++newtype Matcher a = Matcher (Endo [Match a]) deriving (Monoid, Semigroup)
+ 
+ instance FromJSON (Matcher IdeDeclarationAnn) where
+   parseJSON = withObject "matcher" $ \o -> do
+diff --git a/src/Language/PureScript/Ide/Watcher.hs b/src/Language/PureScript/Ide/Watcher.hs
+index 9d42ef9..72707dd 100644
+--- a/src/Language/PureScript/Ide/Watcher.hs
++++ b/src/Language/PureScript/Ide/Watcher.hs
+@@ -25,7 +25,7 @@ import                Language.PureScript.Ide.Externs
+ import                Language.PureScript.Ide.State
+ import                Language.PureScript.Ide.Types
+ import                Language.PureScript.Ide.Util
+-import                System.FSNotify
++-- import                System.FSNotify
+ import                System.FilePath
+ 
+ -- | Reloads an ExternsFile from Disc. If the Event indicates the ExternsFile
+diff --git a/src/Language/PureScript/Label.hs b/src/Language/PureScript/Label.hs
+index b00db4f..92324ff 100644
+--- a/src/Language/PureScript/Label.hs
++++ b/src/Language/PureScript/Label.hs
+@@ -17,6 +17,6 @@ import Language.PureScript.PSString (PSString)
+ -- because records are indexable by PureScript strings at runtime.
+ --
+ newtype Label = Label { runLabel :: PSString }
+-  deriving (Show, Eq, Ord, IsString, Monoid, A.ToJSON, A.FromJSON, Generic)
++  deriving (Show, Eq, Ord, IsString, Monoid, Semigroup, A.ToJSON, A.FromJSON, Generic)
+ 
+ instance NFData Label
+diff --git a/src/Language/PureScript/PSString.hs b/src/Language/PureScript/PSString.hs
+index 0dcb3b4..56e32e9 100644
+--- a/src/Language/PureScript/PSString.hs
++++ b/src/Language/PureScript/PSString.hs
+@@ -52,7 +52,7 @@ import qualified Data.Aeson.Types as A
+ -- and arrays of UTF-16 code units (integers) otherwise.
+ --
+ newtype PSString = PSString { toUTF16CodeUnits :: [Word16] }
+-  deriving (Eq, Ord, Monoid, Generic)
++  deriving (Eq, Ord, Monoid, Semigroup, Generic)
+ 
+ instance NFData PSString
+ 
+diff --git a/src/Language/PureScript/Pretty/Common.hs b/src/Language/PureScript/Pretty/Common.hs
+index b728023..6a2c410 100644
+--- a/src/Language/PureScript/Pretty/Common.hs
++++ b/src/Language/PureScript/Pretty/Common.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
++{-# LANGUAGE GeneralizedNewtypeDeriving, CPP #-}
+ 
+ -- |
+ -- Common pretty-printing utility functions
+@@ -69,6 +69,11 @@ instance Monoid StrPos where
+       plus :: (SourcePos, [[SMap]]) -> StrPos -> (SourcePos, [[SMap]])
+       plus (a, c) (StrPos (a', _, c')) = (a `addPos` a', (bumpPos a <$> c') : c)
+ 
++#if MIN_VERSION_base(4,10,0)
++instance Semigroup StrPos where
++  StrPos (a,b,c) <> StrPos (a',b',c') = StrPos (a `addPos` a', b <> b', c ++ (bumpPos a <$> c'))
++#endif
++
+ instance Emit StrPos where
+   -- |
+   -- Augment a string with its length (rows/column)
+@@ -88,7 +93,7 @@ instance Emit StrPos where
+       mapping = SMap (T.pack file) startPos zeroPos
+       zeroPos = SourcePos 0 0
+ 
+-newtype PlainString = PlainString Text deriving Monoid
++newtype PlainString = PlainString Text deriving (Semigroup, Monoid)
+ 
+ runPlainString :: PlainString -> Text
+ runPlainString (PlainString s) = s
+diff --git a/src/Language/PureScript/Pretty/Types.hs b/src/Language/PureScript/Pretty/Types.hs
+index bee62db..40c2956 100644
+--- a/src/Language/PureScript/Pretty/Types.hs
++++ b/src/Language/PureScript/Pretty/Types.hs
+@@ -14,7 +14,7 @@ module Language.PureScript.Pretty.Types
+   , prettyPrintObjectKey
+   ) where
+ 
+-import Prelude.Compat
++import Prelude.Compat hiding ((<>))
+ 
+ import Control.Arrow ((<+>))
+ import Control.PatternArrows as PA
+diff --git a/src/Language/PureScript/Pretty/Values.hs b/src/Language/PureScript/Pretty/Values.hs
+index bbabf08..7902526 100644
+--- a/src/Language/PureScript/Pretty/Values.hs
++++ b/src/Language/PureScript/Pretty/Values.hs
+@@ -7,7 +7,7 @@ module Language.PureScript.Pretty.Values
+   , prettyPrintBinderAtom
+   ) where
+ 
+-import Prelude.Compat
++import Prelude.Compat hiding ((<>))
+ 
+ import Control.Arrow (second)
+ 
+diff --git a/src/Language/PureScript/Publish/ErrorsWarnings.hs b/src/Language/PureScript/Publish/ErrorsWarnings.hs
+index 8067395..c2825d3 100644
+--- a/src/Language/PureScript/Publish/ErrorsWarnings.hs
++++ b/src/Language/PureScript/Publish/ErrorsWarnings.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ module Language.PureScript.Publish.ErrorsWarnings
+   ( PackageError(..)
+   , PackageWarning(..)
+@@ -316,6 +317,12 @@ instance Monoid CollectedWarnings where
+   mappend (CollectedWarnings as bs cs d es)
+           (CollectedWarnings as' bs' cs' d' es') =
+     CollectedWarnings (as <> as') (bs <> bs') (cs <> cs') (d <> d') (es <> es')
++#if MIN_VERSION_base(4,10,0)
++instance Semigroup CollectedWarnings where
++  (<>) (CollectedWarnings as bs cs d es)
++          (CollectedWarnings as' bs' cs' d' es') =
++    CollectedWarnings (as <> as') (bs <> bs') (cs <> cs') (d <> d') (es <> es')
++#endif
+ 
+ collectWarnings :: [PackageWarning] -> CollectedWarnings
+ collectWarnings = foldMap singular
+diff --git a/src/Language/PureScript/Sugar/TypeClasses/Deriving.hs b/src/Language/PureScript/Sugar/TypeClasses/Deriving.hs
+index a91cbe7..56d20b2 100644
+--- a/src/Language/PureScript/Sugar/TypeClasses/Deriving.hs
++++ b/src/Language/PureScript/Sugar/TypeClasses/Deriving.hs
+@@ -1,4 +1,5 @@
+ -- | This module implements the generic deriving elaboration that takes place during desugaring.
++{-# LANGUAGE CPP #-}
+ module Language.PureScript.Sugar.TypeClasses.Deriving (deriveInstances) where
+ 
+ import           Prelude.Compat
+@@ -48,7 +49,13 @@ instance Monoid NewtypeDerivedInstances where
+     NewtypeDerivedInstances { ndiClasses          = ndiClasses          x <> ndiClasses          y
+                             , ndiDerivedInstances = ndiDerivedInstances x <> ndiDerivedInstances y
+                             }
+-
++#if MIN_VERSION_base(4,10,0)
++instance Semigroup NewtypeDerivedInstances where
++  (<>) x y =
++    NewtypeDerivedInstances { ndiClasses          = ndiClasses          x <> ndiClasses          y
++                            , ndiDerivedInstances = ndiDerivedInstances x <> ndiDerivedInstances y
++                            }
++#endif
+ -- | Extract the name of the newtype appearing in the last type argument of
+ -- a derived newtype instance.
+ --
+diff --git a/src/Language/PureScript/TypeChecker/Entailment.hs b/src/Language/PureScript/TypeChecker/Entailment.hs
+index b11f064..f04af7f 100644
+--- a/src/Language/PureScript/TypeChecker/Entailment.hs
++++ b/src/Language/PureScript/TypeChecker/Entailment.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE NamedFieldPuns #-}
++{-# LANGUAGE NamedFieldPuns, CPP #-}
+ 
+ -- |
+ -- Type class entailment
+@@ -143,6 +143,14 @@ instance Monoid t => Monoid (Matched t) where
+   mappend _         Apart     = Apart
+   mappend _         _         = Unknown
+ 
++#if MIN_VERSION_base(4,10,0)
++instance Semigroup t => Semigroup (Matched t) where
++  (<>) (Match l) (Match r)  = Match (l <> r)
++  (<>)  Apart     _         = Apart
++  (<>)  _         Apart     = Apart
++  (<>)  _         _         = Unknown
++#endif
++
+ -- | Check that the current set of type class dictionaries entail the specified type class goal, and, if so,
+ -- return a type class dictionary reference.
+ entails
+-- 
+2.15.2 (Apple Git-101.1)
+

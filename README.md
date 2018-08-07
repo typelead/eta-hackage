@@ -326,6 +326,7 @@ These packages are supported by `etlas`.
 - [proto-lens-0.3.1.0](https://hackage.haskell.org/package/proto-lens)
 - [pure-zlib-0.6](https://hackage.haskell.org/package/pure-zlib-0.6)
 - [pureMD5-2.1.3](https://hackage.haskell.org/package/pureMD5-2.1.3)
+- [purescript-0.12.0](https://hackage.haskell.org/package/purescript-0.12.0)
 - [queue-0.1.2](https://hackage.haskell.org/package/queue-0.1.2)
 - [QuickCheck >= 2.7.6 && <= 2.10.0.1](https://hackage.haskell.org/package/QuickCheck)
 - [quickcheck-io-0.1.4](https://hackage.haskell.org/package/quickcheck-io-0.1.4)
