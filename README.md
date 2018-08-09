@@ -71,6 +71,7 @@ These packages are supported by `etlas`.
 - [agum >= 2.6 && <= 2.7](https://hackage.haskell.org/package/agum)
 - [aig-0.2.6](https://hackage.haskell.org/package/aig-0.2.6)
 - [aivika-5.8](https://hackage.haskell.org/package/aivika-5.8)
+- [aivika-distributed-1.4](https://hackage.haskell.org/package/aivika-distributed-1.4)
 - [alarmclock-0.5.0.2](https://hackage.haskell.org/package/alarmclock-0.5.0.2)
 - [alex-3.2.4](https://hackage.haskell.org/package/alex-3.2.4)
 - [ansi-terminal >= 0.6.2.3 && <= 0.6.3.1 || == 0.7.1.1 || == 0.8.0.4](https://hackage.haskell.org/package/ansi-terminal)
