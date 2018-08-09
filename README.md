@@ -87,6 +87,7 @@ These packages are supported by `etlas`.
 - [array >= 0.5.1.1 && <= 0.5.2.0](https://hackage.haskell.org/package/array)
 - [array-utils-0.3](https://hackage.haskell.org/package/array-utils-0.3)
 - [arrows-0.4.4.2](https://hackage.haskell.org/package/arrows-0.4.4.2)
+- [arx-0.3.2](https://hackage.haskell.org/package/arx-0.3.2)
 - [async-2.1.1.1](https://hackage.haskell.org/package/async-2.1.1.1)
 - [asn1-encoding-0.9.5](https://hackage.haskell.org/package/asn1-encoding-0.9.5)
 - [asn1-parse-0.9.4](https://hackage.haskell.org/package/asn1-parse-0.9.4)
