@@ -1,0 +1,25 @@
+From 18e18158ba8dc8a53696e4cba8771cb4e5730186 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 9 Aug 2018 21:04:40 +0530
+Subject: [PATCH] Patched
+
+---
+ affine.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/affine.cabal b/affine.cabal
+index 75402f6..4f6ac85 100644
+--- a/affine.cabal
++++ b/affine.cabal
+@@ -29,7 +29,7 @@ library
+                      , FlexibleInstances
+                      , StandaloneDeriving
+                      , DeriveFunctor, DeriveFoldable, DeriveTraversable
+-  ghc-options:         -Wall -Wcompat -Wredundant-constraints -Wno-name-shadowing
++  ghc-options:         -Wall -Wno-name-shadowing
+                        -Wincomplete-record-updates -Wincomplete-uni-patterns
+                        -Werror=incomplete-patterns
+                        -Werror=incomplete-uni-patterns
+-- 
+2.15.2 (Apple Git-101.1)
+
