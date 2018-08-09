@@ -63,6 +63,8 @@ These packages are supported by `etlas`.
 - [aeson-filthy-0.1.2](https://hackage.haskell.org/package/aeson-filthy-0.1.2)
 - [aeson-generic-compat-0.0.1.2](https://hackage.haskell.org/package/aeson-generic-compat-0.0.1.2)
 - [aeson-iproute-0.2](https://hackage.haskell.org/package/aeson-iproute-0.2)
+- [aeson-options-0.0.0](https://hackage.haskell.org/package/aeson-options)
+- [aeson-picker-0.1.0.4](https://hackage.haskell.org/package/aeson-picker)
 - [aeson-pretty >= 0.8.2 && <= 0.8.5](https://hackage.haskell.org/package/aeson-pretty)
 - [alex-3.2.4](https://hackage.haskell.org/package/alex-3.2.4)
 - [agum-2.6](https://hackage.haskell.org/package/agum-2.6)
