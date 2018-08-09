@@ -1,0 +1,43 @@
+From 57c6049f5bd0ebc70fff5445ee5f65f82f75e361 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 9 Aug 2018 21:25:54 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Generics/Geniplate.hs | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Data/Generics/Geniplate.hs b/Data/Generics/Geniplate.hs
+index 72bf6a3..bac41b9 100644
+--- a/Data/Generics/Geniplate.hs
++++ b/Data/Generics/Geniplate.hs
+@@ -80,7 +80,7 @@ funDef :: Name -> Exp -> [Dec]
+ funDef f e = [FunD f [Clause [] (NormalB e) []]]
+ 
+ instDef :: Name -> [Type] -> Name -> Exp -> [Dec]
+-#if __GLASGOW_HASKELL__ <= 710
++#if __GLASGOW_HASKELL__ <= 710 && !defined(ETA_VERSION)
+ instDef cls ts met e = [InstanceD [] (foldl AppT (ConT cls) ts) (funDef met e)]
+ #else
+ instDef cls ts met e = [InstanceD Nothing [] (foldl AppT (ConT cls) ts) (funDef met e)]
+@@ -400,7 +400,7 @@ getTyConInfo :: (Quasi q) => Name -> q ([TyVarBndr], [Con])
+ getTyConInfo con = do
+     info <- qReify con
+     case info of
+-#if __GLASGOW_HASKELL__ <= 710
++#if __GLASGOW_HASKELL__ <= 710 && !defined(ETA_VERSION)
+         TyConI (DataD _ _ tvs cs _)   -> return (tvs, cs)
+         TyConI (NewtypeD _ _ tvs c _) -> return (tvs, [c])
+ #else
+@@ -424,7 +424,7 @@ getNameType :: (Quasi q) => Name -> q ([TyVarBndr], Type, Type)
+ getNameType name = do
+     info <- qReify name
+     case info of
+-#if __GLASGOW_HASKELL__ <= 710
++#if __GLASGOW_HASKELL__ <= 710 && !defined(ETA_VERSION)
+         VarI _ t _ _ -> splitType t
+ #else
+         VarI _ t _  -> splitType t
+-- 
+2.15.2 (Apple Git-101.1)
+

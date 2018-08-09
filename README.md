@@ -193,6 +193,7 @@ These packages are supported by `etlas`.
 - [generic-deriving >= 1.10.7 && <= 1.11.2](https://hackage.haskell.org/package/generic-deriving-1.11.2)
 - [GenericPretty-1.2.1](https://hackage.haskell.org/package/GenericPretty-1.2.1)
 - [gdiff-1.1](https://hackage.haskell.org/package/gdiff-1.1)
+- [geniplate-mirror-0.7.6](https://hackage.haskell.org/package/geniplate-mirror-0.7.6)
 - [gray-code-0.3.1](https://hackage.haskell.org/package/gray-code-0.3.1)
 - [ghc-boot-th-8.0.1](https://hackage.haskell.org/package/ghc-boot-th-8.0.1)
 - [Glob >= 0.7.14 && <= 0.9.2](https://hackage.haskell.org/package/Glob)
