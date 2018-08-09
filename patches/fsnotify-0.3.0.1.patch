@@ -1,0 +1,254 @@
+From ebdc245aec69b761eeaa639916f381a6a3efaac9 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 9 Aug 2018 10:59:29 +0530
+Subject: [PATCH] Patched
+
+---
+ fsnotify.cabal                 | 29 ++++-------------------------
+ java/TestUtils.java            | 20 ++++++++++++++++++++
+ java/Utils.java                | 21 +++++++++++++++++++++
+ src/System/FSNotify/Path.hs    | 20 +++++++++++++++-----
+ src/System/FSNotify/Polling.hs | 28 +++++++++++++++++++++-------
+ test/Test.hs                   |  8 ++++++--
+ 6 files changed, 87 insertions(+), 39 deletions(-)
+ create mode 100644 java/TestUtils.java
+ create mode 100644 java/Utils.java
+
+diff --git a/fsnotify.cabal b/fsnotify.cabal
+index 40f830c..fa2ccfb 100644
+--- a/fsnotify.cabal
++++ b/fsnotify.cabal
+@@ -29,7 +29,7 @@ Library
+                         , text >= 0.11.0
+                         , time >= 1.1
+                         , async >= 2.0.1
+-                        , unix-compat >= 0.2
++                        -- , unix-compat >= 0.2
+   Exposed-Modules:        System.FSNotify
+                         , System.FSNotify.Devel
+   Other-Modules:          System.FSNotify.Listener
+@@ -38,25 +38,7 @@ Library
+                         , System.FSNotify.Types
+   Hs-Source-Dirs:       src
+   GHC-Options:          -Wall
+-  if os(linux)
+-    CPP-Options:        -DOS_Linux
+-    Other-Modules:      System.FSNotify.Linux
+-    Build-Depends:      hinotify >= 0.3.0,
+-                        shelly >= 1.6.5,
+-                        unix >= 2.7.1.0
+-  else
+-    if os(windows)
+-      CPP-Options:      -DOS_Win32
+-      Other-Modules:    System.FSNotify.Win32
+-                      , System.Win32.FileNotify
+-                      , System.Win32.Notify
+-      Build-Depends:    Win32
+-      Hs-Source-Dirs:   win-src
+-    else
+-      if os(darwin)
+-        CPP-Options:    -DOS_Mac
+-        Other-Modules:  System.FSNotify.OSX
+-        Build-Depends:  hfsevents >= 0.1.3
++  java-sources:        java/Utils.java
+ 
+ Test-Suite test
+   Type:                 exitcode-stdio-1.0
+@@ -64,11 +46,8 @@ Test-Suite test
+   Other-modules:        EventUtils
+   Hs-Source-Dirs:       test
+   GHC-Options:          -Wall -threaded
+-
+-  if os(windows)
+-    Build-Depends:      base >= 4.3.1.0, tasty >= 0.5, tasty-hunit, directory, filepath, unix-compat, fsnotify, async >= 2, temporary, random, Win32
+-  else
+-    Build-Depends:      base >= 4.3.1.0, tasty >= 0.5, tasty-hunit, directory, filepath, unix-compat, fsnotify, async >= 2, temporary, random
++  java-sources:       java/TestUtils.java
++  Build-Depends:      base >= 4.3.1.0, tasty >= 0.5, tasty-hunit, directory, filepath, fsnotify, async >= 2, temporary, random
+ 
+ Source-Repository head
+   Type:                 git
+diff --git a/java/TestUtils.java b/java/TestUtils.java
+new file mode 100644
+index 0000000..6268607
+--- /dev/null
++++ b/java/TestUtils.java
+@@ -0,0 +1,20 @@
++package eta.fsnotify;
++
++import java.io.IOException;
++import java.io.File;
++import java.io.FileOutputStream;
++
++public class TestUtils {
++  public static void touch(String path) {
++    try {
++      File f = new File(path);
++      if (!f.exists()) {
++        f.createNewFile();
++      } else {
++        f.setLastModified(System.currentTimeMillis());
++      }
++    } catch (IOException e) {
++      // if an exception happens do nothing
++    }
++  }
++}
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..003f92e
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,21 @@
++package eta.fsnotify;
++
++import java.nio.file.Path;
++import java.nio.file.attribute.BasicFileAttributes;
++import java.nio.file.Paths;
++import java.nio.file.Files;
++import java.io.IOException;
++import java.util.concurrent.TimeUnit;
++
++public class Utils {
++  public static BasicFileAttributes getFileStatus(String path) {
++    try {
++      return Files.readAttributes(Paths.get(path), BasicFileAttributes.class);
++    } catch(IOException e) {
++      return null;
++    }
++  }
++  public static long lastModifiedTime(BasicFileAttributes attrs) {
++    return attrs.lastModifiedTime().to(TimeUnit.NANOSECONDS);
++  }
++}
+diff --git a/src/System/FSNotify/Path.hs b/src/System/FSNotify/Path.hs
+index 27cc6a5..de6f911 100644
+--- a/src/System/FSNotify/Path.hs
++++ b/src/System/FSNotify/Path.hs
+@@ -2,7 +2,7 @@
+ -- Copyright (c) 2012 Mark Dittmer - http://www.markdittmer.org
+ -- Developed for a Google Summer of Code project - http://gsoc2012.markdittmer.org
+ --
+-{-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances, FlexibleInstances #-}
++{-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances, FlexibleInstances, ForeignFunctionInterface #-}
+ 
+ module System.FSNotify.Path
+        ( findFiles
+@@ -18,7 +18,8 @@ import qualified Data.Text as T
+ import Prelude hiding (FilePath)
+ import qualified System.Directory as D
+ import System.FilePath
+-import System.PosixCompat.Files as PF
++import Data.Maybe (catMaybes)
++-- import System.PosixCompat.Files as PF
+ 
+ getDirectoryContentsPath :: FilePath -> IO [FilePath]
+ getDirectoryContentsPath path =
+@@ -29,13 +30,22 @@ getDirectoryContentsPath path =
+     dots ".." = True
+     dots _    = False
+ 
++data BasicFileAttributes = BasicFileAttributes @java.nio.file.attribute.BasicFileAttributes
++
++foreign import java unsafe "@static eta.fsnotify.Utils.getFileStatus" getFileStatus
++  :: String -> IO (Maybe BasicFileAttributes)
++
++foreign import java unsafe isRegularFile :: BasicFileAttributes -> Bool
++
++foreign import java unsafe isDirectory :: BasicFileAttributes -> Bool
++
+ fileDirContents :: FilePath -> IO ([FilePath], [FilePath])
+ fileDirContents path = do
+   contents <- getDirectoryContentsPath path
+   stats <- mapM getFileStatus contents
+-  let pairs = zip stats contents
+-  let files = [ f | (s, f) <- pairs, PF.isRegularFile s]
+-  let dirs = [ d | (s, d) <- pairs, PF.isDirectory s]
++  let pairs = zip (catMaybes stats) contents
++  let files = [ f | (s, f) <- pairs, isRegularFile s]
++  let dirs = [ d | (s, d) <- pairs, isDirectory s]
+   return (files, dirs)
+ 
+ findAllFiles :: FilePath -> IO [FilePath]
+diff --git a/src/System/FSNotify/Polling.hs b/src/System/FSNotify/Polling.hs
+index c5d83e0..dca3a01 100644
+--- a/src/System/FSNotify/Polling.hs
++++ b/src/System/FSNotify/Polling.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE ScopedTypeVariables #-}
++{-# LANGUAGE ScopedTypeVariables, ForeignFunctionInterface #-}
+ --
+ -- Copyright (c) 2012 Mark Dittmer - http://www.markdittmer.org
+ -- Developed for a Google Summer of Code project - http://gsoc2012.markdittmer.org
+@@ -24,8 +24,9 @@ import System.FSNotify.Listener
+ import System.FSNotify.Path (findFilesAndDirs, canonicalizeDirPath)
+ import System.FSNotify.Types
+ import System.FilePath
+-import System.PosixCompat.Files
+-import System.PosixCompat.Types
++import Data.Int
++-- import System.PosixCompat.Files
++-- import System.PosixCompat.Types
+ 
+ data EventType = AddedEvent
+                | ModifiedEvent
+@@ -136,9 +137,22 @@ instance FileListener PollManager where
+ 
+   usesPolling = const True
+ 
++data BasicFileAttributes = BasicFileAttributes @java.nio.file.attribute.BasicFileAttributes
+ 
+-getModificationTime :: FilePath -> IO UTCTime
+-getModificationTime p = fromEpoch . modificationTime <$> getFileStatus p
++foreign import java unsafe "@static eta.fsnotify.Utils.getFileStatus" getFileStatus
++  :: String -> IO (Maybe BasicFileAttributes)
++
++foreign import java unsafe "@static eta.directory.Utils.lastModifiedTime"
++  getModifiedTime :: BasicFileAttributes -> IO Int64
+ 
+-fromEpoch :: EpochTime -> UTCTime
+-fromEpoch = posixSecondsToUTCTime . realToFrac
++getModificationTime :: FilePath -> IO UTCTime
++getModificationTime p = do
++  mFileStatus <- getFileStatus p
++  case mFileStatus of
++    Just fs -> do
++      fileModified <- getModifiedTime fs
++      return $ posixSecondsToUTCTime (fromIntegral fileModified / 1000000000)
++    Nothing -> ioError (userError "File not found")
++
++-- fromEpoch :: EpochTime -> UTCTime
++-- fromEpoch = posixSecondsToUTCTime . realToFrac
+diff --git a/test/Test.hs b/test/Test.hs
+index 37ec7f0..f102e55 100644
+--- a/test/Test.hs
++++ b/test/Test.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE CPP, OverloadedStrings, ImplicitParams, MultiWayIf #-}
++{-# LANGUAGE CPP, OverloadedStrings, ImplicitParams, MultiWayIf, ForeignFunctionInterface #-}
+ 
+ import Control.Concurrent
+ import Control.Exception
+@@ -10,7 +10,7 @@ import System.FSNotify
+ import System.FilePath
+ import System.IO
+ import System.IO.Temp
+-import System.PosixCompat.Files
++-- import System.PosixCompat.Files
+ import System.Random as R
+ import Test.Tasty
+ import Test.Tasty.HUnit
+@@ -26,6 +26,10 @@ changeFileAttributes file = do
+   attrs <- getFileAttributes file
+   setFileAttributes file (attrs `xor` fILE_ATTRIBUTE_TEMPORARY)
+ #else
++
++foreign import java unsafe "@static eta.fsnotify.TestUtils.touch" touchFile
++  :: String -> IO ()
++
+ changeFileAttributes :: FilePath -> IO ()
+ changeFileAttributes = touchFile
+ #endif
+-- 
+2.15.2 (Apple Git-101.1)
+
