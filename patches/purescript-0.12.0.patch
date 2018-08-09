@@ -1,96 +1,49 @@
-From 8d782ac35f63b075c7b2ce360bb5189041b2297c Mon Sep 17 00:00:00 2001
-From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Mon, 6 Aug 2018 16:56:13 +0530
+From 12e05c19934395e5759d21d108fd2f98d6b586a5 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Thu, 9 Aug 2018 22:39:48 +0530
 Subject: [PATCH] Patched
 
 ---
- app/Command/Ide.hs                                    |  6 +++---
- purescript.cabal                                      |  7 ++-----
+ src/Control/Monad/Supply/Class.hs                     |  4 +++-
  src/Language/PureScript/Docs/Convert/ReExports.hs     |  7 +++++++
  src/Language/PureScript/Docs/RenderedCode/Types.hs    |  2 +-
  src/Language/PureScript/Errors.hs                     |  2 +-
  src/Language/PureScript/Ide/Filter.hs                 |  2 +-
  src/Language/PureScript/Ide/Matcher.hs                |  2 +-
- src/Language/PureScript/Ide/Watcher.hs                |  2 +-
  src/Language/PureScript/Label.hs                      |  2 +-
  src/Language/PureScript/PSString.hs                   |  2 +-
  src/Language/PureScript/Pretty/Common.hs              |  9 +++++++--
  src/Language/PureScript/Pretty/Types.hs               |  2 +-
  src/Language/PureScript/Pretty/Values.hs              |  2 +-
  src/Language/PureScript/Publish/ErrorsWarnings.hs     |  7 +++++++
+ src/Language/PureScript/Sugar/Names.hs                |  3 ++-
  src/Language/PureScript/Sugar/TypeClasses/Deriving.hs |  9 ++++++++-
  src/Language/PureScript/TypeChecker/Entailment.hs     | 10 +++++++++-
- 16 files changed, 52 insertions(+), 21 deletions(-)
+ src/Language/PureScript/TypeChecker/Monad.hs          |  3 ++-
+ 16 files changed, 53 insertions(+), 15 deletions(-)
 
-diff --git a/app/Command/Ide.hs b/app/Command/Ide.hs
-index a33c33d..64b6f32 100644
---- a/app/Command/Ide.hs
-+++ b/app/Command/Ide.hs
-@@ -36,7 +36,7 @@ import           Language.PureScript.Ide.Command
- import           Language.PureScript.Ide.Util
- import           Language.PureScript.Ide.Error
- import           Language.PureScript.Ide.Types
--import           Language.PureScript.Ide.Watcher
-+-- import           Language.PureScript.Ide.Watcher
- import           Network                           hiding (socketPort, accept)
- import           Network.BSD                       (getProtocolNumber)
- import           Network.Socket                    hiding (PortNumber, Type,
-@@ -119,8 +119,8 @@ command = Opts.helper <*> subcommands where
-       putText "Your output directory didn't exist. This usually means you didn't compile your project yet."
-       putText "psc-ide needs you to compile your project (for example by running pulp build)"
+diff --git a/src/Control/Monad/Supply/Class.hs b/src/Control/Monad/Supply/Class.hs
+index 64038a6..7593672 100644
+--- a/src/Control/Monad/Supply/Class.hs
++++ b/src/Control/Monad/Supply/Class.hs
+@@ -13,6 +13,7 @@ import Control.Monad.Supply
+ import Control.Monad.State
+ import Control.Monad.Writer
+ import Data.Text (Text, pack)
++import Data.Function
  
--    unless (noWatch || editorMode) $
--      void (forkFinally (watcher polling logLevel ideState fullOutputPath) print)
-+    -- unless (noWatch || editorMode) $
-+    --   void (forkFinally (watcher polling logLevel ideState fullOutputPath) print)
-     let
-       conf = IdeConfiguration
-         { confLogLevel = logLevel
-diff --git a/purescript.cabal b/purescript.cabal
-index e5bc04f..3993908 100644
---- a/purescript.cabal
-+++ b/purescript.cabal
-@@ -752,7 +752,6 @@ library
-     , edit-distance
-     , file-embed
-     , filepath
--    , fsnotify >=0.2.1
-     , haskeline >=0.7.0.0
-     , language-javascript >=0.6.0.9 && <0.7
-     , lens ==4.*
-@@ -858,14 +857,14 @@ library
-       Language.PureScript.Ide.Logging
-       Language.PureScript.Ide.Matcher
-       Language.PureScript.Ide.Prim
--      Language.PureScript.Ide.Rebuild
-+      -- Language.PureScript.Ide.Rebuild
-       Language.PureScript.Ide.Reexports
-       Language.PureScript.Ide.SourceFile
-       Language.PureScript.Ide.State
-       Language.PureScript.Ide.Types
-       Language.PureScript.Ide.Usage
-       Language.PureScript.Ide.Util
--      Language.PureScript.Ide.Watcher
-+      -- Language.PureScript.Ide.Watcher
-       Language.PureScript.Interactive
-       Language.PureScript.Interactive.Completion
-       Language.PureScript.Interactive.Directive
-@@ -970,7 +969,6 @@ executable purs
-     , edit-distance
-     , file-embed
-     , filepath
--    , fsnotify >=0.2.1
-     , haskeline >=0.7.0.0
-     , http-types
-     , language-javascript >=0.6.0.9 && <0.7
-@@ -1056,7 +1054,6 @@ test-suite tests
-     , edit-distance
-     , file-embed
-     , filepath
--    , fsnotify >=0.2.1
-     , haskeline >=0.7.0.0
-     , hspec
-     , hspec-discover
+ class Monad m => MonadSupply m where
+   fresh :: m Integer
+@@ -25,7 +26,8 @@ class Monad m => MonadSupply m where
+ instance Monad m => MonadSupply (SupplyT m) where
+   fresh = SupplyT $ do
+     n <- get
+-    put (n + 1)
++    let n' = trampoline n + 1
++    n' `seq` put n'
+     return n
+   peek = SupplyT get
+ 
 diff --git a/src/Language/PureScript/Docs/Convert/ReExports.hs b/src/Language/PureScript/Docs/Convert/ReExports.hs
 index 4d48cb1..046469b 100644
 --- a/src/Language/PureScript/Docs/Convert/ReExports.hs
@@ -165,19 +118,6 @@ index 531a29e..3120182 100644
  
  instance FromJSON (Matcher IdeDeclarationAnn) where
    parseJSON = withObject "matcher" $ \o -> do
-diff --git a/src/Language/PureScript/Ide/Watcher.hs b/src/Language/PureScript/Ide/Watcher.hs
-index 9d42ef9..72707dd 100644
---- a/src/Language/PureScript/Ide/Watcher.hs
-+++ b/src/Language/PureScript/Ide/Watcher.hs
-@@ -25,7 +25,7 @@ import                Language.PureScript.Ide.Externs
- import                Language.PureScript.Ide.State
- import                Language.PureScript.Ide.Types
- import                Language.PureScript.Ide.Util
--import                System.FSNotify
-+-- import                System.FSNotify
- import                System.FilePath
- 
- -- | Reloads an ExternsFile from Disc. If the Event indicates the ExternsFile
 diff --git a/src/Language/PureScript/Label.hs b/src/Language/PureScript/Label.hs
 index b00db4f..92324ff 100644
 --- a/src/Language/PureScript/Label.hs
@@ -282,6 +222,27 @@ index 8067395..c2825d3 100644
  
  collectWarnings :: [PackageWarning] -> CollectedWarnings
  collectWarnings = foldMap singular
+diff --git a/src/Language/PureScript/Sugar/Names.hs b/src/Language/PureScript/Sugar/Names.hs
+index afa770f..69d739b 100644
+--- a/src/Language/PureScript/Sugar/Names.hs
++++ b/src/Language/PureScript/Sugar/Names.hs
+@@ -19,6 +19,7 @@ import Control.Monad.State.Lazy
+ import Control.Monad.Writer (MonadWriter(..), censor)
+ 
+ import Data.Maybe (fromMaybe, mapMaybe)
++import Data.Function (trampoline)
+ import qualified Data.Map as M
+ import qualified Data.Set as S
+ 
+@@ -115,7 +116,7 @@ desugarImportsWithEnv externs modules = do
+       let (_, imps, exps) = fromMaybe (internalError "Module is missing in renameInModule'") $ M.lookup mn env
+       (m', used) <- flip runStateT M.empty $ renameInModule imps m
+       let m'' = elaborateExports exps m'
+-      lintImports m'' env used
++      lintImports m'' env (trampoline used)
+       return m''
+ 
+ -- |
 diff --git a/src/Language/PureScript/Sugar/TypeClasses/Deriving.hs b/src/Language/PureScript/Sugar/TypeClasses/Deriving.hs
 index a91cbe7..56d20b2 100644
 --- a/src/Language/PureScript/Sugar/TypeClasses/Deriving.hs
@@ -332,6 +293,27 @@ index b11f064..f04af7f 100644
  -- | Check that the current set of type class dictionaries entail the specified type class goal, and, if so,
  -- return a type class dictionary reference.
  entails
+diff --git a/src/Language/PureScript/TypeChecker/Monad.hs b/src/Language/PureScript/TypeChecker/Monad.hs
+index dcc40cc..5b64a93 100644
+--- a/src/Language/PureScript/TypeChecker/Monad.hs
++++ b/src/Language/PureScript/TypeChecker/Monad.hs
+@@ -13,6 +13,7 @@ import Control.Monad.Error.Class (MonadError(..))
+ import Control.Monad.State
+ import Control.Monad.Writer.Class (MonadWriter(..), censor)
+ 
++import Data.Function (trampoline)
+ import Data.Maybe
+ import qualified Data.Map as M
+ import Data.Text (Text)
+@@ -307,7 +308,7 @@ withFreshSubstitution ma = do
+   orig <- get
+   modify $ \st -> st { checkSubstitution = emptySubstitution }
+   a <- ma
+-  modify $ \st -> st { checkSubstitution = checkSubstitution orig }
++  modify $ \st -> (trampoline st) { checkSubstitution = checkSubstitution orig }
+   return a
+ 
+ withoutWarnings
 -- 
-2.15.2 (Apple Git-101.1)
+2.7.4 (Apple Git-66)
 

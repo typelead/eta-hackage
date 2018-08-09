@@ -752,6 +752,7 @@ library
     , edit-distance
     , file-embed
     , filepath
+    , fsnotify >=0.2.1
     , haskeline >=0.7.0.0
     , language-javascript >=0.6.0.9 && <0.7
     , lens ==4.*
@@ -857,14 +858,14 @@ library
       Language.PureScript.Ide.Logging
       Language.PureScript.Ide.Matcher
       Language.PureScript.Ide.Prim
-      -- Language.PureScript.Ide.Rebuild
+      Language.PureScript.Ide.Rebuild
       Language.PureScript.Ide.Reexports
       Language.PureScript.Ide.SourceFile
       Language.PureScript.Ide.State
       Language.PureScript.Ide.Types
       Language.PureScript.Ide.Usage
       Language.PureScript.Ide.Util
-      -- Language.PureScript.Ide.Watcher
+      Language.PureScript.Ide.Watcher
       Language.PureScript.Interactive
       Language.PureScript.Interactive.Completion
       Language.PureScript.Interactive.Directive
@@ -969,6 +970,7 @@ executable purs
     , edit-distance
     , file-embed
     , filepath
+    , fsnotify >=0.2.1
     , haskeline >=0.7.0.0
     , http-types
     , language-javascript >=0.6.0.9 && <0.7
@@ -1054,6 +1056,7 @@ test-suite tests
     , edit-distance
     , file-embed
     , filepath
+    , fsnotify >=0.2.1
     , haskeline >=0.7.0.0
     , hspec
     , hspec-discover
