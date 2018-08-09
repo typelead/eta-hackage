@@ -1,0 +1,34 @@
+From aaa983c30f8513052bc6bb6c93cebba1991fc245 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Fri, 10 Aug 2018 00:44:37 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Csv/Conversion.hs | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Data/Csv/Conversion.hs b/Data/Csv/Conversion.hs
+index 5746120..f51d9db 100644
+--- a/Data/Csv/Conversion.hs
++++ b/Data/Csv/Conversion.hs
+@@ -22,7 +22,7 @@
+ # define MIN_VERSION_text_short(a,b,c) 0
+ #endif
+ 
+-#if !defined(MIN_VERSION_text_short)
++#if !defined(MIN_VERSION_text_short) && !defined(ETA_VERSION)
+ # error **INVARIANT BROKEN** Detected invalid combination of `text-short` and `bytestring` versions. Please verify the `pre-bytestring-0.10-4` flag-logic in the .cabal file wasn't elided.
+ #endif
+ 
+@@ -1370,7 +1370,7 @@ instance GToNamedRecordHeader a => GToNamedRecordHeader (M1 C c a)
+ 
+ -- | Instance to ensure that you cannot derive DefaultOrdered for
+ -- constructors without selectors.
+-#if MIN_VERSION_base(4,9,0)
++#if MIN_VERSION_base(4,9,0) && !defined(ETA_VERSION)
+ instance DefaultOrdered (M1 S ('MetaSel 'Nothing srcpk srcstr decstr) a ())
+          => GToNamedRecordHeader (M1 S ('MetaSel 'Nothing srcpk srcstr decstr) a)
+ #else
+-- 
+2.15.2 (Apple Git-101.1)
+
