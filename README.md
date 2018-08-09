@@ -60,6 +60,7 @@ These packages are supported by `etlas`.
 - [aeson-compat >= 0.3.7.1 && <= 0.3.8](https://hackage.haskell.org/package/aeson-diff-1.1.0.5)
 - [aeson-diff-1.1.0.5](https://hackage.haskell.org/package/aeson-diff)
 - [aeson-filthy-0.1.2](https://hackage.haskell.org/package/aeson-filthy-0.1.2)
+- [aeson-generic-compat-0.0.1.2](https://hackage.haskell.org/package/aeson-generic-compat-0.0.1.2)
 - [aeson-pretty >= 0.8.2 && <= 0.8.5](https://hackage.haskell.org/package/aeson-pretty)
 - [alex-3.2.4](https://hackage.haskell.org/package/alex-3.2.4)
 - [agum-2.6](https://hackage.haskell.org/package/agum-2.6)
