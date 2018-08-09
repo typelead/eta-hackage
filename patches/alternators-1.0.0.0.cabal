@@ -1,0 +1,35 @@
+name:                alternators
+version:             1.0.0.0
+synopsis:            Handy functions when using transformers.
+description:         Useful monads built on top of transformers. Please see README.md
+homepage:            https://github.com/louispan/alternators#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Louis Pan
+maintainer:          louis@pan.me
+copyright:           2017 Louis Pan
+category:            Control
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+Tested-With:         GHC == 8.4.1
+
+library
+  hs-source-dirs:      src
+  exposed-modules:
+                       Control.Also
+                       Control.Monad.Delegate
+                       Control.Monad.Trans.Maybe.Extras
+  build-depends:       base >= 4.7 && < 5
+                     , mmorph >= 1
+                     , mtl >= 2
+                     , stm >= 2.4
+                     , newtype-generics >= 0.5
+                     , transformers >= 0.4
+                     , lens >= 4
+  ghc-options:         -Wall
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/louispan/alternators

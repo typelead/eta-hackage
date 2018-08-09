@@ -1,0 +1,39 @@
+From bab0a074874ba58d2078543e447354ed78fe8b4d Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 9 Aug 2018 22:57:46 +0530
+Subject: [PATCH] Patched
+
+---
+ alternators.cabal             | 2 +-
+ src/Control/Monad/Delegate.hs | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/alternators.cabal b/alternators.cabal
+index 326a2cc..a6a267e 100644
+--- a/alternators.cabal
++++ b/alternators.cabal
+@@ -27,7 +27,7 @@ library
+                      , newtype-generics >= 0.5
+                      , transformers >= 0.4
+                      , lens >= 4
+-  ghc-options:         -Wall -Wredundant-constraints
++  ghc-options:         -Wall
+   default-language:    Haskell2010
+ 
+ source-repository head
+diff --git a/src/Control/Monad/Delegate.hs b/src/Control/Monad/Delegate.hs
+index e395559..7bd71d2 100644
+--- a/src/Control/Monad/Delegate.hs
++++ b/src/Control/Monad/Delegate.hs
+@@ -4,7 +4,7 @@
+ {-# LANGUAGE FunctionalDependencies #-}
+ {-# LANGUAGE MultiParamTypeClasses #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+-{-# LANGUAGE TypeApplications #-}
++-- {-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE UndecidableInstances #-}
+ 
+ module Control.Monad.Delegate where
+-- 
+2.15.2 (Apple Git-101.1)
+
