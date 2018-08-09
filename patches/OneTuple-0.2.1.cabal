@@ -1,0 +1,14 @@
+Name:            OneTuple
+Version:         0.2.1
+Synopsis:        Singleton Tuple
+Description:     Singleton Tuple
+Copyright:       (c) John Dorsey 2008
+License:	 BSD3
+License-file:    LICENSE
+Author:          John Dorsey <haskell@colquitt.org>
+Maintainer:      John Dorsey <haskell@colquitt.org>
+Stability:       experimental
+Build-type:      Simple
+Build-depends:   base
+Exposed-Modules: Data.Tuple.OneTuple
+

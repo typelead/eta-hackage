@@ -1,0 +1,48 @@
+From c957be9a9a01717b060e7fbd3700d77901a4266f Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 9 Aug 2018 19:25:40 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Tuple/OneTuple.hs | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/Data/Tuple/OneTuple.hs b/Data/Tuple/OneTuple.hs
+index 2d84020..b30f6dd 100644
+--- a/Data/Tuple/OneTuple.hs
++++ b/Data/Tuple/OneTuple.hs
+@@ -1,8 +1,8 @@
+ 
+ -- |OneTuple fills the /tuple gap/ with a singleton tuple.
+--- 
++--
+ -- OneTuple /does not support/ the usual parenthesized tuple syntax.
+--- 
++--
+ -- OneTuple
+ --
+ --   * has the expected laziness properties
+@@ -13,7 +13,7 @@
+ --     including all those supported by H98-standard tuples
+ --
+ --   * requires no language extensions, except for hierarchical modules
+-
++{-# LANGUAGE CPP #-}
+ module Data.Tuple.OneTuple (OneTuple(OneTuple), only) where
+ 
+ import Control.Applicative
+@@ -73,6 +73,10 @@ instance (Monoid a) => Monoid (OneTuple a) where
+     mappend (OneTuple x) (OneTuple y) = OneTuple (mappend x y)
+     mconcat = Prelude.foldr1 mappend
+ 
++#if MIN_VERSION_base(4,10,0)
++instance (Semigroup a) => Semigroup (OneTuple a) where
++    OneTuple x <> OneTuple y = OneTuple (x <> y)
++#endif
++
+ instance MonadFix OneTuple where
+     mfix f = let a = f (only a) in a
+-
+-- 
+2.15.2 (Apple Git-101.1)
+

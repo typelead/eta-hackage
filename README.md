@@ -296,6 +296,7 @@ These packages are supported by `etlas`.
 - [NumInstances-1.4](https://hackage.haskell.org/package/NumInstances-1.4)
 - [old-locale-1.0.0.7](https://hackage.haskell.org/package/old-locale-1.0.0.7)
 - [old-time-1.1.0.3](https://hackage.haskell.org/package/old-time-1.1.0.3)
+- [OneTuple-0.2.1](https://hackage.haskell.org/package/OneTuple-0.2.1)
 - [Only-0.1](https://hackage.haskell.org/package/Only-0.1)
 - [operational-0.2.3.5](https://hackage.haskell.org/package/operational-0.2.3.5)
 - [optparse-applicative >= 0.13.2.0 && <= 0.14.0.0 || == 0.14.0.2](https://hackage.haskell.org/package/optparse-applicative)
