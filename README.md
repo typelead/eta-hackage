@@ -59,6 +59,7 @@ These packages are supported by `etlas`.
 - [aeson == 0.11.0.0 || >= 0.11.3.0 && <= 1.2.3.0](https://hackage.haskell.org/package/aeson)
 - [aeson-compat >= 0.3.7.1 && <= 0.3.8](https://hackage.haskell.org/package/aeson-diff-1.1.0.5)
 - [aeson-diff-1.1.0.5](https://hackage.haskell.org/package/aeson-diff)
+- [aeson-extra-0.4.1.1](https://hackage.haskell.org/package/aeson-extra-0.4.1.1)
 - [aeson-filthy-0.1.2](https://hackage.haskell.org/package/aeson-filthy-0.1.2)
 - [aeson-generic-compat-0.0.1.2](https://hackage.haskell.org/package/aeson-generic-compat-0.0.1.2)
 - [aeson-pretty >= 0.8.2 && <= 0.8.5](https://hackage.haskell.org/package/aeson-pretty)
