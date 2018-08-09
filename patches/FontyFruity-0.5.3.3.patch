@@ -1,0 +1,68 @@
+From 29e6ef13e0389a379ceb10eb526cfa9328ae2231 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 9 Aug 2018 23:53:55 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Graphics/Text/TrueType/Bytecode.hs | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/src/Graphics/Text/TrueType/Bytecode.hs b/src/Graphics/Text/TrueType/Bytecode.hs
+index 84a82be..e8e0da4 100644
+--- a/src/Graphics/Text/TrueType/Bytecode.hs
++++ b/src/Graphics/Text/TrueType/Bytecode.hs
+@@ -21,7 +21,7 @@ type InstructionFlag = Bool
+ 
+ data Instruction
+     -- | Pop one argument from the stack
+-    = AA 
++    = AA
+     | ABS
+     | ADD
+     | ALIGNPTS
+@@ -182,7 +182,7 @@ data DistanceKeeping
+     deriving (Eq, Show)
+ 
+ data ByteCodeProgram
+-    = If     [ByteCodeProgram]
++    = If1     [ByteCodeProgram]
+     | IfElse [ByteCodeProgram] [ByteCodeProgram]
+     | Function [ByteCodeProgram]
+     | Sequence [Instruction]
+@@ -196,7 +196,7 @@ instructionToProgram = firstOfThird . go []
+     go acc [] = (reverse acc, [], [])
+     go acc (IF : rest) =
+       case go [] rest of
+-        (ifBranch, [], final) -> go (If ifBranch : acc) final
++        (ifBranch, [], final) -> go (If1 ifBranch : acc) final
+         (ifBranch, elseBranch, final) ->
+             go (IfElse ifBranch elseBranch : acc) final
+     go acc (EIF : rest) = (reverse acc, [], rest)
+@@ -211,7 +211,7 @@ instructionToProgram = firstOfThird . go []
+ inRange :: Ord a => a -> (a, a) -> Bool
+ inRange v (lo, hi) = lo <= v && v <= hi
+ 
+-getInstr :: Get Instruction 
++getInstr :: Get Instruction
+ getInstr = getWord8 >>= go
+   where
+     mirpParse x constructor = constructor reset distance rounding distanceType
+@@ -436,8 +436,8 @@ evaluate :: [ByteCodeProgram] -> ()
+ evaluate instrs =
+   where
+     byteExec []                        stack = stack
+-    byteExec (If        _ : instr) (0:stack) = byteExec instr stack
+-    byteExec (If thenBody : instr) (_:stack) = byteExec (thenBody ++ instr) stack
++    byteExec (If1        _ : instr) (0:stack) = byteExec instr stack
++    byteExec (If1 thenBody : instr) (_:stack) = byteExec (thenBody ++ instr) stack
+     byteExec (IfElse _ elseBody)   (0:stack) = byteExec (elseBody ++ instr) stack
+     byteExec (IfElse thenBody _)   (_:stack) = byteExec (thenBody ++ instr) stack
+     byteExec (Function functionBody : instr) (id:stack) =
+@@ -445,4 +445,3 @@ evaluate instrs =
+     byteExec (Sequence intructions : rest) stack = go instructions stack >>= byteExec rest
+ 
+ #endif
+-
+-- 
+2.15.2 (Apple Git-101.1)
+

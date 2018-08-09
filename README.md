@@ -202,6 +202,7 @@ These packages are supported by `etlas`.
 - [foundation >= 0.0.17 && <= 0.0.18](https://hackage.haskell.org/package/foundation)
 - [free-4.12.4](https://hackage.haskell.org/package/free-4.12.4)
 - [fsnotify-0.3.0.1](https://hackage.haskell.org/package/fsnotify-0.3.0.1)
+- [FontyFruity-0.5.3.3](https://hackage.haskell.org/package/FontyFruity-0.5.3.3)
 - [FloatingHex-0.4](https://hackage.haskell.org/package/FloatingHex-0.4)
 - [garsia-wachs-1.2](https://hackage.haskell.org/package/garsia-wachs-1.2)
 - [generic-deriving >= 1.10.7 && <= 1.11.2](https://hackage.haskell.org/package/generic-deriving-1.11.2)
