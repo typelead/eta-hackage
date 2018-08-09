@@ -1,18 +1,43 @@
-From 9882287fc44aa8e075ae13271fc4c3e0222bd1e8 Mon Sep 17 00:00:00 2001
+From 33cdd88fee37d2ddec5379d7d5d3e243b3cda79e Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 31 Jul 2018 01:39:20 +0530
+Date: Thu, 9 Aug 2018 19:46:29 +0530
 Subject: [PATCH] Patched
 
 ---
- dist/build/Language/JavaScript/Parser/Lexer.hs | 4 ++++
- 1 file changed, 4 insertions(+)
+ dist/build/Language/JavaScript/Parser/Grammar5.hs | 2 +-
+ dist/build/Language/JavaScript/Parser/Lexer.hs    | 9 +++++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
+diff --git a/dist/build/Language/JavaScript/Parser/Grammar5.hs b/dist/build/Language/JavaScript/Parser/Grammar5.hs
+index 2b43125..ee0e87e 100644
+--- a/dist/build/Language/JavaScript/Parser/Grammar5.hs
++++ b/dist/build/Language/JavaScript/Parser/Grammar5.hs
+@@ -4907,7 +4907,7 @@ happyReturn1 = happyReturn
+ happyError' :: () => ((Token), [String]) -> Alex a
+ happyError' tk = (\(tokens, _) -> parseError tokens) tk
+ parseProgram = happySomeParser where
+- happySomeParser = happyThen (happyParse 0#) (\x -> happyReturn (happyOut161 x))
++ happySomeParser = happyThen (trampolineAlex (happyParse 0#)) (\x -> happyReturn (happyOut161 x))
+ 
+ parseLiteral = happySomeParser where
+  happySomeParser = happyThen (happyParse 1#) (\x -> happyReturn (happyOut162 x))
 diff --git a/dist/build/Language/JavaScript/Parser/Lexer.hs b/dist/build/Language/JavaScript/Parser/Lexer.hs
-index 194890c..6b534fc 100644
+index 194890c..9be4d7e 100644
 --- a/dist/build/Language/JavaScript/Parser/Lexer.hs
 +++ b/dist/build/Language/JavaScript/Parser/Lexer.hs
-@@ -19,11 +19,15 @@ import Language.JavaScript.Parser.Token
+@@ -10,6 +10,7 @@ module Language.JavaScript.Parser.Lexer
+     , alexError
+     , runAlex
+     , alexTestTokeniser
++    , trampolineAlex
+     ) where
+ 
+ import Language.JavaScript.Parser.LexerUtils
+@@ -17,13 +18,18 @@ import Language.JavaScript.Parser.ParserMonad
+ import Language.JavaScript.Parser.SrcLocation
+ import Language.JavaScript.Parser.Token
  import qualified Data.Map as Map
++import Data.Function
  
  
 +#ifdef ETA_VERSION
@@ -27,6 +52,16 @@ index 194890c..6b534fc 100644
  #if __GLASGOW_HASKELL__ >= 503
  import Data.Array
  import Data.Array.Base (unsafeAt)
+@@ -415,6 +421,9 @@ runAlex input__ (Alex f)
+ 
+ newtype Alex a = Alex { unAlex :: AlexState -> Either String (AlexState, a) }
+ 
++trampolineAlex :: Alex a -> Alex a
++trampolineAlex (Alex act) = Alex $ \s -> trampoline (act s)
++
+ instance Functor Alex where
+   fmap f a = Alex $ \s -> case unAlex a s of
+                             Left msg -> Left msg
 -- 
 2.7.4 (Apple Git-66)
 
