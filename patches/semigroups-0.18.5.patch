@@ -1,0 +1,25 @@
+From a18b5688425342ff952c15faebb153578e4a7ac7 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 9 Aug 2018 19:48:58 +0530
+Subject: [PATCH] Patched
+
+---
+ semigroups.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/semigroups.cabal b/semigroups.cabal
+index 9f8a772..e52a2e2 100644
+--- a/semigroups.cabal
++++ b/semigroups.cabal
+@@ -126,7 +126,7 @@ library
+       Data.Semigroup.Generic
+ 
+   -- legacy configuration
+-  if impl(ghc < 7.11.20151002)
++  if impl(ghc < 7.11.20151002) && impl(eta < 0.8.4)
+     -- starting with GHC 8 these modules are provided by `base`
+     hs-source-dirs: src-ghc7
+     exposed-modules:
+-- 
+2.15.2 (Apple Git-101.1)
+
