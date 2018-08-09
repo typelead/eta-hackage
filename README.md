@@ -97,6 +97,7 @@ These packages are supported by `etlas`.
 - [authenticate-1.3.4](https://hackage.haskell.org/package/authenticate-1.3.4)
 - [authenticate-oauth-1.6](https://hackage.haskell.org/package/authenticate-oauth-1.6)
 - [avro-0.3.2.0](https://hackage.haskell.org/package/avro-0.3.2.0)
+- [aws-0.20](https://hackage.haskell.org/package/aws-0.20)
 - [basement >= 0.0.4 && <= 0.0.6](https://hackage.haskell.org/package/basement)
 - [base-compat >= 0.9.1 && <= 0.10.4](https://hackage.haskell.org/package/base-compat)
 - [base-orphans >= 0.5.4 && <= 0.8](https://hackage.haskell.org/package/base-orphans)
