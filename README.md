@@ -464,7 +464,7 @@ These packages are supported by `etlas`.
 - [x509-store-1.6.5](https://hackage.haskell.org/package/x509-store-1.6.5)
 - [x509-system-1.6.6](https://hackage.haskell.org/package/x509-system-1.6.6)
 - [x509-validation-1.6.9](https://hackage.haskell.org/package/x509-validation-1.6.9)
-- [xhtml-3000.2.1](https://hackage.haskell.org/package/xhtml-3000.2.1)
+- [xhtml >= 3000.2.1 && <= 3000.2.2.1](https://hackage.haskell.org/package/xhtml-3000.2.1)
 - [xml-1.3.5](https://hackage.haskell.org/package/xml-1.3.5)
 - [xml-types-0.3.6](https://hackage.haskell.org/package/xml-types-0.3.6)
 - [xmlhtml >= 0.2.3.5 && <= 0.2.5.2](https://hackage.haskell.org/package/xmlhtml)

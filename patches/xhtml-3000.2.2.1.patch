@@ -1,0 +1,524 @@
+From b9c020074183149b1c5701bfb33037c72a6e6632 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Fri, 10 Aug 2018 11:13:47 +0530
+Subject: [PATCH] Patched
+
+---
+ Text/XHtml/Debug.hs        | 14 +++++-----
+ Text/XHtml/Extras.hs       | 16 +++++------
+ Text/XHtml/Frameset.hs     | 16 +++++------
+ Text/XHtml/Internals.hs    | 70 +++++++++++++++++++++++-----------------------
+ Text/XHtml/Strict.hs       | 14 +++++-----
+ Text/XHtml/Table.hs        | 32 ++++++++++-----------
+ Text/XHtml/Transitional.hs | 16 +++++------
+ 7 files changed, 89 insertions(+), 89 deletions(-)
+
+diff --git a/Text/XHtml/Debug.hs b/Text/XHtml/Debug.hs
+index fc71d7a..13b51d8 100644
+--- a/Text/XHtml/Debug.hs
++++ b/Text/XHtml/Debug.hs
+@@ -34,13 +34,13 @@ treeHtml colors h = table ! [
+ 
+       treeHtml' :: [String] -> HtmlTree -> HtmlTable
+       treeHtml' _ (HtmlLeaf leaf) = cell
+-                                         (td ! [width "100%"] 
+-                                            << bold  
++                                         (td ! [width "100%"]
++                                            << bold
+                                                << leaf)
+       treeHtml' (c:cs@(c2:_)) (HtmlNode hopen ts hclose) =
+           if null ts && isNoHtml hclose
+           then
+-              cell hd 
++              cell hd
+           else if null ts
+           then
+               hd </> bar `beside` (td ! [bgcolor' c2] << spaceHtml)
+@@ -57,7 +57,7 @@ treeHtml colors h = table ! [
+               tl = td ! [bgcolor' c] << hclose
+       treeHtml' _ _ = error "The imposible happens"
+ 
+-instance HTML HtmlTree where
++instance HTML1 HtmlTree where
+       toHtml x = treeHtml treeColors x
+ 
+ -- type "length treeColors" to see how many colors are here.
+@@ -65,15 +65,15 @@ treeColors :: [String]
+ treeColors = ["#88ccff","#ffffaa","#ffaaff","#ccffff"] ++ treeColors
+ 
+ 
+--- 
++--
+ -- * Html Debugging Combinators
+ --
+ 
+ -- | This uses the above tree rendering function, and displays the
+ -- Html as a tree structure, allowing debugging of what is
+ -- actually getting produced.
+-debugHtml :: (HTML a) => a -> Html
+-debugHtml obj = table ! [border 0] << 
++debugHtml :: (HTML1 a) => a -> Html
++debugHtml obj = table ! [border 0] <<
+                   ( th ! [bgcolor' "#008888"]
+                      << underline'
+                        << "Debugging Output"
+diff --git a/Text/XHtml/Extras.hs b/Text/XHtml/Extras.hs
+index 5208625..b3d02e2 100644
+--- a/Text/XHtml/Extras.hs
++++ b/Text/XHtml/Extras.hs
+@@ -11,12 +11,12 @@ import Text.XHtml.Strict.Attributes
+ -- | Convert a 'String' to 'Html', converting
+ --   characters that need to be escaped to HTML entities.
+ stringToHtml :: String -> Html
+-stringToHtml = primHtml . stringToHtmlString 
++stringToHtml = primHtml . stringToHtmlString
+ 
+ -- | This converts a string, but keeps spaces as non-line-breakable.
+ lineToHtml :: String -> Html
+-lineToHtml = primHtml . concatMap htmlizeChar2 . stringToHtmlString 
+-   where 
++lineToHtml = primHtml . concatMap htmlizeChar2 . stringToHtmlString
++   where
+       htmlizeChar2 ' ' = "&nbsp;"
+       htmlizeChar2 c   = [c]
+ 
+@@ -62,7 +62,7 @@ data HotLink = HotLink {
+       hotLinkAttributes :: [HtmlAttr]
+       } deriving Show
+ 
+-instance HTML HotLink where
++instance HTML1 HotLink where
+       toHtml hl = anchor ! (href (hotLinkURL hl) : hotLinkAttributes hl)
+                       << hotLinkContents hl
+ 
+@@ -76,19 +76,19 @@ hotlink url h = HotLink {
+       hotLinkAttributes = [] }
+ 
+ 
+--- 
++--
+ -- * Lists
+ --
+ 
+ -- (Abridged from Erik Meijer's Original Html library)
+ 
+-ordList   :: (HTML a) => [a] -> Html
++ordList   :: (HTML1 a) => [a] -> Html
+ ordList items = olist << map (li <<) items
+ 
+-unordList :: (HTML a) => [a] -> Html
++unordList :: (HTML1 a) => [a] -> Html
+ unordList items = ulist << map (li <<) items
+ 
+-defList   :: (HTML a,HTML b) => [(a,b)] -> Html
++defList   :: (HTML1 a,HTML1 b) => [(a,b)] -> Html
+ defList items
+  = dlist << [ [ dterm << dt, ddef << dd ] | (dt,dd) <- items ]
+ 
+diff --git a/Text/XHtml/Frameset.hs b/Text/XHtml/Frameset.hs
+index becfb39..65661c0 100644
+--- a/Text/XHtml/Frameset.hs
++++ b/Text/XHtml/Frameset.hs
+@@ -3,14 +3,14 @@ module Text.XHtml.Frameset (
+      -- * Data types
+      Html, HtmlAttr,
+      -- * Classes
+-     HTML(..), ADDATTRS(..), CHANGEATTRS(..),
++     HTML1(..), ADDATTRS(..), CHANGEATTRS(..),
+      -- * Primitives and basic combinators
+-     (<<), concatHtml, (+++), 
++     (<<), concatHtml, (+++),
+      noHtml, isNoHtml, tag, itag,
+      htmlAttrPair, emptyAttr, intAttr, strAttr, htmlAttr,
+-     primHtml, 
++     primHtml,
+      -- * Rendering
+-     showHtml, renderHtml, prettyHtml, 
++     showHtml, renderHtml, prettyHtml,
+      showHtmlFragment, renderHtmlFragment, prettyHtmlFragment,
+      module Text.XHtml.Strict.Elements,
+      module Text.XHtml.Frameset.Elements,
+@@ -36,18 +36,18 @@ docType =
+ -- | Output the HTML without adding newlines or spaces within the markup.
+ --   This should be the most time and space efficient way to
+ --   render HTML, though the ouput is quite unreadable.
+-showHtml :: HTML html => html -> String
++showHtml :: HTML1 html => html -> String
+ showHtml = showHtmlInternal docType
+ 
+ -- | Outputs indented HTML. Because space matters in
+ --   HTML, the output is quite messy.
+-renderHtml :: HTML html => html -> String
++renderHtml :: HTML1 html => html -> String
+ renderHtml = renderHtmlInternal docType
+ 
+ -- | Outputs indented HTML, with indentation inside elements.
+---   This can change the meaning of the HTML document, and 
++--   This can change the meaning of the HTML document, and
+ --   is mostly useful for debugging the HTML output.
+ --   The implementation is inefficient, and you are normally
+ --   better off using 'showHtml' or 'renderHtml'.
+-prettyHtml :: HTML html => html -> String
++prettyHtml :: HTML1 html => html -> String
+ prettyHtml = prettyHtmlInternal docType
+diff --git a/Text/XHtml/Internals.hs b/Text/XHtml/Internals.hs
+index 20218b9..16e7e2c 100644
+--- a/Text/XHtml/Internals.hs
++++ b/Text/XHtml/Internals.hs
+@@ -72,27 +72,27 @@ instance Mon.Monoid Html where
+     mempty = noHtml
+     mappend = (Sem.<>)
+ 
+--- | HTML is the class of things that can be validly put
+--- inside an HTML tag. So this can be one or more 'Html' elements,
++-- | HTML1 is the class of things that can be validly put
++-- inside an HTML1 tag. So this can be one or more 'Html' elements,
+ -- or a 'String', for example.
+-class HTML a where
++class HTML1 a where
+       toHtml     :: a -> Html
+       toHtmlFromList :: [a] -> Html
+ 
+       toHtmlFromList xs = Html (concat [ x | (Html x) <- map toHtml xs])
+ 
+-instance HTML Html where
++instance HTML1 Html where
+       toHtml a    = a
+ 
+-instance HTML Char where
++instance HTML1 Char where
+       toHtml       a = toHtml [a]
+       toHtmlFromList []  = Html []
+       toHtmlFromList str = Html [HtmlString (stringToHtmlString str)]
+ 
+-instance (HTML a) => HTML [a] where
++instance (HTML1 a) => HTML1 [a] where
+       toHtml xs = toHtmlFromList xs
+ 
+-instance HTML a => HTML (Maybe a) where
++instance HTML1 a => HTML1 (Maybe a) where
+       toHtml = maybe noHtml toHtml
+ 
+ class ADDATTRS a where
+@@ -127,27 +127,27 @@ instance CHANGEATTRS Html where
+ -- * Html primitives and basic combinators
+ --
+ 
+--- | Put something inside an HTML element.
+-(<<) :: (HTML a) =>
++-- | Put something inside an HTML1 element.
++(<<) :: (HTML1 a) =>
+         (Html -> b) -- ^ Parent
+      -> a -- ^ Child
+      -> b
+ fn << arg = fn (toHtml arg)
+ 
+ 
+-concatHtml :: (HTML a) => [a] -> Html
++concatHtml :: (HTML1 a) => [a] -> Html
+ concatHtml as = Html (concat (map (getHtmlElements.toHtml) as))
+ 
+--- | Create a piece of HTML which is the concatenation
+---   of two things which can be made into HTML.
+-(+++) :: (HTML a,HTML b) => a -> b -> Html
++-- | Create a piece of HTML1 which is the concatenation
++--   of two things which can be made into HTML1.
++(+++) :: (HTML1 a,HTML1 b) => a -> b -> Html
+ a +++ b = Html (getHtmlElements (toHtml a) ++ getHtmlElements (toHtml b))
+ 
+--- | An empty piece of HTML.
++-- | An empty piece of HTML1.
+ noHtml :: Html
+ noHtml = Html []
+ 
+--- | Checks whether the given piece of HTML is empty.
++-- | Checks whether the given piece of HTML1 is empty.
+ isNoHtml :: Html -> Bool
+ isNoHtml (Html xs) = null xs
+ 
+@@ -216,62 +216,62 @@ primHtml x | null x    = Html []
+ -- * Html Rendering
+ --
+ 
+-mkHtml :: HTML html => html -> Html
++mkHtml :: HTML1 html => html -> Html
+ mkHtml = (tag "html" ! [strAttr "xmlns" "http://www.w3.org/1999/xhtml"] <<)
+ 
+--- | Output the HTML without adding newlines or spaces within the markup.
++-- | Output the HTML1 without adding newlines or spaces within the markup.
+ --   This should be the most time and space efficient way to
+---   render HTML, though the ouput is quite unreadable.
+-showHtmlInternal :: HTML html =>
++--   render HTML1, though the ouput is quite unreadable.
++showHtmlInternal :: HTML1 html =>
+                     String -- ^ DOCTYPE declaration
+                  -> html -> String
+ showHtmlInternal docType theHtml =
+     docType ++ showHtmlFragment (mkHtml theHtml)
+ 
+--- | Outputs indented HTML. Because space matters in
+---   HTML, the output is quite messy.
+-renderHtmlInternal :: HTML html =>
++-- | Outputs indented HTML1. Because space matters in
++--   HTML1, the output is quite messy.
++renderHtmlInternal :: HTML1 html =>
+                       String  -- ^ DOCTYPE declaration
+                    -> html -> String
+ renderHtmlInternal docType theHtml =
+       docType ++ "\n" ++ renderHtmlFragment (mkHtml theHtml) ++ "\n"
+ 
+--- | Outputs indented HTML, with indentation inside elements.
+---   This can change the meaning of the HTML document, and
+---   is mostly useful for debugging the HTML output.
++-- | Outputs indented HTML1, with indentation inside elements.
++--   This can change the meaning of the HTML1 document, and
++--   is mostly useful for debugging the HTML1 output.
+ --   The implementation is inefficient, and you are normally
+ --   better off using 'showHtml' or 'renderHtml'.
+-prettyHtmlInternal :: HTML html =>
++prettyHtmlInternal :: HTML1 html =>
+                       String -- ^ DOCTYPE declaration
+                    -> html -> String
+ prettyHtmlInternal docType theHtml =
+     docType ++ "\n" ++ prettyHtmlFragment (mkHtml theHtml)
+ 
+--- | Render a piece of HTML without adding a DOCTYPE declaration
++-- | Render a piece of HTML1 without adding a DOCTYPE declaration
+ --   or root element. Does not add any extra whitespace.
+-showHtmlFragment :: HTML html => html -> String
++showHtmlFragment :: HTML1 html => html -> String
+ showHtmlFragment h =
+     (foldr (.) id $ map showHtml' $ getHtmlElements $ toHtml h) ""
+ 
+--- | Render a piece of indented HTML without adding a DOCTYPE declaration
++-- | Render a piece of indented HTML1 without adding a DOCTYPE declaration
+ --   or root element. Only adds whitespace where it does not change
+ --   the meaning of the document.
+-renderHtmlFragment :: HTML html => html -> String
++renderHtmlFragment :: HTML1 html => html -> String
+ renderHtmlFragment h =
+     (foldr (.) id $ map (renderHtml' 0) $ getHtmlElements $ toHtml h) ""
+ 
+--- | Render a piece of indented HTML without adding a DOCTYPE declaration
++-- | Render a piece of indented HTML1 without adding a DOCTYPE declaration
+ --   or a root element.
+ --   The indentation is done inside elements.
+---   This can change the meaning of the HTML document, and
+---   is mostly useful for debugging the HTML output.
++--   This can change the meaning of the HTML1 document, and
++--   is mostly useful for debugging the HTML1 output.
+ --   The implementation is inefficient, and you are normally
+ --   better off using 'showHtmlFragment' or 'renderHtmlFragment'.
+-prettyHtmlFragment :: HTML html => html -> String
++prettyHtmlFragment :: HTML1 html => html -> String
+ prettyHtmlFragment =
+     unlines . concat . map prettyHtml' . getHtmlElements . toHtml
+ 
+--- | Show a single HTML element, without adding whitespace.
++-- | Show a single HTML1 element, without adding whitespace.
+ showHtml' :: HtmlElement -> ShowS
+ showHtml' (HtmlString str) = (++) str
+ showHtml'(HtmlTag { markupTag = name,
+diff --git a/Text/XHtml/Strict.hs b/Text/XHtml/Strict.hs
+index c51f9bf..a496f97 100644
+--- a/Text/XHtml/Strict.hs
++++ b/Text/XHtml/Strict.hs
+@@ -3,9 +3,9 @@ module Text.XHtml.Strict (
+      -- * Data types
+      Html, HtmlAttr,
+      -- * Classes
+-     HTML(..), ADDATTRS(..), CHANGEATTRS(..),
++     HTML1(..), ADDATTRS(..), CHANGEATTRS(..),
+      -- * Primitives and basic combinators
+-     (<<), concatHtml, (+++), 
++     (<<), concatHtml, (+++),
+      noHtml, isNoHtml, tag, itag,
+      htmlAttrPair, emptyAttr, intAttr, strAttr, htmlAttr,
+      primHtml, stringToHtmlString,
+@@ -31,17 +31,17 @@ docType = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\""
+ -- | Output the HTML without adding newlines or spaces within the markup.
+ --   This should be the most time and space efficient way to
+ --   render HTML, though the ouput is quite unreadable.
+-showHtml :: HTML html => html -> String
++showHtml :: HTML1 html => html -> String
+ showHtml = showHtmlInternal docType
+ 
+ -- | Outputs indented HTML. Because space matters in
+ --   HTML, the output is quite messy.
+-renderHtml :: HTML html => html -> String
++renderHtml :: HTML1 html => html -> String
+ renderHtml = renderHtmlInternal docType
+ 
+ -- | Outputs indented XHTML. Because space matters in
+ --   HTML, the output is quite messy.
+-renderHtmlWithLanguage :: HTML html
++renderHtmlWithLanguage :: HTML1 html
+                        => String -- ^ The code of the "dominant" language of the webpage.
+                        -> html -- ^ All the 'Html', including a header.
+                        -> String
+@@ -54,9 +54,9 @@ renderHtmlWithLanguage l theHtml =
+                            ] << theHtml
+ 
+ -- | Outputs indented HTML, with indentation inside elements.
+---   This can change the meaning of the HTML document, and 
++--   This can change the meaning of the HTML document, and
+ --   is mostly useful for debugging the HTML output.
+ --   The implementation is inefficient, and you are normally
+ --   better off using 'showHtml' or 'renderHtml'.
+-prettyHtml :: HTML html => html -> String
++prettyHtml :: HTML1 html => html -> String
+ prettyHtml = prettyHtmlInternal docType
+diff --git a/Text/XHtml/Table.hs b/Text/XHtml/Table.hs
+index c243673..fc76fd3 100644
+--- a/Text/XHtml/Table.hs
++++ b/Text/XHtml/Table.hs
+@@ -1,6 +1,6 @@
+ -- | Table combinators for XHTML.
+-module Text.XHtml.Table (HtmlTable, HTMLTABLE(..),
+-                        (</>), above, (<->), beside, 
++module Text.XHtml.Table (HtmlTable, HTMLTABLE1(..),
++                        (</>), above, (<->), beside,
+                          aboves, besides,
+                          simpleTable) where
+ 
+@@ -11,27 +11,27 @@ import Text.XHtml.Strict.Attributes
+ import qualified Text.XHtml.BlockTable as BT
+ 
+ 
+-infixr 3 </>  -- combining table cells 
++infixr 3 </>  -- combining table cells
+ infixr 4 <->  -- combining table cells
+ 
+ --
+ -- * Tables
+ --
+ 
+-class HTMLTABLE ht where
++class HTMLTABLE1 ht where
+       cell :: ht -> HtmlTable
+ 
+-instance HTMLTABLE HtmlTable where
++instance HTMLTABLE1 HtmlTable where
+       cell = id
+ 
+-instance HTMLTABLE Html where
+-      cell h = 
++instance HTMLTABLE1 Html where
++      cell h =
+          let
+               cellFn x y = h ! (add x colspan $ add y rowspan $ [])
+               add 1 _  rest = rest
+               add n fn rest = fn n : rest
+               r = BT.single cellFn
+-         in 
++         in
+               mkHtmlTable r
+ 
+ -- | We internally represent the Cell inside a Table with an
+@@ -42,7 +42,7 @@ instance HTMLTABLE Html where
+ -- When we render it later, we find out how many columns
+ -- or rows this cell will span over, and can
+ -- include the correct colspan\/rowspan command.
+-newtype HtmlTable 
++newtype HtmlTable
+       = HtmlTable (BT.BlockTable (Int -> Int -> Html))
+ 
+ 
+@@ -53,7 +53,7 @@ mkHtmlTable r = HtmlTable r
+ -- Notice that there is no concept of a row/column
+ -- of zero items.
+ 
+-(</>),above,(<->),beside :: (HTMLTABLE ht1,HTMLTABLE ht2)
++(</>),above,(<->),beside :: (HTMLTABLE1 ht1,HTMLTABLE1 ht2)
+                        => ht1 -> ht2 -> HtmlTable
+ above   a b = combine BT.above (cell a) (cell b)
+ (</>)         = above
+@@ -72,11 +72,11 @@ combine fn (HtmlTable a) (HtmlTable b) = mkHtmlTable (a `fn` b)
+ -- here is no concept of a empty row or column in these
+ -- table combinators.
+ 
+-aboves :: (HTMLTABLE ht) => [ht] -> HtmlTable
++aboves :: (HTMLTABLE1 ht) => [ht] -> HtmlTable
+ aboves []  = error "aboves []"
+ aboves xs  = foldr1 (</>) (map cell xs)
+ 
+-besides :: (HTMLTABLE ht) => [ht] -> HtmlTable
++besides :: (HTMLTABLE1 ht) => [ht] -> HtmlTable
+ besides [] = error "besides []"
+ besides xs = foldr1 (<->) (map cell xs)
+ 
+@@ -88,7 +88,7 @@ renderTable theTable
+           [tr << [theCell x y | (theCell,(x,y)) <- theRow ]
+                       | theRow <- BT.getMatrix theTable]
+ 
+-instance HTML HtmlTable where
++instance HTML1 HtmlTable where
+       toHtml (HtmlTable tab) = renderTable tab
+ 
+ instance Show HtmlTable where
+@@ -103,13 +103,13 @@ instance Show HtmlTable where
+ -- and this function will build the table for you.
+ -- It does presume that all the lists are non-empty,
+ -- and there is at least one list.
+---  
++--
+ -- Different length lists means that the last cell
+ -- gets padded. If you want more power, then
+ -- use the system above, or build tables explicitly.
+ simpleTable :: [HtmlAttr] -> [HtmlAttr] -> [[Html]] -> Html
+ simpleTable attr cellAttr lst
+-      = table ! attr 
+-          <<  (aboves 
++      = table ! attr
++          <<  (aboves
+               . map (besides . map ((td ! cellAttr) . toHtml))
+               ) lst
+diff --git a/Text/XHtml/Transitional.hs b/Text/XHtml/Transitional.hs
+index 97f6430..fbc7487 100644
+--- a/Text/XHtml/Transitional.hs
++++ b/Text/XHtml/Transitional.hs
+@@ -3,14 +3,14 @@ module Text.XHtml.Transitional (
+      -- * Data types
+      Html, HtmlAttr,
+      -- * Classes
+-     HTML(..), ADDATTRS(..), CHANGEATTRS(..),
++     HTML1(..), ADDATTRS(..), CHANGEATTRS(..),
+      -- * Primitives and basic combinators
+-     (<<), concatHtml, (+++), 
++     (<<), concatHtml, (+++),
+      noHtml, isNoHtml, tag, itag,
+      htmlAttrPair, emptyAttr, intAttr, strAttr, htmlAttr,
+-     primHtml, 
++     primHtml,
+      -- * Rendering
+-     showHtml, renderHtml, prettyHtml, 
++     showHtml, renderHtml, prettyHtml,
+      showHtmlFragment, renderHtmlFragment, prettyHtmlFragment,
+      module Text.XHtml.Strict.Elements,
+      module Text.XHtml.Frameset.Elements,
+@@ -42,18 +42,18 @@ docType =
+ -- | Output the HTML without adding newlines or spaces within the markup.
+ --   This should be the most time and space efficient way to
+ --   render HTML, though the ouput is quite unreadable.
+-showHtml :: HTML html => html -> String
++showHtml :: HTML1 html => html -> String
+ showHtml = showHtmlInternal docType
+ 
+ -- | Outputs indented HTML. Because space matters in
+ --   HTML, the output is quite messy.
+-renderHtml :: HTML html => html -> String
++renderHtml :: HTML1 html => html -> String
+ renderHtml = renderHtmlInternal docType
+ 
+ -- | Outputs indented HTML, with indentation inside elements.
+---   This can change the meaning of the HTML document, and 
++--   This can change the meaning of the HTML document, and
+ --   is mostly useful for debugging the HTML output.
+ --   The implementation is inefficient, and you are normally
+ --   better off using 'showHtml' or 'renderHtml'.
+-prettyHtml :: HTML html => html -> String
++prettyHtml :: HTML1 html => html -> String
+ prettyHtml = prettyHtmlInternal docType
+-- 
+2.15.2 (Apple Git-101.1)
+
