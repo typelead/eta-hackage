@@ -261,7 +261,7 @@ These packages are supported by `etlas`.
 - [iproute-1.7.1](https://hackage.haskell.org/package/iproute-1.7.1)
 - [iso8601-time-0.1.4](https://hackage.haskell.org/package/iso8601-time-0.1.4)
 - [ix-shapable-0.1.0](https://hackage.haskell.org/package/ix-shapable-0.1.0)
-- [JuicyPixels-3.2.9.5](http://hackage.haskell.org/package/JuicyPixels)
+- [JuicyPixels >=3.2.9.5 && <= 3.3](http://hackage.haskell.org/package/JuicyPixels)
 - [js-flot-0.8.3](https://hackage.haskell.org/package/js-flot-0.8.3)
 - [js-jquery >= 3.1.1 && <= 3.2.1](https://hackage.haskell.org/package/js-jquery)
 - [kan-extensions-5.0.1](https://hackage.haskell.org/package/kan-extensions-5.0.1)

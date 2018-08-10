@@ -1,0 +1,84 @@
+From be3683270c5c51a2232cad9ce1f4e7df1b0f8331 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Fri, 10 Aug 2018 22:41:22 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Codec/Picture/Jpg.hs       |  4 ++--
+ src/Codec/Picture/Jpg/Types.hs | 10 +++++-----
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/Codec/Picture/Jpg.hs b/src/Codec/Picture/Jpg.hs
+index 7d6d190..2047d37 100644
+--- a/src/Codec/Picture/Jpg.hs
++++ b/src/Codec/Picture/Jpg.hs
+@@ -287,7 +287,7 @@ emptyDecoderState = JpgDecoderState
+ -- | This pseudo interpreter interpret the Jpg frame for the huffman,
+ -- quant table and restart interval parameters.
+ jpgMachineStep :: JpgFrame -> JpgScripter s ()
+-jpgMachineStep (JpgAdobeAPP14 app14) = modify $ \s ->
++jpgMachineStep (JpgAdobeAPP14_ app14) = modify $ \s ->
+     s { app14Marker = Just app14 }
+ jpgMachineStep (JpgExif exif) = modify $ \s ->
+     s { app1ExifMarker = Just exif }
+@@ -889,7 +889,7 @@ instance JpgEncodable PixelYCbCr8 where
+         }
+ 
+ instance JpgEncodable PixelRGB8 where
+-  additionalBlocks _ = [JpgAdobeAPP14 adobe14] where
++  additionalBlocks _ = [JpgAdobeAPP14_ adobe14] where
+     adobe14 = JpgAdobeApp14
+         { _adobeDctVersion = 100
+         , _adobeFlag0      = 0
+diff --git a/src/Codec/Picture/Jpg/Types.hs b/src/Codec/Picture/Jpg/Types.hs
+index c3ec175..571dd54 100644
+--- a/src/Codec/Picture/Jpg/Types.hs
++++ b/src/Codec/Picture/Jpg/Types.hs
+@@ -108,7 +108,7 @@ data JpgFrameKind =
+ 
+ data JpgFrame =
+       JpgAppFrame        !Word8 B.ByteString
+-    | JpgAdobeAPP14      !JpgAdobeApp14
++    | JpgAdobeAPP14_     !JpgAdobeApp14
+     | JpgJFIF            !JpgJFIFApp0
+     | JpgExif            ![ImageFileDirectory]
+     | JpgExtension       !Word8 B.ByteString
+@@ -432,7 +432,7 @@ takeCurrentFrame = do
+     getByteString (fromIntegral size - 2)
+ 
+ putFrame :: JpgFrame -> Put
+-putFrame (JpgAdobeAPP14 adobe) = 
++putFrame (JpgAdobeAPP14_ adobe) =
+     put (JpgAppSegment 14) >> putWord16be 14 >> put adobe
+ putFrame (JpgJFIF jfif) =
+     put (JpgAppSegment 0) >> putWord16be (14+2) >> put jfif
+@@ -480,7 +480,7 @@ parseAdobe14 :: B.ByteString -> [JpgFrame] -> [JpgFrame]
+ parseAdobe14 str lst = go where
+   go = case runGetStrict get str of
+     Left _err -> lst
+-    Right app14 -> JpgAdobeAPP14 app14 : lst
++    Right app14 -> JpgAdobeAPP14_ app14 : lst
+ 
+ -- | Parse JFIF or JFXX information. Right now only JFIF.
+ parseJF__  :: B.ByteString -> [JpgFrame] -> [JpgFrame]
+@@ -490,7 +490,7 @@ parseJF__  str lst = go where
+     Right jfif -> JpgJFIF jfif : lst
+ 
+ parseExif :: B.ByteString -> [JpgFrame] -> [JpgFrame]
+-parseExif str lst 
++parseExif str lst
+   | exifHeader `B.isPrefixOf` str = go
+   | otherwise = lst
+   where
+@@ -511,7 +511,7 @@ putExif ifds = putAll where
+   ifdList = case partition (isInIFD0 . ifdIdentifier) ifds of
+     (ifd0, []) -> [ifd0]
+     (ifd0, ifdExif) -> [ifd0 <> pure exifOffsetIfd, ifdExif]
+-  
++
+   exifBlob = runPut $ do
+     putByteString $ BC.pack "Exif\0\0"
+     putP BC.empty (hdr, ifdList)
+-- 
+2.15.2 (Apple Git-101.1)
+
