@@ -1,0 +1,27 @@
+From 08e28a9e4c10a2cbea213bf91a600a3159346106 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 10 Aug 2018 22:24:49 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Test/Hspec/Core/FailureReport.hs | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/Test/Hspec/Core/FailureReport.hs b/src/Test/Hspec/Core/FailureReport.hs
+index 0c85a17..a9dce66 100644
+--- a/src/Test/Hspec/Core/FailureReport.hs
++++ b/src/Test/Hspec/Core/FailureReport.hs
+@@ -8,6 +8,10 @@ module Test.Hspec.Core.FailureReport (
+ import           Prelude ()
+ import           Test.Hspec.Core.Compat
+ 
++#ifdef ETA_VERSION
++#define __GHCJS__
++#endif
++
+ #ifndef __GHCJS__
+ import           System.SetEnv
+ import           Test.Hspec.Core.Util (safeTry)
+-- 
+2.7.4 (Apple Git-66)
+
