@@ -60,6 +60,20 @@ library
                      , text
                      , transformers
                      , zlib
+  java-sources:        java/Utils.java
+                       java/Adler32.java
+                       java/CRC32.java
+                       java/Checksum.java
+                       java/Deflate.java
+                       java/GZIPHeader.java
+                       java/Inflate.java
+                       java/InfBlocks.java
+                       java/InfCodes.java
+                       java/InfTree.java
+                       java/JZlib.java
+                       java/StaticTree.java
+                       java/Tree.java
+                       java/ZStream.java
 
   if flag(use-bytestring-builder)
     build-depends:     bytestring < 0.10.2.0
@@ -99,11 +113,6 @@ test-suite test
                      , bytestring-builder
   else
     build-depends:     bytestring >= 0.10.2.0
-
-  if os(windows)
-    cpp-options:       -DWINDOWS
-  else
-    build-depends:     unix
 
 benchmark count-chars
     type: exitcode-stdio-1.0
