@@ -1,13 +1,14 @@
-From 0a0157e8dd35514ab7497c2d5e98ac103b9c7f54 Mon Sep 17 00:00:00 2001
-From: rpeszek <peszeks@gmail.com>
-Date: Mon, 18 Sep 2017 19:41:40 -0600
+From a6bf686172d1c2f41e249784990d36132a4b5b3f Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Fri, 10 Aug 2018 11:53:36 +0530
 Subject: [PATCH] Patched
 
 ---
- servant-server.cabal                     | 48 +++++++++++++++--------------
- src/Servant/Utils/StaticFiles.hs         | 46 ++++++++++++++--------------
- src/Servant/Utils/StaticFilesWaiPatch.hs | 52 ++++++++++++++++++++++++++++++++
- 3 files changed, 102 insertions(+), 44 deletions(-)
+ servant-server.cabal                              | 48 +++++++++++----------
+ src/Servant/Server/Internal/RoutingApplication.hs | 28 +++++++++++-
+ src/Servant/Utils/StaticFiles.hs                  | 46 ++++++++++----------
+ src/Servant/Utils/StaticFilesWaiPatch.hs          | 52 +++++++++++++++++++++++
+ 4 files changed, 128 insertions(+), 46 deletions(-)
  create mode 100644 src/Servant/Utils/StaticFilesWaiPatch.hs
 
 diff --git a/servant-server.cabal b/servant-server.cabal
@@ -98,6 +99,70 @@ index 70445d0..6f90bbf 100644
  
  test-suite spec
    type: exitcode-stdio-1.0
+diff --git a/src/Servant/Server/Internal/RoutingApplication.hs b/src/Servant/Server/Internal/RoutingApplication.hs
+index 9488a70..8b4639f 100644
+--- a/src/Servant/Server/Internal/RoutingApplication.hs
++++ b/src/Servant/Server/Internal/RoutingApplication.hs
+@@ -17,11 +17,12 @@ module Servant.Server.Internal.RoutingApplication where
+ import           Control.Monad                      (ap, liftM)
+ import           Control.Monad.Base                 (MonadBase (..))
+ import           Control.Monad.Catch                (MonadThrow (..))
+-import           Control.Monad.Reader               (MonadReader (..), ReaderT, runReaderT)
++import           Control.Monad.Reader               (MonadReader (..), ReaderT(..), runReaderT)
+ import           Control.Monad.Trans                (MonadIO (..), MonadTrans (..))
+ import           Control.Monad.Trans.Control        (ComposeSt, MonadBaseControl (..), MonadTransControl (..),
+                                                      defaultLiftBaseWith, defaultRestoreM)
+-import           Control.Monad.Trans.Resource       (MonadResource (..), ResourceT, runResourceT, transResourceT)
++import           Control.Monad.Trans.Resource       (MonadResource (..), ResourceT, runResourceT, transResourceT,
++                                                     withInternalState, runInternalState)
+ import           Network.Wai                        (Application, Request, Response, ResponseReceived)
+ import           Prelude                            ()
+ import           Prelude.Compat
+@@ -194,6 +195,7 @@ instance Functor (Delayed env) where
+ -- 'RouteResult, meaning they can either suceed, fail
+ -- (with the possibility to recover), or fail fatally.
+ --
++#if !MIN_VERSION_base(4,10,0)
+ newtype DelayedIO a = DelayedIO { runDelayedIO' :: ReaderT Request (ResourceT (RouteResultT IO)) a }
+   deriving
+     ( Functor, Applicative, Monad
+@@ -202,14 +204,36 @@ newtype DelayedIO a = DelayedIO { runDelayedIO' :: ReaderT Request (ResourceT (R
+     , MonadThrow
+     , MonadResource
+     )
++#else
++newtype DelayedIO a = DelayedIO { runDelayedIO' :: ReaderT Request (ResourceT (RouteResultT IO)) a }
++  deriving
++    ( Functor, Applicative, Monad
++    , MonadIO, MonadReader Request
++    , MonadThrow
++    , MonadResource
++    )
++
++instance MonadBase IO DelayedIO where
++    liftBase = liftIO
++#endif
+ 
+ liftRouteResult :: RouteResult a -> DelayedIO a
+ liftRouteResult x = DelayedIO $ lift . lift $ RouteResultT . return $ x
+ 
++#if !MIN_VERSION_base(4,10,0)
+ instance MonadBaseControl IO DelayedIO where
+     type StM DelayedIO a = StM (ReaderT Request (ResourceT (RouteResultT IO))) a
+     liftBaseWith f = DelayedIO $ liftBaseWith $ \g -> f (g . runDelayedIO')
+     restoreM       = DelayedIO . restoreM
++#else
++
++instance MonadBaseControl IO DelayedIO where
++    type StM DelayedIO a = RouteResult a
++    liftBaseWith f = DelayedIO $ ReaderT $ \req -> withInternalState $ \s ->
++          liftBaseWith $ \runInBase -> f $ \x ->
++              runInBase (runInternalState (runReaderT (runDelayedIO' x) req) s)
++    restoreM      = DelayedIO . lift . withInternalState . const . restoreM
++#endif
+ 
+ runDelayedIO :: DelayedIO a -> Request -> ResourceT IO (RouteResult a)
+ runDelayedIO m req = transResourceT runRouteResultT $ runReaderT (runDelayedIO' m) req
 diff --git a/src/Servant/Utils/StaticFiles.hs b/src/Servant/Utils/StaticFiles.hs
 index 12fa5e4..6b18627 100644
 --- a/src/Servant/Utils/StaticFiles.hs
@@ -246,5 +311,5 @@ index 0000000..19b2c19
 +     then fmap DIR.readable $ DIR.getPermissions filePath
 +     else return False
 -- 
-2.7.1
+2.15.2 (Apple Git-101.1)
 
