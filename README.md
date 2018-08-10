@@ -100,6 +100,7 @@ These packages are supported by `etlas`.
 - [aws-0.20](https://hackage.haskell.org/package/aws-0.20)
 - [basement >= 0.0.4 && <= 0.0.6](https://hackage.haskell.org/package/basement)
 - [base-compat >= 0.9.1 && <= 0.10.4](https://hackage.haskell.org/package/base-compat)
+- [base-compat-batteries-0.10.4](https://hackage.haskell.org/package/base-compat-batteries-0.10.4)
 - [base-orphans >= 0.5.4 && <= 0.8](https://hackage.haskell.org/package/base-orphans)
 - [base-prelude-1.2.0.1](https://hackage.haskell.org/package/base-prelude-1.2.0.1)
 - [base16-bytestring-0.1.1.6](https://hackage.haskell.org/package/base16-bytestring-0.1.1.6)
