@@ -239,6 +239,7 @@ These packages are supported by `etlas`.
 - [hspec-core >= 2.4.3 && <= 2.4.6](https://hackage.haskell.org/package/hspec-core-2.4.6)
 - [hspec-discover-2.4.3](https://hackage.haskell.org/package/hspec-discover-2.4.3)
 - [hspec-expectations-0.8.2](https://hackage.haskell.org/package/hspec-expectations-0.8.2)
+- [html-1.0.1.2](https://hackage.haskell.org/package/html-1.0.1.2)
 - [html-truncate-0.3.0.0](https://hackage.haskell.org/package/html-truncate-0.3.0.0)
 - [http2 >= 1.6.2 && <= 1.6.3](https://hackage.haskell.org/package/http2)
 - [http-api-data >= 0.3.5 && <= 0.3.7.1](https://hackage.haskell.org/package/http-api-data)

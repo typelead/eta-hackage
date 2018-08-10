@@ -1,0 +1,399 @@
+From a51e68f0ce050c9889ef0872530543d6171e5d9d Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Fri, 10 Aug 2018 11:02:20 +0530
+Subject: [PATCH] Patched
+
+---
+ Text/Html.hs | 127 +++++++++++++++++++++++++++++------------------------------
+ 1 file changed, 63 insertions(+), 64 deletions(-)
+
+diff --git a/Text/Html.hs b/Text/Html.hs
+index 352fc62..152f6df 100644
+--- a/Text/Html.hs
++++ b/Text/Html.hs
+@@ -3,7 +3,7 @@
+ -- Module      :  Text.Html
+ -- Copyright   :  (c) Andy Gill and OGI, 1999-2001
+ -- License     :  BSD-style (see the file libraries/base/LICENSE)
+--- 
++--
+ -- Maintainer  :  Andy Gill <andy@galconn.com>
+ -- Stability   :  provisional
+ -- Portability :  portable
+@@ -18,7 +18,7 @@ module Text.Html (
+ 
+ import qualified Text.Html.BlockTable as BT
+ 
+-infixr 3 </>  -- combining table cells 
++infixr 3 </>  -- combining table cells
+ infixr 4 <->  -- combining table cells
+ infixr 2 +++  -- combining Html
+ infixr 7 <<   -- nesting Html
+@@ -45,7 +45,7 @@ data HtmlElement
+ 
+ {- These are the index-value pairs.
+  - The empty string is a synonym for tags with no arguments.
+- - (not strictly HTML, but anyway).
++ - (not strictly HTML1, but anyway).
+  -}
+ 
+ 
+@@ -58,21 +58,21 @@ newtype Html = Html { getHtmlElements :: [HtmlElement] }
+ -- inside MARKUP tag brackets. So this can be one or more Html's,
+ -- or a String, for example.
+ 
+-class HTML a where
++class HTML1 a where
+       toHtml     :: a -> Html
+       toHtmlFromList :: [a] -> Html
+ 
+       toHtmlFromList xs = Html (concat [ x | (Html x) <- map toHtml xs])
+ 
+-instance HTML Html where
++instance HTML1 Html where
+       toHtml a    = a
+ 
+-instance HTML Char where
++instance HTML1 Char where
+       toHtml       a = toHtml [a]
+       toHtmlFromList []  = Html []
+       toHtmlFromList str = Html [HtmlString (stringToHtmlString str)]
+ 
+-instance (HTML a) => HTML [a] where
++instance (HTML1 a) => HTML1 [a] where
+       toHtml xs = toHtmlFromList xs
+ 
+ class ADDATTRS a where
+@@ -89,14 +89,14 @@ instance ADDATTRS Html where
+               addAttrs html = html
+ 
+ 
+-(<<)            :: (HTML a) => (Html -> b) -> a        -> b
++(<<)            :: (HTML1 a) => (Html -> b) -> a        -> b
+ fn << arg = fn (toHtml arg)
+ 
+ 
+-concatHtml :: (HTML a) => [a] -> Html
++concatHtml :: (HTML1 a) => [a] -> Html
+ concatHtml as = Html (concat (map (getHtmlElements.toHtml) as))
+ 
+-(+++) :: (HTML a,HTML b) => a -> b -> Html
++(+++) :: (HTML1 a,HTML1 b) => a -> b -> Html
+ a +++ b = Html (getHtmlElements (toHtml a) ++ getHtmlElements (toHtml b))
+ 
+ noHtml :: Html
+@@ -127,13 +127,13 @@ strAttr s t = HtmlAttr s t
+ 
+ 
+ {-
+-foldHtml :: (String -> [HtmlAttr] -> [a] -> a) 
++foldHtml :: (String -> [HtmlAttr] -> [a] -> a)
+       -> (String -> a)
+       -> Html
+       -> a
+-foldHtml f g (HtmlTag str attr fmls) 
+-      = f str attr (map (foldHtml f g) fmls) 
+-foldHtml f g (HtmlString  str)           
++foldHtml f g (HtmlTag str attr fmls)
++      = f str attr (map (foldHtml f g) fmls)
++foldHtml f g (HtmlString  str)
+       = g str
+ 
+ -}
+@@ -146,7 +146,7 @@ stringToHtmlString = concatMap fixChar
+       fixChar '>' = "&gt;"
+       fixChar '&' = "&amp;"
+       fixChar '"' = "&quot;"
+-      fixChar c   = [c]               
++      fixChar c   = [c]
+ 
+ -- ---------------------------------------------------------------------------
+ -- Classes
+@@ -156,7 +156,7 @@ instance Show Html where
+       showList htmls   = showString (concat (map show htmls))
+ 
+ instance Show HtmlAttr where
+-      showsPrec _ (HtmlAttr str val) = 
++      showsPrec _ (HtmlAttr str val) =
+               showString str .
+               showString "=" .
+               shows val
+@@ -170,8 +170,8 @@ type URL = String
+ -- ---------------------------------------------------------------------------
+ -- Basic primitives
+ 
+--- This is not processed for special chars. 
+--- use stringToHtml or lineToHtml instead, for user strings, 
++-- This is not processed for special chars.
++-- use stringToHtml or lineToHtml instead, for user strings,
+ -- because they  understand special chars, like '<'.
+ 
+ primHtml      :: String                                -> Html
+@@ -181,13 +181,13 @@ primHtml x    = Html [HtmlString x]
+ -- Basic Combinators
+ 
+ stringToHtml          :: String                       -> Html
+-stringToHtml = primHtml . stringToHtmlString 
++stringToHtml = primHtml . stringToHtmlString
+ 
+ -- This converts a string, but keeps spaces as non-line-breakable
+ 
+ lineToHtml            :: String                       -> Html
+-lineToHtml = primHtml . concatMap htmlizeChar2 . stringToHtmlString 
+-   where 
++lineToHtml = primHtml . concatMap htmlizeChar2 . stringToHtmlString
++   where
+       htmlizeChar2 ' ' = "&nbsp;"
+       htmlizeChar2 c   = [c]
+ 
+@@ -323,7 +323,7 @@ th                  =  tag "TH"
+ thebase             = itag "BASE"
+ thecode             =  tag "CODE"
+ thediv              =  tag "DIV"
+-thehtml             =  tag "HTML"
++thehtml             =  tag "HTML1"
+ thelink             =  tag "LINK"
+ themap              =  tag "MAP"
+ thespan             =  tag "SPAN"
+@@ -533,7 +533,7 @@ validHtmlTags = [
+       "TH",
+       "CODE",
+       "DIV",
+-      "HTML",
++      "HTML1",
+       "LINK",
+       "MAP",
+       "TITLE",
+@@ -692,38 +692,38 @@ p             = paragraph
+ -- ---------------------------------------------------------------------------
+ -- Html tables
+ 
+-class HTMLTABLE ht where
++class HTMLTABLE1 ht where
+       cell :: ht -> HtmlTable
+ 
+-instance HTMLTABLE HtmlTable where
++instance HTMLTABLE1 HtmlTable where
+       cell = id
+ 
+-instance HTMLTABLE Html where
+-      cell h = 
++instance HTMLTABLE1 Html where
++      cell h =
+          let
+               cellFn x y = h ! (add x colspan $ add y rowspan $ [])
+               add 1 fn rest = rest
+               add n fn rest = fn n : rest
+               r = BT.single cellFn
+-         in 
++         in
+               mkHtmlTable r
+ 
+ -- We internally represent the Cell inside a Table with an
+ -- object of the type
+ -- \pre{
+ -- 	   Int -> Int -> Html
+--- } 	
++-- }
+ -- When we render it later, we find out how many columns
+ -- or rows this cell will span over, and can
+ -- include the correct colspan/rowspan command.
+ 
+-newtype HtmlTable 
++newtype HtmlTable
+       = HtmlTable (BT.BlockTable (Int -> Int -> Html))
+ 
+ 
+-(</>),above,(<->),beside :: (HTMLTABLE ht1,HTMLTABLE ht2)
++(</>),above,(<->),beside :: (HTMLTABLE1 ht1,HTMLTABLE1 ht2)
+                        => ht1 -> ht2 -> HtmlTable
+-aboves,besides                 :: (HTMLTABLE ht) => [ht] -> HtmlTable
++aboves,besides                 :: (HTMLTABLE1 ht) => [ht] -> HtmlTable
+ simpleTable            :: [HtmlAttr] -> [HtmlAttr] -> [[Html]] -> Html
+ 
+ 
+@@ -760,7 +760,7 @@ renderTable theTable
+           [tr << [theCell x y | (theCell,(x,y)) <- theRow ]
+                       | theRow <- BT.getMatrix theTable]
+ 
+-instance HTML HtmlTable where
++instance HTML1 HtmlTable where
+       toHtml (HtmlTable tab) = renderTable tab
+ 
+ instance Show HtmlTable where
+@@ -775,21 +775,21 @@ instance Show HtmlTable where
+ -- and this function will build the table for you.
+ -- It does presume that all the lists are non-empty,
+ -- and there is at least one list.
+---  
++--
+ -- Different length lists means that the last cell
+ -- gets padded. If you want more power, then
+ -- use the system above, or build tables explicitly.
+ 
+ simpleTable attr cellAttr lst
+-      = table ! attr 
+-          <<  (aboves 
++      = table ! attr
++          <<  (aboves
+               . map (besides . map ((td ! cellAttr) . toHtml))
+               ) lst
+ 
+ 
+ -- ---------------------------------------------------------------------------
+ -- Tree Displaying Combinators
+- 
++
+ -- The basic idea is you render your structure in the form
+ -- of this tree, and then use treeHtml to turn it into a Html
+ -- object with the structure explicit.
+@@ -811,13 +811,13 @@ treeHtml colors h = table ! [
+ 
+       treeHtml' :: [String] -> HtmlTree -> HtmlTable
+       treeHtml' (c:_) (HtmlLeaf leaf) = cell
+-                                         (td ! [width "100%"] 
+-                                            << bold  
++                                         (td ! [width "100%"]
++                                            << bold
+                                                << leaf)
+       treeHtml' (c:cs@(c2:_)) (HtmlNode hopen ts hclose) =
+           if null ts && isNoHtml hclose
+           then
+-              cell hd 
++              cell hd
+           else if null ts
+           then
+               hd </> bar `beside` (td ! [bgcolor c2] << spaceHtml)
+@@ -834,7 +834,7 @@ treeHtml colors h = table ! [
+               tl = td ! [bgcolor c] << hclose
+       treeHtml' _ _ = error "The imposible happens"
+ 
+-instance HTML HtmlTree where
++instance HTML1 HtmlTree where
+       toHtml x = treeHtml treeColors x
+ 
+ -- type "length treeColors" to see how many colors are here.
+@@ -843,14 +843,14 @@ treeColors = ["#88ccff","#ffffaa","#ffaaff","#ccffff"] ++ treeColors
+ 
+ -- ---------------------------------------------------------------------------
+ -- Html Debugging Combinators
+- 
++
+ -- This uses the above tree rendering function, and displays the
+ -- Html as a tree structure, allowing debugging of what is
+ -- actually getting produced.
+ 
+-debugHtml :: (HTML a) => a -> Html
+-debugHtml obj = table ! [border 0] << 
+-                  ( th ! [bgcolor "#008888"] 
++debugHtml :: (HTML1 a) => a -> Html
++debugHtml obj = table ! [border 0] <<
++                  ( th ! [bgcolor "#008888"]
+                      << underline
+                        << "Debugging Output"
+                </>  td << (toHtml (debug' (toHtml obj)))
+@@ -874,7 +874,7 @@ debugHtml obj = table ! [border 0] <<
+         where
+               args = if null markupAttrs
+                      then ""
+-                     else "  " ++ unwords (map show markupAttrs) 
++                     else "  " ++ unwords (map show markupAttrs)
+               hd = font ! [size "1"] << ("<" ++ markupTag ++ args ++ ">")
+               tl = font ! [size "1"] << ("</" ++ markupTag ++ ">")
+ 
+@@ -887,7 +887,7 @@ data HotLink = HotLink {
+       hotLinkAttributes :: [HtmlAttr]
+       } deriving Show
+ 
+-instance HTML HotLink where
++instance HTML1 HotLink where
+       toHtml hl = anchor ! (href (hotLinkURL hl) : hotLinkAttributes hl)
+                       << hotLinkContents hl
+ 
+@@ -903,13 +903,13 @@ hotlink url h = HotLink {
+ 
+ -- (Abridged from Erik Meijer's Original Html library)
+ 
+-ordList   :: (HTML a) => [a] -> Html
++ordList   :: (HTML1 a) => [a] -> Html
+ ordList items = olist << map (li <<) items
+ 
+-unordList :: (HTML a) => [a] -> Html
++unordList :: (HTML1 a) => [a] -> Html
+ unordList items = ulist << map (li <<) items
+ 
+-defList   :: (HTML a,HTML b) => [(a,b)] -> Html
++defList   :: (HTML1 a,HTML1 b) => [(a,b)] -> Html
+ defList items
+  = dlist << [ [ dterm << bold << dt, ddef << dd ] | (dt,dd) <- items ]
+ 
+@@ -946,28 +946,28 @@ gui act = form ! [action act,method "POST"]
+ 
+ -- ---------------------------------------------------------------------------
+ -- Html Rendering
+- 
++
+ -- Uses the append trick to optimize appending.
+ -- The output is quite messy, because space matters in
+--- HTML, so we must not generate needless spaces.
++-- HTML1, so we must not generate needless spaces.
+ 
+-renderHtml :: (HTML html) => html -> String
++renderHtml :: (HTML1 html) => html -> String
+ renderHtml theHtml =
+-      renderMessage ++ 
++      renderMessage ++
+          foldr (.) id (map (renderHtml' 0)
+-                           (getHtmlElements (tag "HTML" << theHtml))) "\n"
++                           (getHtmlElements (tag "HTML1" << theHtml))) "\n"
+ 
+ renderMessage =
+-      "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 FINAL//EN\">\n" ++
++      "<!DOCTYPE HTML1 PUBLIC \"-//W3C//DTD HTML1 3.2 FINAL//EN\">\n" ++
+       "<!--Rendered using the Haskell Html Library v0.2-->\n"
+ 
+--- Warning: spaces matters in HTML. You are better using renderHtml.
++-- Warning: spaces matters in HTML1. You are better using renderHtml.
+ -- This is intentually very inefficent to "encorage" this,
+ -- but the neater version in easier when debugging.
+ 
+ -- Local Utilities
+-prettyHtml :: (HTML html) => html -> String
+-prettyHtml theHtml = 
++prettyHtml :: (HTML1 html) => html -> String
++prettyHtml theHtml =
+         unlines
+       $ concat
+       $ map prettyHtml'
+@@ -993,10 +993,10 @@ prettyHtml' (HtmlTag
+                 markupContent = html,
+                 markupAttrs = markupAttrs })
+       = if isNoHtml html && elem name validHtmlITags
+-        then 
++        then
+          [rmNL (renderTag True name markupAttrs 0 "")]
+         else
+-         [rmNL (renderTag True name markupAttrs 0 "")] ++ 
++         [rmNL (renderTag True name markupAttrs 0 "")] ++
+           shift (concat (map prettyHtml' (getHtmlElements html))) ++
+          [rmNL (renderTag False name [] 0 "")]
+   where
+@@ -1011,8 +1011,8 @@ renderTag x name markupAttrs n r
+       = open ++ name ++ rest markupAttrs ++ ">" ++ r
+   where
+       open = if x then "<" else "</"
+-      
+-      nl = "\n" ++ replicate (n `div` 8) '\t' 
++
++      nl = "\n" ++ replicate (n `div` 8) '\t'
+                 ++ replicate (n `mod` 8) ' '
+ 
+       rest []   = nl
+@@ -1021,4 +1021,3 @@ renderTag x name markupAttrs n r
+       showPair :: HtmlAttr -> String
+       showPair (HtmlAttr tag val)
+               = tag ++ " = \"" ++ val  ++ "\""
+-
+-- 
+2.15.2 (Apple Git-101.1)
+
