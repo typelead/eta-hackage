@@ -1,53 +1,53 @@
-From f8c269d555e49b0e8496da9e68c61dd4627ad673 Mon Sep 17 00:00:00 2001
+From ad12b1254a7482b6dfd3cf93543c7cb7f18b434c Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Thu, 14 Jun 2018 12:49:10 +0530
+Date: Fri, 10 Aug 2018 12:47:18 +0530
 Subject: [PATCH] Patched
 
 ---
- Crypto/Cipher/AES/Primitive.hs   | 131 ++++++++-------
- Crypto/Cipher/ChaCha.hs          |  97 +++++------
+ Crypto/Cipher/AES/Primitive.hs   | 131 +++++++-------
+ Crypto/Cipher/ChaCha.hs          |  97 +++++-----
  Crypto/Cipher/RC4.hs             |  22 +--
  Crypto/Cipher/Salsa.hs           |  12 +-
  Crypto/Cipher/XSalsa.hs          |   4 +-
- Crypto/Hash.hs                   |  24 +--
+ Crypto/Hash.hs                   |  26 +--
  Crypto/Hash/Blake2.hs            | 108 ++++++------
- Crypto/Hash/Blake2b.hs           |  47 ++----
+ Crypto/Hash/Blake2b.hs           |  47 ++---
  Crypto/Hash/Blake2bp.hs          |  22 ++-
- Crypto/Hash/Blake2s.hs           |  39 ++---
+ Crypto/Hash/Blake2s.hs           |  39 ++--
  Crypto/Hash/Blake2sp.hs          |  30 ++--
- Crypto/Hash/IO.hs                |  29 +---
- Crypto/Hash/Keccak.hs            |  39 ++---
- Crypto/Hash/MD2.hs               |  19 +--
- Crypto/Hash/MD4.hs               |  19 +--
- Crypto/Hash/MD5.hs               |  23 ++-
- Crypto/Hash/RIPEMD160.hs         |  19 +--
- Crypto/Hash/SHA1.hs              |  19 +--
- Crypto/Hash/SHA224.hs            |  23 ++-
- Crypto/Hash/SHA256.hs            |  23 ++-
- Crypto/Hash/SHA3.hs              |  38 ++---
- Crypto/Hash/SHA384.hs            |  23 ++-
- Crypto/Hash/SHA512.hs            |  23 ++-
+ Crypto/Hash/IO.hs                |  29 +--
+ Crypto/Hash/Keccak.hs            |  39 ++--
+ Crypto/Hash/MD2.hs               |  16 +-
+ Crypto/Hash/MD4.hs               |  16 +-
+ Crypto/Hash/MD5.hs               |  20 +--
+ Crypto/Hash/RIPEMD160.hs         |  19 +-
+ Crypto/Hash/SHA1.hs              |  16 +-
+ Crypto/Hash/SHA224.hs            |  20 +--
+ Crypto/Hash/SHA256.hs            |  20 +--
+ Crypto/Hash/SHA3.hs              |  38 ++--
+ Crypto/Hash/SHA384.hs            |  20 +--
+ Crypto/Hash/SHA512.hs            |  20 +--
  Crypto/Hash/SHA512t.hs           |  35 ++--
  Crypto/Hash/SHAKE.hs             |  46 +++--
- Crypto/Hash/Skein256.hs          |  39 +++--
- Crypto/Hash/Skein512.hs          |  58 +++----
+ Crypto/Hash/Skein256.hs          |  39 ++--
+ Crypto/Hash/Skein512.hs          |  58 +++---
  Crypto/Hash/Tiger.hs             |  22 +--
- Crypto/Hash/Types.hs             |  49 +++++-
+ Crypto/Hash/Types.hs             |  57 +++++-
  Crypto/Hash/Whirlpool.hs         |  22 +--
  Crypto/KDF/Argon2.hs             |  16 +-
  Crypto/KDF/PBKDF2.hs             |  12 +-
  Crypto/KDF/Scrypt.hs             |   4 +-
- Crypto/MAC/Poly1305.hs           |  57 ++++---
+ Crypto/MAC/Poly1305.hs           |  57 +++---
  Crypto/PubKey/Curve25519.hs      |  10 +-
  Crypto/PubKey/Curve448.hs        |  14 +-
- Crypto/PubKey/ECC/P256.hs        |  79 ++++-----
- Crypto/PubKey/Ed25519.hs         |  38 ++---
+ Crypto/PubKey/ECC/P256.hs        |  79 +++++----
+ Crypto/PubKey/Ed25519.hs         |  38 ++--
  Crypto/PubKey/Ed448.hs           |  12 +-
  Crypto/Random/Entropy/Backend.hs |  32 ++--
  Crypto/Random/Entropy/RDRand.hs  |   8 +-
- cryptonite.cabal                 | 131 +--------------
- java/Utils.java                  | 350 +++++++++++++++++++++++++++++++++++++++
- 43 files changed, 1027 insertions(+), 840 deletions(-)
+ cryptonite.cabal                 | 131 +-------------
+ java/Utils.java                  | 371 +++++++++++++++++++++++++++++++++++++++
+ 43 files changed, 1002 insertions(+), 872 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/Crypto/Cipher/AES/Primitive.hs b/Crypto/Cipher/AES/Primitive.hs
@@ -479,7 +479,7 @@ index 494760e..c4626d3 100644
 +ccryptonite_xsalsa_init :: Ptr State -> Int -> Int -> Ptr Word8 -> Int -> Ptr Word8 -> IO ()
 +ccryptonite_xsalsa_init = error "ccryptonite_xsalsa_init: Not implemented yet."
 diff --git a/Crypto/Hash.hs b/Crypto/Hash.hs
-index cd08a6a..58b88e1 100644
+index cd08a6a..3200f29 100644
 --- a/Crypto/Hash.hs
 +++ b/Crypto/Hash.hs
 @@ -48,6 +48,7 @@ import           Foreign.Ptr (Ptr)
@@ -512,24 +512,26 @@ index cd08a6a..58b88e1 100644
  
  -- | Update the context with a list of strict bytestring,
  -- and return a new context with the updates.
-@@ -76,8 +76,10 @@ hashUpdates :: forall a ba . (HashAlgorithm a, ByteArrayAccess ba)
+@@ -76,8 +76,11 @@ hashUpdates :: forall a ba . (HashAlgorithm a, ByteArrayAccess ba)
              -> Context a
  hashUpdates c l
      | null ls   = c
 -    | otherwise = Context $ B.copyAndFreeze c $ \(ctx :: Ptr (Context a)) ->
 -        mapM_ (\b -> B.withByteArray b $ \d -> hashInternalUpdate ctx d (fromIntegral $ B.length b)) ls
 +    | otherwise = unsafePerformIO $ do
++      c <- digest_clone c
 +      mapM_ (\b -> B.withByteArray b $ \d ->
 +                hashInternalUpdate c d (fromIntegral $ B.length b)) ls
 +      return c
    where
      ls = filter (not . B.null) l
  
-@@ -87,11 +89,11 @@ hashFinalize :: forall a . HashAlgorithm a
+@@ -87,11 +90,12 @@ hashFinalize :: forall a . HashAlgorithm a
               -> Digest a
  hashFinalize !c =
      Digest $ B.allocAndFreeze (hashDigestSize (undefined :: a)) $ \(dig :: Ptr (Digest a)) -> do
 -        ((!_) :: B.Bytes) <- B.copy c $ \(ctx :: Ptr (Context a)) -> hashInternalFinalize ctx dig
++        c  <- digest_clone c
 +        !_ <- hashInternalFinalize c dig
          return ()
  
@@ -1083,10 +1085,18 @@ index c7bab21..3d1a2c6 100644
 +foreign import java unsafe "@new"
 +    c_keccak_init' :: Word32 -> IO KeccakDigest
 diff --git a/Crypto/Hash/MD2.hs b/Crypto/Hash/MD2.hs
-index fe83fd4..a9bd51d 100644
+index fe83fd4..38a9086 100644
 --- a/Crypto/Hash/MD2.hs
 +++ b/Crypto/Hash/MD2.hs
-@@ -27,19 +27,18 @@ data MD2 = MD2
+@@ -12,6 +12,7 @@
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE TypeFamilies #-}
++{-# LANGUAGE OverloadedStrings #-}
+ module Crypto.Hash.MD2 ( MD2 (..) ) where
+ 
+ import           Crypto.Hash.Types
+@@ -27,19 +28,6 @@ data MD2 = MD2
  instance HashAlgorithm MD2 where
      type HashBlockSize           MD2 = 16
      type HashDigestSize          MD2 = 16
@@ -1094,32 +1104,32 @@ index fe83fd4..a9bd51d 100644
      hashBlockSize  _          = 16
      hashDigestSize _          = 16
 -    hashInternalContextSize _ = 96
-     hashInternalInit          = c_md2_init
+-    hashInternalInit          = c_md2_init
 -    hashInternalUpdate        = c_md2_update
 -    hashInternalFinalize      = c_md2_finalize
- 
+-
 -foreign import ccall unsafe "cryptonite_md2_init"
 -    c_md2_init :: Ptr (Context a)-> IO ()
-+data {-# CLASS "org.bouncycastle.crypto.digests.MD2Digest" #-} MD2Digest =
-+  MD2Digest (Object# MD2Digest)
-+  deriving Class
- 
+-
 -foreign import ccall "cryptonite_md2_update"
 -    c_md2_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
-+type instance Inherits MD2Digest = '[JDigest]
- 
+-
 -foreign import ccall unsafe "cryptonite_md2_finalize"
 -    c_md2_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
-+c_md2_init :: IO (Context a)
-+c_md2_init = fmap toContext c_md2_init'
-+
-+foreign import java unsafe "@new"
-+    c_md2_init' :: IO MD2Digest
++    hashInternalInit          = digest_new "MD2"
 diff --git a/Crypto/Hash/MD4.hs b/Crypto/Hash/MD4.hs
-index b0f09b4..7ffe381 100644
+index b0f09b4..7ec0990 100644
 --- a/Crypto/Hash/MD4.hs
 +++ b/Crypto/Hash/MD4.hs
-@@ -27,19 +27,18 @@ data MD4 = MD4
+@@ -12,6 +12,7 @@
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE TypeFamilies #-}
++{-# LANGUAGE OverloadedStrings #-}
+ module Crypto.Hash.MD4 ( MD4 (..) ) where
+ 
+ import           Crypto.Hash.Types
+@@ -27,19 +28,6 @@ data MD4 = MD4
  instance HashAlgorithm MD4 where
      type HashBlockSize           MD4 = 64
      type HashDigestSize          MD4 = 16
@@ -1127,32 +1137,32 @@ index b0f09b4..7ffe381 100644
      hashBlockSize  _          = 64
      hashDigestSize _          = 16
 -    hashInternalContextSize _ = 96
-     hashInternalInit          = c_md4_init
+-    hashInternalInit          = c_md4_init
 -    hashInternalUpdate        = c_md4_update
 -    hashInternalFinalize      = c_md4_finalize
- 
+-
 -foreign import ccall unsafe "cryptonite_md4_init"
 -    c_md4_init :: Ptr (Context a)-> IO ()
-+data {-# CLASS "org.bouncycastle.crypto.digests.MD4Digest" #-} MD4Digest =
-+  MD4Digest (Object# MD4Digest)
-+  deriving Class
- 
+-
 -foreign import ccall "cryptonite_md4_update"
 -    c_md4_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
-+type instance Inherits MD4Digest = '[JDigest]
- 
+-
 -foreign import ccall unsafe "cryptonite_md4_finalize"
 -    c_md4_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
-+c_md4_init :: IO (Context a)
-+c_md4_init = fmap toContext c_md4_init'
-+
-+foreign import java unsafe "@new"
-+    c_md4_init' :: IO MD4Digest
++    hashInternalInit          = digest_new "MD4"
 diff --git a/Crypto/Hash/MD5.hs b/Crypto/Hash/MD5.hs
-index 143b5bb..7909acd 100644
+index 143b5bb..8c3507c 100644
 --- a/Crypto/Hash/MD5.hs
 +++ b/Crypto/Hash/MD5.hs
-@@ -25,21 +25,20 @@ data MD5 = MD5
+@@ -12,6 +12,7 @@
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE TypeFamilies #-}
++{-# LANGUAGE OverloadedStrings #-}
+ module Crypto.Hash.MD5 ( MD5 (..) ) where
+ 
+ import           Crypto.Hash.Types
+@@ -25,21 +26,8 @@ data MD5 = MD5
      deriving (Show,Data,Typeable)
  
  instance HashAlgorithm MD5 where
@@ -1164,27 +1174,19 @@ index 143b5bb..7909acd 100644
      hashBlockSize  _          = 64
      hashDigestSize _          = 16
 -    hashInternalContextSize _ = 96
-     hashInternalInit          = c_md5_init
+-    hashInternalInit          = c_md5_init
 -    hashInternalUpdate        = c_md5_update
 -    hashInternalFinalize      = c_md5_finalize
- 
+-
 -foreign import ccall unsafe "cryptonite_md5_init"
 -    c_md5_init :: Ptr (Context a)-> IO ()
-+data {-# CLASS "org.bouncycastle.crypto.digests.MD5Digest" #-} MD5Digest =
-+  MD5Digest (Object# MD5Digest)
-+  deriving Class
- 
+-
 -foreign import ccall "cryptonite_md5_update"
 -    c_md5_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
-+type instance Inherits MD5Digest = '[JDigest]
- 
+-
 -foreign import ccall unsafe "cryptonite_md5_finalize"
 -    c_md5_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
-+c_md5_init :: IO (Context a)
-+c_md5_init = fmap toContext c_md5_init'
-+
-+foreign import java unsafe "@new"
-+    c_md5_init' :: IO MD5Digest
++    hashInternalInit          = digest_new "MD5"
 diff --git a/Crypto/Hash/RIPEMD160.hs b/Crypto/Hash/RIPEMD160.hs
 index 96c0ec6..dcdc2da 100644
 --- a/Crypto/Hash/RIPEMD160.hs
@@ -1219,10 +1221,18 @@ index 96c0ec6..dcdc2da 100644
 +foreign import java unsafe "@new"
 +    c_ripemd160_init' :: IO RIPEMD160Digest
 diff --git a/Crypto/Hash/SHA1.hs b/Crypto/Hash/SHA1.hs
-index e0e1de5..4e4f483 100644
+index e0e1de5..1449528 100644
 --- a/Crypto/Hash/SHA1.hs
 +++ b/Crypto/Hash/SHA1.hs
-@@ -27,19 +27,18 @@ data SHA1 = SHA1
+@@ -12,6 +12,7 @@
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE TypeFamilies #-}
++{-# LANGUAGE OverloadedStrings #-}
+ module Crypto.Hash.SHA1 ( SHA1 (..) ) where
+ 
+ import           Crypto.Hash.Types
+@@ -27,19 +28,6 @@ data SHA1 = SHA1
  instance HashAlgorithm SHA1 where
      type HashBlockSize           SHA1 = 64
      type HashDigestSize          SHA1 = 20
@@ -1230,32 +1240,32 @@ index e0e1de5..4e4f483 100644
      hashBlockSize  _          = 64
      hashDigestSize _          = 20
 -    hashInternalContextSize _ = 96
-     hashInternalInit          = c_sha1_init
+-    hashInternalInit          = c_sha1_init
 -    hashInternalUpdate        = c_sha1_update
 -    hashInternalFinalize      = c_sha1_finalize
- 
+-
 -foreign import ccall unsafe "cryptonite_sha1_init"
 -    c_sha1_init :: Ptr (Context a)-> IO ()
-+data {-# CLASS "org.bouncycastle.crypto.digests.SHA1Digest" #-} SHA1Digest =
-+  SHA1Digest (Object# SHA1Digest)
-+  deriving Class
- 
+-
 -foreign import ccall "cryptonite_sha1_update"
 -    c_sha1_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
-+type instance Inherits SHA1Digest = '[JDigest]
- 
+-
 -foreign import ccall unsafe "cryptonite_sha1_finalize"
 -    c_sha1_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
-+c_sha1_init :: IO (Context a)
-+c_sha1_init = fmap toContext c_sha1_init'
-+
-+foreign import java unsafe "@new"
-+    c_sha1_init' :: IO SHA1Digest
++    hashInternalInit          = digest_new "SHA1"
 diff --git a/Crypto/Hash/SHA224.hs b/Crypto/Hash/SHA224.hs
-index a19ebba..328b3cc 100644
+index a19ebba..920af05 100644
 --- a/Crypto/Hash/SHA224.hs
 +++ b/Crypto/Hash/SHA224.hs
-@@ -25,21 +25,20 @@ data SHA224 = SHA224
+@@ -12,6 +12,7 @@
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE TypeFamilies #-}
++{-# LANGUAGE OverloadedStrings #-}
+ module Crypto.Hash.SHA224 ( SHA224 (..) ) where
+ 
+ import           Crypto.Hash.Types
+@@ -25,21 +26,8 @@ data SHA224 = SHA224
      deriving (Show,Data,Typeable)
  
  instance HashAlgorithm SHA224 where
@@ -1267,32 +1277,32 @@ index a19ebba..328b3cc 100644
      hashBlockSize  _          = 64
      hashDigestSize _          = 28
 -    hashInternalContextSize _ = 192
-     hashInternalInit          = c_sha224_init
+-    hashInternalInit          = c_sha224_init
 -    hashInternalUpdate        = c_sha224_update
 -    hashInternalFinalize      = c_sha224_finalize
- 
+-
 -foreign import ccall unsafe "cryptonite_sha224_init"
 -    c_sha224_init :: Ptr (Context a)-> IO ()
-+data {-# CLASS "org.bouncycastle.crypto.digests.SHA224Digest" #-} SHA224Digest =
-+  SHA224Digest (Object# SHA224Digest)
-+  deriving Class
- 
+-
 -foreign import ccall "cryptonite_sha224_update"
 -    c_sha224_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
-+type instance Inherits SHA224Digest = '[JDigest]
- 
+-
 -foreign import ccall unsafe "cryptonite_sha224_finalize"
 -    c_sha224_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
-+c_sha224_init :: IO (Context a)
-+c_sha224_init = fmap toContext c_sha224_init'
-+
-+foreign import java unsafe "@new"
-+    c_sha224_init' :: IO SHA224Digest
++    hashInternalInit          = digest_new "SHA224"
 diff --git a/Crypto/Hash/SHA256.hs b/Crypto/Hash/SHA256.hs
-index 1b6ea92..0068c4b 100644
+index 1b6ea92..991ab9b 100644
 --- a/Crypto/Hash/SHA256.hs
 +++ b/Crypto/Hash/SHA256.hs
-@@ -25,21 +25,20 @@ data SHA256 = SHA256
+@@ -12,6 +12,7 @@
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE TypeFamilies #-}
++{-# LANGUAGE OverloadedStrings #-}
+ module Crypto.Hash.SHA256 ( SHA256 (..) ) where
+ 
+ import           Crypto.Hash.Types
+@@ -25,21 +26,8 @@ data SHA256 = SHA256
      deriving (Show,Data,Typeable)
  
  instance HashAlgorithm SHA256 where
@@ -1304,27 +1314,19 @@ index 1b6ea92..0068c4b 100644
      hashBlockSize  _          = 64
      hashDigestSize _          = 32
 -    hashInternalContextSize _ = 192
-     hashInternalInit          = c_sha256_init
+-    hashInternalInit          = c_sha256_init
 -    hashInternalUpdate        = c_sha256_update
 -    hashInternalFinalize      = c_sha256_finalize
- 
+-
 -foreign import ccall unsafe "cryptonite_sha256_init"
 -    c_sha256_init :: Ptr (Context a)-> IO ()
-+data {-# CLASS "org.bouncycastle.crypto.digests.SHA256Digest" #-} SHA256Digest =
-+  SHA256Digest (Object# SHA256Digest)
-+  deriving Class
- 
+-
 -foreign import ccall "cryptonite_sha256_update"
 -    c_sha256_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
-+type instance Inherits SHA256Digest = '[JDigest]
- 
+-
 -foreign import ccall unsafe "cryptonite_sha256_finalize"
 -    c_sha256_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
-+c_sha256_init :: IO (Context a)
-+c_sha256_init = fmap toContext c_sha256_init'
-+
-+foreign import java unsafe "@new"
-+    c_sha256_init' :: IO SHA256Digest
++    hashInternalInit          = digest_new "SHA256"
 diff --git a/Crypto/Hash/SHA3.hs b/Crypto/Hash/SHA3.hs
 index a067d04..ba8a841 100644
 --- a/Crypto/Hash/SHA3.hs
@@ -1405,10 +1407,18 @@ index a067d04..ba8a841 100644
 +foreign import java unsafe "@new"
 +    c_sha3_init' :: Word32 -> IO SHA3Digest
 diff --git a/Crypto/Hash/SHA384.hs b/Crypto/Hash/SHA384.hs
-index b5194f4..b70a9da 100644
+index b5194f4..da4dc5f 100644
 --- a/Crypto/Hash/SHA384.hs
 +++ b/Crypto/Hash/SHA384.hs
-@@ -25,21 +25,20 @@ data SHA384 = SHA384
+@@ -12,6 +12,7 @@
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE TypeFamilies #-}
++{-# LANGUAGE OverloadedStrings #-}
+ module Crypto.Hash.SHA384 ( SHA384 (..) ) where
+ 
+ import           Crypto.Hash.Types
+@@ -25,21 +26,8 @@ data SHA384 = SHA384
      deriving (Show,Data,Typeable)
  
  instance HashAlgorithm SHA384 where
@@ -1420,32 +1430,32 @@ index b5194f4..b70a9da 100644
      hashBlockSize  _          = 128
      hashDigestSize _          = 48
 -    hashInternalContextSize _ = 256
-     hashInternalInit          = c_sha384_init
+-    hashInternalInit          = c_sha384_init
 -    hashInternalUpdate        = c_sha384_update
 -    hashInternalFinalize      = c_sha384_finalize
- 
+-
 -foreign import ccall unsafe "cryptonite_sha384_init"
 -    c_sha384_init :: Ptr (Context a)-> IO ()
-+data {-# CLASS "org.bouncycastle.crypto.digests.SHA384Digest" #-} SHA384Digest =
-+  SHA384Digest (Object# SHA384Digest)
-+  deriving Class
- 
+-
 -foreign import ccall "cryptonite_sha384_update"
 -    c_sha384_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
-+type instance Inherits SHA384Digest = '[JDigest]
- 
+-
 -foreign import ccall unsafe "cryptonite_sha384_finalize"
 -    c_sha384_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
-+c_sha384_init :: IO (Context a)
-+c_sha384_init = fmap toContext c_sha384_init'
-+
-+foreign import java unsafe "@new"
-+    c_sha384_init' :: IO SHA384Digest
++    hashInternalInit          = digest_new "SHA384"
 diff --git a/Crypto/Hash/SHA512.hs b/Crypto/Hash/SHA512.hs
-index 71583b6..5df7a18 100644
+index 71583b6..d19a070 100644
 --- a/Crypto/Hash/SHA512.hs
 +++ b/Crypto/Hash/SHA512.hs
-@@ -25,21 +25,20 @@ data SHA512 = SHA512
+@@ -12,6 +12,7 @@
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE TypeFamilies #-}
++{-# LANGUAGE OverloadedStrings #-}
+ module Crypto.Hash.SHA512 ( SHA512 (..) ) where
+ 
+ import           Crypto.Hash.Types
+@@ -25,21 +26,8 @@ data SHA512 = SHA512
      deriving (Show,Data,Typeable)
  
  instance HashAlgorithm SHA512 where
@@ -1457,27 +1467,19 @@ index 71583b6..5df7a18 100644
      hashBlockSize  _          = 128
      hashDigestSize _          = 64
 -    hashInternalContextSize _ = 256
-     hashInternalInit          = c_sha512_init
+-    hashInternalInit          = c_sha512_init
 -    hashInternalUpdate        = c_sha512_update
 -    hashInternalFinalize      = c_sha512_finalize
- 
+-
 -foreign import ccall unsafe "cryptonite_sha512_init"
 -    c_sha512_init :: Ptr (Context a)-> IO ()
-+data {-# CLASS "org.bouncycastle.crypto.digests.SHA512Digest" #-} SHA512Digest =
-+  SHA512Digest (Object# SHA512Digest)
-+  deriving Class
- 
+-
 -foreign import ccall "cryptonite_sha512_update"
 -    c_sha512_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
-+type instance Inherits SHA512Digest = '[JDigest]
- 
+-
 -foreign import ccall unsafe "cryptonite_sha512_finalize"
 -    c_sha512_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
-+c_sha512_init :: IO (Context a)
-+c_sha512_init = fmap toContext c_sha512_init'
-+
-+foreign import java unsafe "@new"
-+    c_sha512_init' :: IO SHA512Digest
++    hashInternalInit          = digest_new "SHA512"
 diff --git a/Crypto/Hash/SHA512t.hs b/Crypto/Hash/SHA512t.hs
 index 850adf0..f2b95d5 100644
 --- a/Crypto/Hash/SHA512t.hs
@@ -1803,10 +1805,10 @@ index 4822f81..4b41f2c 100644
 +foreign import java unsafe "@new"
 +    c_tiger_init :: IO TigerDigest
 diff --git a/Crypto/Hash/Types.hs b/Crypto/Hash/Types.hs
-index 9f088a5..bb537b1 100644
+index 9f088a5..bba2e6b 100644
 --- a/Crypto/Hash/Types.hs
 +++ b/Crypto/Hash/Types.hs
-@@ -9,11 +9,21 @@
+@@ -9,11 +9,23 @@
  --
  {-# LANGUAGE GeneralizedNewtypeDeriving #-}
  {-# LANGUAGE DataKinds #-}
@@ -1821,6 +1823,8 @@ index 9f088a5..bb537b1 100644
 +    , toContext
 +    , fromContext
      , Digest(..)
++    , digest_new
++    , digest_clone
 +    , Object#
 +    , JDigest
 +    , Inherits
@@ -1828,7 +1832,7 @@ index 9f088a5..bb537b1 100644
      ) where
  
  import           Crypto.Internal.Imports
-@@ -23,6 +33,9 @@ import           Foreign.Ptr (Ptr)
+@@ -23,6 +35,9 @@ import           Foreign.Ptr (Ptr)
  import qualified Foundation.Array as F
  import qualified Foundation       as F
  import           GHC.TypeLits (Nat)
@@ -1838,7 +1842,7 @@ index 9f088a5..bb537b1 100644
  
  -- | Class representing hashing algorithms.
  --
-@@ -34,23 +47,26 @@ class HashAlgorithm a where
+@@ -34,23 +49,26 @@ class HashAlgorithm a where
      type HashBlockSize a :: Nat
      -- | Associated type for the digest size of the hash algorithm
      type HashDigestSize a :: Nat
@@ -1871,7 +1875,7 @@ index 9f088a5..bb537b1 100644
  
  {-
  hashContextGetAlgorithm :: HashAlgorithm a => Context a -> a
-@@ -58,8 +74,7 @@ hashContextGetAlgorithm = undefined
+@@ -58,8 +76,7 @@ hashContextGetAlgorithm = undefined
  -}
  
  -- | Represent a context for a given hash algorithm.
@@ -1881,22 +1885,28 @@ index 9f088a5..bb537b1 100644
  
  -- | Represent a digest for a given hash algorithm.
  newtype Digest a = Digest (F.UArray Word8)
-@@ -71,3 +86,21 @@ instance NFData (Digest a) where
+@@ -71,3 +88,27 @@ instance NFData (Digest a) where
  instance Show (Digest a) where
      show (Digest bs) = map (toEnum . fromIntegral)
                       $ B.unpack (B.convertToBase B.Base16 bs :: Bytes)
 +
-+data {-# CLASS "org.bouncycastle.crypto.Digest" #-} JDigest = JDigest (Object# JDigest)
++data {-# CLASS "java.security.MessageDigest" #-} JDigest = JDigest (Object# JDigest)
 +  deriving Class
 +
++foreign import java unsafe "@static eta.cryptonite.Utils.digest_new"
++  digest_new :: JString -> IO (Context a)
++
++foreign import java unsafe "@static eta.cryptonite.Utils.digest_clone"
++  digest_clone :: Context a -> IO (Context a)
++
 +foreign import java unsafe "@static eta.cryptonite.Utils.digest_update"
-+  digest_update   :: Context a -> Ptr Word8 -> Word32 -> IO ()
++  digest_update :: Context a -> Ptr Word8 -> Word32 -> IO ()
 +
 +foreign import java unsafe "@static eta.cryptonite.Utils.digest_finalize"
 +  digest_finalize :: Context a -> Ptr (Digest a) -> IO ()
 +
 +foreign import java unsafe "@static eta.cryptonite.Utils.digest_reset"
-+  digest_reset    :: Context a  -> IO ()
++  digest_reset :: Context a  -> IO ()
 +
 +toContext :: (a <: JDigest) => a -> Context b
 +toContext = Context . superCast
@@ -2578,18 +2588,24 @@ index 7f91e61..77f00b2 100644
    type:              exitcode-stdio-1.0
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..13ae4f2
+index 0000000..55d66cf
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,350 @@
+@@ -0,0 +1,371 @@
 +package eta.cryptonite;
 +
 +import java.util.Arrays;
 +import java.nio.ByteBuffer;
 +import java.security.SecureRandom;
++import java.security.Security;
++import java.security.MessageDigest;
++import java.security.Provider;
 +import java.lang.reflect.Field;
 +import java.lang.reflect.InvocationTargetException;
 +import eta.runtime.io.MemoryManager;
++import java.security.NoSuchAlgorithmException;
++
++import org.bouncycastle.jce.provider.BouncyCastleProvider;
 +import org.bouncycastle.crypto.Digest;
 +import org.bouncycastle.crypto.InvalidCipherTextException;
 +import org.bouncycastle.crypto.engines.AESEngine;
@@ -2619,6 +2635,13 @@ index 0000000..13ae4f2
 +import java.nio.Buffer;
 +
 +public class Utils {
++
++    public static final Provider provider = new BouncyCastleProvider();
++
++    static {
++        Security.addProvider(provider);
++    }
++
 +    public static boolean debug;
 +
 +    private static byte[] getBuffer(long ptr, int size) {
@@ -2628,19 +2651,27 @@ index 0000000..13ae4f2
 +        return bytes;
 +    }
 +
-+    public static void digest_update(Digest digest, long ptr, int size) {
-+        digest.update(getBuffer(ptr, size), 0, size);
++    public static MessageDigest digest_new(String alg) throws NoSuchAlgorithmException{
++        return MessageDigest.getInstance(alg, provider);
 +    }
 +
-+    public static void digest_finalize(Digest digest, long ptr) {
-+        int digestSize = digest.getDigestSize();
-+        ByteBuffer buf = MemoryManager.getBoundedBuffer(ptr);
-+        byte[] bytes = new byte[digestSize];
-+        digest.doFinal(bytes, 0);
-+        buf.put(bytes);
++    public static MessageDigest digest_clone(MessageDigest md) {
++        try {
++            return (MessageDigest) md.clone();
++        } catch (CloneNotSupportedException cne) {
++            throw new RuntimeException("digest_clone: unable to clone " + md.getClass());
++        }
 +    }
 +
-+    public static void digest_reset(Digest digest) {
++    public static void digest_update(MessageDigest digest, long ptr, int size) {
++        digest.update(getBuffer(ptr, size));
++    }
++
++    public static void digest_finalize(MessageDigest digest, long ptr) {
++        MemoryManager.getBoundedBuffer(ptr).put(digest.digest());
++    }
++
++    public static void digest_reset(MessageDigest digest) {
 +        digest.reset();
 +    }
 +
