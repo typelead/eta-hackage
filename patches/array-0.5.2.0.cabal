@@ -37,7 +37,7 @@ library
       Trustworthy,
       UnboxedTuples,
       UnliftedFFITypes
-  build-depends: base >= 4.7 && < 4.11
+  build-depends: base >= 4.7 && < 4.12
   ghc-options: -Wall
   if impl(eta >= 0.0.9)
      java-sources: java/Utils2.java
