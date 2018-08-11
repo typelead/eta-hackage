@@ -256,6 +256,7 @@ These packages are supported by `etlas`.
 - [HoleyMonoid-0.1.1](https://hackage.haskell.org/package/HoleyMonoid-0.1.1)
 - [HDBC-2.4.0.1](https://hackage.haskell.org/package/HDBC-2.4.0.1)
 - [HUnit >= 1.2.5.2 && <= 1.6.0.0](https://hackage.haskell.org/package/HUnit)
+- [idris-1.3.0](https://hackage.haskell.org/package/idris-1.3.0)
 - [ieee754-0.8.0](https://hackage.haskell.org/package/ieee754-0.8.0)
 - [integer-logarithms-1.0.2](https://hackage.haskell.org/package/integer-logarithms-1.0.2)
 - [integration-0.2.1](https://hackage.haskell.org/package/integration-0.2.1)

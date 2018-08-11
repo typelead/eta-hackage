@@ -1,0 +1,83 @@
+From 1ce461d610fb92046116a1753646846d1da45ff6 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 12 Aug 2018 01:23:35 +0530
+Subject: [PATCH] Patched
+
+---
+ hello.idr           |  4 ++++
+ idris.cabal         | 10 +++++-----
+ src/Idris/Prover.hs |  4 ++--
+ src/Util/System.hs  |  3 ++-
+ 4 files changed, 13 insertions(+), 8 deletions(-)
+ create mode 100644 hello.idr
+
+diff --git a/hello.idr b/hello.idr
+new file mode 100644
+index 0000000..e10bfe3
+--- /dev/null
++++ b/hello.idr
+@@ -0,0 +1,4 @@
++module Main
++
++main : IO ()
++main = putStrLn "Hello world"
+diff --git a/idris.cabal b/idris.cabal
+index 08722b3..16e476a 100644
+--- a/idris.cabal
++++ b/idris.cabal
+@@ -317,11 +317,11 @@ Library
+   Default-Language: Haskell2010
+   ghc-prof-options: -auto-all -caf-all
+ 
+-  if os(windows)
+-     build-depends: mintty >= 0.1 && < 0.2
+-                  , Win32 < 2.7
+-  else
+-     build-depends: unix < 2.8
++  -- if os(windows)
++  --    build-depends: mintty >= 0.1 && < 0.2
++  --                 , Win32 < 2.7
++  -- else
++  --    build-depends: unix < 2.8
+   if flag(FFI)
+      build-depends: libffi < 0.2
+      cpp-options:   -DIDRIS_FFI
+diff --git a/src/Idris/Prover.hs b/src/Idris/Prover.hs
+index 6fb8e7d..93872aa 100644
+--- a/src/Idris/Prover.hs
++++ b/src/Idris/Prover.hs
+@@ -454,7 +454,7 @@ ploop fn d prompt prf e h
+               Right (TSearch t) -> search e prf t
+               Right tac ->
+                 do (_, e) <- elabStep e saveState
+-                   (_, st) <- elabStep e (runTac autoSolve i (Just proverFC) fn tac)
++                   (_, st) <- elabStep e (runTac autoSolve i (Just proverFC1) fn tac)
+                    return (True, st, False, prf ++ [step], Right $ iPrintResult ""))
+            (\err -> return (False, e, False, prf, Left err))
+          idemodePutSExp "write-proof-state" (prf', length prf')
+@@ -513,7 +513,7 @@ checkType e prf t = do
+         return (False, e, False, prf, Right action))
+       (\err -> do putIState ist { tt_ctxt = ctxt } ; ierror err)
+ 
+-proverFC = FC "(prover shell)" (0, 0) (0, 0)
++proverFC1 = FC "(prover shell)" (0, 0) (0, 0)
+ 
+ evalTerm :: ElabState EState -> [String] -> PTerm -> Idris (Bool, ElabState EState, Bool, [String], Either Err (Idris ()))
+ evalTerm e prf t = withErrorReflection $
+diff --git a/src/Util/System.hs b/src/Util/System.hs
+index 37cfc77..9f27bb5 100644
+--- a/src/Util/System.hs
++++ b/src/Util/System.hs
+@@ -82,7 +82,8 @@ writeSource f s = withFile f WriteMode (\h -> hSetEncoding h utf8 >> hPutStr h s
+ writeSourceText :: FilePath -> T.Text -> IO ()
+ writeSourceText f s = withFile f WriteMode (\h -> hSetEncoding h utf8 >> TIO.hPutStr h s)
+ 
+-foreign import ccall "isatty" isATTYRaw :: CInt -> IO CInt
++isATTYRaw :: CInt -> IO CInt
++isATTYRaw = error "isATTYRaw not implemented!"
+ 
+ isATTY :: IO Bool
+ isATTY = do
+-- 
+2.15.2 (Apple Git-101.1)
+
