@@ -1,14 +1,15 @@
-From a5f1e1de56981655930ff68491f71fba5b4c4f77 Mon Sep 17 00:00:00 2001
+From 0fbde4ef12d32bb1da37abc1898c3a978cd24225 Mon Sep 17 00:00:00 2001
 From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Sat, 11 Aug 2018 22:59:59 +0530
+Date: Sat, 11 Aug 2018 23:18:36 +0530
 Subject: [PATCH] Patched
 
 ---
- src/Codec/Archive/Zip.hs | 30 ++++++++++++++++++++++--------
- 1 file changed, 22 insertions(+), 8 deletions(-)
+ src/Codec/Archive/Zip.hs | 24 ++++++++++++++++--------
+ zip-archive.cabal        |  9 ---------
+ 2 files changed, 16 insertions(+), 17 deletions(-)
 
 diff --git a/src/Codec/Archive/Zip.hs b/src/Codec/Archive/Zip.hs
-index 8d71c9a..fbc8987 100644
+index 8d71c9a..56b2293 100644
 --- a/src/Codec/Archive/Zip.hs
 +++ b/src/Codec/Archive/Zip.hs
 @@ -1,6 +1,6 @@
@@ -19,7 +20,7 @@ index 8d71c9a..fbc8987 100644
  ------------------------------------------------------------------------
  -- |
  -- Module      : Codec.Archive.Zip
-@@ -90,16 +90,16 @@ import qualified Data.Map as M
+@@ -90,16 +90,12 @@ import qualified Data.Map as M
  #if MIN_VERSION_binary(0,6,0)
  import Control.Applicative
  #endif
@@ -27,10 +28,6 @@ index 8d71c9a..fbc8987 100644
 -import System.Posix.Files ( setFileTimes, setFileMode, fileMode, getSymbolicLinkStatus, symbolicLinkMode, readSymbolicLink, isSymbolicLink, unionFileModes, createSymbolicLink )
 -import System.Posix.Types ( CMode(..) )
 -#endif
-+-- #ifndef _WINDOWS || !defined(ETA_VERSION)
-+-- import System.Posix.Files ( setFileTimes, setFileMode, fileMode, getSymbolicLinkStatus, symbolicLinkMode, readSymbolicLink, isSymbolicLink, unionFileModes, createSymbolicLink )
-+-- import System.Posix.Types ( CMode(..) )
-+-- #endif
  
  -- from bytestring
  import qualified Data.ByteString as S
@@ -41,7 +38,7 @@ index 8d71c9a..fbc8987 100644
  -- text
  import qualified Data.Text.Lazy as TL
  import qualified Data.Text.Lazy.Encoding as TL
-@@ -482,10 +482,10 @@ epochTimeToMSDOSDateTime epochtime | epochtime < minMSDOSDateTime =
+@@ -482,10 +478,10 @@ epochTimeToMSDOSDateTime epochtime | epochtime < minMSDOSDateTime =
    epochTimeToMSDOSDateTime minMSDOSDateTime
    -- if time is earlier than minimum DOS datetime, return minimum
  epochTimeToMSDOSDateTime epochtime =
@@ -54,7 +51,7 @@ index 8d71c9a..fbc8987 100644
        = posixSecondsToUTCTime (fromIntegral epochtime)
  
      dosTime = toEnum $ (sec `div` 2) + shiftL minutes 5 + shiftL hour 11
-@@ -936,3 +936,17 @@ toString = TL.unpack . TL.decodeUtf8
+@@ -936,3 +932,15 @@ toString = TL.unpack . TL.decodeUtf8
  
  fromString :: String -> B.ByteString
  fromString = TL.encodeUtf8 . TL.pack
@@ -63,15 +60,37 @@ index 8d71c9a..fbc8987 100644
 +isSymbolicLink = error "isSymbolicLink not implemented!"
 +readSymbolicLink = error "readSymbolicLink not implemented!"
 +unionFileModes = error "unionFileModes not implemented!"
-+-- symbolicLinkMode = error "symbolicLinkMode not implemented!"
 +fileMode = error "fileMode not implemented!"
 +setFileMode = error "setFileMode not implemented!"
 +createSymbolicLink = error "createSymbolicLink not implemented!"
 +symbolicLinkMode = error "symbolicLinkMode not implemented!"
 +newtype CMode = CMode Int
 +   deriving (Eq, Bits)
-+-- isSymbolicLink = error "isSymbolicLink not implemented!"
 +setFileTimes = error "setFileTimes not implemented!"
+diff --git a/zip-archive.cabal b/zip-archive.cabal
+index 1ca4ae6..778fc84 100644
+--- a/zip-archive.cabal
++++ b/zip-archive.cabal
+@@ -46,10 +46,6 @@ Library
+   Default-Language:  Haskell98
+   Hs-Source-Dirs:    src
+   Ghc-Options:       -Wall
+-  -- if os(windows)
+-  --   cpp-options:     -D_WINDOWS
+-  -- else
+-  --   Build-depends:   unix
+ 
+ custom-setup
+   setup-depends: base, Cabal
+@@ -78,8 +74,3 @@ Test-Suite test-zip-archive
+                   HUnit, zip-archive, temporary, filepath
+   Default-Language:  Haskell98
+   Ghc-Options:    -Wall
+-  -- if os(windows)
+-  --   cpp-options:     -D_WINDOWS
+-  -- else
+-  --   Build-tools:     unzip
+-  --   Build-depends:   unix
 -- 
 2.15.2 (Apple Git-101.1)
 

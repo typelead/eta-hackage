@@ -46,10 +46,6 @@ Library
   Default-Language:  Haskell98
   Hs-Source-Dirs:    src
   Ghc-Options:       -Wall
-  -- if os(windows)
-  --   cpp-options:     -D_WINDOWS
-  -- else
-  --   Build-depends:   unix
 
 custom-setup
   setup-depends: base, Cabal
@@ -78,8 +74,3 @@ Test-Suite test-zip-archive
                   HUnit, zip-archive, temporary, filepath
   Default-Language:  Haskell98
   Ghc-Options:    -Wall
-  -- if os(windows)
-  --   cpp-options:     -D_WINDOWS
-  -- else
-  --   Build-tools:     unzip
-  --   Build-depends:   unix
