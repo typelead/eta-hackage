@@ -1,11 +1,11 @@
-From ad12b1254a7482b6dfd3cf93543c7cb7f18b434c Mon Sep 17 00:00:00 2001
+From 09db0f03f1ba7df1d8a96b13a5802742a4b9b457 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Fri, 10 Aug 2018 12:47:18 +0530
+Date: Sat, 11 Aug 2018 13:08:42 +0530
 Subject: [PATCH] Patched
 
 ---
  Crypto/Cipher/AES/Primitive.hs   | 131 +++++++-------
- Crypto/Cipher/ChaCha.hs          |  97 +++++-----
+ Crypto/Cipher/ChaCha.hs          |  97 ++++++-----
  Crypto/Cipher/RC4.hs             |  22 +--
  Crypto/Cipher/Salsa.hs           |  12 +-
  Crypto/Cipher/XSalsa.hs          |   4 +-
@@ -13,14 +13,14 @@ Subject: [PATCH] Patched
  Crypto/Hash/Blake2.hs            | 108 ++++++------
  Crypto/Hash/Blake2b.hs           |  47 ++---
  Crypto/Hash/Blake2bp.hs          |  22 ++-
- Crypto/Hash/Blake2s.hs           |  39 ++--
+ Crypto/Hash/Blake2s.hs           |  39 ++---
  Crypto/Hash/Blake2sp.hs          |  30 ++--
- Crypto/Hash/IO.hs                |  29 +--
- Crypto/Hash/Keccak.hs            |  39 ++--
+ Crypto/Hash/IO.hs                |  29 +---
+ Crypto/Hash/Keccak.hs            |  39 ++---
  Crypto/Hash/MD2.hs               |  16 +-
  Crypto/Hash/MD4.hs               |  16 +-
  Crypto/Hash/MD5.hs               |  20 +--
- Crypto/Hash/RIPEMD160.hs         |  19 +-
+ Crypto/Hash/RIPEMD160.hs         |  16 +-
  Crypto/Hash/SHA1.hs              |  16 +-
  Crypto/Hash/SHA224.hs            |  20 +--
  Crypto/Hash/SHA256.hs            |  20 +--
@@ -29,25 +29,25 @@ Subject: [PATCH] Patched
  Crypto/Hash/SHA512.hs            |  20 +--
  Crypto/Hash/SHA512t.hs           |  35 ++--
  Crypto/Hash/SHAKE.hs             |  46 +++--
- Crypto/Hash/Skein256.hs          |  39 ++--
- Crypto/Hash/Skein512.hs          |  58 +++---
- Crypto/Hash/Tiger.hs             |  22 +--
+ Crypto/Hash/Skein256.hs          |  39 ++---
+ Crypto/Hash/Skein512.hs          |  58 +++----
+ Crypto/Hash/Tiger.hs             |  20 +--
  Crypto/Hash/Types.hs             |  57 +++++-
- Crypto/Hash/Whirlpool.hs         |  22 +--
+ Crypto/Hash/Whirlpool.hs         |  20 +--
  Crypto/KDF/Argon2.hs             |  16 +-
  Crypto/KDF/PBKDF2.hs             |  12 +-
  Crypto/KDF/Scrypt.hs             |   4 +-
  Crypto/MAC/Poly1305.hs           |  57 +++---
  Crypto/PubKey/Curve25519.hs      |  10 +-
  Crypto/PubKey/Curve448.hs        |  14 +-
- Crypto/PubKey/ECC/P256.hs        |  79 +++++----
+ Crypto/PubKey/ECC/P256.hs        |  79 ++++-----
  Crypto/PubKey/Ed25519.hs         |  38 ++--
  Crypto/PubKey/Ed448.hs           |  12 +-
  Crypto/Random/Entropy/Backend.hs |  32 ++--
  Crypto/Random/Entropy/RDRand.hs  |   8 +-
  cryptonite.cabal                 | 131 +-------------
- java/Utils.java                  | 371 +++++++++++++++++++++++++++++++++++++++
- 43 files changed, 1002 insertions(+), 872 deletions(-)
+ java/Utils.java                  | 367 +++++++++++++++++++++++++++++++++++++++
+ 43 files changed, 981 insertions(+), 882 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/Crypto/Cipher/AES/Primitive.hs b/Crypto/Cipher/AES/Primitive.hs
@@ -1188,10 +1188,18 @@ index 143b5bb..8c3507c 100644
 -    c_md5_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
 +    hashInternalInit          = digest_new "MD5"
 diff --git a/Crypto/Hash/RIPEMD160.hs b/Crypto/Hash/RIPEMD160.hs
-index 96c0ec6..dcdc2da 100644
+index 96c0ec6..5e240ed 100644
 --- a/Crypto/Hash/RIPEMD160.hs
 +++ b/Crypto/Hash/RIPEMD160.hs
-@@ -27,19 +27,18 @@ data RIPEMD160 = RIPEMD160
+@@ -12,6 +12,7 @@
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE TypeFamilies #-}
++{-# LANGUAGE OverloadedStrings #-}
+ module Crypto.Hash.RIPEMD160 ( RIPEMD160 (..) ) where
+ 
+ import           Crypto.Hash.Types
+@@ -27,19 +28,6 @@ data RIPEMD160 = RIPEMD160
  instance HashAlgorithm RIPEMD160 where
      type HashBlockSize           RIPEMD160 = 64
      type HashDigestSize          RIPEMD160 = 20
@@ -1199,27 +1207,19 @@ index 96c0ec6..dcdc2da 100644
      hashBlockSize  _          = 64
      hashDigestSize _          = 20
 -    hashInternalContextSize _ = 128
-     hashInternalInit          = c_ripemd160_init
+-    hashInternalInit          = c_ripemd160_init
 -    hashInternalUpdate        = c_ripemd160_update
 -    hashInternalFinalize      = c_ripemd160_finalize
- 
+-
 -foreign import ccall unsafe "cryptonite_ripemd160_init"
 -    c_ripemd160_init :: Ptr (Context a)-> IO ()
-+data {-# CLASS "org.bouncycastle.crypto.digests.RIPEMD160Digest" #-} RIPEMD160Digest =
-+  RIPEMD160Digest (Object# RIPEMD160Digest)
-+  deriving Class
- 
+-
 -foreign import ccall "cryptonite_ripemd160_update"
 -    c_ripemd160_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
-+type instance Inherits RIPEMD160Digest = '[JDigest]
- 
+-
 -foreign import ccall unsafe "cryptonite_ripemd160_finalize"
 -    c_ripemd160_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
-+c_ripemd160_init :: IO (Context a)
-+c_ripemd160_init = fmap toContext c_ripemd160_init'
-+
-+foreign import java unsafe "@new"
-+    c_ripemd160_init' :: IO RIPEMD160Digest
++    hashInternalInit          = digest_new "RIPEMD160"
 diff --git a/Crypto/Hash/SHA1.hs b/Crypto/Hash/SHA1.hs
 index e0e1de5..1449528 100644
 --- a/Crypto/Hash/SHA1.hs
@@ -1770,10 +1770,18 @@ index d97365f..f51de57 100644
 +foreign import java unsafe "@new"
 +    c_skein512_init' :: Int -> Word32 -> IO SkeinDigest
 diff --git a/Crypto/Hash/Tiger.hs b/Crypto/Hash/Tiger.hs
-index 4822f81..4b41f2c 100644
+index 4822f81..9153b56 100644
 --- a/Crypto/Hash/Tiger.hs
 +++ b/Crypto/Hash/Tiger.hs
-@@ -25,21 +25,17 @@ data Tiger = Tiger
+@@ -12,6 +12,7 @@
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE TypeFamilies #-}
++{-# LANGUAGE OverloadedStrings #-}
+ module Crypto.Hash.Tiger ( Tiger (..) ) where
+ 
+ import           Crypto.Hash.Types
+@@ -25,21 +26,8 @@ data Tiger = Tiger
      deriving (Show,Data,Typeable)
  
  instance HashAlgorithm Tiger where
@@ -1788,24 +1796,18 @@ index 4822f81..4b41f2c 100644
 -    hashInternalInit          = c_tiger_init
 -    hashInternalUpdate        = c_tiger_update
 -    hashInternalFinalize      = c_tiger_finalize
-+    hashInternalInit          = fmap toContext c_tiger_init
- 
+-
 -foreign import ccall unsafe "cryptonite_tiger_init"
 -    c_tiger_init :: Ptr (Context a)-> IO ()
-+data {-# CLASS "org.bouncycastle.crypto.digests.TigerDigest" #-} TigerDigest =
-+  TigerDigest (Object# TigerDigest)
-+  deriving Class
- 
+-
 -foreign import ccall "cryptonite_tiger_update"
 -    c_tiger_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
-+type instance Inherits TigerDigest = '[JDigest]
- 
+-
 -foreign import ccall unsafe "cryptonite_tiger_finalize"
 -    c_tiger_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
-+foreign import java unsafe "@new"
-+    c_tiger_init :: IO TigerDigest
++    hashInternalInit          = digest_new "TIGER"
 diff --git a/Crypto/Hash/Types.hs b/Crypto/Hash/Types.hs
-index 9f088a5..bba2e6b 100644
+index 9f088a5..6ae401f 100644
 --- a/Crypto/Hash/Types.hs
 +++ b/Crypto/Hash/Types.hs
 @@ -9,11 +9,23 @@
@@ -1890,7 +1892,7 @@ index 9f088a5..bba2e6b 100644
      show (Digest bs) = map (toEnum . fromIntegral)
                       $ B.unpack (B.convertToBase B.Base16 bs :: Bytes)
 +
-+data {-# CLASS "java.security.MessageDigest" #-} JDigest = JDigest (Object# JDigest)
++data JDigest = JDigest @java.security.MessageDigest
 +  deriving Class
 +
 +foreign import java unsafe "@static eta.cryptonite.Utils.digest_new"
@@ -1914,10 +1916,18 @@ index 9f088a5..bba2e6b 100644
 +fromContext :: (a <: JDigest) => Context b -> a
 +fromContext = unsafeCast . unContext
 diff --git a/Crypto/Hash/Whirlpool.hs b/Crypto/Hash/Whirlpool.hs
-index 32f99a6..a632147 100644
+index 32f99a6..6997fd1 100644
 --- a/Crypto/Hash/Whirlpool.hs
 +++ b/Crypto/Hash/Whirlpool.hs
-@@ -25,21 +25,17 @@ data Whirlpool = Whirlpool
+@@ -12,6 +12,7 @@
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE TypeFamilies #-}
++{-# LANGUAGE OverloadedStrings #-}
+ module Crypto.Hash.Whirlpool ( Whirlpool (..) ) where
+ 
+ import           Crypto.Hash.Types
+@@ -25,21 +26,8 @@ data Whirlpool = Whirlpool
      deriving (Show,Data,Typeable)
  
  instance HashAlgorithm Whirlpool where
@@ -1932,22 +1942,16 @@ index 32f99a6..a632147 100644
 -    hashInternalInit          = c_whirlpool_init
 -    hashInternalUpdate        = c_whirlpool_update
 -    hashInternalFinalize      = c_whirlpool_finalize
-+    hashInternalInit          = fmap toContext c_whirlpool_init
- 
+-
 -foreign import ccall unsafe "cryptonite_whirlpool_init"
 -    c_whirlpool_init :: Ptr (Context a)-> IO ()
-+data {-# CLASS "org.bouncycastle.crypto.digests.WhirlpoolDigest" #-}
-+  WhirlpoolDigest = WhirlpoolDigest (Object# WhirlpoolDigest)
-+  deriving Class
- 
+-
 -foreign import ccall "cryptonite_whirlpool_update"
 -    c_whirlpool_update :: Ptr (Context a) -> Ptr Word8 -> Word32 -> IO ()
-+type instance Inherits WhirlpoolDigest = '[JDigest]
- 
+-
 -foreign import ccall unsafe "cryptonite_whirlpool_finalize"
 -    c_whirlpool_finalize :: Ptr (Context a) -> Ptr (Digest a) -> IO ()
-+foreign import java unsafe "@new"
-+    c_whirlpool_init :: IO WhirlpoolDigest
++    hashInternalInit          = digest_new "WHIRLPOOL"
 diff --git a/Crypto/KDF/Argon2.hs b/Crypto/KDF/Argon2.hs
 index f9fa02a..88e347c 100644
 --- a/Crypto/KDF/Argon2.hs
@@ -2588,10 +2592,10 @@ index 7f91e61..77f00b2 100644
    type:              exitcode-stdio-1.0
 diff --git a/java/Utils.java b/java/Utils.java
 new file mode 100644
-index 0000000..55d66cf
+index 0000000..55c404d
 --- /dev/null
 +++ b/java/Utils.java
-@@ -0,0 +1,371 @@
+@@ -0,0 +1,367 @@
 +package eta.cryptonite;
 +
 +import java.util.Arrays;
@@ -2637,10 +2641,6 @@ index 0000000..55d66cf
 +public class Utils {
 +
 +    public static final Provider provider = new BouncyCastleProvider();
-+
-+    static {
-+        Security.addProvider(provider);
-+    }
 +
 +    public static boolean debug;
 +
