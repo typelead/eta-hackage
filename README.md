@@ -434,6 +434,7 @@ These packages are supported by `etlas`.
 - [transformers-base-0.4.4](http://hackage.haskell.org/package/transformers-base-0.4.4)
 - [transformers-compat-0.5.1.4](http://hackage.haskell.org/package/transformers-compat-0.5.1.4)
 - [tree-fun-0.8.1.0](https://hackage.haskell.org/package/tree-fun-0.8.1.0)
+- [turtle-1.5.10](https://hackage.haskell.org/package/turtle-1.5.10)
 - [type-level-sets-0.8.0.0](https://hackage.haskell.org/package/type-level-sets-0.8.0.0)
 - [typed-process-0.2.0.0](https://hackage.haskell.org/package/typed-process-0.2.0.0)
 - [unexceptionalio-0.3.0](https://hackage.haskell.org/package/unexceptionalio-0.3.0)
