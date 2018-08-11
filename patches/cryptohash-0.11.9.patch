@@ -1,6 +1,6 @@
-From 239cd094a8f8292a07b94e8fc997bae9bc98597d Mon Sep 17 00:00:00 2001
-From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Sat, 11 Aug 2018 12:48:21 +0530
+From 02cc3cfb66c379edd77eaba5d6a1024768c2674a Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sat, 11 Aug 2018 13:10:54 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -9,10 +9,10 @@ Subject: [PATCH] Patched
  Crypto/Hash/Skein256.hs | 87 ++++++++++++++++--------------------------------
  Crypto/Hash/Skein512.hs | 87 ++++++++++++++++--------------------------------
  Crypto/Hash/Types.hs    | 41 ++++++++++++++++-------
- Tests/KAT.hs            | 38 ++++++++++-----------
+ Tests/KAT.hs            | 12 +++----
  cryptohash.cabal        |  6 ++--
  java/Utils.java         | 41 +++++++++++++++++++++++
- 8 files changed, 207 insertions(+), 268 deletions(-)
+ 8 files changed, 194 insertions(+), 255 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/Crypto/Hash/SHA3.hs b/Crypto/Hash/SHA3.hs
@@ -588,7 +588,7 @@ index dc7fbbb..08f6179 100644
 +foreign import java unsafe "@static eta.cryptohash.Utils.digest_finalize"
 +  digest_finalize :: JDigest -> Ptr Word8 -> IO ()
 diff --git a/Tests/KAT.hs b/Tests/KAT.hs
-index 6a1449b..b920666 100644
+index 6a1449b..3803030 100644
 --- a/Tests/KAT.hs
 +++ b/Tests/KAT.hs
 @@ -1,5 +1,5 @@
@@ -598,32 +598,7 @@ index 6a1449b..b920666 100644
  import Data.Char
  import Data.Bits
  import Data.Word
-@@ -109,15 +109,15 @@ results = [
-     ("SHA512/256", sha512_256Hash, [
-         "c672b8d1ef56ed28ab87c3622c5114069bdd3ad7b8f9737498d0c01ecef0967a",
-         "dd9d67b371519c339ed8dbd25af90e976a1eeefd4ad3d889005e532fc5bef04d",
--        "cc8d255a7f2f38fd50388fd1f65ea7910835c5c1e73da46fba01ea50d5dd76fb" ]),
--    ("RIPEMD160", ripemd160Hash, [
--        "9c1185a5c5e9fc54612808977ee8f548b2258d31",
--        "37f332f68db77bd9d7edd4969571ad671cf9dd3b",
--        "132072df690933835eb8b6ad0b77e7b6f14acad7" ]),
--    ("Tiger", tigerHash, [
--        "3293ac630c13f0245f92bbb1766e16167a4e58492dde73f3",
--        "6d12a41e72e644f017b6f0e2f7b44c6285f06dd5d2c5b075",
--        "a8f04b0f7201a0d728101c9d26525b31764a3493fcd8458f" ])
-+        "cc8d255a7f2f38fd50388fd1f65ea7910835c5c1e73da46fba01ea50d5dd76fb" ])
-+    -- ("RIPEMD160", ripemd160Hash, [
-+    --     "9c1185a5c5e9fc54612808977ee8f548b2258d31",
-+    --     "37f332f68db77bd9d7edd4969571ad671cf9dd3b",
-+    --     "132072df690933835eb8b6ad0b77e7b6f14acad7" ]),
-+    -- ("Tiger", tigerHash, [
-+    --     "3293ac630c13f0245f92bbb1766e16167a4e58492dde73f3",
-+    --     "6d12a41e72e644f017b6f0e2f7b44c6285f06dd5d2c5b075",
-+    --     "a8f04b0f7201a0d728101c9d26525b31764a3493fcd8458f" ])
-     , ("Skein256-160", skein256Hash 160, [
-         "ff800bed6d2044ee9d604a674e3fda50d9b24a72",
-         "3265703c166aa3e0d7da070b9cf1b1a5953f0a77",
-@@ -138,14 +138,14 @@ results = [
+@@ -138,10 +138,10 @@ results = [
          "bc5b4c50925519c290cc634277ae3d6257212395cba733bbad37a4af0fa06af41fca7903d06564fea7a2d3730dbdb80c1f85562dfcc070334ea4d1d9e72cba7a",
          "94c2ae036dba8783d0b3f7d6cc111ff810702f5c77707999be7e1c9486ff238a7044de734293147359b4ac7e1d09cd247c351d69826b78dcddd951f0ef912713",
          "7f81113575e4b4d3441940e87aca331e6d63d103fe5107f29cd877af0d0f5e0ea34164258c60da5190189d0872e63a96596d2ef25e709099842da71d64111e0f" ])
@@ -631,21 +606,13 @@ index 6a1449b..b920666 100644
 -        "b95175236c83a459ce7ec6c12b761a838b22d750e765b3fdaa892201b2aa714bc3d1d887dd64028bbf177c1dd11baa09c6c4ddb598fd07d6a8c131a09fc5b958e2999a8006754b25abe3bf8492b7eabec70e52e04e5ac867df2393c573f16eee3244554f1d2b724f2c0437c62007f770",
 -        "3265708553e7d146e5c7bcbc97b3e9e9f5b53a5e4af53612bdd6454da4fa7b13d413184fe34ed57b6574be10e389d0ec4b1d2b1dd2c80e0257d5a76b2cd86a19a27b1bcb3cc24d911b5dc5ee74d19ad558fd85b5f024e99f56d1d3199f1f9f88ed85fab9f945f11cf9fc00e94e3ca4c7",
 -        "3d23d3db9be719bbd2119f8402a28f38d8225faa79d5b68b80738c64a82004aafc7a840cd6dd9bced6644fa894a3d8d7d2ee89525fd1956a2db052c4c2f8d2111c91ef46b0997540d42bcf384826af1a5ef6510077f52d0574cf2b46f1b6a5dad07ed40f3d21a13ca2d079fa602ff02d" ])
--    , ("Whirlpool", whirlpoolHash, [
--        "19fa61d75522a4669b44e39c1d2e1726c530232130d407f89afee0964997f7a73e83be698b288febcf88e3e03c4f0757ea8964e59b63d93708b138cc42a66eb3",
--        "b97de512e91e3828b40d2b0fdce9ceb3c4a71f9bea8d88e75c4fa854df36725fd2b52eb6544edcacd6f8beddfea403cb55ae31f03ad62a5ef54e42ee82c3fb35",
--        "dce81fc695cfea3d7e1446509238daf89f24cc61896f2d265927daa70f2108f8902f0dfd68be085d5abb9fcd2e482c1dc24f2fabf81f40b73495cad44d7360d3"])
 +    -- , ("Skein512-896", skein512Hash 896, [
 +    --     "b95175236c83a459ce7ec6c12b761a838b22d750e765b3fdaa892201b2aa714bc3d1d887dd64028bbf177c1dd11baa09c6c4ddb598fd07d6a8c131a09fc5b958e2999a8006754b25abe3bf8492b7eabec70e52e04e5ac867df2393c573f16eee3244554f1d2b724f2c0437c62007f770",
 +    --     "3265708553e7d146e5c7bcbc97b3e9e9f5b53a5e4af53612bdd6454da4fa7b13d413184fe34ed57b6574be10e389d0ec4b1d2b1dd2c80e0257d5a76b2cd86a19a27b1bcb3cc24d911b5dc5ee74d19ad558fd85b5f024e99f56d1d3199f1f9f88ed85fab9f945f11cf9fc00e94e3ca4c7",
 +    --     "3d23d3db9be719bbd2119f8402a28f38d8225faa79d5b68b80738c64a82004aafc7a840cd6dd9bced6644fa894a3d8d7d2ee89525fd1956a2db052c4c2f8d2111c91ef46b0997540d42bcf384826af1a5ef6510077f52d0574cf2b46f1b6a5dad07ed40f3d21a13ca2d079fa602ff02d" ])
-+    -- , ("Whirlpool", whirlpoolHash, [
-+    --     "19fa61d75522a4669b44e39c1d2e1726c530232130d407f89afee0964997f7a73e83be698b288febcf88e3e03c4f0757ea8964e59b63d93708b138cc42a66eb3",
-+    --     "b97de512e91e3828b40d2b0fdce9ceb3c4a71f9bea8d88e75c4fa854df36725fd2b52eb6544edcacd6f8beddfea403cb55ae31f03ad62a5ef54e42ee82c3fb35",
-+    --     "dce81fc695cfea3d7e1446509238daf89f24cc61896f2d265927daa70f2108f8902f0dfd68be085d5abb9fcd2e482c1dc24f2fabf81f40b73495cad44d7360d3"])
-     ]
- 
- hexalise s = concatMap (\c -> [ hex $ c `div` 16, hex $ c `mod` 16 ]) s
+     , ("Whirlpool", whirlpoolHash, [
+         "19fa61d75522a4669b44e39c1d2e1726c530232130d407f89afee0964997f7a73e83be698b288febcf88e3e03c4f0757ea8964e59b63d93708b138cc42a66eb3",
+         "b97de512e91e3828b40d2b0fdce9ceb3c4a71f9bea8d88e75c4fa854df36725fd2b52eb6544edcacd6f8beddfea403cb55ae31f03ad62a5ef54e42ee82c3fb35",
 @@ -163,7 +163,7 @@ splitB l b =
          then
              let (b1, b2) = B.splitAt l b in
@@ -720,5 +687,5 @@ index 0000000..7489b1d
 +     }
 +}
 -- 
-2.15.2 (Apple Git-101.1)
+2.7.4 (Apple Git-66)
 
