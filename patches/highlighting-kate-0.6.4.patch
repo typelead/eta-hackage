@@ -1,0 +1,155 @@
+From 3745d9199de4ea7ddeb52c10211284237808cd88 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sat, 11 Aug 2018 19:22:33 +0530
+Subject: [PATCH] Patched
+
+---
+ Text/Highlighting/Kate/Syntax/Curry.hs   |  6 +++---
+ Text/Highlighting/Kate/Syntax/Haskell.hs |  4 ++--
+ Text/Highlighting/Kate/Syntax/Idris.hs   |  4 ++--
+ Text/Highlighting/Kate/Syntax/Lex.hs     |  4 ++--
+ Text/Highlighting/Kate/Syntax/Ruby.hs    | 20 ++++++++++----------
+ 5 files changed, 19 insertions(+), 19 deletions(-)
+
+diff --git a/Text/Highlighting/Kate/Syntax/Curry.hs b/Text/Highlighting/Kate/Syntax/Curry.hs
+index 27a4420..fb773db 100644
+--- a/Text/Highlighting/Kate/Syntax/Curry.hs
++++ b/Text/Highlighting/Kate/Syntax/Curry.hs
+@@ -82,7 +82,7 @@ regex_'28'3a'3a'7c'3a'3d'7c'3a'3e'7c'5c'2d'3e'7c'3c'5c'2d'7c'5c'2e'5c'2e'29 = co
+ regex_'5cs'2a'28'5ba'2dz'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'7c'5c'28'5b'7e'21'40'23'5c'24'25'5c'5e'26'5c'2a'5c'2b'5c'2d'3d'3c'3e'5c'3f'5c'2e'2f'5c'7c'5c'5c'3a'5d'2b'5c'29'29'5cs'2a'28'2c'5cs'2a'28'5ba'2dz'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'7c'5c'28'5b'7e'21'40'23'5c'24'25'5c'5e'26'5c'2a'5c'2b'5c'2d'3d'3c'3e'5c'3f'5c'2e'2f'5c'7c'5c'5c'3a'5d'2b'5c'29'29'29'2a'5cs'2a'28'3f'3d'3a'3a'5b'5e'7e'21'40'23'5c'24'25'5c'5e'26'5c'2a'5c'2b'5c'2d'3d'3c'3e'5c'3f'5c'2e'2f'5c'7c'5c'5c'3a'5d'29 = compileRegex True "\\s*([a-z][a-zA-Z0-9_']*|\\([~!@#\\$%\\^&\\*\\+\\-=<>\\?\\./\\|\\\\:]+\\))\\s*(,\\s*([a-z][a-zA-Z0-9_']*|\\([~!@#\\$%\\^&\\*\\+\\-=<>\\?\\./\\|\\\\:]+\\)))*\\s*(?=::[^~!@#\\$%\\^&\\*\\+\\-=<>\\?\\./\\|\\\\:])"
+ regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5ba'2dz'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a = compileRegex True "([A-Z][a-zA-Z0-9_']*\\.)*[a-z][a-zA-Z0-9_']*"
+ regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5b'7e'21'40'23'5c'24'25'5c'5e'26'5c'2a'5c'2b'5c'2d'3d'3c'3e'5c'3f'5c'2e'2f'5c'7c'5c'5c'3a'5d'2b = compileRegex True "([A-Z][a-zA-Z0-9_']*\\.)*[~!@#\\$%\\^&\\*\\+\\-=<>\\?\\./\\|\\\\:]+"
+-regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a = compileRegex True "([A-Z][a-zA-Z0-9_']*\\.)*[A-Z][a-zA-Z0-9_']*"
++regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a1 = compileRegex True "([A-Z][a-zA-Z0-9_']*\\.)*[A-Z][a-zA-Z0-9_']*"
+ regex_'5cS'2b = compileRegex True "\\S+"
+ regex_'5b'5e'27'5c'5c'5d = compileRegex True "[^'\\\\]"
+ regex_o'5b0'2d7'5d'2b = compileRegex True "o[0-7]+"
+@@ -132,7 +132,7 @@ parseRules ("Curry","Normal") =
+    <|>
+    ((pRegExpr regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5b'7e'21'40'23'5c'24'25'5c'5e'26'5c'2a'5c'2b'5c'2d'3d'3c'3e'5c'3f'5c'2e'2f'5c'7c'5c'5c'3a'5d'2b >>= withAttribute FunctionTok))
+    <|>
+-   ((pRegExpr regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a >>= withAttribute DataTypeTok))
++   ((pRegExpr regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a1 >>= withAttribute DataTypeTok))
+    <|>
+    ((pDetectChar False '`' >>= withAttribute OtherTok) >>~ pushContext ("Curry","Infix"))
+    <|>
+@@ -175,7 +175,7 @@ parseRules ("Curry","Import") =
+    <|>
+    ((pDetect2Chars False '-' '-' >>= withAttribute CommentTok) >>~ pushContext ("Curry","Comment"))
+    <|>
+-   ((pRegExpr regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a >>= withAttribute DataTypeTok))
++   ((pRegExpr regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a1 >>= withAttribute DataTypeTok))
+    <|>
+    ((pDetect2Chars False 'a' 's' >>= withAttribute KeywordTok))
+    <|>
+diff --git a/Text/Highlighting/Kate/Syntax/Haskell.hs b/Text/Highlighting/Kate/Syntax/Haskell.hs
+index 2fc6767..d2f492f 100644
+--- a/Text/Highlighting/Kate/Syntax/Haskell.hs
++++ b/Text/Highlighting/Kate/Syntax/Haskell.hs
+@@ -99,7 +99,7 @@ regex_0'5bOo'5d'5b0'2d7'5d'2b = compileRegex True "0[Oo][0-7]+"
+ regex_0'5bXx'5d'5b0'2d9A'2dFa'2df'5d'2b = compileRegex True "0[Xx][0-9A-Fa-f]+"
+ regex_'5c'5b'5ba'2dzA'2dZ'5f'27'5d'28'5cw'7c'5b'5f'27'5d'29'2a'5c'7c = compileRegex True "\\[[a-zA-Z_'](\\w|[_'])*\\|"
+ regex_'5c'5c'2e = compileRegex True "\\\\."
+-regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5ba'2dz'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a = compileRegex True "([A-Z][a-zA-Z0-9_']*\\.)*[a-z][a-zA-Z0-9_']*"
++regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5ba'2dz'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a1 = compileRegex True "([A-Z][a-zA-Z0-9_']*\\.)*[a-z][a-zA-Z0-9_']*"
+ regex_'2d'2d'5b'5e'5c'2d'21'23'5c'24'25'26'5c'2a'5c'2b'2f'3c'3d'3e'5c'3f'5c'40'5c'5e'5c'7c'7e'5c'2e'3a'5d'2e'2a'24 = compileRegex True "--[^\\-!#\\$%&\\*\\+/<=>\\?\\@\\^\\|~\\.:].*$"
+ regex_'27'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5ba'2dz'5f'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'27 = compileRegex True "'([A-Z][a-zA-Z0-9_']*\\.)*[a-z_][a-zA-Z0-9_']*'"
+ regex_'22'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'22 = compileRegex True "\"([A-Z][a-zA-Z0-9_']*\\.)*[A-Z][a-zA-Z0-9_']*\""
+@@ -219,7 +219,7 @@ parseRules ("Haskell","infix") =
+ parseRules ("Haskell","import") =
+   (((pKeyword " \n\t.():!+,-<=>%&*/;?[]^{|}~\\" list_import'5fkeywords >>= withAttribute KeywordTok))
+    <|>
+-   ((pRegExpr regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5ba'2dz'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a >>= withAttribute NormalTok))
++   ((pRegExpr regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5ba'2dz'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a1 >>= withAttribute NormalTok))
+    <|>
+    ((pRegExpr regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a'5c'2e'29'2a'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'27'5d'2a >>= withAttribute DataTypeTok))
+    <|>
+diff --git a/Text/Highlighting/Kate/Syntax/Idris.hs b/Text/Highlighting/Kate/Syntax/Idris.hs
+index c59316e..9fc8ac2 100644
+--- a/Text/Highlighting/Kate/Syntax/Idris.hs
++++ b/Text/Highlighting/Kate/Syntax/Idris.hs
+@@ -73,7 +73,7 @@ regex_'5cs'2a'28'5ba'2dz'5d'2b'5cs'2b'29'2a'28'5bA'2dZa'2dz'5d'5bA'2dZa'2dz0'2d9
+ regex_0'5bXx'5d'5b0'2d9A'2dFa'2df'5d'2b = compileRegex True "0[Xx][0-9A-Fa-f]+"
+ regex_'5cd'2b'5c'2e'5cd'2b'28'5beE'5d'5b'2d'2b'5d'3f'5cd'2b'29'3f = compileRegex True "\\d+\\.\\d+([eE][-+]?\\d+)?"
+ regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'5d'2a'27'2a'7c'5f'5c'7c'5f'29 = compileRegex True "([A-Z][a-zA-Z0-9_]*'*|_\\|_)"
+-regex_'5ba'2dz'5d'5ba'2dzA'2dZ0'2d9'5f'5d'2a'27'2a = compileRegex True "[a-z][a-zA-Z0-9_]*'*"
++regex_'5ba'2dz'5d'5ba'2dzA'2dZ0'2d9'5f'5d'2a'27'2a1 = compileRegex True "[a-z][a-zA-Z0-9_]*'*"
+ regex_'5c'3f'5ba'2dz'5d'5bA'2dZa'2dz0'2d9'5f'5d'2b'27'2a = compileRegex True "\\?[a-z][A-Za-z0-9_]+'*"
+ regex_'28'3a'7c'3d'3e'7c'5c'2d'3e'7c'3c'5c'2d'29 = compileRegex True "(:|=>|\\->|<\\-)"
+ regex_'28'5b'5c'2d'21'23'5c'24'25'26'5c'2a'5c'2b'5c'2e'2f'3c'3d'3e'5c'3f'40'5c'5c'5e'5c'7c'7e'3a'5d'2b'7c'5cb'5f'5cb'29 = compileRegex True "([\\-!#\\$%&\\*\\+\\./<=>\\?@\\\\^\\|~:]+|\\b_\\b)"
+@@ -112,7 +112,7 @@ parseRules ("Idris","code") =
+    <|>
+    ((pRegExpr regex_'28'5bA'2dZ'5d'5ba'2dzA'2dZ0'2d9'5f'5d'2a'27'2a'7c'5f'5c'7c'5f'29 >>= withAttribute DataTypeTok))
+    <|>
+-   ((pRegExpr regex_'5ba'2dz'5d'5ba'2dzA'2dZ0'2d9'5f'5d'2a'27'2a >>= withAttribute NormalTok))
++   ((pRegExpr regex_'5ba'2dz'5d'5ba'2dzA'2dZ0'2d9'5f'5d'2a'27'2a1 >>= withAttribute NormalTok))
+    <|>
+    ((pRegExpr regex_'5c'3f'5ba'2dz'5d'5bA'2dZa'2dz0'2d9'5f'5d'2b'27'2a >>= withAttribute OtherTok))
+    <|>
+diff --git a/Text/Highlighting/Kate/Syntax/Lex.hs b/Text/Highlighting/Kate/Syntax/Lex.hs
+index 398c03b..6db05f1 100644
+--- a/Text/Highlighting/Kate/Syntax/Lex.hs
++++ b/Text/Highlighting/Kate/Syntax/Lex.hs
+@@ -88,7 +88,7 @@ regex_'5c'5c'2e = compileRegex True "\\\\."
+ regex_'5cs'2a'5c'7d = compileRegex True "\\s*\\}"
+ regex_'5cs'2a = compileRegex True "\\s*"
+ regex_'5c'7c'5cs'2a'24 = compileRegex True "\\|\\s*$"
+-regex_'5cs = compileRegex True "\\s"
++regex_'5cs1 = compileRegex True "\\s"
+ 
+ parseRules ("Lex/Flex","Pre Start") =
+   (((lookAhead (pRegExpr regex_'2e) >> pushContext ("Lex/Flex","Definitions") >> currentContext >>= parseRules))
+@@ -212,7 +212,7 @@ parseRules ("Lex/Flex","Action") =
+    (pushContext ("Lex/Flex","Action C") >> currentContext >>= parseRules))
+ 
+ parseRules ("Lex/Flex","Detect C") =
+-  (((pColumn 0 >> pRegExpr regex_'5cs >>= withAttribute NormalTok) >>~ pushContext ("Lex/Flex","Indented C"))
++  (((pColumn 0 >> pRegExpr regex_'5cs1 >>= withAttribute NormalTok) >>~ pushContext ("Lex/Flex","Indented C"))
+    <|>
+    ((pColumn 0 >> pDetect2Chars False '%' '{' >>= withAttribute BaseNTok) >>~ pushContext ("Lex/Flex","Lex C Bloc"))
+    <|>
+diff --git a/Text/Highlighting/Kate/Syntax/Ruby.hs b/Text/Highlighting/Kate/Syntax/Ruby.hs
+index 18dd983..e9f9817 100644
+--- a/Text/Highlighting/Kate/Syntax/Ruby.hs
++++ b/Text/Highlighting/Kate/Syntax/Ruby.hs
+@@ -216,11 +216,11 @@ regex_w'5c'7b = compileRegex True "w\\{"
+ regex_w'5c'5b = compileRegex True "w\\["
+ regex_w'3c = compileRegex True "w<"
+ regex_w'28'5b'5e'5cs'5cw'5d'29 = compileRegex True "w([^\\s\\w])"
+-regex_W'5c'28 = compileRegex True "W\\("
+-regex_W'5c'7b = compileRegex True "W\\{"
+-regex_W'5c'5b = compileRegex True "W\\["
+-regex_W'3c = compileRegex True "W<"
+-regex_W'28'5b'5e'5cs'5cw'5d'29 = compileRegex True "W([^\\s\\w])"
++regex_W'5c'281 = compileRegex True "W\\("
++regex_W'5c'7b1 = compileRegex True "W\\{"
++regex_W'5c'5b1 = compileRegex True "W\\["
++regex_W'3c1 = compileRegex True "W<"
++regex_W'28'5b'5e'5cs'5cw'5d'291 = compileRegex True "W([^\\s\\w])"
+ regex_q'5c'28 = compileRegex True "q\\("
+ regex_q'5c'7b = compileRegex True "q\\{"
+ regex_q'5c'5b = compileRegex True "q\\["
+@@ -620,15 +620,15 @@ parseRules ("Ruby","find_gdl_input") =
+    <|>
+    ((pRegExpr regex_w'28'5b'5e'5cs'5cw'5d'29 >>= withAttribute OtherTok) >>~ pushContext ("Ruby","gdl_token_array_5"))
+    <|>
+-   ((pRegExpr regex_W'5c'28 >>= withAttribute OtherTok) >>~ pushContext ("Ruby","gdl_token_array_1"))
++   ((pRegExpr regex_W'5c'281 >>= withAttribute OtherTok) >>~ pushContext ("Ruby","gdl_token_array_1"))
+    <|>
+-   ((pRegExpr regex_W'5c'7b >>= withAttribute OtherTok) >>~ pushContext ("Ruby","gdl_token_array_2"))
++   ((pRegExpr regex_W'5c'7b1 >>= withAttribute OtherTok) >>~ pushContext ("Ruby","gdl_token_array_2"))
+    <|>
+-   ((pRegExpr regex_W'5c'5b >>= withAttribute OtherTok) >>~ pushContext ("Ruby","gdl_token_array_3"))
++   ((pRegExpr regex_W'5c'5b1 >>= withAttribute OtherTok) >>~ pushContext ("Ruby","gdl_token_array_3"))
+    <|>
+-   ((pRegExpr regex_W'3c >>= withAttribute OtherTok) >>~ pushContext ("Ruby","gdl_token_array_4"))
++   ((pRegExpr regex_W'3c1 >>= withAttribute OtherTok) >>~ pushContext ("Ruby","gdl_token_array_4"))
+    <|>
+-   ((pRegExpr regex_W'28'5b'5e'5cs'5cw'5d'29 >>= withAttribute OtherTok) >>~ pushContext ("Ruby","gdl_token_array_5"))
++   ((pRegExpr regex_W'28'5b'5e'5cs'5cw'5d'291 >>= withAttribute OtherTok) >>~ pushContext ("Ruby","gdl_token_array_5"))
+    <|>
+    ((pRegExpr regex_q'5c'28 >>= withAttribute OtherTok) >>~ pushContext ("Ruby","gdl_apostrophed_1"))
+    <|>
+-- 
+2.15.2 (Apple Git-101.1)
+

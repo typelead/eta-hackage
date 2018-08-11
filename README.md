@@ -233,6 +233,7 @@ These packages are supported by `etlas`.
 - [hetero-map-0.21](https://hackage.haskell.org/package/hetero-map-0.21)
 - [hex-0.1.2](https://hackage.haskell.org/package/hex-0.1.2)
 - [hgal-2.0.0.2](https://hackage.haskell.org/package/hgal-2.0.0.2)
+- [highlighting-kate-0.6.4](https://hackage.haskell.org/package/highlighting-kate-0.6.4)
 - [hostname-1.0](https://hackage.haskell.org/package/hostname-1.0)
 - [hourglass >= 0.2.10 && <= 0.2.11](https://hackage.haskell.org/package/hourglass)
 - [hslogger-1.2.10](https://hackage.haskell.org/package/hslogger-1.2.10)
