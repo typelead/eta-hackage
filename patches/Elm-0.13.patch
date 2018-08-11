@@ -1,0 +1,454 @@
+From 48b752a7f58e26c394b46df0d68725d2266b2c30 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 12 Aug 2018 00:58:29 +0530
+Subject: [PATCH] Patched
+
+---
+ cabal.project                               |  2 ++
+ compiler/AST/Declaration.hs                 |  3 ++-
+ compiler/AST/Expression/General.hs          |  4 ++--
+ compiler/AST/Variable.hs                    |  1 +
+ compiler/Build/File.hs                      | 12 +++++++-----
+ compiler/Docs.hs                            |  8 ++++----
+ compiler/Parse/Helpers.hs                   | 11 ++++++-----
+ compiler/Transform/Canonicalize.hs          |  6 ++++--
+ compiler/Transform/Canonicalize/Setup.hs    |  4 +++-
+ compiler/Transform/Canonicalize/Variable.hs |  2 +-
+ compiler/Transform/Check.hs                 | 10 +++++-----
+ compiler/Type/ExtraChecks.hs                |  4 ++--
+ compiler/Type/Fragment.hs                   |  2 ++
+ compiler/Type/State.hs                      |  5 +++--
+ compiler/Type/Type.hs                       | 11 ++++++-----
+ 15 files changed, 50 insertions(+), 35 deletions(-)
+ create mode 100644 cabal.project
+
+diff --git a/cabal.project b/cabal.project
+new file mode 100644
+index 0000000..f6e03dc
+--- /dev/null
++++ b/cabal.project
+@@ -0,0 +1,2 @@
++packages: .
++constraints: indents == 0.3.3, aeson-pretty == 0.7.2 
+diff --git a/compiler/AST/Declaration.hs b/compiler/AST/Declaration.hs
+index 0cd4614..d6fc9c7 100644
+--- a/compiler/AST/Declaration.hs
++++ b/compiler/AST/Declaration.hs
+@@ -9,6 +9,7 @@ import qualified AST.Type as T
+ import qualified AST.Variable as Var
+ import AST.PrettyPrint
+ import Text.PrettyPrint as P
++import Prelude hiding ((<>))
+ 
+ data Declaration' port def var
+     = Definition def
+@@ -100,7 +101,7 @@ instance (Pretty expr, Pretty var, Var.ToString var) => Pretty (Port expr var) w
+       In name tipe -> prettyPort name ":" tipe
+       Out name expr tipe -> P.vcat [ prettyPort name ":" tipe
+                                    , prettyPort name "=" expr ]
+-          
++
+ 
+ prettyPort :: (Pretty a) => String -> String -> a -> Doc
+ prettyPort name op e = P.text "port" <+> P.text name <+> P.text op <+> pretty e
+diff --git a/compiler/AST/Expression/General.hs b/compiler/AST/Expression/General.hs
+index 48870f3..113b0c9 100644
+--- a/compiler/AST/Expression/General.hs
++++ b/compiler/AST/Expression/General.hs
+@@ -11,7 +11,7 @@ module AST.Expression.General where
+ import AST.PrettyPrint
+ import Text.PrettyPrint as P
+ import AST.Type (Type)
+-
++import Prelude hiding ((<>))
+ import qualified AST.Annotation as Annotation
+ import qualified AST.Helpers as Help
+ import qualified AST.Literal as Literal
+@@ -82,7 +82,7 @@ saveEnvName :: String
+ saveEnvName = "_save_the_environment!!!"
+ 
+ dummyLet :: (Pretty def) => [def] -> Expr Annotation.Region def Var.Canonical
+-dummyLet defs = 
++dummyLet defs =
+      Annotation.none $ Let defs (Annotation.none $ Var (Var.builtin saveEnvName))
+ 
+ instance (Pretty def, Pretty var, Var.ToString var) => Pretty (Expr' ann def var) where
+diff --git a/compiler/AST/Variable.hs b/compiler/AST/Variable.hs
+index a7dcc2d..6abc0bd 100644
+--- a/compiler/AST/Variable.hs
++++ b/compiler/AST/Variable.hs
+@@ -2,6 +2,7 @@
+ module AST.Variable where
+ 
+ import Data.Binary
++import Prelude hiding ((<>))
+ import Control.Applicative ((<$>), (<*>))
+ import Text.PrettyPrint as P
+ import qualified AST.Helpers as Help
+diff --git a/compiler/Build/File.hs b/compiler/Build/File.hs
+index 10bafde..72dd8f2 100644
+--- a/compiler/Build/File.hs
++++ b/compiler/Build/File.hs
+@@ -1,4 +1,6 @@
+ {-# OPTIONS_GHC -W #-}
++{-# LANGUAGE FlexibleContexts #-}
++
+ module Build.File (build) where
+ 
+ import Control.Applicative      ((<$>))
+@@ -98,13 +100,13 @@ shouldBeCompiled filePath = do
+           -- Should never actually reach here
+           Left  err       -> liftIO $ Print.failure err
+           Right (_, deps) -> anyM wasCompiled deps
+-        
+-  
++
++
+     in (not <$> alreadyCompiled) `orM` outDated `orM` dependenciesUpdated
+ 
+ wasCompiled :: String -> Build Bool
+ wasCompiled modul = maybe False fst . Map.lookup modul <$> get
+-  
++
+ -- Short-circuiting monadic (||)
+ infixr 2 `orM`
+ orM :: (Monad m) => m Bool -> m Bool -> m Bool
+@@ -139,7 +141,7 @@ compile number filePath =
+        createDirectoryIfMissing True (Flag.cache_dir flags)
+        createDirectoryIfMissing True (Flag.build_dir flags)
+ 
+-     canonicalModule <- 
++     canonicalModule <-
+        liftIO $ case Source.build (Flag.no_prelude flags) interfaces source of
+            Right modul -> return modul
+            Left errors -> do Print.errors errors
+@@ -147,7 +149,7 @@ compile number filePath =
+ 
+      liftIO $ when (Flag.print_types flags) $ do
+        Print.types (Module.types (Module.body canonicalModule))
+-  
++
+      let newInters = Module.toInterface canonicalModule
+      generateCache name newInters canonicalModule
+      update name newInters True
+diff --git a/compiler/Docs.hs b/compiler/Docs.hs
+index 19f2e91..b4e33bf 100644
+--- a/compiler/Docs.hs
++++ b/compiler/Docs.hs
+@@ -74,7 +74,7 @@ docComment :: IParser String
+ docComment = do
+   try (string "{-|")
+   contents <- closeComment
+-  let reversed = dropWhile (`elem` " \n\r") . drop 2 $ reverse contents
++  let reversed = dropWhile (`elem` (" \n\r" :: String)) . drop 2 $ reverse contents
+   return $ dropWhile (==' ') (reverse reversed)
+ 
+ moduleDocs :: IParser (String, Var.Listing Var.Value, String)
+@@ -118,7 +118,7 @@ documentToJson name structure things =
+   where
+     (values, aliases, adts) =
+         collect Map.empty Map.empty Map.empty Map.empty things
+-    
++
+     toList :: Map.Map String [Pair] -> [Value]
+     toList dict =
+         map object (Map.elems dict)
+@@ -200,14 +200,14 @@ instance Var.ToString var => ToJSON (T.Type var) where
+                 , "args" .= ([] :: [()])
+                 ]
+ 
+-            T.App (T.Type name) ts -> 
++            T.App (T.Type name) ts ->
+                 [ "tag" .= ("adt" :: Text.Text)
+                 , "name" .= toJSON (Var.toString name)
+                 , "args" .= map toJSON ts
+                 ]
+ 
+             T.App _ _ -> error "This is an unexpected error with elm-doc, please report it at <https://github.com/elm-lang/Elm/issues>"
+-             
++
+             T.Record fields ext ->
+                 [ "tag" .= ("record" :: Text.Text)
+                 , "fields" .= toJSON (map (toJSON . second toJSON) fields)
+diff --git a/compiler/Parse/Helpers.hs b/compiler/Parse/Helpers.hs
+index 8e5bd4d..24d631b 100644
+--- a/compiler/Parse/Helpers.hs
++++ b/compiler/Parse/Helpers.hs
+@@ -1,4 +1,5 @@
+ {-# OPTIONS_GHC -W #-}
++{-# LANGUAGE FlexibleContexts #-}
+ module Parse.Helpers where
+ 
+ import Prelude hiding (until)
+@@ -62,7 +63,7 @@ rLabel :: IParser String
+ rLabel = lowVar
+ 
+ innerVarChar :: IParser Char
+-innerVarChar = alphaNum <|> char '_' <|> char '\'' <?> "" 
++innerVarChar = alphaNum <|> char '_' <|> char '\'' <?> ""
+ 
+ makeVar :: IParser Char -> IParser String
+ makeVar p = do
+@@ -328,7 +329,7 @@ glSource src =
+     Right (TranslationUnit decls) ->
+       Right . foldr addGLinput emptyDecls . join . map extractGLinputs $ decls
+     Left e -> Left e
+-  where 
++  where
+     emptyDecls = Literal.GLShaderTipe Map.empty Map.empty Map.empty
+     addGLinput (qual,tipe,name) glDecls = case qual of
+         Attribute -> glDecls { attribute = Map.insert name tipe $ attribute glDecls }
+@@ -337,12 +338,12 @@ glSource src =
+         _ -> error "Should never happen due to below filter"
+     extractGLinputs decl = case decl of
+         Declaration (InitDeclaration (TypeDeclarator (FullType (Just (TypeQualSto qual)) (TypeSpec _prec (TypeSpecNoPrecision tipe _mexpr1)))) [InitDecl name _mexpr2 _mexpr3]) ->
+-            if elem qual [Attribute, Varying, Uniform] 
+-            then case tipe of 
++            if elem qual [Attribute, Varying, Uniform]
++            then case tipe of
+                 GLS.Int -> return (qual,Literal.Int,name)
+                 GLS.Float -> return (qual,Literal.Float,name)
+                 GLS.Vec2 -> return (qual,V2,name)
+-                GLS.Vec3 -> return (qual,V3,name) 
++                GLS.Vec3 -> return (qual,V3,name)
+                 GLS.Vec4 -> return (qual,V4,name)
+                 GLS.Mat4 -> return (qual,M4,name)
+                 GLS.Sampler2D -> return (qual,Texture,name)
+diff --git a/compiler/Transform/Canonicalize.hs b/compiler/Transform/Canonicalize.hs
+index 43042e8..90097bb 100644
+--- a/compiler/Transform/Canonicalize.hs
++++ b/compiler/Transform/Canonicalize.hs
+@@ -1,4 +1,6 @@
+ {-# OPTIONS_GHC -W #-}
++{-# LANGUAGE FlexibleContexts #-}
++
+ module Transform.Canonicalize (module') where
+ 
+ import Control.Applicative ((<$>),(<*>))
+@@ -8,7 +10,7 @@ import qualified Data.List as List
+ import qualified Data.Map as Map
+ import qualified Data.Set as Set
+ import qualified Data.Traversable as T
+-
++import Prelude hiding ((<>))
+ import AST.Expression.General (Expr'(..), dummyLet)
+ import qualified AST.Expression.Valid as Valid
+ import qualified AST.Expression.Canonical as Canonical
+@@ -160,7 +162,7 @@ declaration env decl =
+     let canonicalize kind context pattern env v =
+             let ctx = P.text ("Error in " ++ context) <+> pretty pattern <> P.colon
+                 throw err = P.vcat [ ctx, P.text err ]
+-            in 
++            in
+                 Env.onError throw (kind env v)
+     in
+     case decl of
+diff --git a/compiler/Transform/Canonicalize/Setup.hs b/compiler/Transform/Canonicalize/Setup.hs
+index 81700e7..d2a72e5 100644
+--- a/compiler/Transform/Canonicalize/Setup.hs
++++ b/compiler/Transform/Canonicalize/Setup.hs
+@@ -1,4 +1,6 @@
+ {-# OPTIONS_GHC -Wall #-}
++{-# LANGUAGE FlexibleContexts #-}
++
+ module Transform.Canonicalize.Setup (environment) where
+ 
+ import Control.Arrow (first)
+@@ -7,7 +9,7 @@ import Control.Monad.Error (throwError)
+ import qualified Data.Graph as Graph
+ import qualified Data.List as List
+ import qualified Data.Map as Map
+-
++import Prelude hiding ((<>))
+ import qualified AST.Expression.Valid as Valid
+ 
+ import AST.Module (Interface(iAdts, iTypes, iAliases))
+diff --git a/compiler/Transform/Canonicalize/Variable.hs b/compiler/Transform/Canonicalize/Variable.hs
+index 1259464..afe0a7f 100644
+--- a/compiler/Transform/Canonicalize/Variable.hs
++++ b/compiler/Transform/Canonicalize/Variable.hs
+@@ -1,4 +1,5 @@
+ {-# OPTIONS_GHC -Wall #-}
++{-# LANGUAGE FlexibleContexts #-}
+ module Transform.Canonicalize.Variable where
+ 
+ import Control.Monad.Error
+@@ -91,4 +92,3 @@ preferLocals' env extract kind possibilities var =
+           vars = map (Var.toString . extract) possibleVars
+           msg = "Ambiguous usage of " ++ kind ++ " '" ++ var ++ "'.\n" ++
+                 "    Disambiguate between: " ++ List.intercalate ", " vars
+-
+diff --git a/compiler/Transform/Check.hs b/compiler/Transform/Check.hs
+index 1b47670..8f1c6bc 100644
+--- a/compiler/Transform/Check.hs
++++ b/compiler/Transform/Check.hs
+@@ -5,7 +5,7 @@ import qualified Control.Arrow as Arrow
+ import qualified Data.List as List
+ import qualified Data.Maybe as Maybe
+ import qualified Data.Set as Set
+-
++import Prelude hiding ((<>))
+ import qualified AST.Expression.Valid as Valid
+ import qualified AST.Declaration as D
+ import qualified AST.Pattern as Pattern
+@@ -28,7 +28,7 @@ dups :: Ord a => [a] -> [a]
+ dups  = map head . filter ((>1) . length) . List.group . List.sort
+ 
+ dupErr :: String -> String -> String
+-dupErr err x = 
++dupErr err x =
+   "Syntax Error: There can only be one " ++ err ++ " '" ++ x ++ "'."
+ 
+ duplicates :: [D.ValidDecl] -> [String]
+@@ -45,7 +45,7 @@ duplicates decls =
+         unzip [ (pat,expr) | D.Definition (Valid.Definition pat expr _) <- decls ]
+ 
+     (portNames, portExprs) =
+-        Arrow.second concat $ unzip $ 
++        Arrow.second concat $ unzip $
+         flip map [ port | D.Port port <- decls ] $ \port ->
+             case port of
+               D.Out name expr _ -> (name, [expr])
+@@ -62,7 +62,7 @@ duplicates decls =
+           name:_ -> Left name
+ 
+ duplicateConstructors :: [D.ValidDecl] -> [String]
+-duplicateConstructors decls = 
++duplicateConstructors decls =
+     map (dupErr "definition of type constructor") (dups typeCtors) ++
+     map (dupErr "definition of data constructor") (dups dataCtors)
+   where
+@@ -91,7 +91,7 @@ illFormedTypes decls = map report (Maybe.mapMaybe isIllFormed (aliases ++ adts))
+             declared = Set.fromList tvars
+ 
+       isIllFormed (decl, tvars, tipes) =
+-          let unbound = undeclared tvars tipes in 
++          let unbound = undeclared tvars tipes in
+           if Set.null unbound then Nothing
+                               else Just (decl, Set.toList unbound)
+ 
+diff --git a/compiler/Type/ExtraChecks.hs b/compiler/Type/ExtraChecks.hs
+index 8a7618d..2dc15ea 100644
+--- a/compiler/Type/ExtraChecks.hs
++++ b/compiler/Type/ExtraChecks.hs
+@@ -13,7 +13,7 @@ import qualified Data.Map as Map
+ import qualified Data.Traversable as Traverse
+ import qualified Data.UnionFind.IO as UF
+ import Text.PrettyPrint as P
+-
++import Prelude hiding ((<>))
+ import qualified AST.Annotation as A
+ import qualified AST.Expression.Canonical as Canonical
+ import qualified AST.PrettyPrint as PP
+@@ -78,7 +78,7 @@ portTypes expr =
+ 
+           ST.App (ST.Type v) ts
+               | V.isTuple v -> mapM_ valid ts
+-                    
++
+           ST.App _ _ -> err "an unsupported type"
+ 
+           ST.Var _ -> err "free type variables"
+diff --git a/compiler/Type/Fragment.hs b/compiler/Type/Fragment.hs
+index d8a9dfc..8f7eb8d 100644
+--- a/compiler/Type/Fragment.hs
++++ b/compiler/Type/Fragment.hs
+@@ -15,12 +15,14 @@ data Fragment = Fragment
+ 
+ emptyFragment = Fragment Map.empty [] (noneNoDocs CTrue)
+ 
++joinFragment :: Fragment -> Fragment -> Fragment
+ joinFragment f1 f2 = Fragment
+     { typeEnv        = Map.union (typeEnv f1) (typeEnv f2)
+     , vars           = vars f1 ++ vars f2
+     , typeConstraint = typeConstraint f1 /\ typeConstraint f2
+     }
+ 
++joinFragments :: [Fragment] -> Fragment
+ joinFragments = List.foldl' (flip joinFragment) emptyFragment
+ 
+ toScheme fragment =
+diff --git a/compiler/Type/State.hs b/compiler/Type/State.hs
+index 6eb6388..04716b9 100644
+--- a/compiler/Type/State.hs
++++ b/compiler/Type/State.hs
+@@ -1,4 +1,6 @@
+ {-# OPTIONS_GHC -W #-}
++{-# LANGUAGE FlexibleContexts #-}
++
+ module Type.State where
+ 
+ import Control.Applicative ( (<$>), (<*>), Applicative, (<|>) )
+@@ -6,7 +8,7 @@ import Control.Monad.State
+ import qualified Data.Map as Map
+ import qualified Data.Traversable as Traversable
+ import qualified Data.UnionFind.IO as UF
+-
++import Prelude hiding ((<>))
+ import qualified AST.Annotation as A
+ import AST.PrettyPrint
+ import Text.PrettyPrint as P
+@@ -198,4 +200,3 @@ traverseTerm f term =
+     EmptyRecord1 -> return EmptyRecord1
+     Record1 fields ext ->
+         Record1 <$> Traversable.traverse (mapM f) fields <*> f ext
+-
+diff --git a/compiler/Type/Type.hs b/compiler/Type/Type.hs
+index 70fadde..a289c25 100644
+--- a/compiler/Type/Type.hs
++++ b/compiler/Type/Type.hs
+@@ -13,6 +13,7 @@ import Control.Monad.State (StateT, get, put, execStateT, runStateT)
+ import Control.Monad.Error (ErrorT, Error, liftIO)
+ import Data.Traversable (traverse)
+ import AST.Annotation
++import Prelude hiding ((<>))
+ import qualified AST.PrettyPrint as PP
+ import qualified AST.Type as T
+ import qualified AST.Variable as Var
+@@ -221,7 +222,7 @@ instance PrettyType Descriptor where
+               P.parens . P.text $ replicate (read (drop 6 (Var.toString name)) - 1) ','
+           | otherwise ->
+               P.text (Var.toString name)
+-                            
++
+       _ -> P.text "?"
+ 
+ 
+@@ -323,14 +324,14 @@ instance Crawl e => Crawl (Annotated a e) where
+   crawl nextState (A ann e) = A ann <$> crawl nextState e
+ 
+ instance (Crawl t, Crawl v) => Crawl (BasicConstraint t v) where
+-  crawl nextState constraint = 
++  crawl nextState constraint =
+     let rnm = crawl nextState in
+     case constraint of
+       CTrue -> return CTrue
+       CSaveEnv -> return CSaveEnv
+       CEqual a b -> CEqual <$> rnm a <*> rnm b
+       CAnd cs -> CAnd <$> crawl nextState cs
+-      CLet schemes c -> CLet <$> crawl nextState schemes <*> crawl nextState c 
++      CLet schemes c -> CLet <$> crawl nextState schemes <*> crawl nextState c
+       CInstance name tipe -> CInstance name <$> rnm tipe
+ 
+ instance Crawl a => Crawl [a] where
+@@ -373,7 +374,7 @@ instance Crawl Descriptor where
+     put state'
+     return $ desc { name = name', structure = structure' }
+ 
+-               
++
+ toSrcType :: Variable -> IO T.CanonicalType
+ toSrcType var =
+     go =<< addNames var
+@@ -383,7 +384,7 @@ toSrcType var =
+       srcType <- maybe (backupSrcType desc) termToSrcType (structure desc)
+       return $ maybe srcType (\name -> T.Aliased name srcType) (alias desc)
+ 
+-    backupSrcType desc = 
++    backupSrcType desc =
+         case name desc of
+           Just v@(Var.Canonical _ x@(c:_))
+               | Char.isLower c -> return (T.Var x)
+-- 
+2.15.2 (Apple Git-101.1)
+

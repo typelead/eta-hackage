@@ -184,6 +184,7 @@ These packages are supported by `etlas`.
 - [dlist >= 0.8.0.2 && <= 0.8.0.3](https://hackage.haskell.org/package/dlist)
 - [dom-lt-0.1.3](https://hackage.haskell.org/package/dom-lt-0.1.3)
 - [dual-tree-0.2.1](https://hackage.haskell.org/package/dual-tree-0.2.1)
+- [Elm-0.13](https://hackage.haskell.org/package/Elm-0.13)
 - [easy-file-0.2.1](https://hackage.haskell.org/package/easy-file-0.2.1)
 - [either-4.4.1.1](https://hackage.haskell.org/package/either-4.4.1.1)
 - [entropy-0.4](https://hackage.haskell.org/package/entropy)
