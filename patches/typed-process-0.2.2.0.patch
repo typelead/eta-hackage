@@ -1,0 +1,182 @@
+From a0111fd7f8b458452ff6e3ec96faa292660769f5 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 12 Aug 2018 01:34:27 +0530
+Subject: [PATCH] Patched
+
+---
+ src/System/Process/Typed.hs | 124 ++++++++++++++++++++++----------------------
+ 1 file changed, 62 insertions(+), 62 deletions(-)
+
+diff --git a/src/System/Process/Typed.hs b/src/System/Process/Typed.hs
+index 2ad8ccb..2982490 100644
+--- a/src/System/Process/Typed.hs
++++ b/src/System/Process/Typed.hs
+@@ -43,12 +43,12 @@ module System.Process.Typed
+     , setCreateNewConsole
+     , setNewSession
+ #endif
+-#if MIN_VERSION_process(1, 4, 0) && !WINDOWS
+-    , setChildGroup
+-    , setChildGroupInherit
+-    , setChildUser
+-    , setChildUserInherit
+-#endif
++-- #if MIN_VERSION_process(1, 4, 0) && !WINDOWS
++--     , setChildGroup
++--     , setChildGroupInherit
++--     , setChildUser
++--     , setChildUserInherit
++-- #endif
+ 
+       -- * Stream specs
+     , mkStreamSpec
+@@ -111,9 +111,9 @@ import qualified Data.ByteString.Lazy as L
+ import qualified Data.ByteString.Lazy.Char8 as L8
+ import Data.String (IsString (fromString))
+ 
+-#if MIN_VERSION_process(1, 4, 0) && !WINDOWS
+-import System.Posix.Types (GroupID, UserID)
+-#endif
++-- #if MIN_VERSION_process(1, 4, 0) && !WINDOWS
++-- import System.Posix.Types (GroupID, UserID)
++-- #endif
+ 
+ #if !MIN_VERSION_base(4, 8, 0)
+ import Control.Applicative (Applicative (..), (<$>), (<$))
+@@ -162,10 +162,10 @@ data ProcessConfig stdin stdout stderr = ProcessConfig
+     , pcNewSession :: !Bool
+ #endif
+ 
+-#if MIN_VERSION_process(1, 4, 0) && !WINDOWS
+-    , pcChildGroup :: !(Maybe GroupID)
+-    , pcChildUser :: !(Maybe UserID)
+-#endif
++-- #if MIN_VERSION_process(1, 4, 0) && !WINDOWS
++--     , pcChildGroup :: !(Maybe GroupID)
++--     , pcChildUser :: !(Maybe UserID)
++-- #endif
+     }
+ instance Show (ProcessConfig stdin stdout stderr) where
+     show pc = concat
+@@ -270,10 +270,10 @@ defaultProcessConfig = ProcessConfig
+     , pcNewSession = False
+ #endif
+ 
+-#if MIN_VERSION_process(1, 4, 0) && !WINDOWS
+-    , pcChildGroup = Nothing
+-    , pcChildUser = Nothing
+-#endif
++-- #if MIN_VERSION_process(1, 4, 0) && !WINDOWS
++--     , pcChildGroup = Nothing
++--     , pcChildUser = Nothing
++-- #endif
+     }
+ 
+ -- | Create a 'ProcessConfig' from the given command and arguments.
+@@ -438,47 +438,47 @@ setNewSession
+ setNewSession x pc = pc { pcNewSession = x }
+ #endif
+ 
+-#if MIN_VERSION_process(1, 4, 0) && !WINDOWS
+--- | Set the child process's group ID with the POSIX @setgid@ syscall,
+--- does nothing on non-POSIX. See 'P.child_group'.
+---
+--- Default: False
+---
+--- @since 0.1.0.0
+-setChildGroup
+-    :: GroupID
+-    -> ProcessConfig stdin stdout stderr
+-    -> ProcessConfig stdin stdout stderr
+-setChildGroup x pc = pc { pcChildGroup = Just x }
+-
+--- | Inherit the group from the parent process.
+---
+--- @since 0.2.2.0
+-setChildGroupInherit
+-  :: ProcessConfig stdin stdout stderr
+-  -> ProcessConfig stdin stdout stderr
+-setChildGroupInherit pc = pc { pcChildGroup = Nothing }
+-
+--- | Set the child process's user ID with the POSIX @setuid@ syscall,
+--- does nothing on non-POSIX. See 'P.child_user'.
+---
+--- Default: False
+---
+--- @since 0.1.0.0
+-setChildUser
+-    :: UserID
+-    -> ProcessConfig stdin stdout stderr
+-    -> ProcessConfig stdin stdout stderr
+-setChildUser x pc = pc { pcChildUser = Just x }
+-
+--- | Inherit the user from the parent process.
+---
+--- @since 0.2.2.0
+-setChildUserInherit
+-  :: ProcessConfig stdin stdout stderr
+-  -> ProcessConfig stdin stdout stderr
+-setChildUserInherit pc = pc { pcChildUser = Nothing }
+-#endif
++-- #if MIN_VERSION_process(1, 4, 0) && !WINDOWS
++-- -- | Set the child process's group ID with the POSIX @setgid@ syscall,
++-- -- does nothing on non-POSIX. See 'P.child_group'.
++-- --
++-- -- Default: False
++-- --
++-- -- @since 0.1.0.0
++-- setChildGroup
++--     :: GroupID
++--     -> ProcessConfig stdin stdout stderr
++--     -> ProcessConfig stdin stdout stderr
++-- setChildGroup x pc = pc { pcChildGroup = Just x }
++--
++-- -- | Inherit the group from the parent process.
++-- --
++-- -- @since 0.2.2.0
++-- setChildGroupInherit
++--   :: ProcessConfig stdin stdout stderr
++--   -> ProcessConfig stdin stdout stderr
++-- setChildGroupInherit pc = pc { pcChildGroup = Nothing }
++--
++-- -- | Set the child process's user ID with the POSIX @setuid@ syscall,
++-- -- does nothing on non-POSIX. See 'P.child_user'.
++-- --
++-- -- Default: False
++-- --
++-- -- @since 0.1.0.0
++-- setChildUser
++--     :: UserID
++--     -> ProcessConfig stdin stdout stderr
++--     -> ProcessConfig stdin stdout stderr
++-- setChildUser x pc = pc { pcChildUser = Just x }
++--
++-- -- | Inherit the user from the parent process.
++-- --
++-- -- @since 0.2.2.0
++-- setChildUserInherit
++--   :: ProcessConfig stdin stdout stderr
++--   -> ProcessConfig stdin stdout stderr
++-- setChildUserInherit pc = pc { pcChildUser = Nothing }
++-- #endif
+ 
+ -- | Create a new 'StreamSpec' from the given 'P.StdStream' and a
+ -- helper function. This function:
+@@ -608,10 +608,10 @@ startProcess pConfig'@ProcessConfig {..} = liftIO $ do
+             , P.new_session = pcNewSession
+ #endif
+ 
+-#if MIN_VERSION_process(1, 4, 0) && !WINDOWS
+-            , P.child_group = pcChildGroup
+-            , P.child_user = pcChildUser
+-#endif
++-- #if MIN_VERSION_process(1, 4, 0) && !WINDOWS
++--             , P.child_group = pcChildGroup
++--             , P.child_user = pcChildUser
++-- #endif
+ 
+             }
+ 
+-- 
+2.15.2 (Apple Git-101.1)
+

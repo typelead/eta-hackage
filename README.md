@@ -440,7 +440,7 @@ These packages are supported by `etlas`.
 - [tree-fun-0.8.1.0](https://hackage.haskell.org/package/tree-fun-0.8.1.0)
 - [turtle-1.5.10](https://hackage.haskell.org/package/turtle-1.5.10)
 - [type-level-sets-0.8.0.0](https://hackage.haskell.org/package/type-level-sets-0.8.0.0)
-- [typed-process-0.2.0.0](https://hackage.haskell.org/package/typed-process-0.2.0.0)
+- [typed-process >= 0.2.0.0 && <= 0.2.2.0](https://hackage.haskell.org/package/typed-process-0.2.0.0)
 - [unexceptionalio-0.3.0](https://hackage.haskell.org/package/unexceptionalio-0.3.0)
 - [unicode-transforms-0.2.0](https://hackage.haskell.org/packages/unicode-transforms-0.2.0)
 - [unification-fd-0.10.0.1](https://hackage.haskell.org/package/unification-fd-0.10.0.1)
