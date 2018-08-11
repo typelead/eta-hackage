@@ -44,7 +44,7 @@ If you would like to have a given package/version made compatible with `etlas`, 
 ### Supported Packages
 
 These packages are supported by `etlas`.
-
+- [Agda-2.5.4.1](https://hackage.haskell.org/package/Agda-2.5.4.1)
 - [abstract-deque-0.3](https://hackage.haskell.org/package/abstract-deque-0.3)
 - [abstract-par-0.3.3](https://hackage.haskell.org/package/abstract-par-0.3.3)
 - [active-0.2.0.13](https://hackage.haskell.org/package/active-0.2.0.13)
