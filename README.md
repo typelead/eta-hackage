@@ -446,6 +446,7 @@ These packages are supported by `etlas`.
 - [union-find-0.2](https://hackage.haskell.org/package/union-find-0.2)
 - [union-find-array-0.1.0.2](https://hackage.haskell.org/package/union-find-array-0.1.0.2)
 - [unix-time-0.3.7](https://hackage.haskell.org/package/unix-time-0.3.7)
+- [unliftio-0.2.7.0](https://hackage.haskell.org/package/unliftio-0.2.7.0)
 - [unliftio-core-0.1.1.0](https://hackage.haskell.org/package/unliftio-core-0.1.1.0)
 - [unordered-containers >= 0.2.7.1 && <= 0.2.9.0](https://hackage.haskell.org/package/unordered-containers)
 - [uri-bytestring >= 0.2.2.1 && <= 0.3.0.1](https://hackage.haskell.org/package/uri-bytestring)
