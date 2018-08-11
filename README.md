@@ -415,7 +415,7 @@ These packages are supported by `etlas`.
 - [SHA >=1.6.4.2 && <= 1.6.4.4](https://hackage.haskell.org/package/SHA-1.6.4.2)
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
 - [tagsoup-0.14](https://hackage.haskell.org/package/tagsoup-0.14)
-- [tasty >= 0.11.2.1 && <= 0.11.2.5](https://hackage.haskell.org/package/tasty-0.11.2.5)
+- [tasty >= 0.11.2.1 && <= 1.1.0.3](https://hackage.haskell.org/package/tasty)
 - [template-haskell-2.11.1.0](https://hackage.haskell.org/package/template-haskell-2.11.1.0)
 - [temporary-1.2.1.1](http://hackage.haskell.org/package/temporary-1.2.1.1)
 - [terminal-size-0.3.2.1](https://hackage.haskell.org/package/terminal-size-0.3.2.1)
