@@ -383,6 +383,7 @@ These packages are supported by `etlas`.
 - [repa-io-3.4.1.1](https://hackage.haskell.org/package/repa-io-3.4.1.1)
 - [resourcet >= 1.1.8.1 && <= 1.1.10](https://hackage.haskell.org/package/resourcet)
 - [randproc-0.4](https://hackage.haskell.org/package/randproc-0.4)
+- [rio-0.1.5.0](https://hackage.haskell.org/package/rio-0.1.5.0)
 - [RSA-2.2.0](https://hackage.haskell.org/package/RSA-2.2.0)
 - [safe >= 0.3.9 && <= 0.3.11](https://hackage.haskell.org/package/safe-0.3.11)
 - [safe-exceptions-0.1.6.0](https://hackage.haskell.org/package/safe-exceptions-0.1.6.0)

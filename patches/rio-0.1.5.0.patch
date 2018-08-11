@@ -1,0 +1,61 @@
+From b44bbdada9a2219940279f3683424ab6fa871843 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 12 Aug 2018 01:45:32 +0530
+Subject: [PATCH] Patched
+
+---
+ src/RIO/Prelude/Logger.hs |  2 +-
+ src/RIO/Process.hs        | 12 +++++++-----
+ 2 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/src/RIO/Prelude/Logger.hs b/src/RIO/Prelude/Logger.hs
+index a84657a..432e860 100644
+--- a/src/RIO/Prelude/Logger.hs
++++ b/src/RIO/Prelude/Logger.hs
+@@ -1,5 +1,5 @@
+ {-# LANGUAGE OverloadedStrings #-}
+-{-# LANGUAGE NoImplicitPrelude #-}
++{-# LANGUAGE NoImplicitPrelude, FlexibleContexts #-}
+ module RIO.Prelude.Logger
+   ( -- * Standard logging functions
+     logDebug
+diff --git a/src/RIO/Process.hs b/src/RIO/Process.hs
+index 7ac881f..1751518 100644
+--- a/src/RIO/Process.hs
++++ b/src/RIO/Process.hs
+@@ -87,10 +87,10 @@ module RIO.Process
+   , P.setCreateNewConsole
+   , P.setNewSession
+ #endif
+-#if MIN_VERSION_process(1, 4, 0) && !WINDOWS
+-  , P.setChildGroup
+-  , P.setChildUser
+-#endif
++-- #if MIN_VERSION_process(1, 4, 0) && !WINDOWS
++--   , P.setChildGroup
++--   , P.setChildUser
++-- #endif
+   , P.mkStreamSpec
+   , P.inherit
+   , P.closed
+@@ -139,7 +139,7 @@ import           System.Process.Typed hiding (withProcess, withProcess_, proc)
+ 
+ #ifndef WINDOWS
+ import           System.Directory (setCurrentDirectory)
+-import           System.Posix.Process (executeFile)
++-- import           System.Posix.Process (executeFile)
+ #endif
+ 
+ -- | The environment variable map
+@@ -485,6 +485,8 @@ exec cmd0 args = do
+       executeFile cmd True args $ Just envStringsL
+ #endif
+ 
++executeFile = error "executeFile not implemented!"
++
+ -- | Like 'exec', but does not use 'execv' on non-windows. This way,
+ -- there is a sub-process, which is helpful in some cases
+ -- (<https://github.com/commercialhaskell/stack/issues/1306>).
+-- 
+2.15.2 (Apple Git-101.1)
+
