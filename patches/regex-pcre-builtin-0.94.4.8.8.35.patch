@@ -1,0 +1,98 @@
+From 4f7d444a4f80354de6f6b3e424351ba4a408be90 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sat, 11 Aug 2018 19:04:28 +0530
+Subject: [PATCH] Patched
+
+---
+ Text/Regex/PCRE/{Wrap.hsc => Wrap.hs} | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
+ rename Text/Regex/PCRE/{Wrap.hsc => Wrap.hs} (97%)
+
+diff --git a/Text/Regex/PCRE/Wrap.hsc b/Text/Regex/PCRE/Wrap.hs
+similarity index 97%
+rename from Text/Regex/PCRE/Wrap.hsc
+rename to Text/Regex/PCRE/Wrap.hs
+index b5b2659..0ac430b 100644
+--- a/Text/Regex/PCRE/Wrap.hsc
++++ b/Text/Regex/PCRE/Wrap.hs
+@@ -98,9 +98,9 @@ type StartOffset = MatchOffset
+ type EndOffset = MatchOffset
+ type WrapError = (ReturnCode,String)
+ 
+-newtype CompOption = CompOption CInt deriving (Eq,Show,Num,Bits)
+-newtype ExecOption = ExecOption CInt deriving (Eq,Show,Num,Bits)
+-newtype ReturnCode = ReturnCode CInt deriving (Eq,Show)
++newtype CompOption = CompOption Int deriving (Eq,Show,Num,Bits)
++newtype ExecOption = ExecOption Int deriving (Eq,Show,Num,Bits)
++newtype ReturnCode = ReturnCode Int deriving (Eq,Show)
+ 
+ -- | A compiled regular expression
+ data Regex = Regex (ForeignPtr PCRE) CompOption ExecOption
+@@ -108,7 +108,9 @@ data Regex = Regex (ForeignPtr PCRE) CompOption ExecOption
+ compBlank :: CompOption
+ execBlank :: ExecOption
+ unusedOffset :: MatchOffset
++
+ retOk :: ReturnCode
++retOk = ReturnCode 0
+ 
+ wrapCompile :: CompOption -- ^ Flags (summed together)
+             -> ExecOption -- ^ Flags (summed together)
+@@ -178,14 +180,14 @@ nullTest' :: Ptr a -> String -> IO (Either (MatchOffset,String) b) -> IO (Either
+ {-# INLINE nullTest' #-}
+ nullTest' ptr msg io = do
+   if nullPtr == ptr
+-    then return (Left (0,"Ptr parameter was nullPtr in Text.Regex.PCRE.Wrap."++msg)) 
++    then return (Left (0,"Ptr parameter was nullPtr in Text.Regex.PCRE.Wrap."++msg))
+     else io
+ 
+ nullTest :: Ptr a -> String -> IO (Either WrapError b) -> IO (Either WrapError b)
+ {-# INLINE nullTest #-}
+ nullTest ptr msg io = do
+   if nullPtr == ptr
+-    then return (Left (retOk,"Ptr parameter was nullPtr in Text.Regex.PCRE.Wrap."++msg)) 
++    then return (Left (retOk,"Ptr parameter was nullPtr in Text.Regex.PCRE.Wrap."++msg))
+     else io
+ 
+ wrapRC :: ReturnCode -> IO (Either WrapError b)
+@@ -260,8 +262,8 @@ wrapMatch startOffset (Regex pcre_fptr _ flags) (cstr,len) = do
+ 
+ -- | wrapMatchAll is an improvement over wrapMatch since it only
+ -- allocates memory with allocaBytes once at the start.
+--- 
+--- 
++--
++--
+ wrapMatchAll (Regex pcre_fptr _ flags) (cstr,len) = do
+  nullTest cstr "wrapMatchAll cstr" $ do
+   withForeignPtr pcre_fptr $ \regex -> do
+@@ -288,7 +290,7 @@ wrapMatchAll (Regex pcre_fptr _ flags) (cstr,len) = do
+                        let acc' = acc . (toMatchArray nsub_int pairs:)
+                        case pairs of
+                          [] -> return (Right (acc' []))
+-                         ((s,e):_) | s==e -> if s == len 
++                         ((s,e):_) | s==e -> if s == len
+                                                then return (Right (acc' []))
+                                                else loop acc' flags' e
+                                    | otherwise -> loop acc' flags e
+@@ -462,7 +464,7 @@ compUngreedy = err
+ compUTF8 = err
+ compNoUTF8Check = err
+ 
+-execAnchored, execNotBOL, execNotEOL, execNotEmpty, execNoUTF8Check, execPartial :: ExecOption 
++execAnchored, execNotBOL, execNotEOL, execNotEmpty, execNoUTF8Check, execPartial :: ExecOption
+ execBlank = err
+ execAnchored = err
+ execNotBOL = err
+@@ -471,7 +473,7 @@ execNotEmpty = err
+ execNoUTF8Check = err
+ execPartial = err
+ 
+-retNoMatch, retNull, retBadOption, retBadMagic, retUnknownNode, retNoMemory, retNoSubstring :: ReturnCode 
++retNoMatch, retNull, retBadOption, retBadMagic, retUnknownNode, retNoMemory, retNoSubstring :: ReturnCode
+ retNoMatch = err
+ retNull = err
+ retBadOption = err
+-- 
+2.15.2 (Apple Git-101.1)
+
