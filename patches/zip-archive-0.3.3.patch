@@ -1,26 +1,26 @@
-From 0fbde4ef12d32bb1da37abc1898c3a978cd24225 Mon Sep 17 00:00:00 2001
+From 65ae2042d537d8da12dcb5c38f73c3509e556dc9 Mon Sep 17 00:00:00 2001
 From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Sat, 11 Aug 2018 23:18:36 +0530
+Date: Sat, 11 Aug 2018 23:30:19 +0530
 Subject: [PATCH] Patched
 
 ---
- src/Codec/Archive/Zip.hs | 24 ++++++++++++++++--------
- zip-archive.cabal        |  9 ---------
- 2 files changed, 16 insertions(+), 17 deletions(-)
+ src/Codec/Archive/Zip.hs | 24 +++++++++++++++++-------
+ zip-archive.cabal        | 18 +++++++++---------
+ 2 files changed, 26 insertions(+), 16 deletions(-)
 
 diff --git a/src/Codec/Archive/Zip.hs b/src/Codec/Archive/Zip.hs
-index 8d71c9a..56b2293 100644
+index 8d71c9a..cdbe9a8 100644
 --- a/src/Codec/Archive/Zip.hs
 +++ b/src/Codec/Archive/Zip.hs
 @@ -1,6 +1,6 @@
  {-# LANGUAGE CPP #-}
  {-# LANGUAGE DeriveDataTypeable #-}
 -{-# LANGUAGE ViewPatterns #-}
-+{-# LANGUAGE ViewPatterns, GeneralizedNewtypeDeriving #-}
++{-# LANGUAGE ViewPatterns, GeneralizedNewtypeDeriving  #-}
  ------------------------------------------------------------------------
  -- |
  -- Module      : Codec.Archive.Zip
-@@ -90,16 +90,12 @@ import qualified Data.Map as M
+@@ -90,15 +90,12 @@ import qualified Data.Map as M
  #if MIN_VERSION_binary(0,6,0)
  import Control.Applicative
  #endif
@@ -33,12 +33,11 @@ index 8d71c9a..56b2293 100644
  import qualified Data.ByteString as S
  import qualified Data.ByteString.Lazy as B
  import qualified Data.ByteString.Lazy.Char8 as C (pack, unpack)
--
 +import Data.Bits
+ 
  -- text
  import qualified Data.Text.Lazy as TL
- import qualified Data.Text.Lazy.Encoding as TL
-@@ -482,10 +478,10 @@ epochTimeToMSDOSDateTime epochtime | epochtime < minMSDOSDateTime =
+@@ -482,10 +479,10 @@ epochTimeToMSDOSDateTime epochtime | epochtime < minMSDOSDateTime =
    epochTimeToMSDOSDateTime minMSDOSDateTime
    -- if time is earlier than minimum DOS datetime, return minimum
  epochTimeToMSDOSDateTime epochtime =
@@ -51,7 +50,7 @@ index 8d71c9a..56b2293 100644
        = posixSecondsToUTCTime (fromIntegral epochtime)
  
      dosTime = toEnum $ (sec `div` 2) + shiftL minutes 5 + shiftL hour 11
-@@ -936,3 +932,15 @@ toString = TL.unpack . TL.decodeUtf8
+@@ -936,3 +933,16 @@ toString = TL.unpack . TL.decodeUtf8
  
  fromString :: String -> B.ByteString
  fromString = TL.encodeUtf8 . TL.pack
@@ -64,33 +63,43 @@ index 8d71c9a..56b2293 100644
 +setFileMode = error "setFileMode not implemented!"
 +createSymbolicLink = error "createSymbolicLink not implemented!"
 +symbolicLinkMode = error "symbolicLinkMode not implemented!"
++setFileTimes = error "setFileTimes not implemented!"
++
 +newtype CMode = CMode Int
 +   deriving (Eq, Bits)
-+setFileTimes = error "setFileTimes not implemented!"
 diff --git a/zip-archive.cabal b/zip-archive.cabal
-index 1ca4ae6..778fc84 100644
+index 8293feb..1ca4ae6 100644
 --- a/zip-archive.cabal
 +++ b/zip-archive.cabal
-@@ -46,10 +46,6 @@ Library
+@@ -46,10 +46,10 @@ Library
    Default-Language:  Haskell98
    Hs-Source-Dirs:    src
    Ghc-Options:       -Wall
--  -- if os(windows)
--  --   cpp-options:     -D_WINDOWS
--  -- else
--  --   Build-depends:   unix
+-  if os(windows)
+-    cpp-options:     -D_WINDOWS
+-  else
+-    Build-depends:   unix
++  -- if os(windows)
++  --   cpp-options:     -D_WINDOWS
++  -- else
++  --   Build-depends:   unix
  
  custom-setup
    setup-depends: base, Cabal
-@@ -78,8 +74,3 @@ Test-Suite test-zip-archive
+@@ -78,8 +78,8 @@ Test-Suite test-zip-archive
                    HUnit, zip-archive, temporary, filepath
    Default-Language:  Haskell98
    Ghc-Options:    -Wall
--  -- if os(windows)
--  --   cpp-options:     -D_WINDOWS
--  -- else
--  --   Build-tools:     unzip
--  --   Build-depends:   unix
+-  if os(windows)
+-    cpp-options:     -D_WINDOWS
+-  else
+-    Build-tools:     unzip
+-    Build-depends:   unix
++  -- if os(windows)
++  --   cpp-options:     -D_WINDOWS
++  -- else
++  --   Build-tools:     unzip
++  --   Build-depends:   unix
 -- 
 2.15.2 (Apple Git-101.1)
 
