@@ -1,0 +1,547 @@
+From e02f3b3af194219d504e52b3e712988e84ca6d15 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sat, 11 Aug 2018 14:19:14 +0530
+Subject: [PATCH] Patched
+
+---
+ java/Utils.java     |  40 ++++++++++++
+ lib/Filesystem.hs   | 185 ++++++++++++++++++++++++----------------------------
+ system-fileio.cabal |  40 ++++++------
+ 3 files changed, 147 insertions(+), 118 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..8449395
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,40 @@
++package eta.system_fileio;
++
++import java.nio.file.Path;
++import java.nio.file.attribute.BasicFileAttributes;
++import java.nio.file.Paths;
++import java.nio.file.Files;
++import java.io.IOException;
++import java.util.concurrent.TimeUnit;
++
++public class Utils{
++  public static BasicFileAttributes getFileStatus(String path) {
++    try {
++     return Files.readAttributes(Paths.get(path), BasicFileAttributes.class);
++    } catch(IOException e) {
++      return null;
++    }
++  }
++  public static long lastModifiedTime(BasicFileAttributes attrs) {
++    return attrs.lastModifiedTime().to(TimeUnit.NANOSECONDS);
++  }
++  public static String getRealPath(String path) {
++    try {
++     return Paths.get(path).toRealPath().toFile().getCanonicalPath();
++    } catch(IOException e) {
++      return null;
++    }
++  }
++  public static String getCWD() {
++    return System.getProperty("user.dir");
++  }
++  public static boolean copyPermissions(String path1, String path2) {
++    try {
++      Files.setPosixFilePermissions(Paths.get(path2), Files.getPosixFilePermissions(Paths.get(path1)));
++      return true;
++    } catch (IOException ioe) {
++      return false;
++    }
++
++  }
++}
+diff --git a/lib/Filesystem.hs b/lib/Filesystem.hs
+index bcbce90..6c72806 100644
+--- a/lib/Filesystem.hs
++++ b/lib/Filesystem.hs
+@@ -20,7 +20,7 @@ module Filesystem
+ 	-- * Exports from System.IO
+ 	  IO.Handle
+ 	, IO.IOMode(..)
+-	
++
+ 	-- * Files
+ 	, isFile
+ 	, getModified
+@@ -29,38 +29,38 @@ module Filesystem
+ 	, copyFileContent
+ 	, copyPermissions
+ 	, removeFile
+-	
++
+ 	-- ** Binary files
+ 	, openFile
+ 	, withFile
+ 	, readFile
+ 	, writeFile
+ 	, appendFile
+-	
++
+ 	-- ** Text files
+ 	, openTextFile
+ 	, withTextFile
+ 	, readTextFile
+ 	, writeTextFile
+ 	, appendTextFile
+-	
++
+ 	-- * Directories
+ 	, isDirectory
+ 	, canonicalizePath
+ 	, listDirectory
+-	
++
+ 	-- ** Creating directories
+ 	, createDirectory
+ 	, createTree
+-	
++
+ 	-- ** Removing directories
+ 	, removeDirectory
+ 	, removeTree
+-	
++
+ 	-- ** Current working directory
+ 	, getWorkingDirectory
+ 	, setWorkingDirectory
+-	
++
+ 	-- ** Commonly used paths
+ 	, getHomeDirectory
+ 	, getDesktopDirectory
+@@ -68,7 +68,7 @@ module Filesystem
+ 	, getAppDataDirectory
+ 	, getAppCacheDirectory
+ 	, getAppConfigDirectory
+-	
++
+ 	-- * Other
+ 	, rename
+ 	) where
+@@ -85,7 +85,7 @@ import           Foreign.Ptr (Ptr, nullPtr)
+ import           Foreign.C (CInt(..), CString, withCAString)
+ import qualified Foreign.C.Error as CError
+ import qualified System.Environment as SE
+-
++import           Data.Int (Int64)
+ import           Filesystem.Path (FilePath, append)
+ import qualified Filesystem.Path as Path
+ import           Filesystem.Path.CurrentOS (currentOS, encodeString, decodeString)
+@@ -110,8 +110,8 @@ import qualified System.Directory as SD
+ 
+ import           Data.Time (UTCTime)
+ import           Data.Time.Clock.POSIX (posixSecondsToUTCTime)
+-import qualified System.Posix as Posix
+-import qualified System.Posix.Error as Posix
++-- import qualified System.Posix as Posix
++-- import qualified System.Posix.Error as Posix
+ #if MIN_VERSION_unix(2,5,1)
+ import qualified System.Posix.Files.ByteString
+ #endif
+@@ -133,6 +133,13 @@ import qualified System.Posix.Internals
+ -- before checking their type.
+ --
+ -- This computation does not throw exceptions.
++data BasicFileAttributes = BasicFileAttributes @java.nio.file.attribute.BasicFileAttributes
++
++foreign import java unsafe "@static eta.system_fileio.Utils.getFileStatus" getFileStatus
++  :: String -> IO (Maybe BasicFileAttributes)
++
++foreign import java unsafe "isDirectory" stat_isDirectory :: BasicFileAttributes -> Bool
++
+ isFile :: FilePath -> IO Bool
+ #ifdef CABAL_OS_WINDOWS
+ isFile path = SD.doesFileExist (encodeString path)
+@@ -140,7 +147,7 @@ isFile path = SD.doesFileExist (encodeString path)
+ isFile path = Exc.catch
+ 	(do
+ 		stat <- posixStat "isFile" path
+-		return (not (Posix.isDirectory stat)))
++		return (not (stat_isDirectory stat)))
+ 	((\_ -> return False) :: IOError -> IO Bool)
+ #endif
+ 
+@@ -156,7 +163,7 @@ isDirectory path = SD.doesDirectoryExist (encodeString path)
+ isDirectory path = Exc.catch
+ 	(do
+ 		stat <- posixStat "isDirectory" path
+-		return (Posix.isDirectory stat))
++		return (stat_isDirectory stat))
+ 	((\_ -> return False) :: IOError -> IO Bool)
+ #endif
+ 
+@@ -176,8 +183,8 @@ rename old new =
+ 	withFilePath new $ \new' ->
+ 	throwErrnoPathIfMinus1_ "rename" old (c_rename old' new')
+ 
+-foreign import ccall unsafe "rename"
+-	c_rename :: CString -> CString -> IO CInt
++c_rename :: CString -> CString -> IO CInt
++c_rename = error "c_rename not implemented!"
+ 
+ #endif
+ 
+@@ -194,25 +201,11 @@ foreign import ccall unsafe "rename"
+ --
+ -- Since: 0.1.1
+ canonicalizePath :: FilePath -> IO FilePath
+-canonicalizePath path =
+-	fmap (preserveFinalSlash path) $
+-	let path' = encodeString path in
+-#ifdef CABAL_OS_WINDOWS
+-	fmap decodeString $
+-#if MIN_VERSION_Win32(2,2,1)
+-	Win32.getFullPathName path'
+-#else
+-	Win32.withTString path' $ \c_name -> do
+-		Win32.try "getFullPathName" (\buf len ->
+-			c_GetFullPathNameW c_name len buf nullPtr) 512
+-#endif
+-#else
+-	withFilePath path $ \cPath -> do
+-		cOut <- Posix.throwErrnoPathIfNull "canonicalizePath" path' (c_realpath cPath nullPtr)
+-		bytes <- B.packCString cOut
+-		c_free cOut
+-		return (R.decode R.posix bytes)
+-#endif
++canonicalizePath path = do
++	mpath <- c_realpath (encodeString path)
++	case mpath of
++		Just path' -> return (decodeString path')
++		Nothing    -> ioError $ userError $ "canonicalizePath: Unable to canonicalize " ++ (encodeString path)
+ 
+ preserveFinalSlash :: FilePath -> FilePath -> FilePath
+ preserveFinalSlash orig out = if Path.null (Path.filename orig)
+@@ -228,8 +221,8 @@ foreign import stdcall unsafe "GetFullPathNameW"
+ #endif
+ 
+ #ifndef CABAL_OS_WINDOWS
+-foreign import ccall unsafe "realpath"
+-	c_realpath :: CString -> CString -> IO CString
++foreign import java unsafe "@static eta.system_fileio.Utils.getRealPath"
++	c_realpath :: String -> IO (Maybe String)
+ #endif
+ 
+ -- | Create a directory at a given path. The user may choose whether it is
+@@ -267,8 +260,8 @@ mkdirIfMissing path cPath mode = do
+ 				else return rc
+ 		else return rc
+ 
+-foreign import ccall unsafe "mkdir"
+-	c_mkdir :: CString -> CInt -> IO CInt
++c_mkdir :: CString -> CInt -> IO CInt
++c_mkdir = error "c_mkdir not implemented!"
+ #endif
+ 
+ -- | Create a directory at a given path, including any parents which might
+@@ -347,23 +340,23 @@ readDir (Dir _ p) dirent = do
+ 			return (Just bytes)
+ 		else return Nothing
+ 
+-foreign import ccall unsafe "opendir"
+-	c_opendir :: CString -> IO (Ptr ())
++c_opendir :: CString -> IO (Ptr ())
++c_opendir = error "c_opendir not implemented"
+ 
+-foreign import ccall unsafe "closedir"
+-	c_closedir :: Ptr () -> IO CInt
++c_closedir :: Ptr () -> IO CInt
++c_closedir = error "c_closedir not implemented"
+ 
+-foreign import ccall unsafe "hssystemfileio_alloc_dirent"
+-	c_alloc_dirent :: Ptr () -> IO (Ptr ())
++c_alloc_dirent :: Ptr () -> IO (Ptr ())
++c_alloc_dirent = error "c_alloc_dirent not implemented"
+ 
+-foreign import ccall unsafe "hssystemfileio_free_dirent"
+-	c_free_dirent :: Ptr () -> IO ()
++c_free_dirent :: Ptr () -> IO ()
++c_free_dirent = error "c_free_dirent not implemented"
+ 
+-foreign import ccall unsafe "hssystemfileio_readdir"
+-	c_readdir :: Ptr () -> Ptr () -> IO CInt
++c_readdir :: Ptr () -> Ptr () -> IO CInt
++c_readdir = error "c_readdir not implemented"
+ 
+-foreign import ccall unsafe "hssystemfileio_dirent_name"
+-	c_dirent_name :: Ptr () -> IO CString
++c_dirent_name :: Ptr () -> IO CString
++c_dirent_name = error "c_dirent_name not implemented"
+ 
+ #endif
+ 
+@@ -383,8 +376,8 @@ removeFile path =
+ 	withFilePath path $ \cPath ->
+ 	throwErrnoPathIfMinus1_ "removeFile" path (c_unlink cPath)
+ 
+-foreign import ccall unsafe "unlink"
+-	c_unlink :: CString -> IO CInt
++c_unlink :: CString -> IO CInt
++c_unlink = error "c_unlink not implemented!"
+ #endif
+ 
+ -- | Remove an empty directory.
+@@ -400,8 +393,8 @@ removeDirectory path =
+ 	withFilePath path $ \cPath ->
+ 	throwErrnoPathIfMinus1Retry_ "removeDirectory" path (c_rmdir cPath)
+ 
+-foreign import ccall unsafe "rmdir"
+-	c_rmdir :: CString -> IO CInt
++c_rmdir :: CString -> IO CInt
++c_rmdir = error "c_rmdir not implemented"
+ #endif
+ 
+ -- | Recursively remove a directory tree rooted at the given path.
+@@ -439,8 +432,8 @@ isRealDir path = withFilePath path $ \cPath -> do
+ 	rc <- throwErrnoPathIfMinus1Retry "removeTree" path (c_isrealdir cPath)
+ 	return (rc == 1)
+ 
+-foreign import ccall unsafe "hssystemfileio_isrealdir"
+-	c_isrealdir :: CString -> IO CInt
++c_isrealdir :: CString -> IO CInt
++c_isrealdir = error "c_isrealdir not implemented!"
+ 
+ #endif
+ 
+@@ -458,13 +451,10 @@ getWorkingDirectory = do
+ 	fmap decodeString (Win32.try "getWorkingDirectory" (flip c_GetCurrentDirectoryW) 512)
+ #endif
+ #else
+-	buf <- CError.throwErrnoIfNull "getWorkingDirectory" c_getcwd
+-	bytes <- B.packCString buf
+-	c_free buf
+-	return (R.decode R.posix bytes)
++	(fmap decodeString c_getcwd)
+ 
+-foreign import ccall unsafe "hssystemfileio_getcwd"
+-	c_getcwd :: IO CString
++foreign import java unsafe "@static eta.system_fileio.Utils.getcwd"
++	c_getcwd :: IO String
+ 
+ #endif
+ 
+@@ -489,8 +479,8 @@ setWorkingDirectory path =
+ 	withFilePath path $ \cPath ->
+ 	throwErrnoPathIfMinus1Retry_ "setWorkingDirectory" path (c_chdir cPath)
+ 
+-foreign import ccall unsafe "chdir"
+-	c_chdir :: CString -> IO CInt
++c_chdir :: CString -> IO CInt
++c_chdir = error "c_chdir not implemented"
+ 
+ #endif
+ 
+@@ -614,8 +604,8 @@ getenv key = withCAString key $ \cKey -> do
+ 			bytes <- B.packCString ret
+ 			return (Just (R.decode R.posix bytes))
+ 
+-foreign import ccall unsafe "getenv"
+-	c_getenv :: CString -> IO CString
++c_getenv :: CString -> IO CString
++c_getenv = error "c_getenv not implemented"
+ 
+ #endif
+ 
+@@ -657,11 +647,11 @@ copyFileContent oldPath newPath =
+ copyPermissions :: FilePath -- ^ Old location
+                 -> FilePath -- ^ New location
+                 -> IO ()
+-copyPermissions oldPath newPath =
+-	withFilePath oldPath $ \cOldPath ->
+-	withFilePath newPath $ \cNewPath ->
+-	CError.throwErrnoIfMinus1Retry_ "copyPermissions" $
+-	c_copy_permissions cOldPath cNewPath
++copyPermissions oldPath newPath = do
++	success <- c_copy_permissions (encodeString oldPath) (encodeString newPath)
++	when (not success) $ ioError $
++	  userError $ "copyPermissions: Unable to copy permissions from "
++					++ (encodeString oldPath) ++ " to " ++ (encodeString newPath)
+ 
+ #ifdef CABAL_OS_WINDOWS
+ 
+@@ -670,8 +660,8 @@ foreign import ccall unsafe "hssystemfileio_copy_permissions"
+ 
+ #else
+ 
+-foreign import ccall unsafe "hssystemfileio_copy_permissions"
+-	c_copy_permissions :: CString -> CString -> IO CInt
++foreign import java unsafe "@static eta.system_fileio.Utils.copyPermissions"
++	c_copy_permissions :: String -> String -> IO Bool
+ 
+ #endif
+ 
+@@ -706,27 +696,30 @@ getModified path = do
+ 	info <- withHANDLE path Win32.getFileInformationByHandle
+ 	let ftime = Win32.bhfiLastWriteTime info
+ 	stime <- Win32.fileTimeToSystemTime ftime
+-	
++
+ 	let date = fromGregorian
+ 		(fromIntegral (Win32.wYear stime))
+ 		(fromIntegral (Win32.wMonth stime))
+ 		(fromIntegral (Win32.wDay stime))
+-	
++
+ 	let seconds = secondsToDiffTime $
+ 		(toInteger (Win32.wHour stime) * 3600) +
+ 		(toInteger (Win32.wMinute stime) * 60) +
+ 		(toInteger (Win32.wSecond stime))
+-	
++
+ 	let msecs = picosecondsToDiffTime $
+ 		(toInteger (Win32.wMilliseconds stime) * 1000000000)
+-	
++
+ 	return (UTCTime date (seconds + msecs))
+ #else
+ 	stat <- posixStat "getModified" path
+-	let mtime = Posix.modificationTime stat
+-	return (posixSecondsToUTCTime (realToFrac mtime))
++	mtime <- modificationTime stat
++	return $ posixSecondsToUTCTime (fromIntegral mtime / 1000000000)
+ #endif
+ 
++foreign import java unsafe "@static eta.directory.Utils.lastModifiedTime"
++  modificationTime :: BasicFileAttributes -> IO Int64
++
+ -- | Get the size of an object at a given path. For special objects like
+ -- links or directories, the size is filesystem&#8208; and
+ -- platform&#8208;dependent.
+@@ -743,9 +736,12 @@ getSize path = do
+ 	return (toInteger (Win32.bhfiSize info))
+ #else
+ 	stat <- posixStat "getSize" path
+-	return (toInteger (Posix.fileSize stat))
++	sz <- fileSize stat
++	return (toInteger sz)
+ #endif
+ 
++foreign import java unsafe "size" fileSize :: BasicFileAttributes -> IO Int64
++
+ -- | Open a file in binary mode, and return an open 'Handle'. The 'Handle'
+ -- should be closed with 'IO.hClose' when it is no longer needed.
+ --
+@@ -884,12 +880,12 @@ iomodeFlags mode = cased .|. commonFlags where
+ #endif
+ 		IO.ReadWriteMode -> flagsRW
+ 		IO.AppendMode -> flagsA
+-	
++
+ 	flagsR  = System.Posix.Internals.o_RDONLY
+ 	flagsW  = outputFlags .|. System.Posix.Internals.o_WRONLY
+ 	flagsRW = outputFlags .|. System.Posix.Internals.o_RDWR
+ 	flagsA  = flagsW      .|. System.Posix.Internals.o_APPEND
+-	
++
+ 	commonFlags = System.Posix.Internals.o_NOCTTY .|.
+ 	              System.Posix.Internals.o_NONBLOCK
+ 	outputFlags = System.Posix.Internals.o_CREAT
+@@ -952,25 +948,18 @@ throwErrnoPathIfRetry_ failed loc path io = do
+ 	_ <- throwErrnoPathIfRetry failed loc path io
+ 	return ()
+ 
+-posixStat :: String -> FilePath -> IO Posix.FileStatus
++posixStat :: String -> FilePath -> IO BasicFileAttributes
+ #if MIN_VERSION_unix(2,5,1)
+ posixStat _ path = System.Posix.Files.ByteString.getFileStatus (R.encode R.posix path)
+ #else
+-posixStat loc path = withFd loc path Posix.getFdStatus
+-
+-withFd :: String -> FilePath -> (Posix.Fd -> IO a) -> IO a
+-withFd fnName path = Exc.bracket open close where
+-	open = withFilePath path $ \cpath -> do
+-		fd <- throwErrnoPathIfMinus1 fnName path (c_open_nonblocking cpath 0)
+-		return (Posix.Fd fd)
+-	close = Posix.closeFd
+-
+-foreign import ccall unsafe "hssystemfileio_open_nonblocking"
+-	c_open_nonblocking :: CString -> CInt -> IO CInt
+-
++posixStat _loc path = do
++	 fs <- getFileStatus (encodeString path)
++	 case fs of
++		 Just fs' -> return fs'
++		 Nothing  -> ioError $ userError "posixStat: File not found"
+ #endif
+ 
+-foreign import ccall unsafe "free"
+-	c_free :: Ptr a -> IO ()
++-- foreign import ccall unsafe "free"
++-- 	c_free :: Ptr a -> IO ()
+ 
+ #endif
+diff --git a/system-fileio.cabal b/system-fileio.cabal
+index 680f51c..1e7a8f1 100644
+--- a/system-fileio.cabal
++++ b/system-fileio.cabal
+@@ -33,7 +33,7 @@ source-repository head
+ library
+   ghc-options: -Wall -O2
+   hs-source-dirs: lib
+-
++  java-sources: java/Utils.java
+   build-depends:
+       base >= 4.0 && < 5.0
+     , bytestring >= 0.9
+@@ -41,18 +41,18 @@ library
+     , text >= 0.7.1
+     , time >= 1.0 && < 2.0
+ 
+-  if os(windows)
+-    cpp-options: -DCABAL_OS_WINDOWS
+-    build-depends:
+-        Win32 >= 2.2
+-      , directory >= 1.0
+-    c-sources: lib/hssystemfileio-win32.c
+-  else
+-    build-depends:
+-        unix >= 2.3
+-    c-sources: lib/hssystemfileio-unix.c
+-    if impl(ghc >= 7.2.0) && impl(ghc < 7.4.0)
+-      cpp-options: -DSYSTEMFILEIO_LOCAL_OPEN_FILE
++  -- if os(windows)
++  --   cpp-options: -DCABAL_OS_WINDOWS
++  --   build-depends:
++  --       Win32 >= 2.2
++  --     , directory >= 1.0
++  --   c-sources: lib/hssystemfileio-win32.c
++  -- else
++  --   build-depends:
++  --       unix >= 2.3
++  --   c-sources: lib/hssystemfileio-unix.c
++  --   if impl(ghc >= 7.2.0) && impl(ghc < 7.4.0)
++  --     cpp-options: -DSYSTEMFILEIO_LOCAL_OPEN_FILE
+ 
+   exposed-modules:
+     Filesystem
+@@ -76,14 +76,14 @@ test-suite filesystem_tests
+     , time >= 1.0 && < 2.0
+     , transformers >= 0.2
+ 
+-  if os(windows)
+-    cpp-options: -DCABAL_OS_WINDOWS
+-  else
+-    build-depends:
+-        unix >= 2.3
++  -- if os(windows)
++  --   cpp-options: -DCABAL_OS_WINDOWS
++  -- else
++  --   build-depends:
++  --       unix >= 2.3
+ 
+-  if os(darwin)
+-    cpp-options: -DCABAL_OS_DARWIN
++  -- if os(darwin)
++  --   cpp-options: -DCABAL_OS_DARWIN
+ 
+   other-modules:
+     FilesystemTests.Posix
+-- 
+2.15.2 (Apple Git-101.1)
+

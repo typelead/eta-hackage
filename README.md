@@ -410,6 +410,7 @@ These packages are supported by `etlas`.
 - [svg-builder-0.1.0.2](https://hackage.haskell.org/package/svg-builder-0.1.0.2)
 - [syb >= 0.6 && <= 0.7](https://hackage.haskell.org/package/syb)
 - [system-filepath-0.4.13.4](https://hackage.haskell.org/package/system-filepath-0.4.13.4)
+- [system-fileio-0.3.16.3](https://hackage.haskell.org/package/system-fileio-0.3.16.3)
 - [Scotty](https://hackage.haskell.org/package/Scotty)
 - [StateVar-1.1.0.4](https://hackage.haskell.org/package/StateVar-1.1.0.4)
 - [Spock-0.13.0.0](https://hackage.haskell.org/package/Spock-0.13.0.0)
