@@ -1,0 +1,82 @@
+Name:                cipher-aes
+Version:             0.2.11
+Description:
+    Fast AES cipher implementation with advanced mode of operations.
+    .
+    The modes of operations available are ECB (Electronic code book),
+    CBC (Cipher block chaining), CTR (Counter), XTS (XEX with ciphertext stealing),
+    GCM (Galois Counter Mode).
+    .
+    The AES implementation uses AES-NI when available (on x86 and x86-64 architecture),
+    but fallback gracefully to a software C implementation.
+    .
+    The software implementation uses S-Boxes, which might suffer for cache timing issues.
+    However do notes that most other known software implementations, including very popular
+    one (openssl, gnutls) also uses similar implementation. If it matters for your
+    case, you should make sure you have AES-NI available, or you'll need to use a different
+    implementation.
+    .
+License:             BSD3
+License-file:        LICENSE
+Copyright:           Vincent Hanquez <vincent@snarc.org>
+Author:              Vincent Hanquez <vincent@snarc.org>
+Maintainer:          Vincent Hanquez <vincent@snarc.org>
+Synopsis:            Fast AES cipher implementation with advanced mode of operations
+Category:            Cryptography
+Build-Type:          Simple
+Homepage:            https://github.com/vincenthz/hs-cipher-aes
+Cabal-Version:       >=1.8
+Extra-Source-Files:  Tests/*.hs
+                     cbits/*.h
+                     cbits/aes_x86ni_impl.c
+
+Flag support_aesni
+  Description:       allow compilation with AESNI on system and architecture that supports it
+  Default:           True
+
+Library
+  Build-Depends:     base >= 4 && < 5
+                   , bytestring
+                   , byteable
+                   , securemem >= 0.1.2
+                   , crypto-cipher-types >= 0.0.6 && < 0.1
+  Exposed-modules:   Crypto.Cipher.AES
+  ghc-options:       -Wall -optc-O3 -fno-cse -fwarn-tabs
+  Java-sources:      java/AESContext.java
+  Maven-depends:     org.bouncycastle:bcprov-jdk15on:1.60
+                   , uk.com.robust-it:cloning:1.9.0
+  if flag(support_aesni) && (os(linux) || os(freebsd)) && (arch(i386) || arch(x86_64))
+    CC-options:      -mssse3 -maes -mpclmul -DWITH_AESNI
+    C-sources:       cbits/aes_x86ni.c
+
+Test-Suite test-cipher-aes
+  type:              exitcode-stdio-1.0
+  hs-source-dirs:    Tests
+  Main-Is:           Tests.hs
+  Other-Modules:     KATECB
+                     KATGCM
+  Build-depends:     base >= 4 && < 5
+                   , cipher-aes
+                   , crypto-cipher-types >= 0.0.6
+                   , crypto-cipher-tests >= 0.0.8
+                   , bytestring
+                   , byteable
+                   , QuickCheck >= 2
+                   , test-framework >= 0.3.3
+                   , test-framework-quickcheck2 >= 0.2.9
+
+Benchmark bench-cipher-aes
+  hs-source-dirs:    Benchmarks
+  Main-Is:           Benchmarks.hs
+  type:              exitcode-stdio-1.0
+  Build-depends:     base >= 4 && < 5
+                   , bytestring
+                   , cipher-aes
+                   , crypto-cipher-types >= 0.0.6
+                   , crypto-cipher-benchmarks >= 0.0.4
+                   , criterion
+                   , mtl
+
+source-repository head
+  type:     git
+  location: https://github.com/vincenthz/hs-cipher-aes
