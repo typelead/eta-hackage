@@ -454,6 +454,7 @@ These packages are supported by `etlas`.
 - [uri-bytestring >= 0.2.2.1 && <= 0.3.0.1](https://hackage.haskell.org/package/uri-bytestring)
 - [utf8-string-1.0.1.1](https://hackage.haskell.org/package/utf8-string-1.0.1.1)
 - [uuid-types-1.0.3](https://hackage.haskell.org/package/uuid-types-1.0.3)
+- [validity-0.7.0.0](https://hackage.haskell.org/package/validity-0.7.0.0)
 - [vault >= 0.3.0.6 && <= 0.3.0.7](https://hackage.haskell.org/package/vault)
 - [vector >= 0.11.0.0 && <= 0.12.0.1](https://hackage.haskell.org/package/vector)
 - [vector-algorithms-0.7.0.1](https://hackage.haskell.org/package/vector-algorithms-0.7.0.1)

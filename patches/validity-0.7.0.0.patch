@@ -1,0 +1,29 @@
+From cd8c4230178bf1ec474c3d1c5f5956b444b8b28a Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 12 Aug 2018 13:18:03 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Data/Validity.hs | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/Data/Validity.hs b/src/Data/Validity.hs
+index f875292..e0d7e09 100644
+--- a/src/Data/Validity.hs
++++ b/src/Data/Validity.hs
+@@ -4,9 +4,9 @@
+ {-# LANGUAGE FlexibleContexts #-}
+ {-# LANGUAGE FlexibleInstances #-}
+ {-# LANGUAGE TypeOperators #-}
+-#if MIN_VERSION_base(4,9,0)
+-{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+-#endif
++-- #if MIN_VERSION_base(4,9,0)
++-- {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
++-- #endif
+ 
+ {-|
+ 
+-- 
+2.15.2 (Apple Git-101.1)
+
