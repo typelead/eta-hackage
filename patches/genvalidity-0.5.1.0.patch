@@ -1,0 +1,34 @@
+From bbac38ffad801b73e3ef9e8225fd98b4cb71fd6d Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sun, 12 Aug 2018 13:23:16 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Data/GenValidity.hs | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/src/Data/GenValidity.hs b/src/Data/GenValidity.hs
+index 5870093..008623c 100644
+--- a/src/Data/GenValidity.hs
++++ b/src/Data/GenValidity.hs
+@@ -54,9 +54,9 @@
+ {-# LANGUAGE OverlappingInstances  #-}
+ #define OVERLAPPING_
+ #endif
+-#if MIN_VERSION_base(4,9,0)
+-{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+-#endif
++-- #if MIN_VERSION_base(4,9,0)
++-- {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
++-- #endif
+ 
+ module Data.GenValidity
+     ( module Data.Validity
+@@ -734,4 +734,3 @@ instance OVERLAPPING_ GUncheckedSubtermsIncl (K1 i a) a where
+ 
+ instance OVERLAPPING_ GUncheckedSubtermsIncl (K1 i a) b where
+   gUncheckedSubtermsIncl (K1 _) = []
+-
+-- 
+2.15.2 (Apple Git-101.1)
+
