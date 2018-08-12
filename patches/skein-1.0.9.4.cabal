@@ -1,0 +1,113 @@
+Cabal-version:       >= 1.8
+Name:                skein
+Version:             1.0.9.4
+Synopsis:            Skein, a family of cryptographic hash functions.  Includes Skein-MAC as well.
+License:             BSD3
+License-file:        LICENSE
+Author:              Felipe Lessa <felipe.lessa@gmail.com>, Doug Whiting
+Maintainer:          Felipe Lessa <felipe.lessa@gmail.com>
+Category:            Cryptography
+Build-type:          Simple
+Homepage:            https://github.com/meteficha/skein
+
+Description:
+    Skein (<http://www.skein-hash.info/>) is a family of fast
+    secure cryptographic hash functions designed by Niels
+    Ferguson, Stefan Lucks, Bruce Schneier, Doug Whiting, Mihir
+    Bellare, Tadayoshi Kohno, Jon Callas and Jesse Walker.
+    .
+    This package uses bindings to the optimized C implementation
+    of Skein.  We provide a high-level interface (see module
+    "Crypto.Skein") to some of the Skein use cases.  We also
+    provide a low-level interface (see module
+    "Crypto.Skein.Internal") should you need to use Skein in a
+    different way.
+    .
+    Currently we have support for Skein as cryptographic hash
+    function as Skein as a message authentication code
+    (Skein-MAC).  For examples of how to use this package, see
+    "Crypto.Skein" module documentation.
+    .
+    This package includes Skein v1.3. Versions of this package
+    before 1.0.0 implemented Skein v1.1.
+
+Extra-source-files:
+    c_impl/optimized/brg_endian.h
+    c_impl/optimized/skein.c
+    c_impl/optimized/skein.h
+    c_impl/optimized/skein_block.c
+    c_impl/optimized/skein_debug.c
+    c_impl/optimized/skein_debug.h
+    c_impl/optimized/skein_iv.h
+    c_impl/optimized/skein_port.h
+    c_impl/reference/skein.c
+    c_impl/reference/skein.h
+    c_impl/reference/skein_block.c
+    c_impl/reference/skein_debug.c
+    c_impl/reference/skein_debug.h
+    c_impl/reference/skein_port.h
+    tests/runtests.hs
+    tests/skein_golden_kat.txt
+
+Source-repository head
+  Type:     git
+  Location: git://github.com/meteficha/skein.git
+
+Flag reference
+    Description: Use the reference implementation instead of the optimized one.
+    Default: False
+
+Flag force-endianness
+    Description: Use a manually selected endian when compiling (see flag 'big-endian').
+    Default: False
+
+Flag big-endian
+    Description: When manually selecting the endianness, use big-endian (default is little-endian).
+    Default: False
+
+Library
+    Hs-Source-Dirs: src
+
+    Exposed-modules:
+        Crypto.Skein
+        Crypto.Skein.Internal
+
+    Build-depends:
+        base         >= 3   && < 5,
+        bytestring   >= 0.9,
+        cereal       >= 0.3 && < 0.6,
+        tagged       >= 0.2 && < 0.9,
+        crypto-api   >= 0.6 && < 0.14
+
+    GHC-options: -Wall
+
+
+    Extensions:
+        BangPatterns
+        CPP
+        ForeignFunctionInterface
+        MultiParamTypeClasses
+    Java-sources: java/AbstractHashContext.java
+                  java/HashContext.java
+                  java/MacContext.java
+    Maven-depends: org.bouncycastle:bcprov-jdk15on:1.60
+                 , uk.com.robust-it:cloning:1.9.0
+
+Test-suite runtests
+    Type: exitcode-stdio-1.0
+    Build-depends:
+        base         >= 3   && < 5,
+        bytestring   >= 0.9,
+        cereal       >= 0.3 && < 0.6,
+        tagged       >= 0.2 && < 0.9,
+        crypto-api   >= 0.6 && < 0.14,
+
+        filepath     == 1.*,
+        hspec        >= 1.3,
+
+        -- finally, our own package
+        skein
+    GHC-options:     -Wall
+    Hs-source-dirs:  tests
+    Main-is:         runtests.hs
+    Other-modules:   Paths_skein

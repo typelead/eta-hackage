@@ -1,0 +1,742 @@
+From cc4e889cef621d4664e973129566749e85d23059 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 12 Aug 2018 10:24:23 +0530
+Subject: [PATCH] Patched
+
+---
+ java/AbstractHashContext.java |  29 ++++++++
+ java/HashContext.java         |  33 +++++++++
+ java/MacContext.java          |  46 +++++++++++++
+ skein.cabal                   |  37 ++--------
+ src/Crypto/Skein.hs           | 108 ++++++++++++++---------------
+ src/Crypto/Skein/Internal.hs  | 142 +++++++++++++++++++++++++++++++++++++++
+ src/Crypto/Skein/Internal.hsc | 153 ------------------------------------------
+ 7 files changed, 305 insertions(+), 243 deletions(-)
+ create mode 100644 java/AbstractHashContext.java
+ create mode 100644 java/HashContext.java
+ create mode 100644 java/MacContext.java
+ create mode 100644 src/Crypto/Skein/Internal.hs
+ delete mode 100644 src/Crypto/Skein/Internal.hsc
+
+diff --git a/java/AbstractHashContext.java b/java/AbstractHashContext.java
+new file mode 100644
+index 0000000..343dea4
+--- /dev/null
++++ b/java/AbstractHashContext.java
+@@ -0,0 +1,29 @@
++package eta.skein;
++
++import java.security.Provider;
++import java.nio.ByteBuffer;
++
++import eta.runtime.io.MemoryManager;
++
++import org.bouncycastle.jce.provider.BouncyCastleProvider;
++
++public abstract class AbstractHashContext {
++
++    protected static final Provider provider = new BouncyCastleProvider();
++
++    protected static byte[] getBuffer(final long ptr, final int size) {
++        ByteBuffer buf = MemoryManager.getBoundedBuffer(ptr);
++        byte[] bytes = new byte[size];
++        buf.get(bytes);
++        return bytes;
++    }
++
++    protected static void putBuffer(final long ptr, final byte[] bytes) {
++        MemoryManager.getBoundedBuffer(ptr).put(bytes);
++    }
++
++    public abstract void update(long ptr, int size);
++    public abstract void finalize(long ptr);
++    public abstract AbstractHashContext copy() throws CloneNotSupportedException;
++}
++
+diff --git a/java/HashContext.java b/java/HashContext.java
+new file mode 100644
+index 0000000..8553b09
+--- /dev/null
++++ b/java/HashContext.java
+@@ -0,0 +1,33 @@
++package eta.skein;
++
++import java.security.MessageDigest;
++import java.security.NoSuchAlgorithmException;
++
++public class HashContext extends AbstractHashContext {
++    public final MessageDigest md;
++
++    private HashContext(final MessageDigest md) {
++        this.md = md;
++    }
++
++    public static AbstractHashContext getInstance(final int context, final int bits)
++        throws NoSuchAlgorithmException {
++        return new HashContext
++            (MessageDigest.getInstance("Skein-" + context + "-" + bits, provider));
++    }
++
++    @Override
++    public void update(final long ptr, final int size) {
++        md.update(getBuffer(ptr, size));
++    }
++
++    @Override
++    public void finalize(final long ptr) {
++        putBuffer(ptr, md.digest());
++    }
++
++    @Override
++    public HashContext copy() throws CloneNotSupportedException {
++        return new HashContext((MessageDigest) md.clone());
++    }
++}
+diff --git a/java/MacContext.java b/java/MacContext.java
+new file mode 100644
+index 0000000..3e303f4
+--- /dev/null
++++ b/java/MacContext.java
+@@ -0,0 +1,46 @@
++package eta.skein;
++
++import java.security.NoSuchAlgorithmException;
++import java.security.InvalidKeyException;
++import javax.crypto.Mac;
++import javax.crypto.spec.SecretKeySpec;
++
++import com.rits.cloning.Cloner;
++
++public class MacContext extends AbstractHashContext {
++
++    public static Cloner cloner = new Cloner();
++
++    public final Mac md;
++
++    private MacContext(final Mac md) {
++        this.md = md;
++    }
++
++    public static AbstractHashContext getInstance(final int context, final int bits,
++                                                  final long ptr, final int n)
++        throws NoSuchAlgorithmException, InvalidKeyException {
++        if (n == 0) {
++            return HashContext.getInstance(context, bits);
++        } else {
++            Mac md = Mac.getInstance("Skein-MAC-" + context + "-" + bits, provider);
++            md.init(new SecretKeySpec(getBuffer(ptr, n), md.getAlgorithm()));
++            return new MacContext(md);
++        }
++    }
++
++    @Override
++    public void update(final long ptr, final int size) {
++        md.update(getBuffer(ptr, size));
++    }
++
++    @Override
++    public void finalize(final long ptr) {
++        putBuffer(ptr, md.doFinal());
++    }
++
++    @Override
++    public MacContext copy() throws CloneNotSupportedException {
++        return new MacContext(cloner.deepClone(md));
++    }
++}
+diff --git a/skein.cabal b/skein.cabal
+index 93aa528..9caecb3 100644
+--- a/skein.cabal
++++ b/skein.cabal
+@@ -79,44 +79,19 @@ Library
+         tagged       >= 0.2 && < 0.9,
+         crypto-api   >= 0.6 && < 0.14
+ 
+-    Build-tools: hsc2hs
+     GHC-options: -Wall
+ 
++
+     Extensions:
+         BangPatterns
+         CPP
+         ForeignFunctionInterface
+         MultiParamTypeClasses
+-
+-    Includes:
+-        skein.h
+-
+-    if flag(force-endianness)
+-        if flag(big-endian)
+-            CC-options: "-DSKEIN_NEED_SWAP=1"
+-        else
+-            CC-options: "-DSKEIN_NEED_SWAP=0"
+-    else
+-        if arch(i386) || arch(x86_64)
+-            CC-options: "-DSKEIN_NEED_SWAP=0"
+-        if arch(ppc) || arch(sparc) || arch(s390) || arch(hppa)
+-            CC-options: "-DSKEIN_NEED_SWAP=1"
+-
+-    if flag(reference)
+-        Include-Dirs:
+-            c_impl/reference
+-        C-sources:
+-            c_impl/reference/skein.c
+-            c_impl/reference/skein_block.c
+-         -- c_impl/reference/skein_debug.c -- not used
+-    else
+-        Include-Dirs:
+-            c_impl/optimized
+-        C-sources:
+-            c_impl/optimized/skein.c
+-            c_impl/optimized/skein_block.c
+-         -- c_impl/optimized/skein_debug.c -- not used
+-
++    Java-sources: java/AbstractHashContext.java
++                  java/HashContext.java
++                  java/MacContext.java
++    Maven-depends: org.bouncycastle:bcprov-jdk15on:1.60
++                 , uk.com.robust-it:cloning:1.9.0
+ 
+ Test-suite runtests
+     Type: exitcode-stdio-1.0
+diff --git a/src/Crypto/Skein.hs b/src/Crypto/Skein.hs
+index a37473b..14a1ab5 100644
+--- a/src/Crypto/Skein.hs
++++ b/src/Crypto/Skein.hs
+@@ -391,60 +391,50 @@ skeinMAC' k = go
+ ----------------------------------------------------------------------
+ 
+ -- | Helper function to create 'initialCtx'.
+-initialCtxSkein :: Storable internalCtx =>
+-                   CSize
+-                -> (Ptr internalCtx -> CSize -> IO CInt)
++initialCtxSkein :: CSize
++                -> (CSize -> IO internalCtx)
+                 -> (internalCtx -> externalCtx)
+                 -> externalCtx
+-initialCtxSkein bits init_ mkCtx =
+-    U.unsafePerformIO $
+-    alloca $ \ctx_ptr -> do
+-      check $ init_ ctx_ptr bits
+-      fmap mkCtx $ peek ctx_ptr
++initialCtxSkein bits init_ mkCtx = U.unsafePerformIO $ fmap mkCtx $ init_ bits
+ 
+ -- | Helper function to create 'updateCtxSkein'.
+-updateCtxSkein :: Storable internalCtx =>
+-                  (Ptr internalCtx -> Ptr Word8 -> CSize -> IO CInt)
++updateCtxSkein :: (internalCtx -> Ptr Word8 -> CSize -> IO ())
++               -> (internalCtx -> IO internalCtx)
+                -> (externalCtx -> internalCtx)
+                -> (internalCtx -> externalCtx)
+                -> (externalCtx -> B.ByteString -> externalCtx)
+-updateCtxSkein update unCtx mkCtx = \ctx bs ->
+-    U.unsafePerformIO $
+-    BU.unsafeUseAsCStringLen bs $ \(bs_ptr, bs_len) ->
+-    with (unCtx ctx) $ \ctx_ptr -> do
+-      check $ update ctx_ptr (castPtr bs_ptr) (fromIntegral bs_len)
+-      fmap mkCtx $ peek ctx_ptr
++updateCtxSkein update copy unCtx mkCtx = \ctx bs ->
++    U.unsafePerformIO $ do
++      ctx_ptr <- copy (unCtx ctx)
++      BU.unsafeUseAsCStringLen bs $ \(bs_ptr, bs_len) -> do
++        update ctx_ptr (castPtr bs_ptr) (fromIntegral bs_len)
++        return $ mkCtx ctx_ptr
+ 
+ -- | Helper function to create 'finalize'.
+-finalizeSkein :: Storable internalCtx =>
+-                 Int
+-              -> (Ptr internalCtx -> Ptr Word8 -> CSize -> IO CInt)
+-              -> (Ptr internalCtx -> Ptr Word8 -> IO CInt)
++finalizeSkein :: Int
++              -> (internalCtx -> Ptr Word8 -> CSize -> IO ())
++              -> (internalCtx -> Ptr Word8 -> IO ())
++              -> (internalCtx -> IO internalCtx)
+               -> (externalCtx -> internalCtx)
+               -> (B.ByteString -> hash)
+               -> (externalCtx -> B.ByteString -> hash)
+-finalizeSkein hashLenBytes update final unCtx mkHash = \ctx bs ->
+-    U.unsafePerformIO $
+-    with (unCtx ctx) $ \ctx_ptr -> do
++finalizeSkein hashLenBytes update final copy unCtx mkHash = \ctx bs ->
++    U.unsafePerformIO $ do
++      ctx_ptr <- copy (unCtx ctx)
+       unless (B.null bs) $
+         BU.unsafeUseAsCStringLen bs $ \(bs_ptr, bs_len) ->
+-          check $ update ctx_ptr (castPtr bs_ptr) (fromIntegral bs_len)
+-      fmap mkHash $ BI.create hashLenBytes $ check . final ctx_ptr . castPtr
++          update ctx_ptr (castPtr bs_ptr) (fromIntegral bs_len)
++      fmap mkHash $ BI.create hashLenBytes $ final ctx_ptr . castPtr
+ 
+ -- | Helper function to create 'skeinMACCtx'.
+-skeinMACCtxSkein :: Storable internalCtx =>
+-                    CSize
+-                 -> (Ptr internalCtx -> CSize -> Word64 -> Ptr Word8 -> CSize -> IO CInt)
++skeinMACCtxSkein :: CSize
++                 -> (CSize -> Ptr Word8 -> CSize -> IO internalCtx)
+                  -> (internalCtx -> externalCtx)
+                  -> (Key -> externalCtx)
+ skeinMACCtxSkein bits initExt mkCtx = \key ->
+     U.unsafePerformIO $
+     BU.unsafeUseAsCStringLen key $ \(key_ptr, key_len) ->
+-    alloca $ \ctx_ptr -> do
+-      check $ initExt ctx_ptr bits sKEIN_SEQUENTIAL (castPtr key_ptr) (fromIntegral key_len)
+-      fmap mkCtx $ peek ctx_ptr
+-
+-
++      fmap mkCtx $ initExt bits (castPtr key_ptr) (fromIntegral key_len)
+ 
+ ----------------------------------------------------------------------
+ -- Skein-256
+@@ -466,8 +456,8 @@ instance Hash Skein_256_128_Ctx Skein_256_128 where
+     outputLength = Tagged 128
+     blockLength  = Tagged 256
+     initialCtx   = initialCtxSkein 128 skein256Init S_256_128_Ctx
+-    updateCtx    = updateCtxSkein skein256Update unS_256_128_Ctx S_256_128_Ctx
+-    finalize     = finalizeSkein 16 skein256Update skein256Final unS_256_128_Ctx S_256_128
++    updateCtx    = updateCtxSkein skein256Update skein256Copy unS_256_128_Ctx S_256_128_Ctx
++    finalize     = finalizeSkein 16 skein256Update skein256Final skein256Copy unS_256_128_Ctx S_256_128
+ 
+ instance SkeinMAC Skein_256_128_Ctx where
+     skeinMACCtx = skeinMACCtxSkein 128 skein256InitExt S_256_128_Ctx
+@@ -489,8 +479,8 @@ instance Hash Skein_256_160_Ctx Skein_256_160 where
+     outputLength = Tagged 160
+     blockLength  = Tagged 256
+     initialCtx   = initialCtxSkein 160 skein256Init S_256_160_Ctx
+-    updateCtx    = updateCtxSkein skein256Update unS_256_160_Ctx S_256_160_Ctx
+-    finalize     = finalizeSkein 20 skein256Update skein256Final unS_256_160_Ctx S_256_160
++    updateCtx    = updateCtxSkein skein256Update skein256Copy unS_256_160_Ctx S_256_160_Ctx
++    finalize     = finalizeSkein 20 skein256Update skein256Final skein256Copy unS_256_160_Ctx S_256_160
+ 
+ instance SkeinMAC Skein_256_160_Ctx where
+     skeinMACCtx = skeinMACCtxSkein 160 skein256InitExt S_256_160_Ctx
+@@ -512,8 +502,8 @@ instance Hash Skein_256_224_Ctx Skein_256_224 where
+     outputLength = Tagged 224
+     blockLength  = Tagged 256
+     initialCtx   = initialCtxSkein 224 skein256Init S_256_224_Ctx
+-    updateCtx    = updateCtxSkein skein256Update unS_256_224_Ctx S_256_224_Ctx
+-    finalize     = finalizeSkein 28 skein256Update skein256Final unS_256_224_Ctx S_256_224
++    updateCtx    = updateCtxSkein skein256Update skein256Copy unS_256_224_Ctx S_256_224_Ctx
++    finalize     = finalizeSkein 28 skein256Update skein256Final skein256Copy unS_256_224_Ctx S_256_224
+ 
+ instance SkeinMAC Skein_256_224_Ctx where
+     skeinMACCtx = skeinMACCtxSkein 224 skein256InitExt S_256_224_Ctx
+@@ -536,8 +526,8 @@ instance Hash Skein_256_256_Ctx Skein_256_256 where
+     outputLength = Tagged 256
+     blockLength  = Tagged 256
+     initialCtx   = initialCtxSkein 256 skein256Init S_256_256_Ctx
+-    updateCtx    = updateCtxSkein skein256Update unS_256_256_Ctx S_256_256_Ctx
+-    finalize     = finalizeSkein 32 skein256Update skein256Final unS_256_256_Ctx S_256_256
++    updateCtx    = updateCtxSkein skein256Update skein256Copy unS_256_256_Ctx S_256_256_Ctx
++    finalize     = finalizeSkein 32 skein256Update skein256Final skein256Copy unS_256_256_Ctx S_256_256
+ 
+ instance SkeinMAC Skein_256_256_Ctx where
+     skeinMACCtx = skeinMACCtxSkein 256 skein256InitExt S_256_256_Ctx
+@@ -565,8 +555,8 @@ instance Hash Skein_512_128_Ctx Skein_512_128 where
+     outputLength = Tagged 128
+     blockLength  = Tagged 512
+     initialCtx   = initialCtxSkein 128 skein512Init S_512_128_Ctx
+-    updateCtx    = updateCtxSkein skein512Update unS_512_128_Ctx S_512_128_Ctx
+-    finalize     = finalizeSkein 16 skein512Update skein512Final unS_512_128_Ctx S_512_128
++    updateCtx    = updateCtxSkein skein512Update skein512Copy unS_512_128_Ctx S_512_128_Ctx
++    finalize     = finalizeSkein 16 skein512Update skein512Final skein512Copy unS_512_128_Ctx S_512_128
+ 
+ instance SkeinMAC Skein_512_128_Ctx where
+     skeinMACCtx = skeinMACCtxSkein 128 skein512InitExt S_512_128_Ctx
+@@ -587,8 +577,8 @@ instance Hash Skein_512_160_Ctx Skein_512_160 where
+     outputLength = Tagged 160
+     blockLength  = Tagged 512
+     initialCtx   = initialCtxSkein 160 skein512Init S_512_160_Ctx
+-    updateCtx    = updateCtxSkein skein512Update unS_512_160_Ctx S_512_160_Ctx
+-    finalize     = finalizeSkein 20 skein512Update skein512Final unS_512_160_Ctx S_512_160
++    updateCtx    = updateCtxSkein skein512Update skein512Copy unS_512_160_Ctx S_512_160_Ctx
++    finalize     = finalizeSkein 20 skein512Update skein512Final skein512Copy unS_512_160_Ctx S_512_160
+ 
+ instance SkeinMAC Skein_512_160_Ctx where
+     skeinMACCtx = skeinMACCtxSkein 160 skein512InitExt S_512_160_Ctx
+@@ -609,8 +599,8 @@ instance Hash Skein_512_224_Ctx Skein_512_224 where
+     outputLength = Tagged 224
+     blockLength  = Tagged 512
+     initialCtx   = initialCtxSkein 224 skein512Init S_512_224_Ctx
+-    updateCtx    = updateCtxSkein skein512Update unS_512_224_Ctx S_512_224_Ctx
+-    finalize     = finalizeSkein 28 skein512Update skein512Final unS_512_224_Ctx S_512_224
++    updateCtx    = updateCtxSkein skein512Update skein512Copy unS_512_224_Ctx S_512_224_Ctx
++    finalize     = finalizeSkein 28 skein512Update skein512Final skein512Copy unS_512_224_Ctx S_512_224
+ 
+ instance SkeinMAC Skein_512_224_Ctx where
+     skeinMACCtx = skeinMACCtxSkein 224 skein512InitExt S_512_224_Ctx
+@@ -631,8 +621,8 @@ instance Hash Skein_512_256_Ctx Skein_512_256 where
+     outputLength = Tagged 256
+     blockLength  = Tagged 512
+     initialCtx   = initialCtxSkein 256 skein512Init S_512_256_Ctx
+-    updateCtx    = updateCtxSkein skein512Update unS_512_256_Ctx S_512_256_Ctx
+-    finalize     = finalizeSkein 32 skein512Update skein512Final unS_512_256_Ctx S_512_256
++    updateCtx    = updateCtxSkein skein512Update skein512Copy unS_512_256_Ctx S_512_256_Ctx
++    finalize     = finalizeSkein 32 skein512Update skein512Final skein512Copy unS_512_256_Ctx S_512_256
+ 
+ instance SkeinMAC Skein_512_256_Ctx where
+     skeinMACCtx = skeinMACCtxSkein 256 skein512InitExt S_512_256_Ctx
+@@ -654,8 +644,8 @@ instance Hash Skein_512_384_Ctx Skein_512_384 where
+     outputLength = Tagged 384
+     blockLength  = Tagged 512
+     initialCtx   = initialCtxSkein 384 skein512Init S_512_384_Ctx
+-    updateCtx    = updateCtxSkein skein512Update unS_512_384_Ctx S_512_384_Ctx
+-    finalize     = finalizeSkein 48 skein512Update skein512Final unS_512_384_Ctx S_512_384
++    updateCtx    = updateCtxSkein skein512Update skein512Copy unS_512_384_Ctx S_512_384_Ctx
++    finalize     = finalizeSkein 48 skein512Update skein512Final skein512Copy unS_512_384_Ctx S_512_384
+ 
+ instance SkeinMAC Skein_512_384_Ctx where
+     skeinMACCtx = skeinMACCtxSkein 384 skein512InitExt S_512_384_Ctx
+@@ -678,8 +668,8 @@ instance Hash Skein_512_512_Ctx Skein_512_512 where
+     outputLength = Tagged 512
+     blockLength  = Tagged 512
+     initialCtx   = initialCtxSkein 512 skein512Init S_512_512_Ctx
+-    updateCtx    = updateCtxSkein skein512Update unS_512_512_Ctx S_512_512_Ctx
+-    finalize     = finalizeSkein 64 skein512Update skein512Final unS_512_512_Ctx S_512_512
++    updateCtx    = updateCtxSkein skein512Update skein512Copy unS_512_512_Ctx S_512_512_Ctx
++    finalize     = finalizeSkein 64 skein512Update skein512Final skein512Copy unS_512_512_Ctx S_512_512
+ 
+ instance SkeinMAC Skein_512_512_Ctx where
+     skeinMACCtx = skeinMACCtxSkein 512 skein512InitExt S_512_512_Ctx
+@@ -706,8 +696,8 @@ instance Hash Skein_1024_384_Ctx Skein_1024_384 where
+     outputLength = Tagged 384
+     blockLength  = Tagged 1024
+     initialCtx   = initialCtxSkein 384 skein1024Init S_1024_384_Ctx
+-    updateCtx    = updateCtxSkein skein1024Update unS_1024_384_Ctx S_1024_384_Ctx
+-    finalize     = finalizeSkein 48 skein1024Update skein1024Final unS_1024_384_Ctx S_1024_384
++    updateCtx    = updateCtxSkein skein1024Update skein1024Copy unS_1024_384_Ctx S_1024_384_Ctx
++    finalize     = finalizeSkein 48 skein1024Update skein1024Final skein1024Copy unS_1024_384_Ctx S_1024_384
+ 
+ instance SkeinMAC Skein_1024_384_Ctx where
+     skeinMACCtx = skeinMACCtxSkein 384 skein1024InitExt S_1024_384_Ctx
+@@ -729,8 +719,8 @@ instance Hash Skein_1024_512_Ctx Skein_1024_512 where
+     outputLength = Tagged 512
+     blockLength  = Tagged 1024
+     initialCtx   = initialCtxSkein 512 skein1024Init S_1024_512_Ctx
+-    updateCtx    = updateCtxSkein skein1024Update unS_1024_512_Ctx S_1024_512_Ctx
+-    finalize     = finalizeSkein 64 skein1024Update skein1024Final unS_1024_512_Ctx S_1024_512
++    updateCtx    = updateCtxSkein skein1024Update skein1024Copy unS_1024_512_Ctx S_1024_512_Ctx
++    finalize     = finalizeSkein 64 skein1024Update skein1024Final skein1024Copy unS_1024_512_Ctx S_1024_512
+ 
+ instance SkeinMAC Skein_1024_512_Ctx where
+     skeinMACCtx = skeinMACCtxSkein 512 skein1024InitExt S_1024_512_Ctx
+@@ -754,8 +744,8 @@ instance Hash Skein_1024_1024_Ctx Skein_1024_1024 where
+     outputLength = Tagged 1024
+     blockLength  = Tagged 1024
+     initialCtx   = initialCtxSkein 1024 skein1024Init S_1024_1024_Ctx
+-    updateCtx    = updateCtxSkein skein1024Update unS_1024_1024_Ctx S_1024_1024_Ctx
+-    finalize     = finalizeSkein 128 skein1024Update skein1024Final unS_1024_1024_Ctx S_1024_1024
++    updateCtx    = updateCtxSkein skein1024Update skein1024Copy unS_1024_1024_Ctx S_1024_1024_Ctx
++    finalize     = finalizeSkein 128 skein1024Update skein1024Final skein1024Copy unS_1024_1024_Ctx S_1024_1024
+ 
+ instance SkeinMAC Skein_1024_1024_Ctx where
+     skeinMACCtx = skeinMACCtxSkein 1024 skein1024InitExt S_1024_1024_Ctx
+diff --git a/src/Crypto/Skein/Internal.hs b/src/Crypto/Skein/Internal.hs
+new file mode 100644
+index 0000000..71570b0
+--- /dev/null
++++ b/src/Crypto/Skein/Internal.hs
+@@ -0,0 +1,142 @@
++
++-----------------------------------------------------------------------------
++-- |
++-- Module      :  Crypto.Skein.Internal
++-- Copyright   :  (c) 2011 Felipe A. Lessa
++-- License     :  BSD3 (see LICENSE)
++--
++-- Maintainer  :  felipe.lessa@gmail.com
++-- Stability   :  provisional
++-- Portability :  portable (needs FFI)
++--
++-- Basic wrappers around the C library.  You shouldn't need to
++-- use these functions.  Instead, use the high-level
++-- "Crypto.Skein" module.
++--
++-----------------------------------------------------------------------------
++
++module Crypto.Skein.Internal
++    (
++      -- * Skein-256
++      Skein256Ctx(..)
++    , skein256Init
++    , skein256Update
++    , skein256Final
++    , skein256InitExt
++    , skein256FinalPad
++    , skein256Output
++    , skein256Copy
++
++      -- * Skein-512
++    , Skein512Ctx(..)
++    , skein512Init
++    , skein512Update
++    , skein512Final
++    , skein512InitExt
++    , skein512FinalPad
++    , skein512Output
++    , skein512Copy
++
++      -- * Skein-1024
++    , Skein1024Ctx(..)
++    , skein1024Init
++    , skein1024Update
++    , skein1024Final
++    , skein1024InitExt
++    , skein1024FinalPad
++    , skein1024Output
++    , skein1024Copy
++
++    ) where
++
++-- from base
++import Foreign
++import Foreign.C
++
++-- from bytestring
++import qualified Data.ByteString as B
++import qualified Data.ByteString.Internal as BI
++import qualified Data.ByteString.Unsafe as BU
++
++data MessageDigest = MessageDigest @eta.skein.AbstractHashContext
++
++newtype Skein256Ctx  = Skein256Ctx  {unS256Ctx  :: MessageDigest }
++newtype Skein512Ctx  = Skein512Ctx  {unS512Ctx  :: MessageDigest }
++newtype Skein1024Ctx = Skein1024Ctx {unS1024Ctx :: MessageDigest }
++
++foreign import java unsafe "@static eta.skein.HashContext.getInstance" skeinInit
++  :: CSize -> CSize -> IO MessageDigest
++
++skein256Init :: CSize -> IO Skein256Ctx
++skein256Init l = fmap Skein256Ctx $ skeinInit 256 l
++
++skein512Init :: CSize -> IO Skein512Ctx
++skein512Init l = fmap Skein512Ctx $ skeinInit 512 l
++
++skein1024Init :: CSize -> IO Skein1024Ctx
++skein1024Init l = fmap Skein1024Ctx $ skeinInit 1024 l
++
++foreign import java unsafe "update" skeinUpdate
++  :: MessageDigest -> Ptr Word8 -> CSize -> IO ()
++
++skein256Update  :: Skein256Ctx  -> Ptr Word8 -> CSize -> IO ()
++skein256Update (Skein256Ctx md) = skeinUpdate md
++
++skein512Update  :: Skein512Ctx  -> Ptr Word8 -> CSize -> IO ()
++skein512Update (Skein512Ctx md) = skeinUpdate md
++
++skein1024Update :: Skein1024Ctx -> Ptr Word8 -> CSize -> IO ()
++skein1024Update (Skein1024Ctx md) = skeinUpdate md
++
++foreign import java unsafe "finalize" skeinFinal
++  :: MessageDigest -> Ptr Word8 -> IO ()
++
++skein256Final  :: Skein256Ctx  -> Ptr Word8 -> IO ()
++skein256Final (Skein256Ctx md) = skeinFinal md
++
++skein512Final  :: Skein512Ctx  -> Ptr Word8 -> IO ()
++skein512Final (Skein512Ctx md) = skeinFinal md
++
++skein1024Final :: Skein1024Ctx -> Ptr Word8 -> IO ()
++skein1024Final (Skein1024Ctx md) = skeinFinal md
++
++foreign import java unsafe "@static eta.skein.MacContext.getInstance" skeinInitExt
++  :: CSize -> CSize -> Ptr Word8 -> CSize -> IO MessageDigest
++
++skein256InitExt   :: CSize -> Ptr Word8 -> CSize -> IO Skein256Ctx
++skein256InitExt l k s = fmap Skein256Ctx $ skeinInitExt 256 l k s
++
++skein512InitExt   :: CSize -> Ptr Word8 -> CSize -> IO Skein512Ctx
++skein512InitExt l k s = fmap Skein512Ctx $ skeinInitExt 512 l k s
++
++skein1024InitExt  :: CSize -> Ptr Word8 -> CSize -> IO Skein1024Ctx
++skein1024InitExt l k s = fmap Skein1024Ctx $ skeinInitExt 1024 l k s
++
++foreign import java unsafe "copy" skeinCopy :: MessageDigest -> IO MessageDigest
++
++skein256Copy  :: Skein256Ctx  -> IO Skein256Ctx
++skein256Copy (Skein256Ctx md) = Skein256Ctx <$> skeinCopy md
++
++skein512Copy  :: Skein512Ctx  -> IO Skein512Ctx
++skein512Copy (Skein512Ctx md) = Skein512Ctx <$> skeinCopy md
++
++skein1024Copy :: Skein1024Ctx -> IO Skein1024Ctx
++skein1024Copy (Skein1024Ctx md) = Skein1024Ctx <$> skeinCopy md
++
++skein256FinalPad  :: Ptr Skein256Ctx  -> Ptr Word8 -> IO ()
++skein256FinalPad  = error "skein256FinalPad: Not implemented yet."
++
++skein512FinalPad  :: Ptr Skein512Ctx  -> Ptr Word8 -> IO ()
++skein512FinalPad  = error "skein512FinalPad: Not implemented yet."
++
++skein1024FinalPad :: Ptr Skein1024Ctx -> Ptr Word8 -> IO ()
++skein1024FinalPad = error "skein1024FinalPad: Not implemented yet."
++
++skein256Output  :: Ptr Skein256Ctx  -> Ptr Word8 -> IO ()
++skein256Output  = error "skein256Output: Not implemented yet."
++
++skein512Output  :: Ptr Skein512Ctx  -> Ptr Word8 -> IO ()
++skein512Output  = error "skein512Output: Not impelemented yet."
++
++skein1024Output :: Ptr Skein1024Ctx -> Ptr Word8 -> IO ()
++skein1024Output = error "skein1024Output: Not implemented yet."
+diff --git a/src/Crypto/Skein/Internal.hsc b/src/Crypto/Skein/Internal.hsc
+deleted file mode 100644
+index b304c46..0000000
+--- a/src/Crypto/Skein/Internal.hsc
++++ /dev/null
+@@ -1,153 +0,0 @@
+-{-# CFILES
+-      c_impl/reference/skein.c
+-      c_impl/reference/skein_block.c #-}
+-
+------------------------------------------------------------------------------
+--- |
+--- Module      :  Crypto.Skein.Internal
+--- Copyright   :  (c) 2011 Felipe A. Lessa
+--- License     :  BSD3 (see LICENSE)
+---
+--- Maintainer  :  felipe.lessa@gmail.com
+--- Stability   :  provisional
+--- Portability :  portable (needs FFI)
+---
+--- Basic wrappers around the C library.  You shouldn't need to
+--- use these functions.  Instead, use the high-level
+--- "Crypto.Skein" module.
+---
+------------------------------------------------------------------------------
+-
+-module Crypto.Skein.Internal
+-    ( -- * Return codes
+-      sKEIN_SUCCESS
+-    , sKEIN_FAIL
+-    , sKEIN_BAD_HASHLEN
+-    , check
+-
+-      -- * Skein-256
+-    , Skein256Ctx(..)
+-    , skein256Init
+-    , skein256Update
+-    , skein256Final
+-    , skein256InitExt
+-    , skein256FinalPad
+-    , skein256Output
+-
+-      -- * Skein-512
+-    , Skein512Ctx(..)
+-    , skein512Init
+-    , skein512Update
+-    , skein512Final
+-    , skein512InitExt
+-    , skein512FinalPad
+-    , skein512Output
+-
+-      -- * Skein-1024
+-    , Skein1024Ctx(..)
+-    , skein1024Init
+-    , skein1024Update
+-    , skein1024Final
+-    , skein1024InitExt
+-    , skein1024FinalPad
+-    , skein1024Output
+-
+-      -- * Misc constants
+-    , sKEIN_SEQUENTIAL
+-    ) where
+-
+--- from base
+-import Foreign
+-import Foreign.C
+-
+--- from bytestring
+-import qualified Data.ByteString as B
+-import qualified Data.ByteString.Internal as BI
+-import qualified Data.ByteString.Unsafe as BU
+-
+--- from this package
+-#include "skein.h"
+-
+-sKEIN_SUCCESS, sKEIN_FAIL, sKEIN_BAD_HASHLEN :: CInt
+-sKEIN_SUCCESS     = #{const SKEIN_SUCCESS}
+-sKEIN_FAIL        = #{const SKEIN_FAIL}
+-sKEIN_BAD_HASHLEN = #{const SKEIN_BAD_HASHLEN}
+-
+--- | Throws exception if the function does not return
+--- successfully.
+-check :: IO CInt -> IO ()
+-check act = do
+-  x <- act
+-  case () of
+-    () | x == sKEIN_SUCCESS     -> return ()
+-       | x == sKEIN_FAIL        -> fail "Skein returned FAIL."
+-       | x == sKEIN_BAD_HASHLEN -> fail "Skein returned BAD_HASHLEN."
+-       | otherwise              -> fail "Skein returned unknown code."
+-
+-newtype Skein256Ctx  = S256Ctx  {unS256Ctx  :: B.ByteString}
+-newtype Skein512Ctx  = S512Ctx  {unS512Ctx  :: B.ByteString}
+-newtype Skein1024Ctx = S1024Ctx {unS1024Ctx :: B.ByteString}
+-
+-size256Ctx, size512Ctx, size1024Ctx :: Int
+-size256Ctx  = #{size Skein_256_Ctxt_t}
+-size512Ctx  = #{size Skein_512_Ctxt_t}
+-size1024Ctx = #{size Skein1024_Ctxt_t}
+-
+-instance Storable Skein256Ctx where
+-    sizeOf    _ = size256Ctx
+-    alignment _ = 16
+-    peek ptr =
+-        fmap S256Ctx $ BI.create size256Ctx $ \bptr ->
+-            BI.memcpy bptr (castPtr ptr) (fromIntegral size256Ctx)
+-    poke ptr (S256Ctx bs) =
+-        BU.unsafeUseAsCString bs $ \bs_ptr ->
+-            BI.memcpy (castPtr ptr) (castPtr bs_ptr) (fromIntegral size256Ctx)
+-
+-instance Storable Skein512Ctx where
+-    sizeOf    _ = size512Ctx
+-    alignment _ = 16
+-    peek ptr =
+-        fmap S512Ctx $ BI.create size512Ctx $ \bptr ->
+-            BI.memcpy bptr (castPtr ptr) (fromIntegral size512Ctx)
+-    poke ptr (S512Ctx bs) =
+-        BU.unsafeUseAsCString bs $ \bs_ptr ->
+-            BI.memcpy (castPtr ptr) (castPtr bs_ptr) (fromIntegral size512Ctx)
+-
+-instance Storable Skein1024Ctx where
+-    sizeOf    _ = size1024Ctx
+-    alignment _ = 16
+-    peek ptr =
+-        fmap S1024Ctx $ BI.create size1024Ctx $ \bptr ->
+-            BI.memcpy bptr (castPtr ptr) (fromIntegral size1024Ctx)
+-    poke ptr (S1024Ctx bs) =
+-        BU.unsafeUseAsCString bs $ \bs_ptr ->
+-            BI.memcpy (castPtr ptr) (castPtr bs_ptr) (fromIntegral size1024Ctx)
+-
+-foreign import ccall unsafe "skein.h Skein_256_Init" skein256Init  :: Ptr Skein256Ctx  -> CSize -> IO CInt
+-foreign import ccall unsafe "skein.h Skein_512_Init" skein512Init  :: Ptr Skein512Ctx  -> CSize -> IO CInt
+-foreign import ccall unsafe "skein.h Skein1024_Init" skein1024Init :: Ptr Skein1024Ctx -> CSize -> IO CInt
+-
+-foreign import ccall unsafe "skein.h Skein_256_Update" skein256Update  :: Ptr Skein256Ctx  -> Ptr Word8 -> CSize -> IO CInt
+-foreign import ccall unsafe "skein.h Skein_512_Update" skein512Update  :: Ptr Skein512Ctx  -> Ptr Word8 -> CSize -> IO CInt
+-foreign import ccall unsafe "skein.h Skein1024_Update" skein1024Update :: Ptr Skein1024Ctx -> Ptr Word8 -> CSize -> IO CInt
+-
+-foreign import ccall unsafe "skein.h Skein_256_Final" skein256Final  :: Ptr Skein256Ctx  -> Ptr Word8 -> IO CInt
+-foreign import ccall unsafe "skein.h Skein_512_Final" skein512Final  :: Ptr Skein512Ctx  -> Ptr Word8 -> IO CInt
+-foreign import ccall unsafe "skein.h Skein1024_Final" skein1024Final :: Ptr Skein1024Ctx -> Ptr Word8 -> IO CInt
+-
+-foreign import ccall unsafe "skein.h Skein_256_InitExt" skein256InitExt   :: Ptr Skein256Ctx  -> CSize -> Word64 -> Ptr Word8 -> CSize -> IO CInt
+-foreign import ccall unsafe "skein.h Skein_512_InitExt" skein512InitExt   :: Ptr Skein512Ctx  -> CSize -> Word64 -> Ptr Word8 -> CSize -> IO CInt
+-foreign import ccall unsafe "skein.h Skein1024_InitExt" skein1024InitExt  :: Ptr Skein1024Ctx -> CSize -> Word64 -> Ptr Word8 -> CSize -> IO CInt
+-
+-foreign import ccall unsafe "skein.h Skein_256_Final_Pad" skein256FinalPad  :: Ptr Skein256Ctx  -> Ptr Word8 -> IO CInt
+-foreign import ccall unsafe "skein.h Skein_512_Final_Pad" skein512FinalPad  :: Ptr Skein512Ctx  -> Ptr Word8 -> IO CInt
+-foreign import ccall unsafe "skein.h Skein1024_Final_Pad" skein1024FinalPad :: Ptr Skein1024Ctx -> Ptr Word8 -> IO CInt
+-
+-foreign import ccall unsafe "skein.h Skein_256_Output" skein256Output  :: Ptr Skein256Ctx  -> Ptr Word8 -> IO CInt
+-foreign import ccall unsafe "skein.h Skein_512_Output" skein512Output  :: Ptr Skein512Ctx  -> Ptr Word8 -> IO CInt
+-foreign import ccall unsafe "skein.h Skein1024_Output" skein1024Output :: Ptr Skein1024Ctx -> Ptr Word8 -> IO CInt
+-
+-
+--- | Pass to @InitExt@ to get sequential processing.
+-sKEIN_SEQUENTIAL :: Word64
+-sKEIN_SEQUENTIAL = 0
+-- 
+2.7.4 (Apple Git-66)
+
