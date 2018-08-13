@@ -1,0 +1,53 @@
+Name:                crypto-cipher-tests
+Version:             0.0.11
+Synopsis:            Generic cryptography cipher tests
+Description:         Generic cryptography cipher tests
+License:             BSD3
+License-file:        LICENSE
+Copyright:           Vincent Hanquez <vincent@snarc.org>
+Author:              Vincent Hanquez <vincent@snarc.org>
+Maintainer:          vincent@snarc.org
+Category:            Cryptography
+Stability:           experimental
+Build-Type:          Simple
+Homepage:            http://github.com/vincenthz/hs-crypto-cipher
+Cabal-Version:       >=1.8
+
+Library
+  Exposed-modules:   Crypto.Cipher.Tests
+  Other-modules:     Crypto.Cipher.Tests.KATs
+                     Crypto.Cipher.Tests.Properties
+  Build-depends:     base >= 3 && < 5
+                   , QuickCheck >= 2
+                   , mtl
+                   , HUnit
+                   , test-framework
+                   , test-framework-quickcheck2
+                   , test-framework-hunit
+                   , bytestring
+                   , byteable >= 0.1.1 && < 0.2
+                   , securemem >= 0.1.1 && < 0.2
+                   , crypto-cipher-types >= 0.0.8 && < 0.1
+  ghc-options:       -Wall -fwarn-tabs
+
+Test-Suite test-crypto-cipher-dummy
+  type:              exitcode-stdio-1.0
+  hs-source-dirs:    tests
+  Main-is:           Tests.hs
+  Build-Depends:     base >= 3 && < 5
+                   , bytestring
+                   , byteable
+                   , crypto-cipher-types
+                   , crypto-cipher-tests
+                   , mtl
+                   , QuickCheck >= 2
+                   , HUnit
+                   , test-framework
+                   , test-framework-quickcheck2
+                   , test-framework-hunit
+  ghc-options:       -Wall -fno-warn-orphans -fno-warn-missing-signatures
+
+source-repository head
+  type: git
+  location: git://github.com/vincenthz/hs-crypto-cipher
+  subdir: tests
