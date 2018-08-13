@@ -46,10 +46,20 @@ library
     -- NB: using impl(ghc>=7.9) instead of fragile Cabal flags
     hs-source-dirs: oldsrc
     exposed-modules: Data.Functor.Identity
+  if !impl(ghc>=7.11) && impl(eta<0.8.4)
+    -- modules moved into base-4.9.0 (GHC 8.0)
+    -- see https://ghc.haskell.org/trac/ghc/ticket/10773
+    -- see https://ghc.haskell.org/trac/ghc/ticket/11135
+    hs-source-dirs: oldsrc2
+    exposed-modules:
+      Control.Monad.IO.Class
+      Data.Functor.Classes
+      Data.Functor.Compose
+      Data.Functor.Product
+      Data.Functor.Sum
   exposed-modules:
     Control.Applicative.Backwards
     Control.Applicative.Lift
-    Control.Monad.IO.Class
     Control.Monad.Signatures
     Control.Monad.Trans.Class
     Control.Monad.Trans.Cont
@@ -68,9 +78,5 @@ library
     Control.Monad.Trans.Writer
     Control.Monad.Trans.Writer.Lazy
     Control.Monad.Trans.Writer.Strict
-    Data.Functor.Classes
-    Data.Functor.Compose
     Data.Functor.Constant
-    Data.Functor.Product
     Data.Functor.Reverse
-    Data.Functor.Sum

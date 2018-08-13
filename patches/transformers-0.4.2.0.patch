@@ -1,14 +1,193 @@
-From 3587ebce9648754d1cc78cdc541235530e9635d4 Mon Sep 17 00:00:00 2001
-From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Sun, 22 Jul 2018 14:07:18 +0530
+From 7e0fddcb18427e5d128a9e39b6494fe6ff0707de Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 13 Aug 2018 09:26:32 +0530
 Subject: [PATCH] Patched
 
 ---
- Control/Monad/Trans/Error.hs | 4 ++++
- 1 file changed, 4 insertions(+)
+ Control/Applicative/Backwards.hs     |  28 ++++++++
+ Control/Applicative/Lift.hs          |  35 ++++++++++
+ Control/Monad/IO/Class.hs            |  39 -----------
+ Control/Monad/Trans/Error.hs         |  37 ++++++++++
+ Control/Monad/Trans/Except.hs        |  33 +++++++++
+ Control/Monad/Trans/Identity.hs      |  27 ++++++++
+ Control/Monad/Trans/List.hs          |  33 +++++++++
+ Control/Monad/Trans/Maybe.hs         |  33 +++++++++
+ Control/Monad/Trans/Writer/Lazy.hs   |  36 ++++++++++
+ Control/Monad/Trans/Writer/Strict.hs |  36 ++++++++++
+ Data/Functor/Classes.hs              | 131 -----------------------------------
+ Data/Functor/Compose.hs              |  92 ------------------------
+ Data/Functor/Constant.hs             |  34 +++++++++
+ Data/Functor/Product.hs              |  83 ----------------------
+ Data/Functor/Reverse.hs              |  27 ++++++++
+ Data/Functor/Sum.hs                  |  65 -----------------
+ oldsrc2/Control/Monad/IO/Class.hs    |  39 +++++++++++
+ oldsrc2/Data/Functor/Classes.hs      | 131 +++++++++++++++++++++++++++++++++++
+ oldsrc2/Data/Functor/Compose.hs      |  92 ++++++++++++++++++++++++
+ oldsrc2/Data/Functor/Product.hs      |  83 ++++++++++++++++++++++
+ oldsrc2/Data/Functor/Sum.hs          |  65 +++++++++++++++++
+ transformers.cabal                   |  16 +++--
+ 22 files changed, 780 insertions(+), 415 deletions(-)
+ delete mode 100644 Control/Monad/IO/Class.hs
+ delete mode 100644 Data/Functor/Classes.hs
+ delete mode 100644 Data/Functor/Compose.hs
+ delete mode 100644 Data/Functor/Product.hs
+ delete mode 100644 Data/Functor/Sum.hs
+ create mode 100644 oldsrc2/Control/Monad/IO/Class.hs
+ create mode 100644 oldsrc2/Data/Functor/Classes.hs
+ create mode 100644 oldsrc2/Data/Functor/Compose.hs
+ create mode 100644 oldsrc2/Data/Functor/Product.hs
+ create mode 100644 oldsrc2/Data/Functor/Sum.hs
 
+diff --git a/Control/Applicative/Backwards.hs b/Control/Applicative/Backwards.hs
+index 2247d5f..9e5972e 100644
+--- a/Control/Applicative/Backwards.hs
++++ b/Control/Applicative/Backwards.hs
+@@ -27,10 +27,36 @@ import Control.Applicative
+ import Data.Foldable
+ import Data.Traversable
+ 
++
+ -- | The same functor, but with an 'Applicative' instance that performs
+ -- actions in the reverse order.
+ newtype Backwards f a = Backwards { forwards :: f a }
+ 
++#if MIN_VERSION_base(4,9,0)
++
++instance (Eq1 f) => Eq1 (Backwards f) where
++    liftEq eq (Backwards x) (Backwards y) = liftEq eq x y
++    {-# INLINE liftEq #-}
++
++instance (Ord1 f) => Ord1 (Backwards f) where
++    liftCompare comp (Backwards x) (Backwards y) = liftCompare comp x y
++    {-# INLINE liftCompare #-}
++
++instance (Read1 f) => Read1 (Backwards f) where
++    liftReadsPrec rp rl = readsData $
++        readsUnaryWith (liftReadsPrec rp rl) "Backwards" Backwards
++
++instance (Show1 f) => Show1 (Backwards f) where
++    liftShowsPrec sp sl d (Backwards x) =
++        showsUnaryWith (liftShowsPrec sp sl) "Backwards" d x
++
++instance (Eq1 f, Eq a) => Eq (Backwards f a) where (==) = eq1
++instance (Ord1 f, Ord a) => Ord (Backwards f a) where compare = compare1
++instance (Read1 f, Read a) => Read (Backwards f a) where readsPrec = readsPrec1
++instance (Show1 f, Show a) => Show (Backwards f a) where showsPrec = showsPrec1
++
++#else
++
+ instance (Eq1 f, Eq a) => Eq (Backwards f a) where
+     Backwards x == Backwards y = eq1 x y
+ 
+@@ -48,6 +74,8 @@ instance (Ord1 f) => Ord1 (Backwards f) where compare1 = compare
+ instance (Read1 f) => Read1 (Backwards f) where readsPrec1 = readsPrec
+ instance (Show1 f) => Show1 (Backwards f) where showsPrec1 = showsPrec
+ 
++#endif
++
+ -- | Derived instance.
+ instance (Functor f) => Functor (Backwards f) where
+     fmap f (Backwards a) = Backwards (fmap f a)
+diff --git a/Control/Applicative/Lift.hs b/Control/Applicative/Lift.hs
+index 97f623d..1960ed0 100644
+--- a/Control/Applicative/Lift.hs
++++ b/Control/Applicative/Lift.hs
+@@ -38,6 +38,39 @@ import Data.Traversable (Traversable(traverse))
+ -- applicative functor.
+ data Lift f a = Pure a | Other (f a)
+ 
++#if MIN_VERSION_base(4,9,0)
++
++instance (Eq1 f) => Eq1 (Lift f) where
++    liftEq eq (Pure x1) (Pure x2) = eq x1 x2
++    liftEq _ (Pure _) (Other _) = False
++    liftEq _ (Other _) (Pure _) = False
++    liftEq eq (Other y1) (Other y2) = liftEq eq y1 y2
++    {-# INLINE liftEq #-}
++
++instance (Ord1 f) => Ord1 (Lift f) where
++    liftCompare comp (Pure x1) (Pure x2) = comp x1 x2
++    liftCompare _ (Pure _) (Other _) = LT
++    liftCompare _ (Other _) (Pure _) = GT
++    liftCompare comp (Other y1) (Other y2) = liftCompare comp y1 y2
++    {-# INLINE liftCompare #-}
++
++instance (Read1 f) => Read1 (Lift f) where
++    liftReadsPrec rp rl = readsData $
++        readsUnaryWith rp "Pure" Pure `mappend`
++        readsUnaryWith (liftReadsPrec rp rl) "Other" Other
++
++instance (Show1 f) => Show1 (Lift f) where
++    liftShowsPrec sp _ d (Pure x) = showsUnaryWith sp "Pure" d x
++    liftShowsPrec sp sl d (Other y) =
++        showsUnaryWith (liftShowsPrec sp sl) "Other" d y
++
++instance (Eq1 f, Eq a) => Eq (Lift f a) where (==) = eq1
++instance (Ord1 f, Ord a) => Ord (Lift f a) where compare = compare1
++instance (Read1 f, Read a) => Read (Lift f a) where readsPrec = readsPrec1
++instance (Show1 f, Show a) => Show (Lift f a) where showsPrec = showsPrec1
++
++#else
++
+ instance (Eq1 f, Eq a) => Eq (Lift f a) where
+     Pure x1 == Pure x2 = x1 == x2
+     Other y1 == Other y2 = eq1 y1 y2
+@@ -62,6 +95,8 @@ instance (Ord1 f) => Ord1 (Lift f) where compare1 = compare
+ instance (Read1 f) => Read1 (Lift f) where readsPrec1 = readsPrec
+ instance (Show1 f) => Show1 (Lift f) where showsPrec1 = showsPrec
+ 
++#endif
++
+ instance (Functor f) => Functor (Lift f) where
+     fmap f (Pure x) = Pure (f x)
+     fmap f (Other y) = Other (fmap f y)
+diff --git a/Control/Monad/IO/Class.hs b/Control/Monad/IO/Class.hs
+deleted file mode 100644
+index 6942c11..0000000
+--- a/Control/Monad/IO/Class.hs
++++ /dev/null
+@@ -1,39 +0,0 @@
+-{-# LANGUAGE CPP #-}
+-#if __GLASGOW_HASKELL__ >= 709
+-{-# LANGUAGE AutoDeriveTypeable #-}
+-#endif
+------------------------------------------------------------------------------
+--- |
+--- Module      :  Control.Monad.IO.Class
+--- Copyright   :  (c) Andy Gill 2001,
+---                (c) Oregon Graduate Institute of Science and Technology, 2001
+--- License     :  BSD-style (see the file LICENSE)
+---
+--- Maintainer  :  ross@soi.city.ac.uk
+--- Stability   :  experimental
+--- Portability :  portable
+---
+--- Class of monads based on @IO@.
+------------------------------------------------------------------------------
+-
+-module Control.Monad.IO.Class (
+-    MonadIO(..)
+-  ) where
+-
+--- | Monads in which 'IO' computations may be embedded.
+--- Any monad built by applying a sequence of monad transformers to the
+--- 'IO' monad will be an instance of this class.
+---
+--- Instances should satisfy the following laws, which state that 'liftIO'
+--- is a transformer of monads:
+---
+--- * @'liftIO' . 'return' = 'return'@
+---
+--- * @'liftIO' (m >>= f) = 'liftIO' m >>= ('liftIO' . f)@
+-
+-class (Monad m) => MonadIO m where
+-    -- | Lift a computation from the 'IO' monad.
+-    liftIO :: IO a -> m a
+-
+-instance MonadIO IO where
+-    liftIO = id
 diff --git a/Control/Monad/Trans/Error.hs b/Control/Monad/Trans/Error.hs
-index 7d01910..bbaf55e 100644
+index 7d01910..6cbb8ed 100644
 --- a/Control/Monad/Trans/Error.hs
 +++ b/Control/Monad/Trans/Error.hs
 @@ -66,6 +66,8 @@ import Data.Monoid (mempty)
@@ -29,6 +208,1325 @@ index 7d01910..bbaf55e 100644
  #if !(MIN_VERSION_base(4,4,0))
  -- exported by System.IO.Error from base-4.4
  catchIOError :: IO a -> (IOError -> IO a) -> IO a
+@@ -157,6 +161,37 @@ instance (Error e) => MonadPlus (Either e) where
+ -- sequences two subcomputations, failing on the first error.
+ newtype ErrorT e m a = ErrorT { runErrorT :: m (Either e a) }
+ 
++#if MIN_VERSION_base(4,9,0)
++
++instance (Eq e, Eq1 m) => Eq1 (ErrorT e m) where
++    liftEq eq (ErrorT x) (ErrorT y) = liftEq (liftEq eq) x y
++
++instance (Ord e, Ord1 m) => Ord1 (ErrorT e m) where
++    liftCompare comp (ErrorT x) (ErrorT y) = liftCompare (liftCompare comp) x y
++
++instance (Read e, Read1 m) => Read1 (ErrorT e m) where
++    liftReadsPrec rp rl = readsData $
++        readsUnaryWith (liftReadsPrec rp' rl') "ErrorT" ErrorT
++      where
++        rp' = liftReadsPrec rp rl
++        rl' = liftReadList rp rl
++
++instance (Show e, Show1 m) => Show1 (ErrorT e m) where
++    liftShowsPrec sp sl d (ErrorT m) =
++        showsUnaryWith (liftShowsPrec sp' sl') "ErrorT" d m
++      where
++        sp' = liftShowsPrec sp sl
++        sl' = liftShowList sp sl
++
++instance (Eq e, Eq1 m, Eq a) => Eq (ErrorT e m a) where (==) = eq1
++instance (Ord e, Ord1 m, Ord a) => Ord (ErrorT e m a) where compare = compare1
++instance (Read e, Read1 m, Read a) => Read (ErrorT e m a) where
++    readsPrec = readsPrec1
++instance (Show e, Show1 m, Show a) => Show (ErrorT e m a) where
++    showsPrec = showsPrec1
++
++#else
++
+ instance (Eq e, Eq1 m, Eq a) => Eq (ErrorT e m a) where
+     ErrorT x == ErrorT y = eq1 x y
+ 
+@@ -174,6 +209,8 @@ instance (Ord e, Ord1 m) => Ord1 (ErrorT e m) where compare1 = compare
+ instance (Read e, Read1 m) => Read1 (ErrorT e m) where readsPrec1 = readsPrec
+ instance (Show e, Show1 m) => Show1 (ErrorT e m) where showsPrec1 = showsPrec
+ 
++#endif
++
+ -- | Map the unwrapped computation using the given function.
+ --
+ -- * @'runErrorT' ('mapErrorT' f m) = f ('runErrorT' m)@
+diff --git a/Control/Monad/Trans/Except.hs b/Control/Monad/Trans/Except.hs
+index aa3d65f..7dd0eaf 100644
+--- a/Control/Monad/Trans/Except.hs
++++ b/Control/Monad/Trans/Except.hs
+@@ -102,6 +102,37 @@ withExcept = withExceptT
+ -- first exception.
+ newtype ExceptT e m a = ExceptT (m (Either e a))
+ 
++#if MIN_VERSION_base(4,9,0)
++
++instance (Eq e, Eq1 m) => Eq1 (ExceptT e m) where
++    liftEq eq (ExceptT x) (ExceptT y) = liftEq (liftEq eq) x y
++
++instance (Ord e, Ord1 m) => Ord1 (ExceptT e m) where
++    liftCompare comp (ExceptT x) (ExceptT y) = liftCompare (liftCompare comp) x y
++
++instance (Read e, Read1 m) => Read1 (ExceptT e m) where
++    liftReadsPrec rp rl = readsData $
++        readsUnaryWith (liftReadsPrec rp' rl') "ExceptT" ExceptT
++      where
++        rp' = liftReadsPrec rp rl
++        rl' = liftReadList rp rl
++
++instance (Show e, Show1 m) => Show1 (ExceptT e m) where
++    liftShowsPrec sp sl d (ExceptT m) =
++        showsUnaryWith (liftShowsPrec sp' sl') "ExceptT" d m
++      where
++        sp' = liftShowsPrec sp sl
++        sl' = liftShowList sp sl
++
++instance (Eq e, Eq1 m, Eq a) => Eq (ExceptT e m a) where (==) = eq1
++instance (Ord e, Ord1 m, Ord a) => Ord (ExceptT e m a) where compare = compare1
++instance (Read e, Read1 m, Read a) => Read (ExceptT e m a) where
++    readsPrec = readsPrec1
++instance (Show e, Show1 m, Show a) => Show (ExceptT e m a) where
++    showsPrec = showsPrec1
++
++#else
++
+ instance (Eq e, Eq1 m, Eq a) => Eq (ExceptT e m a) where
+     ExceptT x == ExceptT y = eq1 x y
+ 
+@@ -119,6 +150,8 @@ instance (Ord e, Ord1 m) => Ord1 (ExceptT e m) where compare1 = compare
+ instance (Read e, Read1 m) => Read1 (ExceptT e m) where readsPrec1 = readsPrec
+ instance (Show e, Show1 m) => Show1 (ExceptT e m) where showsPrec1 = showsPrec
+ 
++#endif
++
+ -- | The inverse of 'ExceptT'.
+ runExceptT :: ExceptT e m a -> m (Either e a)
+ runExceptT (ExceptT m) = m
+diff --git a/Control/Monad/Trans/Identity.hs b/Control/Monad/Trans/Identity.hs
+index 4bfb171..145571a 100644
+--- a/Control/Monad/Trans/Identity.hs
++++ b/Control/Monad/Trans/Identity.hs
+@@ -40,6 +40,31 @@ import Data.Traversable (Traversable(traverse))
+ -- | The trivial monad transformer, which maps a monad to an equivalent monad.
+ newtype IdentityT f a = IdentityT { runIdentityT :: f a }
+ 
++#if MIN_VERSION_base(4,9,0)
++
++instance (Eq1 f) => Eq1 (IdentityT f) where
++    liftEq eq (IdentityT x) (IdentityT y) = liftEq eq x y
++    {-# INLINE liftEq #-}
++
++instance (Ord1 f) => Ord1 (IdentityT f) where
++    liftCompare comp (IdentityT x) (IdentityT y) = liftCompare comp x y
++    {-# INLINE liftCompare #-}
++
++instance (Read1 f) => Read1 (IdentityT f) where
++    liftReadsPrec rp rl = readsData $
++        readsUnaryWith (liftReadsPrec rp rl) "IdentityT" IdentityT
++
++instance (Show1 f) => Show1 (IdentityT f) where
++    liftShowsPrec sp sl d (IdentityT m) =
++        showsUnaryWith (liftShowsPrec sp sl) "IdentityT" d m
++
++instance (Eq1 f, Eq a) => Eq (IdentityT f a) where (==) = eq1
++instance (Ord1 f, Ord a) => Ord (IdentityT f a) where compare = compare1
++instance (Read1 f, Read a) => Read (IdentityT f a) where readsPrec = readsPrec1
++instance (Show1 f, Show a) => Show (IdentityT f a) where showsPrec = showsPrec1
++
++#else
++
+ instance (Eq1 f, Eq a) => Eq (IdentityT f a) where
+     IdentityT x == IdentityT y = eq1 x y
+ 
+@@ -57,6 +82,8 @@ instance (Ord1 f) => Ord1 (IdentityT f) where compare1 = compare
+ instance (Read1 f) => Read1 (IdentityT f) where readsPrec1 = readsPrec
+ instance (Show1 f) => Show1 (IdentityT f) where showsPrec1 = showsPrec
+ 
++#endif
++
+ instance (Functor m) => Functor (IdentityT m) where
+     fmap f = mapIdentityT (fmap f)
+ 
+diff --git a/Control/Monad/Trans/List.hs b/Control/Monad/Trans/List.hs
+index 54e8234..6fb0597 100644
+--- a/Control/Monad/Trans/List.hs
++++ b/Control/Monad/Trans/List.hs
+@@ -41,6 +41,37 @@ import Data.Traversable (Traversable(traverse))
+ -- /Note:/ this does not yield a monad unless the argument monad is commutative.
+ newtype ListT m a = ListT { runListT :: m [a] }
+ 
++#if MIN_VERSION_base(4,9,0)
++
++instance (Eq1 m) => Eq1 (ListT m) where
++    liftEq eq (ListT x) (ListT y) = liftEq (liftEq eq) x y
++    {-# INLINE liftEq #-}
++
++instance (Ord1 m) => Ord1 (ListT m) where
++    liftCompare comp (ListT x) (ListT y) = liftCompare (liftCompare comp) x y
++    {-# INLINE liftCompare #-}
++
++instance (Read1 m) => Read1 (ListT m) where
++    liftReadsPrec rp rl = readsData $
++        readsUnaryWith (liftReadsPrec rp' rl') "ListT" ListT
++      where
++        rp' = liftReadsPrec rp rl
++        rl' = liftReadList rp rl
++
++instance (Show1 m) => Show1 (ListT m) where
++    liftShowsPrec sp sl d (ListT m) =
++        showsUnaryWith (liftShowsPrec sp' sl') "ListT" d m
++      where
++        sp' = liftShowsPrec sp sl
++        sl' = liftShowList sp sl
++
++instance (Eq1 m, Eq a) => Eq (ListT m a) where (==) = eq1
++instance (Ord1 m, Ord a) => Ord (ListT m a) where compare = compare1
++instance (Read1 m, Read a) => Read (ListT m a) where readsPrec = readsPrec1
++instance (Show1 m, Show a) => Show (ListT m a) where showsPrec = showsPrec1
++
++#else
++
+ instance (Eq1 m, Eq a) => Eq (ListT m a) where
+     ListT x == ListT y = eq1 x y
+ 
+@@ -58,6 +89,8 @@ instance (Ord1 m) => Ord1 (ListT m) where compare1 = compare
+ instance (Read1 m) => Read1 (ListT m) where readsPrec1 = readsPrec
+ instance (Show1 m) => Show1 (ListT m) where showsPrec1 = showsPrec
+ 
++#endif
++
+ -- | Map between 'ListT' computations.
+ --
+ -- * @'runListT' ('mapListT' f m) = f ('runListT' m)@
+diff --git a/Control/Monad/Trans/Maybe.hs b/Control/Monad/Trans/Maybe.hs
+index a7fe045..f4f822b 100644
+--- a/Control/Monad/Trans/Maybe.hs
++++ b/Control/Monad/Trans/Maybe.hs
+@@ -60,6 +60,37 @@ import Data.Traversable (Traversable(traverse))
+ -- computation does.
+ newtype MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
+ 
++#if MIN_VERSION_base(4,9,0)
++
++instance (Eq1 m) => Eq1 (MaybeT m) where
++    liftEq eq (MaybeT x) (MaybeT y) = liftEq (liftEq eq) x y
++    {-# INLINE liftEq #-}
++
++instance (Ord1 m) => Ord1 (MaybeT m) where
++    liftCompare comp (MaybeT x) (MaybeT y) = liftCompare (liftCompare comp) x y
++    {-# INLINE liftCompare #-}
++
++instance (Read1 m) => Read1 (MaybeT m) where
++    liftReadsPrec rp rl = readsData $
++        readsUnaryWith (liftReadsPrec rp' rl') "MaybeT" MaybeT
++      where
++        rp' = liftReadsPrec rp rl
++        rl' = liftReadList rp rl
++
++instance (Show1 m) => Show1 (MaybeT m) where
++    liftShowsPrec sp sl d (MaybeT m) =
++        showsUnaryWith (liftShowsPrec sp' sl') "MaybeT" d m
++      where
++        sp' = liftShowsPrec sp sl
++        sl' = liftShowList sp sl
++
++instance (Eq1 m, Eq a) => Eq (MaybeT m a) where (==) = eq1
++instance (Ord1 m, Ord a) => Ord (MaybeT m a) where compare = compare1
++instance (Read1 m, Read a) => Read (MaybeT m a) where readsPrec = readsPrec1
++instance (Show1 m, Show a) => Show (MaybeT m a) where showsPrec = showsPrec1
++
++#else
++
+ instance (Eq1 m, Eq a) => Eq (MaybeT m a) where
+     MaybeT x == MaybeT y = eq1 x y
+ 
+@@ -77,6 +108,8 @@ instance (Ord1 m) => Ord1 (MaybeT m) where compare1 = compare
+ instance (Read1 m) => Read1 (MaybeT m) where readsPrec1 = readsPrec
+ instance (Show1 m) => Show1 (MaybeT m) where showsPrec1 = showsPrec
+ 
++#endif
++
+ -- | Transform the computation inside a @MaybeT@.
+ --
+ -- * @'runMaybeT' ('mapMaybeT' f m) = f ('runMaybeT' m)@
+diff --git a/Control/Monad/Trans/Writer/Lazy.hs b/Control/Monad/Trans/Writer/Lazy.hs
+index e6eaa1b..c3ae75c 100644
+--- a/Control/Monad/Trans/Writer/Lazy.hs
++++ b/Control/Monad/Trans/Writer/Lazy.hs
+@@ -100,6 +100,40 @@ mapWriter f = mapWriterT (Identity . f . runIdentity)
+ -- combines the outputs of the subcomputations using 'mappend'.
+ newtype WriterT w m a = WriterT { runWriterT :: m (a, w) }
+ 
++#if MIN_VERSION_base(4,9,0)
++
++instance (Eq w, Eq1 m) => Eq1 (WriterT w m) where
++    liftEq eq (WriterT m1) (WriterT m2) = liftEq (liftEq2 eq (==)) m1 m2
++    {-# INLINE liftEq #-}
++
++instance (Ord w, Ord1 m) => Ord1 (WriterT w m) where
++    liftCompare comp (WriterT m1) (WriterT m2) =
++        liftCompare (liftCompare2 comp compare) m1 m2
++    {-# INLINE liftCompare #-}
++
++instance (Read w, Read1 m) => Read1 (WriterT w m) where
++    liftReadsPrec rp rl = readsData $
++        readsUnaryWith (liftReadsPrec rp' rl') "WriterT" WriterT
++      where
++        rp' = liftReadsPrec2 rp rl readsPrec readList
++        rl' = liftReadList2 rp rl readsPrec readList
++
++instance (Show w, Show1 m) => Show1 (WriterT w m) where
++    liftShowsPrec sp sl d (WriterT m) =
++        showsUnaryWith (liftShowsPrec sp' sl') "WriterT" d m
++      where
++        sp' = liftShowsPrec2 sp sl showsPrec showList
++        sl' = liftShowList2 sp sl showsPrec showList
++
++instance (Eq w, Eq1 m, Eq a) => Eq (WriterT w m a) where (==) = eq1
++instance (Ord w, Ord1 m, Ord a) => Ord (WriterT w m a) where compare = compare1
++instance (Read w, Read1 m, Read a) => Read (WriterT w m a) where
++    readsPrec = readsPrec1
++instance (Show w, Show1 m, Show a) => Show (WriterT w m a) where
++    showsPrec = showsPrec1
++
++#else
++
+ instance (Eq w, Eq1 m, Eq a) => Eq (WriterT w m a) where
+     WriterT x == WriterT y = eq1 x y
+ 
+@@ -117,6 +151,8 @@ instance (Ord w, Ord1 m) => Ord1 (WriterT w m) where compare1 = compare
+ instance (Read w, Read1 m) => Read1 (WriterT w m) where readsPrec1 = readsPrec
+ instance (Show w, Show1 m) => Show1 (WriterT w m) where showsPrec1 = showsPrec
+ 
++#endif
++
+ -- | Extract the output from a writer computation.
+ --
+ -- * @'execWriterT' m = 'liftM' 'snd' ('runWriterT' m)@
+diff --git a/Control/Monad/Trans/Writer/Strict.hs b/Control/Monad/Trans/Writer/Strict.hs
+index 9ce8dca..d029cf1 100644
+--- a/Control/Monad/Trans/Writer/Strict.hs
++++ b/Control/Monad/Trans/Writer/Strict.hs
+@@ -103,6 +103,40 @@ mapWriter f = mapWriterT (Identity . f . runIdentity)
+ -- combines the outputs of the subcomputations using 'mappend'.
+ newtype WriterT w m a = WriterT { runWriterT :: m (a, w) }
+ 
++#if MIN_VERSION_base(4,9,0)
++
++instance (Eq w, Eq1 m) => Eq1 (WriterT w m) where
++    liftEq eq (WriterT m1) (WriterT m2) = liftEq (liftEq2 eq (==)) m1 m2
++    {-# INLINE liftEq #-}
++
++instance (Ord w, Ord1 m) => Ord1 (WriterT w m) where
++    liftCompare comp (WriterT m1) (WriterT m2) =
++        liftCompare (liftCompare2 comp compare) m1 m2
++    {-# INLINE liftCompare #-}
++
++instance (Read w, Read1 m) => Read1 (WriterT w m) where
++    liftReadsPrec rp rl = readsData $
++        readsUnaryWith (liftReadsPrec rp' rl') "WriterT" WriterT
++      where
++        rp' = liftReadsPrec2 rp rl readsPrec readList
++        rl' = liftReadList2 rp rl readsPrec readList
++
++instance (Show w, Show1 m) => Show1 (WriterT w m) where
++    liftShowsPrec sp sl d (WriterT m) =
++        showsUnaryWith (liftShowsPrec sp' sl') "WriterT" d m
++      where
++        sp' = liftShowsPrec2 sp sl showsPrec showList
++        sl' = liftShowList2 sp sl showsPrec showList
++
++instance (Eq w, Eq1 m, Eq a) => Eq (WriterT w m a) where (==) = eq1
++instance (Ord w, Ord1 m, Ord a) => Ord (WriterT w m a) where compare = compare1
++instance (Read w, Read1 m, Read a) => Read (WriterT w m a) where
++    readsPrec = readsPrec1
++instance (Show w, Show1 m, Show a) => Show (WriterT w m a) where
++    showsPrec = showsPrec1
++
++#else
++
+ instance (Eq w, Eq1 m, Eq a) => Eq (WriterT w m a) where
+     WriterT x == WriterT y = eq1 x y
+ 
+@@ -120,6 +154,8 @@ instance (Ord w, Ord1 m) => Ord1 (WriterT w m) where compare1 = compare
+ instance (Read w, Read1 m) => Read1 (WriterT w m) where readsPrec1 = readsPrec
+ instance (Show w, Show1 m) => Show1 (WriterT w m) where showsPrec1 = showsPrec
+ 
++#endif
++
+ -- | Extract the output from a writer computation.
+ --
+ -- * @'execWriterT' m = 'liftM' 'snd' ('runWriterT' m)@
+diff --git a/Data/Functor/Classes.hs b/Data/Functor/Classes.hs
+deleted file mode 100644
+index acae7d2..0000000
+--- a/Data/Functor/Classes.hs
++++ /dev/null
+@@ -1,131 +0,0 @@
+-{-# LANGUAGE CPP #-}
+-#if __GLASGOW_HASKELL__ >= 709
+-{-# LANGUAGE AutoDeriveTypeable #-}
+-#endif
+------------------------------------------------------------------------------
+--- |
+--- Module      :  Data.Functor.Classes
+--- Copyright   :  (c) Ross Paterson 2013
+--- License     :  BSD-style (see the file LICENSE)
+---
+--- Maintainer  :  ross@soi.city.ac.uk
+--- Stability   :  experimental
+--- Portability :  portable
+---
+--- Prelude classes, lifted to unary type constructors.
+------------------------------------------------------------------------------
+-
+-module Data.Functor.Classes (
+-    -- * Liftings of Prelude classes
+-    Eq1(..),
+-    Ord1(..),
+-    Read1(..),
+-    Show1(..),
+-    -- * Helper functions
+-    readsData,
+-    readsUnary,
+-    readsUnary1,
+-    readsBinary1,
+-    showsUnary,
+-    showsUnary1,
+-    showsBinary1,
+-  ) where
+-
+-import Data.Functor.Identity
+-
+--- | Lifting of the 'Eq' class to unary type constructors.
+-class Eq1 f where
+-    eq1 :: (Eq a) => f a -> f a -> Bool
+-
+--- | Lifting of the 'Ord' class to unary type constructors.
+-class (Eq1 f) => Ord1 f where
+-    compare1 :: (Ord a) => f a -> f a -> Ordering
+-
+--- | Lifting of the 'Read' class to unary type constructors.
+-class Read1 f where
+-    readsPrec1 :: (Read a) => Int -> ReadS (f a)
+-
+--- | Lifting of the 'Show' class to unary type constructors.
+-class Show1 f where
+-    showsPrec1 :: (Show a) => Int -> f a -> ShowS
+-
+--- Instances for Prelude type constructors
+-
+-instance Eq1 Maybe where eq1 = (==)
+-instance Ord1 Maybe where compare1 = compare
+-instance Read1 Maybe where readsPrec1 = readsPrec
+-instance Show1 Maybe where showsPrec1 = showsPrec
+-
+-instance Eq1 [] where eq1 = (==)
+-instance Ord1 [] where compare1 = compare
+-instance Read1 [] where readsPrec1 = readsPrec
+-instance Show1 [] where showsPrec1 = showsPrec
+-
+-instance (Eq a) => Eq1 ((,) a) where eq1 = (==)
+-instance (Ord a) => Ord1 ((,) a) where compare1 = compare
+-instance (Read a) => Read1 ((,) a) where readsPrec1 = readsPrec
+-instance (Show a) => Show1 ((,) a) where showsPrec1 = showsPrec
+-
+-instance (Eq a) => Eq1 (Either a) where eq1 = (==)
+-instance (Ord a) => Ord1 (Either a) where compare1 = compare
+-instance (Read a) => Read1 (Either a) where readsPrec1 = readsPrec
+-instance (Show a) => Show1 (Either a) where showsPrec1 = showsPrec
+-
+--- Instances for other functors
+-
+-instance Eq1 Identity where eq1 = (==)
+-instance Ord1 Identity where compare1 = compare
+-instance Read1 Identity where readsPrec1 = readsPrec
+-instance Show1 Identity where showsPrec1 = showsPrec
+-
+--- Building blocks
+-
+--- | @'readsData' p d@ is a parser for datatypes where each alternative
+--- begins with a data constructor.  It parses the constructor and
+--- passes it to @p@.  Parsers for various constructors can be constructed
+--- with 'readsUnary', 'readsUnary1' and 'readsBinary1', and combined with
+--- @mappend@ from the @Monoid@ class.
+-readsData :: (String -> ReadS a) -> Int -> ReadS a
+-readsData reader d =
+-    readParen (d > 10) $ \ r -> [res | (kw,s) <- lex r, res <- reader kw s]
+-
+--- | @'readsUnary' n c n'@ matches the name of a unary data constructor
+--- and then parses its argument using 'readsPrec'.
+-readsUnary :: (Read a) => String -> (a -> t) -> String -> ReadS t
+-readsUnary name cons kw s =
+-    [(cons x,t) | kw == name, (x,t) <- readsPrec 11 s]
+-
+--- | @'readsUnary1' n c n'@ matches the name of a unary data constructor
+--- and then parses its argument using 'readsPrec1'.
+-readsUnary1 :: (Read1 f, Read a) => String -> (f a -> t) -> String -> ReadS t
+-readsUnary1 name cons kw s =
+-    [(cons x,t) | kw == name, (x,t) <- readsPrec1 11 s]
+-
+--- | @'readsBinary1' n c n'@ matches the name of a binary data constructor
+--- and then parses its arguments using 'readsPrec1'.
+-readsBinary1 :: (Read1 f, Read1 g, Read a) =>
+-    String -> (f a -> g a -> t) -> String -> ReadS t
+-readsBinary1 name cons kw s =
+-    [(cons x y,u) | kw == name,
+-        (x,t) <- readsPrec1 11 s, (y,u) <- readsPrec1 11 t]
+-
+--- | @'showsUnary' n d x@ produces the string representation of a unary data
+--- constructor with name @n@ and argument @x@, in precedence context @d@.
+-showsUnary :: (Show a) => String -> Int -> a -> ShowS
+-showsUnary name d x = showParen (d > 10) $
+-    showString name . showChar ' ' . showsPrec 11 x
+-
+--- | @'showsUnary1' n d x@ produces the string representation of a unary data
+--- constructor with name @n@ and argument @x@, in precedence context @d@.
+-showsUnary1 :: (Show1 f, Show a) => String -> Int -> f a -> ShowS
+-showsUnary1 name d x = showParen (d > 10) $
+-    showString name . showChar ' ' . showsPrec1 11 x
+-
+--- | @'showsBinary1' n d x@ produces the string representation of a binary
+--- data constructor with name @n@ and arguments @x@ and @y@, in precedence
+--- context @d@.
+-showsBinary1 :: (Show1 f, Show1 g, Show a) =>
+-    String -> Int -> f a -> g a -> ShowS
+-showsBinary1 name d x y = showParen (d > 10) $
+-    showString name . showChar ' ' . showsPrec1 11 x .
+-        showChar ' ' . showsPrec1 11 y
+diff --git a/Data/Functor/Compose.hs b/Data/Functor/Compose.hs
+deleted file mode 100644
+index 570f8e6..0000000
+--- a/Data/Functor/Compose.hs
++++ /dev/null
+@@ -1,92 +0,0 @@
+-{-# LANGUAGE CPP #-}
+-#if __GLASGOW_HASKELL__ >= 709
+-{-# LANGUAGE AutoDeriveTypeable #-}
+-#endif
+------------------------------------------------------------------------------
+--- |
+--- Module      :  Data.Functor.Compose
+--- Copyright   :  (c) Ross Paterson 2010
+--- License     :  BSD-style (see the file LICENSE)
+---
+--- Maintainer  :  ross@soi.city.ac.uk
+--- Stability   :  experimental
+--- Portability :  portable
+---
+--- Composition of functors.
+------------------------------------------------------------------------------
+-
+-module Data.Functor.Compose (
+-    Compose(..),
+-  ) where
+-
+-import Data.Functor.Classes
+-
+-import Control.Applicative
+-import Data.Foldable (Foldable(foldMap))
+-import Data.Traversable (Traversable(traverse))
+-
+-infixr 9 `Compose`
+-
+--- | Right-to-left composition of functors.
+--- The composition of applicative functors is always applicative,
+--- but the composition of monads is not always a monad.
+-newtype Compose f g a = Compose { getCompose :: f (g a) }
+-
+--- Instances of Prelude classes
+-
+--- kludge to get type with the same instances as g a
+-newtype Apply g a = Apply (g a)
+-
+-getApply :: Apply g a -> g a
+-getApply (Apply x) = x
+-
+-instance (Eq1 g, Eq a) => Eq (Apply g a) where
+-    Apply x == Apply y = eq1 x y
+-
+-instance (Ord1 g, Ord a) => Ord (Apply g a) where
+-    compare (Apply x) (Apply y) = compare1 x y
+-
+-instance (Read1 g, Read a) => Read (Apply g a) where
+-    readsPrec d s = [(Apply a, t) | (a, t) <- readsPrec1 d s]
+-
+-instance (Show1 g, Show a) => Show (Apply g a) where
+-    showsPrec d (Apply x) = showsPrec1 d x
+-
+-instance (Functor f, Eq1 f, Eq1 g, Eq a) => Eq (Compose f g a) where
+-    Compose x == Compose y = eq1 (fmap Apply x) (fmap Apply y)
+-
+-instance (Functor f, Ord1 f, Ord1 g, Ord a) => Ord (Compose f g a) where
+-    compare (Compose x) (Compose y) = compare1 (fmap Apply x) (fmap Apply y)
+-
+-instance (Functor f, Read1 f, Read1 g, Read a) => Read (Compose f g a) where
+-    readsPrec = readsData $ readsUnary1 "Compose" (Compose . fmap getApply)
+-
+-instance (Functor f, Show1 f, Show1 g, Show a) => Show (Compose f g a) where
+-    showsPrec d (Compose x) = showsUnary1 "Compose" d (fmap Apply x)
+-
+-instance (Functor f, Eq1 f, Eq1 g) => Eq1 (Compose f g) where eq1 = (==)
+-instance (Functor f, Ord1 f, Ord1 g) => Ord1 (Compose f g) where
+-    compare1 = compare
+-instance (Functor f, Read1 f, Read1 g) => Read1 (Compose f g) where
+-    readsPrec1 = readsPrec
+-instance (Functor f, Show1 f, Show1 g) => Show1 (Compose f g) where
+-    showsPrec1 = showsPrec
+-
+--- Functor instances
+-
+-instance (Functor f, Functor g) => Functor (Compose f g) where
+-    fmap f (Compose x) = Compose (fmap (fmap f) x)
+-
+-instance (Foldable f, Foldable g) => Foldable (Compose f g) where
+-    foldMap f (Compose t) = foldMap (foldMap f) t
+-
+-instance (Traversable f, Traversable g) => Traversable (Compose f g) where
+-    traverse f (Compose t) = Compose <$> traverse (traverse f) t
+-
+-instance (Applicative f, Applicative g) => Applicative (Compose f g) where
+-    pure x = Compose (pure (pure x))
+-    Compose f <*> Compose x = Compose ((<*>) <$> f <*> x)
+-
+-instance (Alternative f, Applicative g) => Alternative (Compose f g) where
+-    empty = Compose empty
+-    Compose x <|> Compose y = Compose (x <|> y)
+diff --git a/Data/Functor/Constant.hs b/Data/Functor/Constant.hs
+index 6e6585a..04256d5 100644
+--- a/Data/Functor/Constant.hs
++++ b/Data/Functor/Constant.hs
+@@ -39,11 +39,45 @@ instance (Read a) => Read (Constant a b) where
+ instance (Show a) => Show (Constant a b) where
+     showsPrec d (Constant x) = showsUnary "Constant" d x
+ 
++#if MIN_VERSION_base(4,9,0)
++
++instance Eq2 Constant where
++    liftEq2 eq _ (Constant x) (Constant y) = eq x y
++    {-# INLINE liftEq2 #-}
++
++instance Ord2 Constant where
++    liftCompare2 comp _ (Constant x) (Constant y) = comp x y
++    {-# INLINE liftCompare2 #-}
++
++instance Read2 Constant where
++    liftReadsPrec2 rp _ _ _ = readsData $
++         readsUnaryWith rp "Constant" Constant
++
++instance Show2 Constant where
++    liftShowsPrec2 sp _ _ _ d (Constant x) = showsUnaryWith sp "Constant" d x
++
++instance (Eq a) => Eq1 (Constant a) where
++    liftEq = liftEq2 (==)
++    {-# INLINE liftEq #-}
++instance (Ord a) => Ord1 (Constant a) where
++    liftCompare = liftCompare2 compare
++    {-# INLINE liftCompare #-}
++instance (Read a) => Read1 (Constant a) where
++    liftReadsPrec = liftReadsPrec2 readsPrec readList
++    {-# INLINE liftReadsPrec #-}
++instance (Show a) => Show1 (Constant a) where
++    liftShowsPrec = liftShowsPrec2 showsPrec showList
++    {-# INLINE liftShowsPrec #-}
++
++#else
++
+ instance (Eq a) => Eq1 (Constant a) where eq1 = (==)
+ instance (Ord a) => Ord1 (Constant a) where compare1 = compare
+ instance (Read a) => Read1 (Constant a) where readsPrec1 = readsPrec
+ instance (Show a) => Show1 (Constant a) where showsPrec1 = showsPrec
+ 
++#endif
++
+ instance Functor (Constant a) where
+     fmap _ (Constant x) = Constant x
+ 
+diff --git a/Data/Functor/Product.hs b/Data/Functor/Product.hs
+deleted file mode 100644
+index 2dbd137..0000000
+--- a/Data/Functor/Product.hs
++++ /dev/null
+@@ -1,83 +0,0 @@
+-{-# LANGUAGE CPP #-}
+-#if __GLASGOW_HASKELL__ >= 709
+-{-# LANGUAGE AutoDeriveTypeable #-}
+-#endif
+------------------------------------------------------------------------------
+--- |
+--- Module      :  Data.Functor.Product
+--- Copyright   :  (c) Ross Paterson 2010
+--- License     :  BSD-style (see the file LICENSE)
+---
+--- Maintainer  :  ross@soi.city.ac.uk
+--- Stability   :  experimental
+--- Portability :  portable
+---
+--- Products, lifted to functors.
+------------------------------------------------------------------------------
+-
+-module Data.Functor.Product (
+-    Product(..),
+-  ) where
+-
+-import Control.Applicative
+-import Control.Monad (MonadPlus(..))
+-import Control.Monad.Fix (MonadFix(..))
+-import Data.Foldable (Foldable(foldMap))
+-import Data.Functor.Classes
+-import Data.Monoid (mappend)
+-import Data.Traversable (Traversable(traverse))
+-
+--- | Lifted product of functors.
+-data Product f g a = Pair (f a) (g a)
+-
+-instance (Eq1 f, Eq1 g, Eq a) => Eq (Product f g a) where
+-    Pair x1 y1 == Pair x2 y2 = eq1 x1 x2 && eq1 y1 y2
+-
+-instance (Ord1 f, Ord1 g, Ord a) => Ord (Product f g a) where
+-    compare (Pair x1 y1) (Pair x2 y2) =
+-        compare1 x1 x2 `mappend` compare1 y1 y2
+-
+-instance (Read1 f, Read1 g, Read a) => Read (Product f g a) where
+-    readsPrec = readsData $ readsBinary1 "Pair" Pair
+-
+-instance (Show1 f, Show1 g, Show a) => Show (Product f g a) where
+-    showsPrec d (Pair x y) = showsBinary1 "Pair" d x y
+-
+-instance (Eq1 f, Eq1 g) => Eq1 (Product f g) where eq1 = (==)
+-instance (Ord1 f, Ord1 g) => Ord1 (Product f g) where compare1 = compare
+-instance (Read1 f, Read1 g) => Read1 (Product f g) where readsPrec1 = readsPrec
+-instance (Show1 f, Show1 g) => Show1 (Product f g) where showsPrec1 = showsPrec
+-
+-instance (Functor f, Functor g) => Functor (Product f g) where
+-    fmap f (Pair x y) = Pair (fmap f x) (fmap f y)
+-
+-instance (Foldable f, Foldable g) => Foldable (Product f g) where
+-    foldMap f (Pair x y) = foldMap f x `mappend` foldMap f y
+-
+-instance (Traversable f, Traversable g) => Traversable (Product f g) where
+-    traverse f (Pair x y) = Pair <$> traverse f x <*> traverse f y
+-
+-instance (Applicative f, Applicative g) => Applicative (Product f g) where
+-    pure x = Pair (pure x) (pure x)
+-    Pair f g <*> Pair x y = Pair (f <*> x) (g <*> y)
+-
+-instance (Alternative f, Alternative g) => Alternative (Product f g) where
+-    empty = Pair empty empty
+-    Pair x1 y1 <|> Pair x2 y2 = Pair (x1 <|> x2) (y1 <|> y2)
+-
+-instance (Monad f, Monad g) => Monad (Product f g) where
+-    return x = Pair (return x) (return x)
+-    Pair m n >>= f = Pair (m >>= fstP . f) (n >>= sndP . f)
+-      where
+-        fstP (Pair a _) = a
+-        sndP (Pair _ b) = b
+-
+-instance (MonadPlus f, MonadPlus g) => MonadPlus (Product f g) where
+-    mzero = Pair mzero mzero
+-    Pair x1 y1 `mplus` Pair x2 y2 = Pair (x1 `mplus` x2) (y1 `mplus` y2)
+-
+-instance (MonadFix f, MonadFix g) => MonadFix (Product f g) where
+-    mfix f = Pair (mfix (fstP . f)) (mfix (sndP . f))
+-      where
+-        fstP (Pair a _) = a
+-        sndP (Pair _ b) = b
+diff --git a/Data/Functor/Reverse.hs b/Data/Functor/Reverse.hs
+index e5a7f07..b1e4ebc 100644
+--- a/Data/Functor/Reverse.hs
++++ b/Data/Functor/Reverse.hs
+@@ -33,6 +33,31 @@ import Data.Monoid
+ -- that process the elements in the reverse order.
+ newtype Reverse f a = Reverse { getReverse :: f a }
+ 
++#if MIN_VERSION_base(4,9,0)
++
++instance (Eq1 f) => Eq1 (Reverse f) where
++    liftEq eq (Reverse x) (Reverse y) = liftEq eq x y
++    {-# INLINE liftEq #-}
++
++instance (Ord1 f) => Ord1 (Reverse f) where
++    liftCompare comp (Reverse x) (Reverse y) = liftCompare comp x y
++    {-# INLINE liftCompare #-}
++
++instance (Read1 f) => Read1 (Reverse f) where
++    liftReadsPrec rp rl = readsData $
++        readsUnaryWith (liftReadsPrec rp rl) "Reverse" Reverse
++
++instance (Show1 f) => Show1 (Reverse f) where
++    liftShowsPrec sp sl d (Reverse x) =
++        showsUnaryWith (liftShowsPrec sp sl) "Reverse" d x
++
++instance (Eq1 f, Eq a) => Eq (Reverse f a) where (==) = eq1
++instance (Ord1 f, Ord a) => Ord (Reverse f a) where compare = compare1
++instance (Read1 f, Read a) => Read (Reverse f a) where readsPrec = readsPrec1
++instance (Show1 f, Show a) => Show (Reverse f a) where showsPrec = showsPrec1
++
++#else
++
+ instance (Eq1 f, Eq a) => Eq (Reverse f a) where
+     Reverse x == Reverse y = eq1 x y
+ 
+@@ -50,6 +75,8 @@ instance (Ord1 f) => Ord1 (Reverse f) where compare1 = compare
+ instance (Read1 f) => Read1 (Reverse f) where readsPrec1 = readsPrec
+ instance (Show1 f) => Show1 (Reverse f) where showsPrec1 = showsPrec
+ 
++#endif
++
+ -- | Derived instance.
+ instance (Functor f) => Functor (Reverse f) where
+     fmap f (Reverse a) = Reverse (fmap f a)
+diff --git a/Data/Functor/Sum.hs b/Data/Functor/Sum.hs
+deleted file mode 100644
+index eba7b9e..0000000
+--- a/Data/Functor/Sum.hs
++++ /dev/null
+@@ -1,65 +0,0 @@
+-{-# LANGUAGE CPP #-}
+-#if __GLASGOW_HASKELL__ >= 709
+-{-# LANGUAGE AutoDeriveTypeable #-}
+-#endif
+------------------------------------------------------------------------------
+--- |
+--- Module      :  Data.Functor.Sum
+--- Copyright   :  (c) Ross Paterson 2014
+--- License     :  BSD-style (see the file LICENSE)
+---
+--- Maintainer  :  ross@soi.city.ac.uk
+--- Stability   :  experimental
+--- Portability :  portable
+---
+--- Sums, lifted to functors.
+------------------------------------------------------------------------------
+-
+-module Data.Functor.Sum (
+-    Sum(..),
+-  ) where
+-
+-import Control.Applicative
+-import Data.Foldable (Foldable(foldMap))
+-import Data.Functor.Classes
+-import Data.Monoid (mappend)
+-import Data.Traversable (Traversable(traverse))
+-
+--- | Lifted sum of functors.
+-data Sum f g a = InL (f a) | InR (g a)
+-
+-instance (Eq1 f, Eq1 g, Eq a) => Eq (Sum f g a) where
+-    InL x1 == InL x2 = eq1 x1 x2
+-    InR y1 == InR y2 = eq1 y1 y2
+-    _ == _ = False
+-
+-instance (Ord1 f, Ord1 g, Ord a) => Ord (Sum f g a) where
+-    compare (InL x1) (InL x2) = compare1 x1 x2
+-    compare (InL _) (InR _) = LT
+-    compare (InR _) (InL _) = GT
+-    compare (InR y1) (InR y2) = compare1 y1 y2
+-
+-instance (Read1 f, Read1 g, Read a) => Read (Sum f g a) where
+-    readsPrec = readsData $
+-        readsUnary1 "InL" InL `mappend` readsUnary1 "InR" InR
+-
+-instance (Show1 f, Show1 g, Show a) => Show (Sum f g a) where
+-    showsPrec d (InL x) = showsUnary1 "InL" d x
+-    showsPrec d (InR y) = showsUnary1 "InR" d y
+-
+-instance (Eq1 f, Eq1 g) => Eq1 (Sum f g) where eq1 = (==)
+-instance (Ord1 f, Ord1 g) => Ord1 (Sum f g) where compare1 = compare
+-instance (Read1 f, Read1 g) => Read1 (Sum f g) where readsPrec1 = readsPrec
+-instance (Show1 f, Show1 g) => Show1 (Sum f g) where showsPrec1 = showsPrec
+-
+-instance (Functor f, Functor g) => Functor (Sum f g) where
+-    fmap f (InL x) = InL (fmap f x)
+-    fmap f (InR y) = InR (fmap f y)
+-
+-instance (Foldable f, Foldable g) => Foldable (Sum f g) where
+-    foldMap f (InL x) = foldMap f x
+-    foldMap f (InR y) = foldMap f y
+-
+-instance (Traversable f, Traversable g) => Traversable (Sum f g) where
+-    traverse f (InL x) = InL <$> traverse f x
+-    traverse f (InR y) = InR <$> traverse f y
+diff --git a/oldsrc2/Control/Monad/IO/Class.hs b/oldsrc2/Control/Monad/IO/Class.hs
+new file mode 100644
+index 0000000..6942c11
+--- /dev/null
++++ b/oldsrc2/Control/Monad/IO/Class.hs
+@@ -0,0 +1,39 @@
++{-# LANGUAGE CPP #-}
++#if __GLASGOW_HASKELL__ >= 709
++{-# LANGUAGE AutoDeriveTypeable #-}
++#endif
++-----------------------------------------------------------------------------
++-- |
++-- Module      :  Control.Monad.IO.Class
++-- Copyright   :  (c) Andy Gill 2001,
++--                (c) Oregon Graduate Institute of Science and Technology, 2001
++-- License     :  BSD-style (see the file LICENSE)
++--
++-- Maintainer  :  ross@soi.city.ac.uk
++-- Stability   :  experimental
++-- Portability :  portable
++--
++-- Class of monads based on @IO@.
++-----------------------------------------------------------------------------
++
++module Control.Monad.IO.Class (
++    MonadIO(..)
++  ) where
++
++-- | Monads in which 'IO' computations may be embedded.
++-- Any monad built by applying a sequence of monad transformers to the
++-- 'IO' monad will be an instance of this class.
++--
++-- Instances should satisfy the following laws, which state that 'liftIO'
++-- is a transformer of monads:
++--
++-- * @'liftIO' . 'return' = 'return'@
++--
++-- * @'liftIO' (m >>= f) = 'liftIO' m >>= ('liftIO' . f)@
++
++class (Monad m) => MonadIO m where
++    -- | Lift a computation from the 'IO' monad.
++    liftIO :: IO a -> m a
++
++instance MonadIO IO where
++    liftIO = id
+diff --git a/oldsrc2/Data/Functor/Classes.hs b/oldsrc2/Data/Functor/Classes.hs
+new file mode 100644
+index 0000000..acae7d2
+--- /dev/null
++++ b/oldsrc2/Data/Functor/Classes.hs
+@@ -0,0 +1,131 @@
++{-# LANGUAGE CPP #-}
++#if __GLASGOW_HASKELL__ >= 709
++{-# LANGUAGE AutoDeriveTypeable #-}
++#endif
++-----------------------------------------------------------------------------
++-- |
++-- Module      :  Data.Functor.Classes
++-- Copyright   :  (c) Ross Paterson 2013
++-- License     :  BSD-style (see the file LICENSE)
++--
++-- Maintainer  :  ross@soi.city.ac.uk
++-- Stability   :  experimental
++-- Portability :  portable
++--
++-- Prelude classes, lifted to unary type constructors.
++-----------------------------------------------------------------------------
++
++module Data.Functor.Classes (
++    -- * Liftings of Prelude classes
++    Eq1(..),
++    Ord1(..),
++    Read1(..),
++    Show1(..),
++    -- * Helper functions
++    readsData,
++    readsUnary,
++    readsUnary1,
++    readsBinary1,
++    showsUnary,
++    showsUnary1,
++    showsBinary1,
++  ) where
++
++import Data.Functor.Identity
++
++-- | Lifting of the 'Eq' class to unary type constructors.
++class Eq1 f where
++    eq1 :: (Eq a) => f a -> f a -> Bool
++
++-- | Lifting of the 'Ord' class to unary type constructors.
++class (Eq1 f) => Ord1 f where
++    compare1 :: (Ord a) => f a -> f a -> Ordering
++
++-- | Lifting of the 'Read' class to unary type constructors.
++class Read1 f where
++    readsPrec1 :: (Read a) => Int -> ReadS (f a)
++
++-- | Lifting of the 'Show' class to unary type constructors.
++class Show1 f where
++    showsPrec1 :: (Show a) => Int -> f a -> ShowS
++
++-- Instances for Prelude type constructors
++
++instance Eq1 Maybe where eq1 = (==)
++instance Ord1 Maybe where compare1 = compare
++instance Read1 Maybe where readsPrec1 = readsPrec
++instance Show1 Maybe where showsPrec1 = showsPrec
++
++instance Eq1 [] where eq1 = (==)
++instance Ord1 [] where compare1 = compare
++instance Read1 [] where readsPrec1 = readsPrec
++instance Show1 [] where showsPrec1 = showsPrec
++
++instance (Eq a) => Eq1 ((,) a) where eq1 = (==)
++instance (Ord a) => Ord1 ((,) a) where compare1 = compare
++instance (Read a) => Read1 ((,) a) where readsPrec1 = readsPrec
++instance (Show a) => Show1 ((,) a) where showsPrec1 = showsPrec
++
++instance (Eq a) => Eq1 (Either a) where eq1 = (==)
++instance (Ord a) => Ord1 (Either a) where compare1 = compare
++instance (Read a) => Read1 (Either a) where readsPrec1 = readsPrec
++instance (Show a) => Show1 (Either a) where showsPrec1 = showsPrec
++
++-- Instances for other functors
++
++instance Eq1 Identity where eq1 = (==)
++instance Ord1 Identity where compare1 = compare
++instance Read1 Identity where readsPrec1 = readsPrec
++instance Show1 Identity where showsPrec1 = showsPrec
++
++-- Building blocks
++
++-- | @'readsData' p d@ is a parser for datatypes where each alternative
++-- begins with a data constructor.  It parses the constructor and
++-- passes it to @p@.  Parsers for various constructors can be constructed
++-- with 'readsUnary', 'readsUnary1' and 'readsBinary1', and combined with
++-- @mappend@ from the @Monoid@ class.
++readsData :: (String -> ReadS a) -> Int -> ReadS a
++readsData reader d =
++    readParen (d > 10) $ \ r -> [res | (kw,s) <- lex r, res <- reader kw s]
++
++-- | @'readsUnary' n c n'@ matches the name of a unary data constructor
++-- and then parses its argument using 'readsPrec'.
++readsUnary :: (Read a) => String -> (a -> t) -> String -> ReadS t
++readsUnary name cons kw s =
++    [(cons x,t) | kw == name, (x,t) <- readsPrec 11 s]
++
++-- | @'readsUnary1' n c n'@ matches the name of a unary data constructor
++-- and then parses its argument using 'readsPrec1'.
++readsUnary1 :: (Read1 f, Read a) => String -> (f a -> t) -> String -> ReadS t
++readsUnary1 name cons kw s =
++    [(cons x,t) | kw == name, (x,t) <- readsPrec1 11 s]
++
++-- | @'readsBinary1' n c n'@ matches the name of a binary data constructor
++-- and then parses its arguments using 'readsPrec1'.
++readsBinary1 :: (Read1 f, Read1 g, Read a) =>
++    String -> (f a -> g a -> t) -> String -> ReadS t
++readsBinary1 name cons kw s =
++    [(cons x y,u) | kw == name,
++        (x,t) <- readsPrec1 11 s, (y,u) <- readsPrec1 11 t]
++
++-- | @'showsUnary' n d x@ produces the string representation of a unary data
++-- constructor with name @n@ and argument @x@, in precedence context @d@.
++showsUnary :: (Show a) => String -> Int -> a -> ShowS
++showsUnary name d x = showParen (d > 10) $
++    showString name . showChar ' ' . showsPrec 11 x
++
++-- | @'showsUnary1' n d x@ produces the string representation of a unary data
++-- constructor with name @n@ and argument @x@, in precedence context @d@.
++showsUnary1 :: (Show1 f, Show a) => String -> Int -> f a -> ShowS
++showsUnary1 name d x = showParen (d > 10) $
++    showString name . showChar ' ' . showsPrec1 11 x
++
++-- | @'showsBinary1' n d x@ produces the string representation of a binary
++-- data constructor with name @n@ and arguments @x@ and @y@, in precedence
++-- context @d@.
++showsBinary1 :: (Show1 f, Show1 g, Show a) =>
++    String -> Int -> f a -> g a -> ShowS
++showsBinary1 name d x y = showParen (d > 10) $
++    showString name . showChar ' ' . showsPrec1 11 x .
++        showChar ' ' . showsPrec1 11 y
+diff --git a/oldsrc2/Data/Functor/Compose.hs b/oldsrc2/Data/Functor/Compose.hs
+new file mode 100644
+index 0000000..570f8e6
+--- /dev/null
++++ b/oldsrc2/Data/Functor/Compose.hs
+@@ -0,0 +1,92 @@
++{-# LANGUAGE CPP #-}
++#if __GLASGOW_HASKELL__ >= 709
++{-# LANGUAGE AutoDeriveTypeable #-}
++#endif
++-----------------------------------------------------------------------------
++-- |
++-- Module      :  Data.Functor.Compose
++-- Copyright   :  (c) Ross Paterson 2010
++-- License     :  BSD-style (see the file LICENSE)
++--
++-- Maintainer  :  ross@soi.city.ac.uk
++-- Stability   :  experimental
++-- Portability :  portable
++--
++-- Composition of functors.
++-----------------------------------------------------------------------------
++
++module Data.Functor.Compose (
++    Compose(..),
++  ) where
++
++import Data.Functor.Classes
++
++import Control.Applicative
++import Data.Foldable (Foldable(foldMap))
++import Data.Traversable (Traversable(traverse))
++
++infixr 9 `Compose`
++
++-- | Right-to-left composition of functors.
++-- The composition of applicative functors is always applicative,
++-- but the composition of monads is not always a monad.
++newtype Compose f g a = Compose { getCompose :: f (g a) }
++
++-- Instances of Prelude classes
++
++-- kludge to get type with the same instances as g a
++newtype Apply g a = Apply (g a)
++
++getApply :: Apply g a -> g a
++getApply (Apply x) = x
++
++instance (Eq1 g, Eq a) => Eq (Apply g a) where
++    Apply x == Apply y = eq1 x y
++
++instance (Ord1 g, Ord a) => Ord (Apply g a) where
++    compare (Apply x) (Apply y) = compare1 x y
++
++instance (Read1 g, Read a) => Read (Apply g a) where
++    readsPrec d s = [(Apply a, t) | (a, t) <- readsPrec1 d s]
++
++instance (Show1 g, Show a) => Show (Apply g a) where
++    showsPrec d (Apply x) = showsPrec1 d x
++
++instance (Functor f, Eq1 f, Eq1 g, Eq a) => Eq (Compose f g a) where
++    Compose x == Compose y = eq1 (fmap Apply x) (fmap Apply y)
++
++instance (Functor f, Ord1 f, Ord1 g, Ord a) => Ord (Compose f g a) where
++    compare (Compose x) (Compose y) = compare1 (fmap Apply x) (fmap Apply y)
++
++instance (Functor f, Read1 f, Read1 g, Read a) => Read (Compose f g a) where
++    readsPrec = readsData $ readsUnary1 "Compose" (Compose . fmap getApply)
++
++instance (Functor f, Show1 f, Show1 g, Show a) => Show (Compose f g a) where
++    showsPrec d (Compose x) = showsUnary1 "Compose" d (fmap Apply x)
++
++instance (Functor f, Eq1 f, Eq1 g) => Eq1 (Compose f g) where eq1 = (==)
++instance (Functor f, Ord1 f, Ord1 g) => Ord1 (Compose f g) where
++    compare1 = compare
++instance (Functor f, Read1 f, Read1 g) => Read1 (Compose f g) where
++    readsPrec1 = readsPrec
++instance (Functor f, Show1 f, Show1 g) => Show1 (Compose f g) where
++    showsPrec1 = showsPrec
++
++-- Functor instances
++
++instance (Functor f, Functor g) => Functor (Compose f g) where
++    fmap f (Compose x) = Compose (fmap (fmap f) x)
++
++instance (Foldable f, Foldable g) => Foldable (Compose f g) where
++    foldMap f (Compose t) = foldMap (foldMap f) t
++
++instance (Traversable f, Traversable g) => Traversable (Compose f g) where
++    traverse f (Compose t) = Compose <$> traverse (traverse f) t
++
++instance (Applicative f, Applicative g) => Applicative (Compose f g) where
++    pure x = Compose (pure (pure x))
++    Compose f <*> Compose x = Compose ((<*>) <$> f <*> x)
++
++instance (Alternative f, Applicative g) => Alternative (Compose f g) where
++    empty = Compose empty
++    Compose x <|> Compose y = Compose (x <|> y)
+diff --git a/oldsrc2/Data/Functor/Product.hs b/oldsrc2/Data/Functor/Product.hs
+new file mode 100644
+index 0000000..2dbd137
+--- /dev/null
++++ b/oldsrc2/Data/Functor/Product.hs
+@@ -0,0 +1,83 @@
++{-# LANGUAGE CPP #-}
++#if __GLASGOW_HASKELL__ >= 709
++{-# LANGUAGE AutoDeriveTypeable #-}
++#endif
++-----------------------------------------------------------------------------
++-- |
++-- Module      :  Data.Functor.Product
++-- Copyright   :  (c) Ross Paterson 2010
++-- License     :  BSD-style (see the file LICENSE)
++--
++-- Maintainer  :  ross@soi.city.ac.uk
++-- Stability   :  experimental
++-- Portability :  portable
++--
++-- Products, lifted to functors.
++-----------------------------------------------------------------------------
++
++module Data.Functor.Product (
++    Product(..),
++  ) where
++
++import Control.Applicative
++import Control.Monad (MonadPlus(..))
++import Control.Monad.Fix (MonadFix(..))
++import Data.Foldable (Foldable(foldMap))
++import Data.Functor.Classes
++import Data.Monoid (mappend)
++import Data.Traversable (Traversable(traverse))
++
++-- | Lifted product of functors.
++data Product f g a = Pair (f a) (g a)
++
++instance (Eq1 f, Eq1 g, Eq a) => Eq (Product f g a) where
++    Pair x1 y1 == Pair x2 y2 = eq1 x1 x2 && eq1 y1 y2
++
++instance (Ord1 f, Ord1 g, Ord a) => Ord (Product f g a) where
++    compare (Pair x1 y1) (Pair x2 y2) =
++        compare1 x1 x2 `mappend` compare1 y1 y2
++
++instance (Read1 f, Read1 g, Read a) => Read (Product f g a) where
++    readsPrec = readsData $ readsBinary1 "Pair" Pair
++
++instance (Show1 f, Show1 g, Show a) => Show (Product f g a) where
++    showsPrec d (Pair x y) = showsBinary1 "Pair" d x y
++
++instance (Eq1 f, Eq1 g) => Eq1 (Product f g) where eq1 = (==)
++instance (Ord1 f, Ord1 g) => Ord1 (Product f g) where compare1 = compare
++instance (Read1 f, Read1 g) => Read1 (Product f g) where readsPrec1 = readsPrec
++instance (Show1 f, Show1 g) => Show1 (Product f g) where showsPrec1 = showsPrec
++
++instance (Functor f, Functor g) => Functor (Product f g) where
++    fmap f (Pair x y) = Pair (fmap f x) (fmap f y)
++
++instance (Foldable f, Foldable g) => Foldable (Product f g) where
++    foldMap f (Pair x y) = foldMap f x `mappend` foldMap f y
++
++instance (Traversable f, Traversable g) => Traversable (Product f g) where
++    traverse f (Pair x y) = Pair <$> traverse f x <*> traverse f y
++
++instance (Applicative f, Applicative g) => Applicative (Product f g) where
++    pure x = Pair (pure x) (pure x)
++    Pair f g <*> Pair x y = Pair (f <*> x) (g <*> y)
++
++instance (Alternative f, Alternative g) => Alternative (Product f g) where
++    empty = Pair empty empty
++    Pair x1 y1 <|> Pair x2 y2 = Pair (x1 <|> x2) (y1 <|> y2)
++
++instance (Monad f, Monad g) => Monad (Product f g) where
++    return x = Pair (return x) (return x)
++    Pair m n >>= f = Pair (m >>= fstP . f) (n >>= sndP . f)
++      where
++        fstP (Pair a _) = a
++        sndP (Pair _ b) = b
++
++instance (MonadPlus f, MonadPlus g) => MonadPlus (Product f g) where
++    mzero = Pair mzero mzero
++    Pair x1 y1 `mplus` Pair x2 y2 = Pair (x1 `mplus` x2) (y1 `mplus` y2)
++
++instance (MonadFix f, MonadFix g) => MonadFix (Product f g) where
++    mfix f = Pair (mfix (fstP . f)) (mfix (sndP . f))
++      where
++        fstP (Pair a _) = a
++        sndP (Pair _ b) = b
+diff --git a/oldsrc2/Data/Functor/Sum.hs b/oldsrc2/Data/Functor/Sum.hs
+new file mode 100644
+index 0000000..eba7b9e
+--- /dev/null
++++ b/oldsrc2/Data/Functor/Sum.hs
+@@ -0,0 +1,65 @@
++{-# LANGUAGE CPP #-}
++#if __GLASGOW_HASKELL__ >= 709
++{-# LANGUAGE AutoDeriveTypeable #-}
++#endif
++-----------------------------------------------------------------------------
++-- |
++-- Module      :  Data.Functor.Sum
++-- Copyright   :  (c) Ross Paterson 2014
++-- License     :  BSD-style (see the file LICENSE)
++--
++-- Maintainer  :  ross@soi.city.ac.uk
++-- Stability   :  experimental
++-- Portability :  portable
++--
++-- Sums, lifted to functors.
++-----------------------------------------------------------------------------
++
++module Data.Functor.Sum (
++    Sum(..),
++  ) where
++
++import Control.Applicative
++import Data.Foldable (Foldable(foldMap))
++import Data.Functor.Classes
++import Data.Monoid (mappend)
++import Data.Traversable (Traversable(traverse))
++
++-- | Lifted sum of functors.
++data Sum f g a = InL (f a) | InR (g a)
++
++instance (Eq1 f, Eq1 g, Eq a) => Eq (Sum f g a) where
++    InL x1 == InL x2 = eq1 x1 x2
++    InR y1 == InR y2 = eq1 y1 y2
++    _ == _ = False
++
++instance (Ord1 f, Ord1 g, Ord a) => Ord (Sum f g a) where
++    compare (InL x1) (InL x2) = compare1 x1 x2
++    compare (InL _) (InR _) = LT
++    compare (InR _) (InL _) = GT
++    compare (InR y1) (InR y2) = compare1 y1 y2
++
++instance (Read1 f, Read1 g, Read a) => Read (Sum f g a) where
++    readsPrec = readsData $
++        readsUnary1 "InL" InL `mappend` readsUnary1 "InR" InR
++
++instance (Show1 f, Show1 g, Show a) => Show (Sum f g a) where
++    showsPrec d (InL x) = showsUnary1 "InL" d x
++    showsPrec d (InR y) = showsUnary1 "InR" d y
++
++instance (Eq1 f, Eq1 g) => Eq1 (Sum f g) where eq1 = (==)
++instance (Ord1 f, Ord1 g) => Ord1 (Sum f g) where compare1 = compare
++instance (Read1 f, Read1 g) => Read1 (Sum f g) where readsPrec1 = readsPrec
++instance (Show1 f, Show1 g) => Show1 (Sum f g) where showsPrec1 = showsPrec
++
++instance (Functor f, Functor g) => Functor (Sum f g) where
++    fmap f (InL x) = InL (fmap f x)
++    fmap f (InR y) = InR (fmap f y)
++
++instance (Foldable f, Foldable g) => Foldable (Sum f g) where
++    foldMap f (InL x) = foldMap f x
++    foldMap f (InR y) = foldMap f y
++
++instance (Traversable f, Traversable g) => Traversable (Sum f g) where
++    traverse f (InL x) = InL <$> traverse f x
++    traverse f (InR y) = InR <$> traverse f y
+diff --git a/transformers.cabal b/transformers.cabal
+index 1b3f5e9..c89316f 100644
+--- a/transformers.cabal
++++ b/transformers.cabal
+@@ -46,10 +46,20 @@ library
+     -- NB: using impl(ghc>=7.9) instead of fragile Cabal flags
+     hs-source-dirs: oldsrc
+     exposed-modules: Data.Functor.Identity
++  if !impl(ghc>=7.11) && impl(eta<0.8.4)
++    -- modules moved into base-4.9.0 (GHC 8.0)
++    -- see https://ghc.haskell.org/trac/ghc/ticket/10773
++    -- see https://ghc.haskell.org/trac/ghc/ticket/11135
++    hs-source-dirs: oldsrc2
++    exposed-modules:
++      Control.Monad.IO.Class
++      Data.Functor.Classes
++      Data.Functor.Compose
++      Data.Functor.Product
++      Data.Functor.Sum
+   exposed-modules:
+     Control.Applicative.Backwards
+     Control.Applicative.Lift
+-    Control.Monad.IO.Class
+     Control.Monad.Signatures
+     Control.Monad.Trans.Class
+     Control.Monad.Trans.Cont
+@@ -68,9 +78,5 @@ library
+     Control.Monad.Trans.Writer
+     Control.Monad.Trans.Writer.Lazy
+     Control.Monad.Trans.Writer.Strict
+-    Data.Functor.Classes
+-    Data.Functor.Compose
+     Data.Functor.Constant
+-    Data.Functor.Product
+     Data.Functor.Reverse
+-    Data.Functor.Sum
 -- 
-2.15.2 (Apple Git-101.1)
+2.7.4 (Apple Git-66)
 
