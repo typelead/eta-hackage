@@ -1,0 +1,130 @@
+From 2be0afa94f03eba9283ee7f79e7746457d2e0c78 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 13 Aug 2018 14:55:20 +0530
+Subject: [PATCH] Patched
+
+---
+ Yesod/Core/Class/Dispatch.hs   |  1 +
+ Yesod/Core/Handler.hs          | 17 +++++++++++++----
+ Yesod/Core/Internal/Request.hs |  2 +-
+ java/Utils.java                | 15 +++++++++++++++
+ yesod-core.cabal               |  2 +-
+ 5 files changed, 31 insertions(+), 6 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Yesod/Core/Class/Dispatch.hs b/Yesod/Core/Class/Dispatch.hs
+index 4abe179..65b26e8 100644
+--- a/Yesod/Core/Class/Dispatch.hs
++++ b/Yesod/Core/Class/Dispatch.hs
+@@ -11,6 +11,7 @@ import Yesod.Core.Types
+ import Yesod.Core.Content (ToTypedContent (..))
+ import Yesod.Core.Handler (sendWaiApplication)
+ import Yesod.Core.Class.Yesod
++import Yesod.Routes.Class (Route)
+ 
+ -- | This class is automatically instantiated when you use the template haskell
+ -- mkYesod function. You should never need to deal with it directly.
+diff --git a/Yesod/Core/Handler.hs b/Yesod/Core/Handler.hs
+index b9a7b7d..4f6fa13 100644
+--- a/Yesod/Core/Handler.hs
++++ b/Yesod/Core/Handler.hs
+@@ -10,6 +10,7 @@
+ {-# LANGUAGE RankNTypes                 #-}
+ {-# LANGUAGE DeriveDataTypeable         #-}
+ {-# LANGUAGE ScopedTypeVariables        #-}
++{-# LANGUAGE ForeignFunctionInterface   #-}
+ ---------------------------------------------------------
+ --
+ -- Module        : Yesod.Handler
+@@ -237,7 +238,8 @@ import           Yesod.Core.Internal.Util      (formatRFC1123)
+ import           Text.Blaze.Html               (preEscapedToHtml, toHtml)
+ 
+ import qualified Data.IORef                    as I
+-import           Data.Maybe                    (listToMaybe, mapMaybe)
++import           Data.Maybe                    (listToMaybe, mapMaybe, fromMaybe)
++import           Data.Int                      (Int64)
+ import           Data.Typeable                 (Typeable)
+ import           Web.PathPieces                (PathPiece(..))
+ import           Yesod.Core.Class.Handler
+@@ -247,7 +249,6 @@ import           Data.ByteString.Builder (Builder)
+ import           Data.CaseInsensitive (CI, original)
+ import qualified Data.Conduit.List as CL
+ import           Control.Monad.Trans.Resource  (MonadResource, InternalState, runResourceT, withInternalState, getInternalState, liftResourceT, resourceForkIO)
+-import qualified System.PosixCompat.Files as PC
+ import           Conduit ((.|), runConduit, sinkLazy)
+ import           Data.Conduit (ConduitT, transPipe, Flush (Flush), yield, Void)
+ import qualified Yesod.Core.TypeCache as Cache
+@@ -617,13 +618,21 @@ sendFilePart :: MonadHandler m
+              -> Integer -- ^ count
+              -> m a
+ sendFilePart ct fp off count = do
+-    fs <- liftIO $ PC.getFileStatus fp
++    mfs <- liftIO $ getFileStatus fp
++    let fs = fromMaybe (error $ "sendFilePart: File " ++ fp ++ " does not exist!") mfs
+     handlerError $ HCSendFile ct fp $ Just W.FilePart
+         { W.filePartOffset = off
+         , W.filePartByteCount = count
+-        , W.filePartFileSize = fromIntegral $ PC.fileSize fs
++        , W.filePartFileSize = fromIntegral $ size fs
+         }
+ 
++data BasicFileAttributes = BasicFileAttributes @java.nio.file.attribute.BasicFileAttributes
++
++foreign import java unsafe size :: BasicFileAttributes -> Int64
++
++foreign import java unsafe "@static eta.yesod.Utils.getFileStatus"
++  getFileStatus :: FilePath -> IO (Maybe BasicFileAttributes)
++
+ -- | Bypass remaining handler code and output the given content with a 200
+ -- status code.
+ sendResponse :: (MonadHandler m, ToTypedContent c) => c -> m a
+diff --git a/Yesod/Core/Internal/Request.hs b/Yesod/Core/Internal/Request.hs
+index f9ae753..5a98aa7 100644
+--- a/Yesod/Core/Internal/Request.hs
++++ b/Yesod/Core/Internal/Request.hs
+@@ -169,7 +169,7 @@ randomString len gen =
+             case () of
+               ()
+                 | y < 26 -> return $ y + Word8._A
+-                | y < 52 -> return $ y + Word8._a - 26
++                | y < 52 -> return $ y + Word8._a' - 26
+                 | y < 62 -> return $ y + Word8._0 - 52
+                 | otherwise -> loop
+        in loop
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..c70d41c
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,15 @@
++package eta.yesod;
++
++import java.nio.file.Paths;
++import java.nio.file.attribute.BasicFileAttributes;
++import java.io.IOException;
++
++public class Utils {
++  public static BasicFileAttributes getFileStatus(String path) {
++    try {
++      return Files.readAttributes(Paths.get(path), BasicFileAttributes.class);
++    } catch(IOException e) {
++      return null;
++    }
++  }
++}
+diff --git a/yesod-core.cabal b/yesod-core.cabal
+index e186298..0e1f1df 100644
+--- a/yesod-core.cabal
++++ b/yesod-core.cabal
+@@ -50,7 +50,7 @@ library
+                    , text                  >= 0.7
+                    , time                  >= 1.5
+                    , transformers          >= 0.4
+-                   , unix-compat
++                  -- , unix-compat
+                    , unliftio
+                    , unordered-containers  >= 0.2
+                    , vector                >= 0.9      && < 0.13
+-- 
+2.18.0
+
