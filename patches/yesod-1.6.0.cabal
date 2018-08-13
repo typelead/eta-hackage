@@ -1,0 +1,58 @@
+name:            yesod
+version:         1.6.0
+license:         MIT
+license-file:    LICENSE
+author:          Michael Snoyman <michael@snoyman.com>
+maintainer:      Michael Snoyman <michael@snoyman.com>
+synopsis:        Creation of type-safe, RESTful web applications.
+description:     API docs and the README are available at <http://www.stackage.org/package/yesod>
+category:        Web, Yesod
+stability:       Stable
+cabal-version:   >= 1.6
+build-type:      Simple
+homepage:        http://www.yesodweb.com/
+extra-source-files: README.md ChangeLog.md
+
+library
+    if os(windows)
+        cpp-options: -DWINDOWS
+
+    build-depends:   base                      >= 4.6      && < 5
+                   , yesod-core                >= 1.6      && < 1.7
+                   , yesod-persistent          >= 1.6      && < 1.7
+                   , yesod-form                >= 1.6      && < 1.7
+                   , transformers              >= 0.2.2
+                   , wai                       >= 1.3
+                   , wai-extra                 >= 1.3
+                   , warp                      >= 1.3
+                   , blaze-html                >= 0.5
+                   , blaze-markup              >= 0.5.1
+                   , aeson
+                   , data-default-class
+                   , unordered-containers
+                   , HsYAML
+                   , containers
+                   , text
+                   , directory
+                   , template-haskell
+                   , bytestring
+                   , monad-logger
+                   , fast-logger
+                   , conduit                   >= 1.3
+                   , resourcet
+                   , shakespeare
+                   , streaming-commons
+                   , wai-logger
+                   , semigroups
+
+    exposed-modules: Yesod
+                   , Yesod.Default.Config
+                   , Yesod.Default.Config2
+                   , Yesod.Default.Main
+                   , Yesod.Default.Util
+                   , Yesod.Default.Handlers
+    ghc-options:     -Wall
+
+source-repository head
+  type:     git
+  location: https://github.com/yesodweb/yesod

@@ -1,0 +1,439 @@
+From 1017c057783739c7c2e5111703c08371478e4222 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 13 Aug 2018 17:39:17 +0530
+Subject: [PATCH] Patched
+
+---
+ Yesod/Default/Config.hs  |  39 +++++---
+ Yesod/Default/Config2.hs | 201 +++++++++++++++++++++++++++++++++++----
+ Yesod/Default/Main.hs    |  16 ----
+ yesod.cabal              |   6 +-
+ 4 files changed, 213 insertions(+), 49 deletions(-)
+
+diff --git a/Yesod/Default/Config.hs b/Yesod/Default/Config.hs
+index 6e2dbf4..2b1c24a 100644
+--- a/Yesod/Default/Config.hs
++++ b/Yesod/Default/Config.hs
+@@ -18,13 +18,15 @@ module Yesod.Default.Config
+ import Data.Char (toUpper)
+ import Data.Text (Text)
+ import qualified Data.Text as T
+-import Data.Yaml
++import Data.YAML
+ import Data.Maybe (fromMaybe)
+-import qualified Data.HashMap.Strict as M
++import qualified Data.Map as M
++-- import qualified Data.HashMap.Strict as M
+ import System.Environment (getArgs, getProgName, getEnvironment)
+ import System.Exit (exitFailure)
+ import Data.Streaming.Network (HostPreference)
+ import Data.String (fromString)
++import qualified Data.ByteString.Lazy as BS
+ 
+ -- | A yesod-provided @'AppEnv'@, allows for Development, Testing, and
+ --   Production environments
+@@ -98,7 +100,7 @@ fromArgsSettings cs = do
+ 
+ -- | Load the app config from command line parameters
+ fromArgs :: (Read env, Show env, Enum env, Bounded env)
+-         => (env -> Object -> Parser extra)
++         => (env -> Mapping -> Parser extra)
+          -> IO (AppConfig env extra)
+ fromArgs getExtra = fromArgsSettings $ \env -> return (configSettings env)
+     { csParseExtra = getExtra
+@@ -124,12 +126,12 @@ data ConfigSettings environment extra = ConfigSettings
+     -- environment. Usually, you will use 'DefaultEnv' for this type.
+        csEnv :: environment
+     -- | Load any extra data, to be used by the application.
+-    , csParseExtra :: environment -> Object -> Parser extra
++    , csParseExtra :: environment -> Mapping -> Parser extra
+     -- | Return the path to the YAML config file.
+     , csFile :: environment -> IO FilePath
+     -- | Get the sub-object (if relevant) from the given YAML source which
+     -- contains the specific settings for the current environment.
+-    , csGetObject :: environment -> Value -> IO Value
++    , csGetObject :: environment -> Node -> IO Node
+     }
+ 
+ -- | Default config settings.
+@@ -141,10 +143,10 @@ configSettings env0 = ConfigSettings
+     , csGetObject = \env v -> do
+         envs <-
+             case v of
+-                Object obj -> return obj
++                Mapping _ obj -> return obj
+                 _ -> fail "Expected Object"
+         let senv = show env
+-            tenv = T.pack senv
++            tenv = Scalar (SStr $ T.pack senv)
+         maybe
+             (error $ "Could not find environment: " ++ senv)
+             return
+@@ -185,7 +187,7 @@ loadConfig (ConfigSettings env parseExtra getFile getObject) = do
+     obj <- getObject env topObj
+     m <-
+         case obj of
+-            Object m -> return m
++            Mapping _ m -> return m
+             _ -> fail "Expected map"
+ 
+     let host    = fromString $ T.unpack $ fromMaybe "*" $ lookupScalar "host"    m
+@@ -217,8 +219,8 @@ loadConfig (ConfigSettings env parseExtra getFile getObject) = do
+ 
+     where
+         lookupScalar k m =
+-            case M.lookup k m of
+-                Just (String t) -> return t
++            case M.lookup (Scalar (SStr k)) m of
++                Just (Scalar (SStr t)) -> return t
+                 Just _ -> fail $ "Invalid value for: " ++ show k
+                 Nothing -> fail $ "Not found: " ++ show k
+ 
+@@ -230,12 +232,23 @@ loadConfig (ConfigSettings env parseExtra getFile getObject) = do
+ withYamlEnvironment :: Show e
+                     => FilePath -- ^ the yaml file
+                     -> e        -- ^ the environment you want to load
+-                    -> (Value -> Parser a) -- ^ what to do with the mapping
++                    -> (Node -> Parser a) -- ^ what to do with the mapping
+                     -> IO a
+ withYamlEnvironment fp env f = do
+     mval <- decodeFile fp
+     case mval of
+         Nothing -> fail $ "Invalid YAML file: " ++ show fp
+-        Just (Object obj)
+-            | Just v <- M.lookup (T.pack $ show env) obj -> parseMonad f v
++        Just (Mapping _ obj)
++            | Just v <- M.lookup (Scalar $ SStr $ T.pack $ show env) obj -> parseMonad f v
+         _ -> fail $ "Could not find environment: " ++ show env
++
++
++decodeFile :: FilePath -> IO (Maybe Node)
++decodeFile fp = do
++  contents <- BS.readFile fp
++  case decodeNode contents of
++    Right [Doc n] -> return $ Just n
++    _ -> return Nothing
++
++parseMonad :: Monad m => (a -> Parser b) -> a -> m b
++parseMonad p = either fail return . parseEither . p
+diff --git a/Yesod/Default/Config2.hs b/Yesod/Default/Config2.hs
+index 08abe31..f5de5ea 100644
+--- a/Yesod/Default/Config2.hs
++++ b/Yesod/Default/Config2.hs
+@@ -1,5 +1,6 @@
+ {-# LANGUAGE CPP #-}
+ {-# LANGUAGE OverloadedStrings #-}
++{-# LANGUAGE PatternSynonyms #-}
+ -- | Some next-gen helper functions for the scaffolding's configuration system.
+ module Yesod.Default.Config2
+     ( -- * Locally defined
+@@ -26,10 +27,10 @@ module Yesod.Default.Config2
+     ) where
+ 
+ 
+-import Data.Yaml.Config
+-
++import Data.YAML
+ import Data.Semigroup
+ import Data.Aeson
++import Data.List.NonEmpty (nonEmpty)
+ import qualified Data.HashMap.Strict as H
+ import System.Environment (getEnvironment)
+ import Network.Wai (Application)
+@@ -42,19 +43,24 @@ import System.Directory (doesFileExist)
+ import Network.Wai.Logger (clockDateCacher)
+ import Yesod.Core.Types (Logger (Logger))
+ import System.Log.FastLogger (LoggerSet)
++import Data.Text (Text, pack)
++import Data.Text.Encoding (encodeUtf8)
++import qualified Data.Text as T
++import qualified Data.Map as M
++import Control.Monad
++import Control.Arrow ((***))
++import System.Environment (getArgs, getEnvironment)
++import Control.Exception (throwIO, pattern ErrorCall)
++import qualified Data.ByteString.Lazy as BS
+ 
+-#ifndef mingw32_HOST_OS
+-import System.Posix.Signals (installHandler, sigINT, Handler(Catch))
+-#endif
+-
+-newtype MergedValue = MergedValue { getMergedValue :: Value }
++newtype MergedValue = MergedValue { getMergedValue :: Node }
+ 
+ instance Semigroup MergedValue where
+     MergedValue x <> MergedValue y = MergedValue $ mergeValues x y
+ 
+ -- | Left biased
+-mergeValues :: Value -> Value -> Value
+-mergeValues (Object x) (Object y) = Object $ H.unionWith mergeValues x y
++mergeValues :: Node -> Node -> Node
++mergeValues (Mapping _ x) (Mapping t y) = Mapping t $ M.unionWith mergeValues x y
+ mergeValues x _ = x
+ 
+ -- | Load the settings from the following three sources:
+@@ -65,9 +71,9 @@ mergeValues x _ = x
+ --
+ -- * The default compile time config file
+ loadAppSettings
+-    :: FromJSON settings
++    :: FromYAML settings
+     => [FilePath] -- ^ run time config files to use, earlier files have precedence
+-    -> [Value] -- ^ any other values to use, usually from compile time config. overridden by files
++    -> [Node] -- ^ any other values to use, usually from compile time config. overridden by files
+     -> EnvUsage
+     -> IO settings
+ loadAppSettings = loadYamlSettings
+@@ -76,8 +82,8 @@ loadAppSettings = loadYamlSettings
+ -- | Same as @loadAppSettings@, but get the list of runtime config files from
+ -- the command line arguments.
+ loadAppSettingsArgs
+-    :: FromJSON settings
+-    => [Value] -- ^ any other values to use, usually from compile time config. overridden by files
++    :: FromYAML settings
++    => [Node] -- ^ any other values to use, usually from compile time config. overridden by files
+     -> EnvUsage -- ^ use environment variables
+     -> IO settings
+ loadAppSettingsArgs = loadYamlSettingsArgs
+@@ -100,9 +106,6 @@ getDevSettings settings = do
+ -- | Helper for develMain in the scaffolding.
+ develMainHelper :: IO (Settings, Application) -> IO ()
+ develMainHelper getSettingsApp = do
+-#ifndef mingw32_HOST_OS
+-    _ <- installHandler sigINT (Catch $ return ()) Nothing
+-#endif
+ 
+     putStrLn "Starting devel application"
+     (settings, app) <- getSettingsApp
+@@ -124,3 +127,169 @@ makeYesodLogger :: LoggerSet -> IO Logger
+ makeYesodLogger loggerSet' = do
+     (getter, _) <- clockDateCacher
+     return $! Yesod.Core.Types.Logger loggerSet' getter
++
++-- | Defines how we want to use the environment variables when loading a config
++-- file. Use the smart constructors provided by this module.
++--
++-- @since 0.8.16
++data EnvUsage = IgnoreEnv
++              | UseEnv
++              | RequireEnv
++              | UseCustomEnv (H.HashMap Text Text)
++              | RequireCustomEnv (H.HashMap Text Text)
++
++-- | Do not use any environment variables, instead relying on defaults values
++-- in the config file.
++--
++-- @since 0.8.16
++ignoreEnv :: EnvUsage
++ignoreEnv = IgnoreEnv
++
++-- | Use environment variables when available, otherwise use defaults.
++--
++-- @since 0.8.16
++useEnv :: EnvUsage
++useEnv = UseEnv
++
++-- | Do not use default values from the config file, but instead take all
++-- overrides from the environment. If a value is missing, loading the file will
++-- throw an exception.
++--
++-- @since 0.8.16
++requireEnv :: EnvUsage
++requireEnv = RequireEnv
++
++-- | Same as 'useEnv', but instead of the actual environment, use the provided
++-- @HashMap@ as the environment.
++--
++-- @since 0.8.16
++useCustomEnv :: H.HashMap Text Text -> EnvUsage
++useCustomEnv = UseCustomEnv
++
++-- | Same as 'requireEnv', but instead of the actual environment, use the
++-- provided @HashMap@ as the environment.
++--
++-- @since 0.8.16
++requireCustomEnv :: H.HashMap Text Text -> EnvUsage
++requireCustomEnv = RequireCustomEnv
++
++-- | Override environment variable placeholders in the given @Value@ with
++-- values from the environment.
++--
++-- If the first argument is @True@, then all placeholders _must_ be provided by
++-- the actual environment. Otherwise, default values from the @Value@ will be
++-- used.
++--
++-- @since 0.8.16
++applyEnvValue :: Bool -- ^ require an environment variable to be present?
++              -> H.HashMap Text Text -> Node -> Node
++applyEnvValue requireEnv' env =
++    goV
++  where
++    goV (Mapping a m) = Mapping a (goV <$> m)
++    goV (Sequence b a) = Sequence b (goV <$> a)
++    goV (Scalar (SStr t1)) = fromMaybe (Scalar (SStr t1)) $ do
++        t2 <- T.stripPrefix "_env:" t1
++        let (name, t3) = T.break (== ':') t2
++            mdef = fmap parseValue $ T.stripPrefix ":" t3
++        Just $ case H.lookup name env of
++            Just val ->
++                -- If the default value parses as a String, we treat the
++                -- environment variable as a raw value and do not parse it.
++                -- This means that things like numeric passwords just work.
++                -- However, for originally numerical or boolean values (e.g.,
++                -- port numbers), we still perform a normal YAML parse.
++                --
++                -- For details, see:
++                -- https://github.com/yesodweb/yesod/issues/1061
++                case mdef of
++                    Just (Scalar (SStr _)) -> Scalar (SStr val)
++                    _ -> parseValue val
++            Nothing ->
++                case mdef of
++                    Just val | not requireEnv' -> val
++                    _ -> Scalar SNull
++    goV v = v
++
++    parseValue val = either
++      (const (Scalar (SStr val)))
++      (\(Doc n:_) -> n)
++      (decodeNode $ BS.fromStrict $ encodeUtf8 val)
++
++-- | Get the actual environment as a @HashMap@ from @Text@ to @Text@.
++--
++-- @since 0.8.16
++getCurrentEnv :: IO (H.HashMap Text Text)
++getCurrentEnv = fmap (H.fromList . map (pack *** pack)) getEnvironment
++
++-- | A convenience wrapper around 'applyEnvValue' and 'getCurrentEnv'
++--
++-- @since 0.8.16
++applyCurrentEnv :: Bool -- ^ require an environment variable to be present?
++                -> Node -> IO Node
++applyCurrentEnv requireEnv' orig = flip (applyEnvValue requireEnv') orig <$> getCurrentEnv
++
++-- | Load the settings from the following three sources:
++--
++-- * Run time config files
++--
++-- * Run time environment variables
++--
++-- * The default compile time config file
++--
++-- For example, to load up settings from @config/foo.yaml@ and allow overriding
++-- from the actual environment, you can use:
++--
++-- > loadYamlSettings ["config/foo.yaml"] [] useEnv
++--
++-- @since 0.8.16
++loadYamlSettings
++    :: FromYAML settings
++    => [FilePath] -- ^ run time config files to use, earlier files have precedence
++    -> [Node] -- ^ any other values to use, usually from compile time config. overridden by files
++    -> EnvUsage
++    -> IO settings
++loadYamlSettings runTimeFiles compileValues envUsage = do
++    runValues <- forM runTimeFiles $ \fp -> do
++        eres <- decodeFileEither fp
++        case eres of
++            Left e -> do
++                putStrLn $ "loadYamlSettings: Could not parse file as YAML: " ++ fp
++                throwIO (ErrorCall e)
++            Right value -> return value
++
++    value' <-
++        case nonEmpty $ map MergedValue $ runValues ++ compileValues of
++            Nothing -> error "loadYamlSettings: No configuration provided"
++            Just ne -> return $ getMergedValue $ sconcat ne
++    value <-
++        case envUsage of
++            IgnoreEnv            -> return $ applyEnvValue   False mempty value'
++            UseEnv               ->          applyCurrentEnv False        value'
++            RequireEnv           ->          applyCurrentEnv True         value'
++            UseCustomEnv env     -> return $ applyEnvValue   False env    value'
++            RequireCustomEnv env -> return $ applyEnvValue   True  env    value'
++
++    case parseEither (parseYAML value) of
++        Left s -> error $ "Could not convert to expected type: " ++ s
++        Right settings -> return settings
++
++-- | Same as @loadYamlSettings@, but get the list of runtime config files from
++-- the command line arguments.
++--
++-- @since 0.8.17
++loadYamlSettingsArgs
++    :: FromYAML settings
++    => [Node] -- ^ any other values to use, usually from compile time config. overridden by files
++    -> EnvUsage -- ^ use environment variables
++    -> IO settings
++loadYamlSettingsArgs values env = do
++    args <- getArgs
++    loadYamlSettings args values env
++
++decodeFileEither :: FilePath -> IO (Either String Node)
++decodeFileEither fp = do
++  contents <- BS.readFile fp
++  case decodeNode contents of
++    Right (Doc n:_) -> return $ Right n
++    Left l -> return $ Left l
+diff --git a/Yesod/Default/Main.hs b/Yesod/Default/Main.hs
+index a628206..f055915 100644
+--- a/Yesod/Default/Main.hs
++++ b/Yesod/Default/Main.hs
+@@ -27,12 +27,6 @@ import Control.Monad.Logger (Loc, LogSource, LogLevel (LevelError), liftLoc)
+ import System.Log.FastLogger (LogStr, toLogStr)
+ import Language.Haskell.TH.Syntax (qLocation)
+ 
+-#ifndef WINDOWS
+-import qualified System.Posix.Signals as Signal
+-import Control.Concurrent (forkIO, killThread)
+-import Control.Concurrent.MVar (newEmptyMVar, putMVar, takeMVar)
+-#endif
+-
+ -- | Run your app, taking environment and port settings from the
+ --   commandline.
+ --
+@@ -91,17 +85,7 @@ defaultRunner f app = do
+     -- clear the .static-cache so we don't have stale content
+     exists <- doesDirectoryExist staticCache
+     when exists $ removeDirectoryRecursive staticCache
+-#ifdef WINDOWS
+     f (middlewares app)
+-#else
+-    tid <- forkIO $ f (middlewares app) >> return ()
+-    flag <- newEmptyMVar
+-    _ <- Signal.installHandler Signal.sigINT (Signal.CatchOnce $ do
+-        putStrLn "Caught an interrupt"
+-        killThread tid
+-        putMVar flag ()) Nothing
+-    takeMVar flag
+-#endif
+   where
+     middlewares = gzip gset . jsonp . autohead
+ 
+diff --git a/yesod.cabal b/yesod.cabal
+index 67309ef..f08c003 100644
+--- a/yesod.cabal
++++ b/yesod.cabal
+@@ -30,7 +30,8 @@ library
+                    , aeson
+                    , data-default-class
+                    , unordered-containers
+-                   , yaml                      >= 0.8.17
++                   , HsYAML
++                   , containers
+                    , text
+                    , directory
+                    , template-haskell
+@@ -52,9 +53,6 @@ library
+                    , Yesod.Default.Handlers
+     ghc-options:     -Wall
+ 
+-    if !os(windows)
+-         build-depends: unix
+-
+ source-repository head
+   type:     git
+   location: https://github.com/yesodweb/yesod
+-- 
+2.18.0
+
