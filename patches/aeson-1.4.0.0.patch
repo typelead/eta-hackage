@@ -1,0 +1,105 @@
+From 81665007808961f243c53d5c5f4a9c6b9eea6c7a Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 13 Aug 2018 12:25:36 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Aeson/Types/Generic.hs  |  2 +-
+ Data/Aeson/Types/Internal.hs | 18 ++++++++++++++----
+ aeson.cabal                  |  4 +++-
+ 3 files changed, 18 insertions(+), 6 deletions(-)
+
+diff --git a/Data/Aeson/Types/Generic.hs b/Data/Aeson/Types/Generic.hs
+index 671a914..a6df3d9 100644
+--- a/Data/Aeson/Types/Generic.hs
++++ b/Data/Aeson/Types/Generic.hs
+@@ -46,7 +46,7 @@ import GHC.Generics
+ class IsRecord (f :: * -> *) isRecord | f -> isRecord
+ 
+ instance (IsRecord f isRecord) => IsRecord (f :*: g) isRecord
+-#if MIN_VERSION_base(4,9,0)
++#if MIN_VERSION_base(4,9,0) && !defined(ETA_VERSION)
+ instance OVERLAPPING_ IsRecord (M1 S ('MetaSel 'Nothing u ss ds) f) False
+ #else
+ instance OVERLAPPING_ IsRecord (M1 S NoSelector f) False
+diff --git a/Data/Aeson/Types/Internal.hs b/Data/Aeson/Types/Internal.hs
+index 179baa3..7ebd5b5 100644
+--- a/Data/Aeson/Types/Internal.hs
++++ b/Data/Aeson/Types/Internal.hs
+@@ -82,6 +82,9 @@ import Control.Arrow (first)
+ import Control.DeepSeq (NFData(..))
+ import Control.Monad (MonadPlus(..), ap)
+ import Data.Char (isLower, isUpper, toLower, isAlpha, isAlphaNum)
++#ifdef HAS_TRAMPOLINE
++import qualified Data.Function as F
++#endif
+ import Data.Data (Data)
+ import Data.Foldable (foldl')
+ import Data.HashMap.Strict (HashMap)
+@@ -106,6 +109,13 @@ import qualified Language.Haskell.TH.Syntax as TH
+ import Data.List (sort)
+ #endif
+ 
++trampoline :: a -> a
++#ifdef HAS_TRAMPOLINE
++trampoline = F.trampoline
++#else
++trampoline = id
++#endif
++
+ -- | Elements of a JSON path used to describe the location of an
+ -- error.
+ data JSONPathElement = Key Text
+@@ -425,23 +435,23 @@ emptyObject = Object H.empty
+ 
+ -- | Run a 'Parser'.
+ parse :: (a -> Parser b) -> a -> Result b
+-parse m v = runParser (m v) [] (const Error) Success
++parse m v = trampoline $ runParser (m v) [] (const Error) Success
+ {-# INLINE parse #-}
+ 
+ -- | Run a 'Parser'.
+ iparse :: (a -> Parser b) -> a -> IResult b
+-iparse m v = runParser (m v) [] IError ISuccess
++iparse m v = trampoline $ runParser (m v) [] IError ISuccess
+ {-# INLINE iparse #-}
+ 
+ -- | Run a 'Parser' with a 'Maybe' result type.
+ parseMaybe :: (a -> Parser b) -> a -> Maybe b
+-parseMaybe m v = runParser (m v) [] (\_ _ -> Nothing) Just
++parseMaybe m v = trampoline $ runParser (m v) [] (\_ _ -> Nothing) Just
+ {-# INLINE parseMaybe #-}
+ 
+ -- | Run a 'Parser' with an 'Either' result type.  If the parse fails,
+ -- the 'Left' payload will contain an error message.
+ parseEither :: (a -> Parser b) -> a -> Either String b
+-parseEither m v = runParser (m v) [] onError Right
++parseEither m v = trampoline $ runParser (m v) [] onError Right
+   where onError path msg = Left (formatError path msg)
+ {-# INLINE parseEither #-}
+ 
+diff --git a/aeson.cabal b/aeson.cabal
+index d251478..a01f26c 100644
+--- a/aeson.cabal
++++ b/aeson.cabal
+@@ -149,7 +149,7 @@ library
+     ghc-options: -O2
+ 
+   include-dirs: include
+-  if impl(ghcjs) || !flag(cffi)
++  if impl(ghcjs) || impl(eta) || !flag(cffi)
+     hs-source-dirs: pure
+     other-modules: Data.Aeson.Parser.UnescapePure
+   else
+@@ -157,6 +157,8 @@ library
+     cpp-options: -DCFFI
+     hs-source-dirs: ffi
+     other-modules: Data.Aeson.Parser.UnescapeFFI
++  if impl(eta >= 0.0.9.7)
++     cpp-options: -DHAS_TRAMPOLINE
+ 
+ test-suite tests
+   default-language: Haskell2010
+-- 
+2.7.4 (Apple Git-66)
+
