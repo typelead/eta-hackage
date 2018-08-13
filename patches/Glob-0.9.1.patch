@@ -1,23 +1,25 @@
-From d8fbd2ddd02b1bd8782d195acb53fc336120e6b2 Mon Sep 17 00:00:00 2001
-From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Tue, 7 Aug 2018 19:41:46 +0530
+From 080e3c9fd3daa6827484e8440d67f2b42fdbd002 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 13 Aug 2018 11:47:00 +0530
 Subject: [PATCH] Patched
 
 ---
- Glob.cabal                    |  4 +---
+ Glob.cabal                    |  6 ++----
  System/FilePath/Glob/Utils.hs | 23 +++++------------------
  java/Utils.java               | 12 ++++++++++++
- 3 files changed, 18 insertions(+), 21 deletions(-)
+ 3 files changed, 19 insertions(+), 22 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/Glob.cabal b/Glob.cabal
-index 2754cf2..b74ecf4 100644
+index 2754cf2..3a8ce79 100644
 --- a/Glob.cabal
 +++ b/Glob.cabal
-@@ -32,13 +32,11 @@ Library
+@@ -31,14 +31,12 @@ Library
+                 , dlist        >= 0.4 && < 0.9
                  , filepath     >= 1.1 && < 1.5
                  , transformers >= 0.2 && < 0.6
-                 , transformers-compat >= 0.3 && < 0.6
+-                , transformers-compat >= 0.3 && < 0.6
++                , transformers-compat >= 0.3 && < 0.7
 +   Java-Sources:  java/Utils.java
  
     if impl(ghc < 8.0)
@@ -93,5 +95,5 @@ index 0000000..3c00662
 +    }
 +}
 -- 
-2.15.2 (Apple Git-101.1)
+2.7.4 (Apple Git-66)
 

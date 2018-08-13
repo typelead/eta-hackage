@@ -31,7 +31,7 @@ Library
                 , dlist        >= 0.4 && < 0.9
                 , filepath     >= 1.1 && < 1.5
                 , transformers >= 0.2 && < 0.6
-                , transformers-compat >= 0.3 && < 0.6
+                , transformers-compat >= 0.3 && < 0.7
    Java-Sources:  java/Utils.java
 
    if impl(ghc < 8.0)
