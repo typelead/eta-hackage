@@ -1,0 +1,25 @@
+From 974003b6de8e28f1fc533bc60ed5a0e50ddeff8d Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 13 Aug 2018 13:58:06 +0530
+Subject: [PATCH] Patched
+
+---
+ criterion.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/criterion.cabal b/criterion.cabal
+index 62ba623..d287157 100644
+--- a/criterion.cabal
++++ b/criterion.cabal
+@@ -54,7 +54,7 @@ flag fast
+ flag embed-data-files
+   description: Embed the data files in the binary for a relocatable executable.
+                (Warning: This will increase the executable size significantly.)
+-  default: False
++  default: True
+   manual: True
+ 
+ library
+-- 
+2.18.0
+

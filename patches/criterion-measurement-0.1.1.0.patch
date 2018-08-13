@@ -1,0 +1,122 @@
+From 5844b1e35f7ad1715950821c5eff845633d61980 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 13 Aug 2018 13:59:20 +0530
+Subject: [PATCH] Patched
+
+---
+ criterion-measurement.cabal  |  1 +
+ java/Utils.java              | 33 +++++++++++++++++++++++++++++++++
+ src/Criterion/Measurement.hs | 18 +++++++++++++-----
+ 3 files changed, 47 insertions(+), 5 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/criterion-measurement.cabal b/criterion-measurement.cabal
+index 7733bb9..ce912d9 100644
+--- a/criterion-measurement.cabal
++++ b/criterion-measurement.cabal
+@@ -39,6 +39,7 @@ library
+                      , containers
+                      , deepseq >= 1.1.0.0
+                      , vector >= 0.7.1
++  java-sources: java/Utils.java
+   if impl(ghc < 7.6)
+     build-depends:
+       ghc-prim
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..0c5e557
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,33 @@
++package eta.criterion.measurement;
++
++import java.lang.management.ManagementFactory;
++import com.sun.management.OperatingSystemMXBean;
++
++import eta.runtime.stg.Capability;
++
++public class Utils {
++    public static double getTime() {
++        return System.nanoTime() / 1e9d;
++    }
++
++    private static boolean hasMXBean = false;
++
++    static {
++        try {
++            Class.forName("java.lang.management.ManagementFactory");
++            Class.forName("com.sun.management.OperatingSystemMXBean");
++            hasMXBean = true;
++        } catch (ClassNotFoundException cne) {}
++    }
++
++    public static double getCPUTime() {
++        if (hasMXBean) {
++            return ((OperatingSystemMXBean)
++                    ManagementFactory.getOperatingSystemMXBean())
++                .getProcessCpuTime() / 1e9d;
++        } else {
++            return (System.nanoTime() - Capability.startTimeNanos) / 1e9d;
++        }
++    }
++
++}
+diff --git a/src/Criterion/Measurement.hs b/src/Criterion/Measurement.hs
+index 96ff975..1ed2215 100644
+--- a/src/Criterion/Measurement.hs
++++ b/src/Criterion/Measurement.hs
+@@ -42,11 +42,13 @@ import Data.Int (Int64)
+ import Data.List (unfoldr)
+ import Data.Word (Word64)
+ import GHC.Generics (Generic)
++#ifndef ETA_VERSION
+ #if MIN_VERSION_base(4,10,0)
+ import GHC.Stats (RTSStats(..), GCDetails(..))
+ #else
+ import GHC.Stats (GCStats(..))
+ #endif
++#endif
+ import Prelude ()
+ import Prelude.Compat
+ #if MIN_VERSION_base(4,7,0)
+@@ -119,7 +121,9 @@ data GCStatistics = GCStatistics
+ --
+ -- If you need guaranteed up-to-date stats, call 'performGC' first.
+ getGCStatistics :: IO (Maybe GCStatistics)
+-#if MIN_VERSION_base(4,10,0)
++#if defined(ETA_VERSION)
++getGCStatistics = return Nothing
++#elif MIN_VERSION_base(4,10,0)
+ -- Use RTSStats/GCDetails to gather GC stats
+ getGCStatistics = do
+   stats <- Stats.getRTSStats
+@@ -404,18 +408,22 @@ secs k
+ -- functions in "Criterion.Main" make sure that this is done, but other
+ -- functions (such as those in "Criterion.Measurement") do not guarantee this
+ -- unless otherwise stated.
+-foreign import ccall unsafe "criterion_inittime" initializeTime :: IO ()
++initializeTime :: IO ()
++initializeTime = return ()
+ 
+ -- | Read the CPU cycle counter.
+-foreign import ccall unsafe "criterion_rdtsc" getCycles :: IO Word64
++getCycles :: IO Word64
++getCycles = return 0
+ 
+ -- | Return the current wallclock time, in seconds since some
+ -- arbitrary time.
+ --
+ -- You /must/ call 'initializeTime' once before calling this function!
+ -- Refer to the documentation for 'initializeTime' for more details.
+-foreign import ccall unsafe "criterion_gettime" getTime :: IO Double
++foreign import java unsafe "@static eta.criterion.measurement.Utils.getTime"
++  getTime :: IO Double
+ 
+ -- | Return the amount of elapsed CPU time, combining user and kernel
+ -- (system) time into a single measure.
+-foreign import ccall unsafe "criterion_getcputime" getCPUTime :: IO Double
++foreign import java unsafe "@static eta.criterion.measurement.Utils.getCPUTime"
++  getCPUTime :: IO Double
+-- 
+2.18.0
+

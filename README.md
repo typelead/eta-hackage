@@ -157,6 +157,8 @@ These packages are supported by `etlas`.
 - [convertible-1.1.1.0](https://hackage.haskell.org/package/convertible-1.1.1.0)
 - [crackNum-1.9](https://hackage.haskell.org/package/crackNum-1.9)
 - [crdt >= 9.3 && <= 10.0](https://hackage.haskell.org/package/crdt)
+- [criterion-1.5.1.0](https://hackage.haskell.org/package/criterion)
+- [criterion-measurement-0.1.1.0](https://hackage.haskell.org/package/criterion-measurement)
 - [crypto-api-0.13.2](https://hackage.haskell.org/package/crypto-api-0.13.2)
 - [cryptohash-0.11.9](https://hackage.haskell.org/package/cryptohash-0.11.9)
 - [crypto-pubkey-types-0.4.3](https://hackage.haskell.org/package/crypto-pubkey-types-0.4.3)
