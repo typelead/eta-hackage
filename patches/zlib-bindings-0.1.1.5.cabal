@@ -1,0 +1,59 @@
+name:            zlib-bindings
+version:         0.1.1.5
+license:         BSD3
+license-file:    LICENSE
+author:          Michael Snoyman <michael@snoyman.com>
+maintainer:      Michael Snoyman <michael@snoyman.com>
+synopsis:        Low-level bindings to the zlib package. (deprecated)
+description:     Deprecated in favor of streaming-commons
+category:        Codec
+stability:       Experimental
+cabal-version:   >= 1.8
+build-type:      Simple
+homepage:        http://github.com/snoyberg/zlib-bindings
+-- extra-source-files: cbits/crc32.h cbits/inffast.h cbits/inflate.h
+--                     cbits/trees.h cbits/deflate.h cbits/inffixed.h
+--                     cbits/inftrees.h cbits/zutil.h, test/main.hs,
+--                     LICENSE.gz
+
+library
+    build-depends: base                  >= 4       && < 5
+                 , bytestring            >= 0.9.1.4
+                 , zlib                  >= 0.5.2.0
+    java-sources:      java/Utils.java
+                       java/Adler32.java
+                       java/CRC32.java
+                       java/Checksum.java
+                       java/Deflate.java
+                       java/GZIPHeader.java
+                       java/Inflate.java
+                       java/InfBlocks.java
+                       java/InfCodes.java
+                       java/InfTree.java
+                       java/JZlib.java
+                       java/StaticTree.java
+                       java/Tree.java
+                       java/ZStream.java
+    exposed-modules: Codec.Zlib
+                     Codec.Zlib.Lowlevel
+    ghc-options:     -Wall
+    -- c-sources:       c/helper.c
+    -- if os(windows)
+    --     include-dirs:  cbits
+    --     install-includes: zlib.h zconf.h
+
+test-suite test
+    main-is: main.hs
+    hs-source-dirs: test
+    type: exitcode-stdio-1.0
+    build-depends: base                  >= 4       && < 5
+                 , bytestring
+                 , zlib
+                 , zlib-bindings
+                 , hspec                 >= 1.3
+                 , QuickCheck            >= 2.3
+    ghc-options:     -Wall
+
+source-repository head
+  type:     git
+  location: git://github.com/snoyberg/zlib-bindings.git

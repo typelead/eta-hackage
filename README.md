@@ -485,6 +485,7 @@ These packages are supported by `etlas`.
 - [yi-rope-0.10](https://hackage.haskell.org/package/yi-rope-0.10)
 - [zip-archive-0.3.3](https://hackage.haskell.org/package/zip-archive-0.3.3)
 - [zlib-0.6.1.2](https://hackage.haskell.org/package/zlib-0.6.1.2)
+- [zlib-bindings-0.1.1.5](https://hackage.haskell.org/package/zlib-bindings-0.1.1.5)
 
 ### Unsupported Packages
 
