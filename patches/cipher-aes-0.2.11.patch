@@ -1,18 +1,18 @@
-From 9fafcc0f8e7d6efaf985f0c604c3186e8ad47c3b Mon Sep 17 00:00:00 2001
+From 8739251ee5dd4bbd205066d82178fefb1b3a00db Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sun, 12 Aug 2018 23:06:08 +0530
+Date: Mon, 13 Aug 2018 21:27:25 +0530
 Subject: [PATCH] Patched
 
 ---
- Crypto/Cipher/AES.hs | 133 ++++++++++---------
+ Crypto/Cipher/AES.hs | 157 +++++++++--------
  Tests/Tests.hs       |  11 +-
  cipher-aes.cabal     |   9 +-
- java/AESContext.java | 363 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 450 insertions(+), 66 deletions(-)
+ java/AESContext.java | 393 +++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 493 insertions(+), 77 deletions(-)
  create mode 100644 java/AESContext.java
 
 diff --git a/Crypto/Cipher/AES.hs b/Crypto/Cipher/AES.hs
-index eab493e..33e4559 100644
+index eab493e..32ceb9f 100644
 --- a/Crypto/Cipher/AES.hs
 +++ b/Crypto/Cipher/AES.hs
 @@ -67,7 +67,9 @@ import Crypto.Cipher.Types
@@ -37,21 +37,33 @@ index eab493e..33e4559 100644
  
  -- | AESOCB State
  newtype AESOCB = AESOCB SecureMem
-@@ -179,7 +183,10 @@ sizeOCB :: Int
+@@ -178,8 +182,11 @@ sizeGCM = 80
+ sizeOCB :: Int
  sizeOCB = 160
  
- keyToPtr :: AES -> (Ptr AES -> IO a) -> IO a
+-keyToPtr :: AES -> (Ptr AES -> IO a) -> IO a
 -keyToPtr (AES b) f = withSecureMemPtr b (f . castPtr)
-+keyToPtr (AES b) f = error "keyToPtr" -- withSecureMemPtr b (f . castPtr)
++keyToPtr :: String -> AES -> (Ptr AES -> IO a) -> IO a
++keyToPtr s (AES b) f = error $ "keyToPtr: " ++ s
 +
 +withCtx :: AES -> (AES -> IO a) -> IO a
 +withCtx ctx f = c_aes_clone ctx >>= f
  
  ivToPtr :: Byteable iv => iv -> (Ptr Word8 -> IO a) -> IO a
  ivToPtr iv f = withBytePtr iv (f . castPtr)
-@@ -198,15 +205,17 @@ withKey2AndIV :: Byteable iv => AES -> AES -> iv -> (Ptr AES -> Ptr AES -> Ptr W
+@@ -191,26 +198,28 @@ ivCopyPtr (AESIV iv) f = do
+     withBytePtr newIV $ f
+     return $! AESIV newIV
+ 
+-withKeyAndIV :: Byteable iv => AES -> iv -> (Ptr AES -> Ptr Word8 -> IO a) -> IO a
+-withKeyAndIV ctx iv f = keyToPtr ctx $ \kptr -> ivToPtr iv $ \ivp -> f kptr ivp
++withKeyAndIV :: Byteable iv => String -> AES -> iv -> (Ptr AES -> Ptr Word8 -> IO a) -> IO a
++withKeyAndIV s ctx iv f = keyToPtr ("withKeyAndIv: " ++ s) ctx $ \kptr -> ivToPtr iv $ \ivp -> f kptr ivp
+ 
+ withKey2AndIV :: Byteable iv => AES -> AES -> iv -> (Ptr AES -> Ptr AES -> Ptr Word8 -> IO a) -> IO a
  withKey2AndIV key1 key2 iv f =
-     keyToPtr key1 $ \kptr1 -> keyToPtr key2 $ \kptr2 -> ivToPtr iv $ \ivp -> f kptr1 kptr2 ivp
+-    keyToPtr key1 $ \kptr1 -> keyToPtr key2 $ \kptr2 -> ivToPtr iv $ \ivp -> f kptr1 kptr2 ivp
++    keyToPtr "withKey1" key1 $ \kptr1 -> keyToPtr "withKey2" key2 $ \kptr2 -> ivToPtr iv $ \ivp -> f kptr1 kptr2 ivp
  
 -withGCMKeyAndCopySt :: AES -> AESGCM -> (Ptr AESGCM -> Ptr AES -> IO a) -> IO (a, AESGCM)
 -withGCMKeyAndCopySt aes (AESGCM gcmSt) f =
@@ -75,6 +87,11 @@ index eab493e..33e4559 100644
  
  withOCBKeyAndCopySt :: AES -> AESOCB -> (Ptr AESOCB -> Ptr AES -> IO a) -> IO (a, AESOCB)
  withOCBKeyAndCopySt aes (AESOCB gcmSt) f =
+-    keyToPtr aes $ \aesPtr -> do
++    keyToPtr "withOCB" aes $ \aesPtr -> do
+         newSt <- secureMemCopy gcmSt
+         a     <- withSecureMemPtr newSt $ \gcmStPtr -> f (castPtr gcmStPtr) aesPtr
+         return (a, AESOCB newSt)
 @@ -225,9 +234,9 @@ initAES k
      | len == 32 = initWithRounds 14
      | otherwise = error "AES: not a valid key length (valid=16,24,32)"
@@ -88,7 +105,38 @@ index eab493e..33e4559 100644
  
  {-# DEPRECATED initKey "use initAES" #-}
  initKey :: Byteable b => b -> AES
-@@ -405,29 +414,30 @@ decryptOCB :: Byteable iv
+@@ -263,7 +272,7 @@ genCTR ctx iv len
+     | len <= 0  = B.empty
+     | byteableLength iv /= 16 = error $ "AES error: IV length must be block size (16). Its length is: " ++ (show $ byteableLength iv)
+     | otherwise = unsafeCreate (nbBlocks * 16) generate
+-  where generate o = withKeyAndIV ctx iv $ \k i -> c_aes_gen_ctr (castPtr o) k i (fromIntegral nbBlocks)
++  where generate o = withKeyAndIV "genCTR" ctx iv $ \k i -> c_aes_gen_ctr (castPtr o) k i (fromIntegral nbBlocks)
+         (nbBlocks',r) = len `quotRem` 16
+         nbBlocks = if r == 0 then nbBlocks' else nbBlocks' + 1
+ 
+@@ -285,7 +294,7 @@ genCounter ctx iv len
+     | otherwise = unsafePerformIO $ do
+         fptr  <- B.mallocByteString outputLength
+         newIv <- withForeignPtr fptr $ \o ->
+-                    keyToPtr ctx $ \k ->
++                    keyToPtr "genCounter" ctx $ \k ->
+                     ivCopyPtr iv $ \i -> do
+                         c_aes_gen_ctr_cont (castPtr o) k i (fromIntegral nbBlocks)
+         let !out = B.PS fptr 0 outputLength
+@@ -312,8 +321,10 @@ encryptCTR ctx iv input
+     | len <= 0  = B.empty
+     | byteableLength iv /= 16 = error $ "AES error: IV length must be block size (16). Its length is: " ++ (show $ byteableLength iv)
+     | otherwise = unsafeCreate len doEncrypt
+-  where doEncrypt o = withKeyAndIV ctx iv $ \k v -> unsafeUseAsCString input $ \i ->
+-                      c_aes_encrypt_ctr (castPtr o) k v i (fromIntegral len)
++  where doEncrypt o = withCtx ctx $ \ctx ->
++                      ivToPtr iv $ \v ->
++                      unsafeUseAsCString input $ \i ->
++                      c_aes_encrypt_ctr ctx (castPtr o) v i (fromIntegral len)
+         len = B.length input
+ 
+ -- | encrypt using Galois counter mode (GCM)
+@@ -405,29 +416,30 @@ decryptOCB :: Byteable iv
  decryptOCB = doOCB ocbAppendDecrypt
  
  {-# INLINE doECB #-}
@@ -125,7 +173,7 @@ index eab493e..33e4559 100644
    where (nbBlocks, r) = len `quotRem` 16
          len           = B.length input
  
-@@ -469,10 +479,8 @@ doGCM f ctx iv aad input = (output, tag)
+@@ -469,10 +481,8 @@ doGCM f ctx iv aad input = (output, tag)
  {-# NOINLINE gcmInit #-}
  gcmInit :: Byteable iv => AES -> iv -> AESGCM
  gcmInit ctx iv = unsafePerformIO $ do
@@ -138,7 +186,7 @@ index eab493e..33e4559 100644
  
  -- | append data which is going to just be authentified to the GCM context.
  --
-@@ -491,12 +499,12 @@ gcmAppendAAD gcmSt input = unsafePerformIO doAppend
+@@ -491,12 +501,12 @@ gcmAppendAAD gcmSt input = unsafePerformIO doAppend
  -- need to happen after AAD appending, or after initialization if no AAD data.
  {-# NOINLINE gcmAppendEncrypt #-}
  gcmAppendEncrypt :: AES -> AESGCM -> ByteString -> (ByteString, AESGCM)
@@ -154,7 +202,7 @@ index eab493e..33e4559 100644
  
  -- | append data to decrypt and append to the GCM context
  --
-@@ -504,19 +512,19 @@ gcmAppendEncrypt ctx gcm input = unsafePerformIO $ withGCMKeyAndCopySt ctx gcm d
+@@ -504,19 +514,19 @@ gcmAppendEncrypt ctx gcm input = unsafePerformIO $ withGCMKeyAndCopySt ctx gcm d
  -- need to happen after AAD appending, or after initialization if no AAD data.
  {-# NOINLINE gcmAppendDecrypt #-}
  gcmAppendDecrypt :: AES -> AESGCM -> ByteString -> (ByteString, AESGCM)
@@ -178,7 +226,16 @@ index eab493e..33e4559 100644
  
  ------------------------------------------------------------------------
  -- OCB v3
-@@ -589,68 +597,71 @@ ocbFinish ctx ocb taglen = AuthTag $ B.take taglen computeTag
+@@ -541,7 +551,7 @@ doOCB f ctx iv aad input = (output, tag)
+ ocbInit :: Byteable iv => AES -> iv -> AESOCB
+ ocbInit ctx iv = unsafePerformIO $ do
+     sm <- createSecureMem sizeOCB $ \ocbStPtr ->
+-            withKeyAndIV ctx iv $ \k v ->
++            withKeyAndIV "ocbInit" ctx iv $ \k v ->
+             c_aes_ocb_init (castPtr ocbStPtr) k v (fromIntegral $ byteableLength iv)
+     return $ AESOCB sm
+ 
+@@ -589,68 +599,71 @@ ocbFinish ctx ocb taglen = AuthTag $ B.take taglen computeTag
                          withOCBKeyAndCopySt ctx ocb (c_aes_ocb_finish (castPtr t)) >> return ()
  
  ------------------------------------------------------------------------
@@ -211,25 +268,26 @@ index eab493e..33e4559 100644
  
  ------------------------------------------------------------------------
 -foreign import ccall "aes.h aes_encrypt_xts"
-+foreign import java unsafe "@static Utils.aes_encrypt_xts"
++foreign import java unsafe "@static eta.cipher_aes.AESContext.aes_encrypt_xts"
      c_aes_encrypt_xts :: CString -> Ptr AES -> Ptr AES -> Ptr Word8 -> CUInt -> CString -> CUInt -> IO ()
  
 -foreign import ccall "aes.h aes_decrypt_xts"
-+foreign import java unsafe "@static Utils.aes_decrypt_xts"
++foreign import java unsafe "@static eta.cipher_aes.AESContext.aes_decrypt_xts"
      c_aes_decrypt_xts :: CString -> Ptr AES -> Ptr AES -> Ptr Word8 -> CUInt -> CString -> CUInt -> IO ()
  
  ------------------------------------------------------------------------
 -foreign import ccall "aes.h aes_gen_ctr"
-+foreign import java unsafe "@static Utils.aes_gen_ctr"
++foreign import java unsafe "@static eta.cipher_aes.AESContext.aes_gen_ctr"
      c_aes_gen_ctr :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
  
 -foreign import ccall unsafe "aes.h aes_gen_ctr_cont"
-+foreign import java unsafe "@static Utils.aes_gen_ctr_cont"
++foreign import java unsafe "@static eta.cipher_aes.AESContext.aes_gen_ctr_cont"
      c_aes_gen_ctr_cont :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
  
 -foreign import ccall "aes.h aes_encrypt_ctr"
-+foreign import java unsafe "@static Utils.aes_encrypt_ctr"
-     c_aes_encrypt_ctr :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
+-    c_aes_encrypt_ctr :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
++foreign import java unsafe "encryptCTR"
++    c_aes_encrypt_ctr :: AES -> CString -> Ptr Word8 -> CString -> CUInt -> IO ()
  
  ------------------------------------------------------------------------
 -foreign import ccall "aes.h aes_gcm_init"
@@ -259,23 +317,23 @@ index eab493e..33e4559 100644
  
  ------------------------------------------------------------------------
 -foreign import ccall "aes.h aes_ocb_init"
-+foreign import java unsafe "@static Utils.aes_ocb_init"
++foreign import java unsafe "@static eta.cipher_aes.AESContext.aes_ocb_init"
      c_aes_ocb_init :: Ptr AESOCB -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
  
 -foreign import ccall "aes.h aes_ocb_aad"
-+foreign import java unsafe "@static Utils.aes_ocb_aad"
++foreign import java unsafe "@static eta.cipher_aes.AESContext.aes_ocb_aad"
      c_aes_ocb_aad :: Ptr AESOCB -> Ptr AES -> CString -> CUInt -> IO ()
  
 -foreign import ccall "aes.h aes_ocb_encrypt"
-+foreign import java unsafe "@static Utils.aes_ocb_encrypt"
++foreign import java unsafe "@static eta.cipher_aes.AESContext.aes_ocb_encrypt"
      c_aes_ocb_encrypt :: CString -> Ptr AESOCB -> Ptr AES -> CString -> CUInt -> IO ()
  
 -foreign import ccall "aes.h aes_ocb_decrypt"
-+foreign import java unsafe "@static Utils.aes_ocb_decrypt"
++foreign import java unsafe "@static eta.cipher_aes.AESContext.aes_ocb_decrypt"
      c_aes_ocb_decrypt :: CString -> Ptr AESOCB -> Ptr AES -> CString -> CUInt -> IO ()
  
 -foreign import ccall "aes.h aes_ocb_finish"
-+foreign import java unsafe "@static Utils.aes_ocb_finish"
++foreign import java unsafe "@static eta.cipher_aes.AESContext.aes_ocb_finish"
      c_aes_ocb_finish :: CString -> Ptr AESOCB -> Ptr AES -> IO ()
 +
 +foreign import java unsafe "clone" c_aes_clone :: AES -> IO AES
@@ -357,10 +415,10 @@ index 0b2da89..f0ac393 100644
                     , crypto-cipher-types >= 0.0.6
 diff --git a/java/AESContext.java b/java/AESContext.java
 new file mode 100644
-index 0000000..37eed94
+index 0000000..2bb4903
 --- /dev/null
 +++ b/java/AESContext.java
-@@ -0,0 +1,363 @@
+@@ -0,0 +1,393 @@
 +package eta.cipher_aes;
 +
 +import java.util.Arrays;
@@ -476,6 +534,24 @@ index 0000000..37eed94
 +            super(new CBCBlockCipher(new AESEngine()), 128);
 +            try {
 +                engineSetMode("CBC");
++                engineSetPadding("NoPadding");
++            } catch (NoSuchAlgorithmException nse) {
++                // should not happen
++            } catch (NoSuchPaddingException nse) {
++                // should not happen
++            }
++        }
++    }
++
++    private static class CTR extends SimpleBlockCipher {
++        public CTR() {
++            super(new BlockCipherProvider() {
++                    public BlockCipher get() {
++                        return new AESEngine();
++                    }
++                });
++            try {
++                engineSetMode("CTR");
 +                engineSetPadding("NoPadding");
 +            } catch (NoSuchAlgorithmException nse) {
 +                // should not happen
@@ -604,7 +680,7 @@ index 0000000..37eed94
 +    }
 +
 +    private enum CipherType {
-+        ECB, CBC
++        ECB, CBC, CTR
 +    }
 +
 +    public AESContext(final byte[] key) {
@@ -668,6 +744,16 @@ index 0000000..37eed94
 +        cipher.update(getBuffer(inputPtr, blocks * 16), getBuffer(outputPtr));
 +    }
 +
++    public void encryptCTR(long outputPtr, long ivPtr, long inputPtr, int len)
++        throws ShortBufferException, IllegalBlockSizeException, BadPaddingException,
++               NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException,
++               InvalidAlgorithmParameterException {
++        if (cipher == null) {
++            initCipher(CipherType.CTR, true, getBytes(ivPtr, 16));
++        }
++        cipher.update(getBuffer(inputPtr, len), getBuffer(outputPtr));
++    }
++
 +    private void initCipher(CipherType cipherType, boolean forEncryption)
 +        throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException,
 +               InvalidAlgorithmParameterException, ShortBufferException  {
@@ -688,9 +774,11 @@ index 0000000..37eed94
 +                c = new CBC();
 +                c.init(opmode, new SecretKeySpec(key, "AES"),
 +                               new IvParameterSpec(iv));
-+                if (aad != null) {
-+                    c.updateAAD(aad);
-+                }
++                break;
++            case CTR:
++                c = new CTR();
++                c.init(opmode, new SecretKeySpec(key, "AES"),
++                               new IvParameterSpec(iv));
 +                break;
 +            default:
 +                throw new RuntimeException("initCipher: Bad cipherType: " + cipherType);
@@ -725,5 +813,5 @@ index 0000000..37eed94
 +    }
 +}
 -- 
-2.7.4 (Apple Git-66)
+2.18.0
 
