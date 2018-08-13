@@ -1,10 +1,10 @@
-From 22e2ba997c9fe3f9f85fcddfe6570a296a3ad248 Mon Sep 17 00:00:00 2001
+From 25a04c01673d5e2c607d6730e7bd0114e15d3fcc Mon Sep 17 00:00:00 2001
 From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Mon, 13 Aug 2018 19:19:02 +0530
+Date: Mon, 13 Aug 2018 20:29:19 +0530
 Subject: [PATCH] Patched
 
 ---
- Codec/Zlib.hs          |  113 ++--
+ Codec/Zlib.hs          |  101 ++-
  Codec/Zlib/Lowlevel.hs |   68 +-
  java/Adler32.java      |  139 ++++
  java/CRC32.java        |  179 +++++
@@ -21,7 +21,7 @@ Subject: [PATCH] Patched
  java/Utils.java        |   91 +++
  java/ZStream.java      |  380 +++++++++++
  zlib-bindings.cabal    |   32 +-
- 17 files changed, 6027 insertions(+), 91 deletions(-)
+ 17 files changed, 6028 insertions(+), 78 deletions(-)
  create mode 100644 java/Adler32.java
  create mode 100644 java/CRC32.java
  create mode 100644 java/Checksum.java
@@ -38,7 +38,7 @@ Subject: [PATCH] Patched
  create mode 100644 java/ZStream.java
 
 diff --git a/Codec/Zlib.hs b/Codec/Zlib.hs
-index 683b386..07f54a6 100644
+index 683b386..6588b25 100644
 --- a/Codec/Zlib.hs
 +++ b/Codec/Zlib.hs
 @@ -50,13 +50,18 @@ import Data.ByteString.Lazy.Internal (defaultChunkSize)
@@ -135,7 +135,7 @@ index 683b386..07f54a6 100644
  
  -- | Feed the given 'S.ByteString' to the inflater. Return a 'Popper',
  -- an IO action that returns the decompressed data a chunk at a time.
-@@ -170,25 +178,39 @@ feedInflate
+@@ -170,38 +178,52 @@ feedInflate
      :: Inflate
      -> S.ByteString
      -> IO Popper
@@ -173,17 +173,16 @@ index 683b386..07f54a6 100644
  
  -- | An IO action that returns the next chunk of data, returning 'Nothing' when
  -- there is no more data to be popped.
--type Popper = IO (Maybe S.ByteString)
-+type Popper = IO PopperRes
-+
+ type Popper = IO (Maybe S.ByteString)
+ 
 +data PopperRes = PRDone
 +               | PRNext !S.ByteString
 +               | PRError !ZlibException
 +    deriving (Show, Typeable)
- 
++
  -- | Ensure that the given @ByteString@ is not deallocated.
  keepAlive :: Maybe S.ByteString -> IO a -> IO a
-@@ -196,25 +218,26 @@ keepAlive Nothing = id
+ keepAlive Nothing = id
  keepAlive (Just bs) = unsafeUseAsCStringLen bs . const
  
  drain :: ForeignPtr CChar
@@ -196,35 +195,31 @@ index 683b386..07f54a6 100644
 -drain fbuff fzstr mbs func isFinish = withForeignPtr fzstr $ \zstr -> keepAlive mbs $ do
 +drain fbuff zstr mbs func isFinish = keepAlive mbs $ do
      res <- func zstr
--    when (res < 0 && res /= zBufError)
--        $ throwIO $ ZlibException $ fromIntegral res
--    avail <- c_get_avail_out zstr
--    let size = defaultChunkSize - fromIntegral avail
--        toOutput = avail == 0 || (isFinish && size /= 0)
--    if toOutput
--        then withForeignPtr fbuff $ \buff -> do
--            bs <- S.packCStringLen (buff, size)
--            c_set_avail_out zstr buff
--                $ fromIntegral defaultChunkSize
--            return $ Just bs
--        else return Nothing
-+    if res < 0 && res /= zBufError
-+        then return $ PRError $ ZlibException $ fromIntegral res
-+        else do
-+            avail <- c_get_avail_out zstr
-+            let size = defaultChunkSize - fromIntegral avail
-+                toOutput = avail == 0 || (isFinish && size /= 0)
-+            if toOutput
-+                then withForeignPtr fbuff $ \buff -> do
-+                    bs <- S.packCStringLen (buff, size)
-+                    c_set_avail_out zstr buff
-+                        $ fromIntegral defaultChunkSize
-+                    return $ PRNext bs
-+                else return PRDone
+     when (res < 0 && res /= zBufError)
+         $ throwIO $ ZlibException $ fromIntegral res
+@@ -215,6 +237,21 @@ drain fbuff fzstr mbs func isFinish = withForeignPtr fzstr $ \zstr -> keepAlive
+                 $ fromIntegral defaultChunkSize
+             return $ Just bs
+         else return Nothing
++-- drain fbuff zstr mbs func isFinish = keepAlive mbs $ do
++--     res <- func zstr
++--     if res < 0 && res /= zBufError
++--         then return $ PRError $ ZlibException $ fromIntegral res
++--         else do
++--             avail <- c_get_avail_out zstr
++--             let size = defaultChunkSize - fromIntegral avail
++--                 toOutput = avail == 0 || (isFinish && size /= 0)
++--             if toOutput
++--                 then withForeignPtr fbuff $ \buff -> do
++--                     bs <- S.packCStringLen (buff, size)
++--                     c_set_avail_out zstr buff
++--                         $ fromIntegral defaultChunkSize
++--                     return $ PRNext bs
++--                 else return PRDone
  
  
  -- | As explained in 'feedInflate', inflation buffers your decompressed
-@@ -222,14 +245,13 @@ drain fbuff fzstr mbs func isFinish = withForeignPtr fzstr $ \zstr -> keepAlive
+@@ -222,14 +259,13 @@ drain fbuff fzstr mbs func isFinish = withForeignPtr fzstr $ \zstr -> keepAlive
  -- data, you will likely have some data still sitting in the buffer. This
  -- function will return it to you.
  finishInflate :: Inflate -> IO S.ByteString
@@ -246,7 +241,7 @@ index 683b386..07f54a6 100644
  
  -- | Flush the inflation buffer. Useful for interactive application.
  --
-@@ -251,11 +273,10 @@ flushInflate = finishInflate
+@@ -251,11 +287,10 @@ flushInflate = finishInflate
  -- decompressed data to this function, you can extract your final chunks of
  -- compressed data using 'finishDeflate'.
  feedDeflate :: Deflate -> S.ByteString -> IO Popper
