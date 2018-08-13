@@ -1,0 +1,46 @@
+name:                   dlist
+version:                0.7.1.2
+synopsis:               Difference lists
+description:
+  Difference lists are a list-like type supporting O(1) append. This is
+  particularly useful for efficient logging and pretty printing (e.g. with the
+  Writer monad), where list append quickly becomes too expensive.
+category:               Data
+license:                BSD3
+license-file:           LICENSE
+author:                 Don Stewart
+maintainer:             Sean Leather <sean.leather@gmail.com>
+copyright:              2006-2009 Don Stewart, 2013-2014 Sean Leather
+homepage:               https://github.com/spl/dlist
+bug-reports:            https://github.com/spl/dlist/issues
+extra-source-files:     README.md,
+                        ChangeLog.md
+build-type:             Simple
+cabal-version:          >= 1.9.2
+tested-with:            GHC==7.0.4,
+                        GHC==7.2.2,
+                        GHC==7.4.2,
+                        GHC==7.6.3,
+                        GHC==7.8.4,
+                        GHC==7.10.2
+
+source-repository head
+  type:                 git
+  location:             git://github.com/spl/dlist.git
+
+library
+  build-depends:
+                        base >= 4 && < 5,
+                        deepseq >= 1.1 && < 2
+  ghc-options:          -Wall
+  extensions:           CPP
+  exposed-modules:      Data.DList
+
+test-suite test
+  type:                 exitcode-stdio-1.0
+  main-is:              Main.hs
+  hs-source-dirs:       tests
+  build-depends:        dlist,
+                        base,
+                        Cabal,
+                        QuickCheck >= 2.7 && < 2.9

@@ -1,0 +1,28 @@
+From 4d1073e1759aa34a885288120e3def652f2958b0 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 13 Aug 2018 10:20:40 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/DList.hs | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/Data/DList.hs b/Data/DList.hs
+index 62da29c..649f1d1 100644
+--- a/Data/DList.hs
++++ b/Data/DList.hs
+@@ -218,6 +218,11 @@ instance Monoid (DList a) where
+     mempty  = empty
+     mappend = append
+ 
++#if MIN_VERSION_base(4,9,0)
++instance Semigroup (DList a) where
++    (<>) = append
++#endif
++
+ instance Functor DList where
+     fmap = map
+     {-# INLINE fmap #-}
+-- 
+2.7.4 (Apple Git-66)
+
