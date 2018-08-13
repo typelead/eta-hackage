@@ -1,13 +1,44 @@
-From b44bbdada9a2219940279f3683424ab6fa871843 Mon Sep 17 00:00:00 2001
-From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Sun, 12 Aug 2018 01:45:32 +0530
+From 296365b7e5254f448093000ad6c28867d488a611 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 13 Aug 2018 14:35:11 +0530
 Subject: [PATCH] Patched
 
 ---
+ rio.cabal                 | 14 --------------
  src/RIO/Prelude/Logger.hs |  2 +-
  src/RIO/Process.hs        | 12 +++++++-----
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ 3 files changed, 8 insertions(+), 20 deletions(-)
 
+diff --git a/rio.cabal b/rio.cabal
+index 33aebc3..c7790c1 100644
+--- a/rio.cabal
++++ b/rio.cabal
+@@ -104,13 +104,6 @@ library
+     , unliftio >=0.2.6.0
+     , unordered-containers
+     , vector
+-  if os(windows)
+-    cpp-options: -DWINDOWS
+-    build-depends:
+-        Win32
+-  else
+-    build-depends:
+-        unix
+   default-language: Haskell2010
+ 
+ test-suite spec
+@@ -149,11 +142,4 @@ test-suite spec
+     , unliftio >=0.2.6.0
+     , unordered-containers
+     , vector
+-  if os(windows)
+-    cpp-options: -DWINDOWS
+-    build-depends:
+-        Win32
+-  else
+-    build-depends:
+-        unix
+   default-language: Haskell2010
 diff --git a/src/RIO/Prelude/Logger.hs b/src/RIO/Prelude/Logger.hs
 index a84657a..432e860 100644
 --- a/src/RIO/Prelude/Logger.hs
@@ -57,5 +88,5 @@ index 7ac881f..1751518 100644
  -- there is a sub-process, which is helpful in some cases
  -- (<https://github.com/commercialhaskell/stack/issues/1306>).
 -- 
-2.15.2 (Apple Git-101.1)
+2.18.0
 
