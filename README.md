@@ -238,6 +238,7 @@ These packages are supported by `etlas`.
 - [hex-0.1.2](https://hackage.haskell.org/package/hex-0.1.2)
 - [hgal-2.0.0.2](https://hackage.haskell.org/package/hgal-2.0.0.2)
 - [highlighting-kate-0.6.4](https://hackage.haskell.org/package/highlighting-kate-0.6.4)
+- [hmatrix-0.19.0.0](https://hackage.haskell.org/package/hmatrix-0.19.0.0)
 - [hostname-1.0](https://hackage.haskell.org/package/hostname-1.0)
 - [hourglass >= 0.2.10 && <= 0.2.11](https://hackage.haskell.org/package/hourglass)
 - [hslogger-1.2.10](https://hackage.haskell.org/package/hslogger-1.2.10)

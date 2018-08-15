@@ -1,0 +1,1421 @@
+From 16070b34cb4c649ec5e0614a34f9b22add6ba3d1 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Wed, 15 Aug 2018 22:14:21 +0530
+Subject: [PATCH] Patched
+
+---
+ hmatrix.cabal              | 113 +++++++++--------
+ src/Internal/Container.hs  |   2 +-
+ src/Internal/Devel.hs      |   4 +-
+ src/Internal/LAPACK.hs     | 224 +++++++++++++++++++++++++++-------
+ src/Internal/Matrix.hs     | 294 ++++++++++++++++++++++++++++++++++++---------
+ src/Internal/Sparse.hs     |  10 +-
+ src/Internal/Static.hs     |   3 +-
+ src/Internal/Vectorized.hs | 283 +++++++++++++++++++++++++++++++++----------
+ 8 files changed, 696 insertions(+), 237 deletions(-)
+
+diff --git a/hmatrix.cabal b/hmatrix.cabal
+index 7d0da2e..727d59d 100644
+--- a/hmatrix.cabal
++++ b/hmatrix.cabal
+@@ -80,8 +80,8 @@ library
+                         Internal.Modular
+                         Internal.Static
+ 
+-    C-sources:          src/Internal/C/lapack-aux.c
+-                        src/Internal/C/vector-aux.c
++    -- C-sources:          src/Internal/C/lapack-aux.c
++    --                     src/Internal/C/vector-aux.c
+ 
+ 
+     extensions:         ForeignFunctionInterface
+@@ -91,63 +91,62 @@ library
+                         -fno-warn-orphans
+                         -fno-prof-auto
+ 
+-    cc-options:         -O4 -Wall
+-
+-    if arch(x86_64)
+-        cc-options:     -msse2
+-    if arch(i386)
+-        cc-options:     -msse2
+-
+-
+-    if os(OSX)
+-        if flag(openblas)
+-            if !flag(disable-default-paths)
+-                extra-lib-dirs:     /opt/local/lib/openblas/lib
+-            extra-libraries:    openblas
+-        else
+-            extra-libraries:    blas lapack
+-
+-        if !flag(disable-default-paths)
+-            extra-lib-dirs: /opt/local/lib/
+-            include-dirs: /opt/local/include/
+-            extra-lib-dirs: /usr/local/lib/
+-            include-dirs: /usr/local/include/
+-        if arch(i386)
+-            cc-options: -arch i386
+-        frameworks: Accelerate
+-
+-    if os(freebsd)
+-        if flag(openblas)
+-            if !flag(disable-default-paths)
+-                extra-lib-dirs:     /usr/local/lib/openblas/lib
+-            extra-libraries:    openblas
+-        else
+-            extra-libraries:    blas lapack
+-
+-        if !flag(disable-default-paths)
+-            extra-lib-dirs: /usr/local/lib
+-            include-dirs: /usr/local/include
+-        extra-libraries: gfortran
+-
+-    if os(windows)
+-        if flag(openblas)
+-            extra-libraries:    libopenblas, libgcc_s_seh-1, libgfortran, libquadmath-0
+-        else
+-            extra-libraries:    blas lapack
+-
+-    if os(linux)
+-        if flag(openblas)
+-            if !flag(disable-default-paths)
+-                extra-lib-dirs:     /usr/lib/openblas/lib
+-            extra-libraries:    openblas
+-        else
+-            extra-libraries:    blas lapack
+-
+-        if arch(x86_64)
+-            cc-options: -fPIC
++    -- cc-options:         -O4 -Wall
++    --
++    -- if arch(x86_64)
++    --     cc-options:     -msse2
++    -- if arch(i386)
++    --     cc-options:     -msse2
++
++
++    -- if os(OSX)
++    --     if flag(openblas)
++    --         if !flag(disable-default-paths)
++    --             extra-lib-dirs:     /opt/local/lib/openblas/lib
++    --         extra-libraries:    openblas
++    --     else
++    --         extra-libraries:    blas lapack
++    --
++    --     if !flag(disable-default-paths)
++    --         extra-lib-dirs: /opt/local/lib/
++    --         include-dirs: /opt/local/include/
++    --         extra-lib-dirs: /usr/local/lib/
++    --         include-dirs: /usr/local/include/
++    --     if arch(i386)
++    --         cc-options: -arch i386
++    --     frameworks: Accelerate
++    --
++    -- if os(freebsd)
++    --     if flag(openblas)
++    --         if !flag(disable-default-paths)
++    --             extra-lib-dirs:     /usr/local/lib/openblas/lib
++    --         extra-libraries:    openblas
++    --     else
++    --         extra-libraries:    blas lapack
++    --
++    --     if !flag(disable-default-paths)
++    --         extra-lib-dirs: /usr/local/lib
++    --         include-dirs: /usr/local/include
++    --     extra-libraries: gfortran
++    --
++    -- if os(windows)
++    --     if flag(openblas)
++    --         extra-libraries:    libopenblas, libgcc_s_seh-1, libgfortran, libquadmath-0
++    --     else
++    --         extra-libraries:    blas lapack
++    --
++    -- if os(linux)
++    --     if flag(openblas)
++    --         if !flag(disable-default-paths)
++    --             extra-lib-dirs:     /usr/lib/openblas/lib
++    --         extra-libraries:    openblas
++    --     else
++    --         extra-libraries:    blas lapack
++    --
++    --     if arch(x86_64)
++    --         cc-options: -fPIC
+ 
+ 
+ source-repository head
+     type:     git
+     location: https://github.com/albertoruiz/hmatrix
+-
+diff --git a/src/Internal/Container.hs b/src/Internal/Container.hs
+index 282163e..377773a 100644
+--- a/src/Internal/Container.hs
++++ b/src/Internal/Container.hs
+@@ -5,7 +5,7 @@
+ {-# LANGUAGE FunctionalDependencies #-}
+ {-# LANGUAGE UndecidableInstances #-}
+ 
+-{-# OPTIONS_GHC -fno-warn-simplifiable-class-constraints #-}
++-- {-# OPTIONS_GHC -fno-warn-simplifiable-class-constraints #-}
+ 
+ -----------------------------------------------------------------------------
+ -- |
+diff --git a/src/Internal/Devel.hs b/src/Internal/Devel.hs
+index f72d8aa..cdb0260 100644
+--- a/src/Internal/Devel.hs
++++ b/src/Internal/Devel.hs
+@@ -41,7 +41,9 @@ errorCode n    = "code "++show n
+ 
+ 
+ -- | clear the fpu
+-foreign import ccall unsafe "asm_finit" finit :: IO ()
++-- foreign import ccall unsafe "asm_finit" finit :: IO ()
++finit :: IO ()
++finit = error "finit not implemented yet!"
+ 
+ -- | check the error code
+ check :: String -> IO CInt -> IO ()
+diff --git a/src/Internal/LAPACK.hs b/src/Internal/LAPACK.hs
+index 64cf2f5..b74f73a 100644
+--- a/src/Internal/LAPACK.hs
++++ b/src/Internal/LAPACK.hs
+@@ -44,12 +44,30 @@ type TMMM t = t ::> t ::> t ::> Ok
+ type F = Float
+ type Q = Complex Float
+ 
+-foreign import ccall unsafe "multiplyR" dgemmc :: CInt -> CInt -> TMMM R
+-foreign import ccall unsafe "multiplyC" zgemmc :: CInt -> CInt -> TMMM C
+-foreign import ccall unsafe "multiplyF" sgemmc :: CInt -> CInt -> TMMM F
+-foreign import ccall unsafe "multiplyQ" cgemmc :: CInt -> CInt -> TMMM Q
+-foreign import ccall unsafe "multiplyI" c_multiplyI :: I -> TMMM I
+-foreign import ccall unsafe "multiplyL" c_multiplyL :: Z -> TMMM Z
++-- foreign import ccall unsafe "multiplyR" dgemmc :: CInt -> CInt -> TMMM R
++-- foreign import ccall unsafe "multiplyC" zgemmc :: CInt -> CInt -> TMMM C
++-- foreign import ccall unsafe "multiplyF" sgemmc :: CInt -> CInt -> TMMM F
++-- foreign import ccall unsafe "multiplyQ" cgemmc :: CInt -> CInt -> TMMM Q
++-- foreign import ccall unsafe "multiplyI" c_multiplyI :: I -> TMMM I
++-- foreign import ccall unsafe "multiplyL" c_multiplyL :: Z -> TMMM Z
++
++dgemmc :: CInt -> CInt -> TMMM R
++dgemmc = error "dgemmc not implemented yet!"
++
++zgemmc :: CInt -> CInt -> TMMM C
++zgemmc = error "zgemmc not implemented yet!"
++
++sgemmc :: CInt -> CInt -> TMMM F
++sgemmc = error "sgemmc not implemented yet!"
++
++cgemmc :: CInt -> CInt -> TMMM Q
++cgemmc = error "cgemmc not implemented yet!"
++
++c_multiplyI :: I -> TMMM I
++c_multiplyI = error "c_multiplyI not implemented yet!"
++
++c_multiplyL :: Z -> TMMM Z
++c_multiplyL = error "c_multiplyL not implemented yet!"
+ 
+ isT (rowOrder -> False) = 0
+ isT _                   = 1
+@@ -100,10 +118,21 @@ multiplyL m a b = unsafePerformIO $ do
+ 
+ type TSVD t = t ::> t ::> R :> t ::> Ok
+ 
+-foreign import ccall unsafe "svd_l_R" dgesvd :: TSVD R
+-foreign import ccall unsafe "svd_l_C" zgesvd :: TSVD C
+-foreign import ccall unsafe "svd_l_Rdd" dgesdd :: TSVD R
+-foreign import ccall unsafe "svd_l_Cdd" zgesdd :: TSVD C
++-- foreign import ccall unsafe "svd_l_R" dgesvd :: TSVD R
++-- foreign import ccall unsafe "svd_l_C" zgesvd :: TSVD C
++-- foreign import ccall unsafe "svd_l_Rdd" dgesdd :: TSVD R
++-- foreign import ccall unsafe "svd_l_Cdd" zgesdd :: TSVD C
++dgesvd :: TSVD R
++dgesvd = error "dgesvd not implemented yet!"
++
++zgesvd :: TSVD C
++zgesvd = error "zgesvd not implemented yet!"
++
++dgesdd :: TSVD R
++dgesdd = error "dgesdd not implemented yet!"
++
++zgesdd :: TSVD C
++zgesdd = error "dgesdd not implemented yet!"
+ 
+ -- | Full SVD of a real matrix using LAPACK's /dgesvd/.
+ svdR :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
+@@ -233,10 +262,22 @@ leftSVAux f st x = unsafePerformIO $ do
+ 
+ -----------------------------------------------------------------------------
+ 
+-foreign import ccall unsafe "eig_l_R" dgeev :: R ::> R ::> C :> R ::> Ok
+-foreign import ccall unsafe "eig_l_C" zgeev :: C ::> C ::> C :> C ::> Ok
+-foreign import ccall unsafe "eig_l_S" dsyev :: CInt -> R :> R ::> Ok
+-foreign import ccall unsafe "eig_l_H" zheev :: CInt -> R :> C ::> Ok
++-- foreign import ccall unsafe "eig_l_R" dgeev :: R ::> R ::> C :> R ::> Ok
++-- foreign import ccall unsafe "eig_l_C" zgeev :: C ::> C ::> C :> C ::> Ok
++-- foreign import ccall unsafe "eig_l_S" dsyev :: CInt -> R :> R ::> Ok
++-- foreign import ccall unsafe "eig_l_H" zheev :: CInt -> R :> C ::> Ok
++
++dgeev :: R ::> R ::> C :> R ::> Ok
++dgeev = error "dgeev not implemented yet!"
++
++zgeev :: C ::> C ::> C :> C ::> Ok
++zgeev = error "zgeev not implemented yet!"
++
++dsyev :: CInt -> R :> R ::> Ok
++dsyev = error "dsyev not implemented yet!"
++
++zheev :: CInt -> R :> C ::> Ok
++zheev = error "zheev not implemented yet!"
+ 
+ eigAux f st m = unsafePerformIO $ do
+     a <- copy ColumnMajor m
+@@ -354,8 +395,14 @@ eigOnlyH = vrev . fst. eigSHAux (zheev 0) "eigH'"
+ vrev = flatten . flipud . reshape 1
+ 
+ -----------------------------------------------------------------------------
+-foreign import ccall unsafe "linearSolveR_l" dgesv :: R ::> R ::> Ok
+-foreign import ccall unsafe "linearSolveC_l" zgesv :: C ::> C ::> Ok
++-- foreign import ccall unsafe "linearSolveR_l" dgesv :: R ::> R ::> Ok
++-- foreign import ccall unsafe "linearSolveC_l" zgesv :: C ::> C ::> Ok
++
++dgesv :: R ::> R ::> Ok
++dgesv = error "dgesv not implemented yet!"
++
++zgesv :: C ::> C ::> Ok
++zgesv = error "zgesv not implemented yet!"
+ 
+ linearSolveSQAux g f st a b
+     | n1==n2 && n1==r = unsafePerformIO . g $ do
+@@ -385,8 +432,13 @@ mbLinearSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Maybe (M
+ mbLinearSolveC a b = linearSolveSQAux mbCatch zgesv "linearSolveC" a b
+ 
+ --------------------------------------------------------------------------------
+-foreign import ccall unsafe "cholSolveR_l" dpotrs  :: R ::> R ::> Ok
+-foreign import ccall unsafe "cholSolveC_l" zpotrs  :: C ::> C ::> Ok
++-- foreign import ccall unsafe "cholSolveR_l" dpotrs  :: R ::> R ::> Ok
++-- foreign import ccall unsafe "cholSolveC_l" zpotrs  :: C ::> C ::> Ok
++dpotrs  :: R ::> R ::> Ok
++dpotrs = error "dpotrs not implemented yet!"
++
++zpotrs  :: C ::> C ::> Ok
++zpotrs = error "zpotrs not implemented yet!"
+ 
+ 
+ linearSolveSQAux2 g f st a b
+@@ -409,11 +461,22 @@ cholSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Comp
+ cholSolveC a b = linearSolveSQAux2 id zpotrs "cholSolveC" (fmat a) b
+ 
+ --------------------------------------------------------------------------------
+-foreign import ccall unsafe "triSolveR_l_u" dtrtrs_u  :: R ::> R ::> Ok
+-foreign import ccall unsafe "triSolveC_l_u" ztrtrs_u  :: C ::> C ::> Ok
+-foreign import ccall unsafe "triSolveR_l_l" dtrtrs_l  :: R ::> R ::> Ok
+-foreign import ccall unsafe "triSolveC_l_l" ztrtrs_l  :: C ::> C ::> Ok
++-- foreign import ccall unsafe "triSolveR_l_u" dtrtrs_u  :: R ::> R ::> Ok
++-- foreign import ccall unsafe "triSolveC_l_u" ztrtrs_u  :: C ::> C ::> Ok
++-- foreign import ccall unsafe "triSolveR_l_l" dtrtrs_l  :: R ::> R ::> Ok
++-- foreign import ccall unsafe "triSolveC_l_l" ztrtrs_l  :: C ::> C ::> Ok
++
++dtrtrs_u  :: R ::> R ::> Ok
++dtrtrs_u = error "dtrtrs_u not implemented yet!"
++
++ztrtrs_u  :: C ::> C ::> Ok
++ztrtrs_u = error "ztrtrs_u not implemented yet!"
+ 
++dtrtrs_l  :: R ::> R ::> Ok
++dtrtrs_l = error "dtrtrs_l not implemented yet!"
++
++ztrtrs_l  :: C ::> C ::> Ok
++ztrtrs_l = error "ztrtrs_l not implemented yet!"
+ 
+ linearSolveTRAux2 g f st a b
+     | n1==n2 && n1==r = unsafePerformIO . g $ do
+@@ -439,8 +502,14 @@ triSolveC Lower a b = linearSolveTRAux2 id ztrtrs_l "triSolveC" (fmat a) b
+ triSolveC Upper a b = linearSolveTRAux2 id ztrtrs_u "triSolveC" (fmat a) b
+ 
+ --------------------------------------------------------------------------------
+-foreign import ccall unsafe "triDiagSolveR_l" dgttrs  :: R :> R :> R :> R ::> Ok
+-foreign import ccall unsafe "triDiagSolveC_l" zgttrs  :: C :> C :> C :> C ::> Ok
++-- foreign import ccall unsafe "triDiagSolveR_l" dgttrs  :: R :> R :> R :> R ::> Ok
++-- foreign import ccall unsafe "triDiagSolveC_l" zgttrs  :: C :> C :> C :> C ::> Ok
++
++dgttrs  :: R :> R :> R :> R ::> Ok
++dgttrs = error "dgttrs not implemented yet!"
++
++zgttrs  :: C :> C :> C :> C ::> Ok
++zgttrs = error "zgttrs not implemented yet!"
+ 
+ linearSolveGTAux2 g f st dl d du b
+     | ndl  == nd - 1 &&
+@@ -462,10 +531,22 @@ triDiagSolveC dl d du b = linearSolveGTAux2 id zgttrs "triDiagSolveC" dl d du b
+ 
+ -----------------------------------------------------------------------------------
+ 
+-foreign import ccall unsafe "linearSolveLSR_l"   dgels ::           R ::> R ::> Ok
+-foreign import ccall unsafe "linearSolveLSC_l"   zgels ::           C ::> C ::> Ok
+-foreign import ccall unsafe "linearSolveSVDR_l" dgelss :: Double -> R ::> R ::> Ok
+-foreign import ccall unsafe "linearSolveSVDC_l" zgelss :: Double -> C ::> C ::> Ok
++-- foreign import ccall unsafe "linearSolveLSR_l"   dgels ::           R ::> R ::> Ok
++-- foreign import ccall unsafe "linearSolveLSC_l"   zgels ::           C ::> C ::> Ok
++-- foreign import ccall unsafe "linearSolveSVDR_l" dgelss :: Double -> R ::> R ::> Ok
++-- foreign import ccall unsafe "linearSolveSVDC_l" zgelss :: Double -> C ::> C ::> Ok
++
++dgels :: R ::> R ::> Ok
++dgels = error "dgels not implemented yet!"
++
++zgels :: C ::> C ::> Ok
++zgels = error "zgels not implemented yet!"
++
++dgelss :: Double -> R ::> R ::> Ok
++dgelss = error "dgelss not implemented yet!"
++
++zgelss :: Double -> C ::> C ::> Ok
++zgelss = error "zgelss not implemented yet!"
+ 
+ linearSolveAux f st a b
+     | m == rows b = unsafePerformIO $ do
+@@ -510,8 +591,14 @@ linearSolveSVDC Nothing a b = linearSolveSVDC (Just (-1)) a b
+ 
+ -----------------------------------------------------------------------------------
+ 
+-foreign import ccall unsafe "chol_l_H" zpotrf :: C ::> Ok
+-foreign import ccall unsafe "chol_l_S" dpotrf :: R ::> Ok
++-- foreign import ccall unsafe "chol_l_H" zpotrf :: C ::> Ok
++-- foreign import ccall unsafe "chol_l_S" dpotrf :: R ::> Ok
++
++zpotrf :: C ::> Ok
++zpotrf = error "zpotrf not implemented yet!"
++
++dpotrf :: R ::> Ok
++dpotrf = error "dpotrf not implemented yet!"
+ 
+ cholAux f st a = do
+     r <- copy ColumnMajor a
+@@ -538,8 +625,14 @@ mbCholS =  unsafePerformIO . mbCatch . cholAux dpotrf "cholS"
+ 
+ type TMVM t = t ::> t :> t ::> Ok
+ 
+-foreign import ccall unsafe "qr_l_R" dgeqr2 :: R :> R ::> Ok
+-foreign import ccall unsafe "qr_l_C" zgeqr2 :: C :> C ::> Ok
++-- foreign import ccall unsafe "qr_l_R" dgeqr2 :: R :> R ::> Ok
++-- foreign import ccall unsafe "qr_l_C" zgeqr2 :: C :> C ::> Ok
++
++dgeqr2 :: R :> R ::> Ok
++dgeqr2 = error "dgeqr2 not implemented yet!"
++
++zgeqr2 :: C :> C ::> Ok
++zgeqr2 = error "zgeqr2 not implemented yet!"
+ 
+ -- | QR factorization of a real matrix, using LAPACK's /dgeqr2/.
+ qrR :: Matrix Double -> (Matrix Double, Vector Double)
+@@ -559,8 +652,13 @@ qrAux f st a = unsafePerformIO $ do
+     n = cols a
+     mn = min m n
+ 
+-foreign import ccall unsafe "c_dorgqr" dorgqr :: R :> R ::> Ok
+-foreign import ccall unsafe "c_zungqr" zungqr :: C :> C ::> Ok
++-- foreign import ccall unsafe "c_dorgqr" dorgqr :: R :> R ::> Ok
++-- foreign import ccall unsafe "c_zungqr" zungqr :: C :> C ::> Ok
++dorgqr :: R :> R ::> Ok
++dorgqr = error "dorgqr not implemented yet!"
++
++zungqr :: C :> C ::> Ok
++zungqr = error "zungqr not implemented yet!"
+ 
+ -- | build rotation from reflectors
+ qrgrR :: Int -> (Matrix Double, Vector Double) -> Matrix Double
+@@ -577,8 +675,14 @@ qrgrAux f st n (a, tau) = unsafePerformIO $ do
+     tau' = vjoin [tau, constantD 0 n]
+ 
+ -----------------------------------------------------------------------------------
+-foreign import ccall unsafe "hess_l_R" dgehrd :: R :> R ::> Ok
+-foreign import ccall unsafe "hess_l_C" zgehrd :: C :> C ::> Ok
++-- foreign import ccall unsafe "hess_l_R" dgehrd :: R :> R ::> Ok
++-- foreign import ccall unsafe "hess_l_C" zgehrd :: C :> C ::> Ok
++
++dgehrd :: R :> R ::> Ok
++dgehrd = error "dgehrd not implemented yet!"
++
++zgehrd :: C :> C ::> Ok
++zgehrd = error "zgehrd not implemented yet!"
+ 
+ -- | Hessenberg factorization of a square real matrix, using LAPACK's /dgehrd/.
+ hessR :: Matrix Double -> (Matrix Double, Vector Double)
+@@ -599,8 +703,14 @@ hessAux f st a = unsafePerformIO $ do
+     mn = min m n
+ 
+ -----------------------------------------------------------------------------------
+-foreign import ccall unsafe "schur_l_R" dgees :: R ::> R ::> Ok
+-foreign import ccall unsafe "schur_l_C" zgees :: C ::> C ::> Ok
++-- foreign import ccall unsafe "schur_l_R" dgees :: R ::> R ::> Ok
++-- foreign import ccall unsafe "schur_l_C" zgees :: C ::> C ::> Ok
++
++dgees :: R ::> R ::> Ok
++dgees = error "dgees not implemented yet!"
++
++zgees :: C ::> C ::> Ok
++zgees = error "zgees not implemented yet!"
+ 
+ -- | Schur factorization of a square real matrix, using LAPACK's /dgees/.
+ schurR :: Matrix Double -> (Matrix Double, Matrix Double)
+@@ -619,8 +729,14 @@ schurAux f st a = unsafePerformIO $ do
+     n = rows a
+ 
+ -----------------------------------------------------------------------------------
+-foreign import ccall unsafe "lu_l_R" dgetrf :: R :> R ::> Ok
+-foreign import ccall unsafe "lu_l_C" zgetrf :: R :> C ::> Ok
++-- foreign import ccall unsafe "lu_l_R" dgetrf :: R :> R ::> Ok
++-- foreign import ccall unsafe "lu_l_C" zgetrf :: R :> C ::> Ok
++
++dgetrf :: R :> R ::> Ok
++dgetrf = error "dgetrf not implemented yet!"
++
++zgetrf :: R :> C ::> Ok
++zgetrf = error "zgetrf not implemented yet!"
+ 
+ -- | LU factorization of a general real matrix, using LAPACK's /dgetrf/.
+ luR :: Matrix Double -> (Matrix Double, [Int])
+@@ -641,8 +757,13 @@ luAux f st a = unsafePerformIO $ do
+ 
+ -----------------------------------------------------------------------------------
+ 
+-foreign import ccall unsafe "luS_l_R" dgetrs :: R ::> R :> R ::> Ok
+-foreign import ccall unsafe "luS_l_C" zgetrs :: C ::> R :> C ::> Ok
++-- foreign import ccall unsafe "luS_l_R" dgetrs :: R ::> R :> R ::> Ok
++-- foreign import ccall unsafe "luS_l_C" zgetrs :: C ::> R :> C ::> Ok
++dgetrs :: R ::> R :> R ::> Ok
++dgetrs = error "dgetrs not implemented yet!"
++
++zgetrs :: C ::> R :> C ::> Ok
++zgetrs = error "zgetrs not implemented yet!"
+ 
+ -- | Solve a real linear system from a precomputed LU decomposition ('luR'), using LAPACK's /dgetrs/.
+ lusR :: Matrix Double -> [Int] -> Matrix Double -> Matrix Double
+@@ -665,8 +786,13 @@ lusAux f st a piv b
+     piv' = fromList (map (fromIntegral.succ) piv) :: Vector Double
+ 
+ -----------------------------------------------------------------------------------
+-foreign import ccall unsafe "ldl_R" dsytrf :: R :> R ::> Ok
+-foreign import ccall unsafe "ldl_C" zhetrf :: R :> C ::> Ok
++-- foreign import ccall unsafe "ldl_R" dsytrf :: R :> R ::> Ok
++-- foreign import ccall unsafe "ldl_C" zhetrf :: R :> C ::> Ok
++dsytrf :: R :> R ::> Ok
++dsytrf = error "dsytrf not implemented yet!"
++
++zhetrf :: R :> C ::> Ok
++zhetrf = error "zhetrf not implemented yet!"
+ 
+ -- | LDL factorization of a symmetric real matrix, using LAPACK's /dsytrf/.
+ ldlR :: Matrix Double -> (Matrix Double, [Int])
+@@ -684,8 +810,14 @@ ldlAux f st a = unsafePerformIO $ do
+ 
+ -----------------------------------------------------------------------------------
+ 
+-foreign import ccall unsafe "ldl_S_R" dsytrs :: R ::> R :> R ::> Ok
+-foreign import ccall unsafe "ldl_S_C" zsytrs :: C ::> R :> C ::> Ok
++-- foreign import ccall unsafe "ldl_S_R" dsytrs :: R ::> R :> R ::> Ok
++-- foreign import ccall unsafe "ldl_S_C" zsytrs :: C ::> R :> C ::> Ok
++
++dsytrs :: R ::> R :> R ::> Ok
++dsytrs = error "dsytrs not implemented yet!"
++
++zsytrs :: C ::> R :> C ::> Ok
++zsytrs = error "zsytrs not implemented yet!"
+ 
+ -- | Solve a real linear system from a precomputed LDL decomposition ('ldlR'), using LAPACK's /dsytrs/.
+ ldlsR :: Matrix Double -> [Int] -> Matrix Double -> Matrix Double
+diff --git a/src/Internal/Matrix.hs b/src/Internal/Matrix.hs
+index 4bfa13d..148ffd3 100644
+--- a/src/Internal/Matrix.hs
++++ b/src/Internal/Matrix.hs
+@@ -467,12 +467,30 @@ extractAux f ord m moder vr modec vc = do
+ 
+ type Extr x = CInt -> CInt -> CIdxs (CIdxs (OM x (OM x (IO CInt))))
+ 
+-foreign import ccall unsafe "extractD" c_extractD :: Extr Double
+-foreign import ccall unsafe "extractF" c_extractF :: Extr Float
+-foreign import ccall unsafe "extractC" c_extractC :: Extr (Complex Double)
+-foreign import ccall unsafe "extractQ" c_extractQ :: Extr (Complex Float)
+-foreign import ccall unsafe "extractI" c_extractI :: Extr CInt
+-foreign import ccall unsafe "extractL" c_extractL :: Extr Z
++-- foreign import ccall unsafe "extractD" c_extractD :: Extr Double
++-- foreign import ccall unsafe "extractF" c_extractF :: Extr Float
++-- foreign import ccall unsafe "extractC" c_extractC :: Extr (Complex Double)
++-- foreign import ccall unsafe "extractQ" c_extractQ :: Extr (Complex Float)
++-- foreign import ccall unsafe "extractI" c_extractI :: Extr CInt
++-- foreign import ccall unsafe "extractL" c_extractL :: Extr Z
++
++c_extractD :: Extr Double
++c_extractD = error "c_extractD not implemented yet!"
++
++c_extractF :: Extr Float
++c_extractF = error "c_extractF not implemented yet!"
++
++c_extractC :: Extr (Complex Double)
++c_extractC = error "c_extractC not implemented yet!"
++
++c_extractQ :: Extr (Complex Float)
++c_extractQ = error "c_extractQ not implemented yet!"
++
++c_extractI :: Extr CInt
++c_extractI = error "c_extractI not implemented yet!"
++
++c_extractL :: Extr Z
++c_extractL = error "c_extractL not implemented yet!"
+ 
+ ---------------------------------------------------------------
+ 
+@@ -483,12 +501,30 @@ setRectAux f i j m r = (m #! r) (f (fi i) (fi j)) #|"setRect"
+ 
+ type SetRect x = I -> I -> x ::> x::> Ok
+ 
+-foreign import ccall unsafe "setRectD" c_setRectD :: SetRect Double
+-foreign import ccall unsafe "setRectF" c_setRectF :: SetRect Float
+-foreign import ccall unsafe "setRectC" c_setRectC :: SetRect (Complex Double)
+-foreign import ccall unsafe "setRectQ" c_setRectQ :: SetRect (Complex Float)
+-foreign import ccall unsafe "setRectI" c_setRectI :: SetRect I
+-foreign import ccall unsafe "setRectL" c_setRectL :: SetRect Z
++-- foreign import ccall unsafe "setRectD" c_setRectD :: SetRect Double
++-- foreign import ccall unsafe "setRectF" c_setRectF :: SetRect Float
++-- foreign import ccall unsafe "setRectC" c_setRectC :: SetRect (Complex Double)
++-- foreign import ccall unsafe "setRectQ" c_setRectQ :: SetRect (Complex Float)
++-- foreign import ccall unsafe "setRectI" c_setRectI :: SetRect I
++-- foreign import ccall unsafe "setRectL" c_setRectL :: SetRect Z
++
++c_setRectD :: SetRect Double
++c_setRectD = error "c_setRectD not implemented yet!"
++
++c_setRectF :: SetRect Float
++c_setRectF = error "c_setRectF not implemented yet!"
++
++c_setRectC :: SetRect (Complex Double)
++c_setRectC = error "c_setRectC not implemented yet!"
++
++c_setRectQ :: SetRect (Complex Float)
++c_setRectQ = error "c_setRectQ not implemented yet!"
++
++c_setRectI :: SetRect I
++c_setRectI = error "c_setRectI not implemented yet!"
++
++c_setRectL :: SetRect Z
++c_setRectL = error "c_setRectL not implemented yet!"
+ 
+ --------------------------------------------------------------------------------
+ 
+@@ -517,16 +553,39 @@ sortValI = sortG c_sort_valI
+ sortValL :: Vector Z -> Vector Z
+ sortValL = sortG c_sort_valL
+ 
+-foreign import ccall unsafe "sort_indexD" c_sort_indexD :: CV Double (CV CInt (IO CInt))
+-foreign import ccall unsafe "sort_indexF" c_sort_indexF :: CV Float  (CV CInt (IO CInt))
+-foreign import ccall unsafe "sort_indexI" c_sort_indexI :: CV CInt   (CV CInt (IO CInt))
+-foreign import ccall unsafe "sort_indexL" c_sort_indexL :: Z :> I :> Ok
++-- foreign import ccall unsafe "sort_indexD" c_sort_indexD :: CV Double (CV CInt (IO CInt))
++-- foreign import ccall unsafe "sort_indexF" c_sort_indexF :: CV Float  (CV CInt (IO CInt))
++-- foreign import ccall unsafe "sort_indexI" c_sort_indexI :: CV CInt   (CV CInt (IO CInt))
++-- foreign import ccall unsafe "sort_indexL" c_sort_indexL :: Z :> I :> Ok
++
++c_sort_indexD :: CV Double (CV CInt (IO CInt))
++c_sort_indexD = error "c_sort_indexD not implemented yet!"
++
++c_sort_indexF :: CV Float  (CV CInt (IO CInt))
++c_sort_indexF = error "c_sort_indexF not implemented yet!"
+ 
+-foreign import ccall unsafe "sort_valuesD" c_sort_valD :: CV Double (CV Double (IO CInt))
+-foreign import ccall unsafe "sort_valuesF" c_sort_valF :: CV Float  (CV Float (IO CInt))
+-foreign import ccall unsafe "sort_valuesI" c_sort_valI :: CV CInt   (CV CInt (IO CInt))
+-foreign import ccall unsafe "sort_valuesL" c_sort_valL :: Z :> Z :> Ok
++c_sort_indexI :: CV CInt   (CV CInt (IO CInt))
++c_sort_indexI = error "c_sort_indexI not implemented yet!"
+ 
++c_sort_indexL :: Z :> I :> Ok
++c_sort_indexL = error "c_sort_indexL not implemented yet!"
++
++-- foreign import ccall unsafe "sort_valuesD" c_sort_valD :: CV Double (CV Double (IO CInt))
++-- foreign import ccall unsafe "sort_valuesF" c_sort_valF :: CV Float  (CV Float (IO CInt))
++-- foreign import ccall unsafe "sort_valuesI" c_sort_valI :: CV CInt   (CV CInt (IO CInt))
++-- foreign import ccall unsafe "sort_valuesL" c_sort_valL :: Z :> Z :> Ok
++
++c_sort_valD :: CV Double (CV Double (IO CInt))
++c_sort_valD = error "c_sort_valD not implemented yet!"
++
++c_sort_valF :: CV Float  (CV Float (IO CInt))
++c_sort_valF = error "c_sort_valF not implemented yet!"
++
++c_sort_valI :: CV CInt   (CV CInt (IO CInt))
++c_sort_valI = error "c_sort_valI not implemented yet!"
++
++c_sort_valL :: Z :> Z :> Ok
++c_sort_valL = error "c_sort_valL not implemented yet!"
+ --------------------------------------------------------------------------------
+ 
+ compareG :: (TransArray c, Storable t, Storable a)
+@@ -546,10 +605,22 @@ compareI = compareG c_compareI
+ compareL :: Vector Z -> Vector Z -> Vector CInt
+ compareL = compareG c_compareL
+ 
+-foreign import ccall unsafe "compareD" c_compareD :: CV Double (CV Double (CV CInt (IO CInt)))
+-foreign import ccall unsafe "compareF" c_compareF :: CV Float (CV Float  (CV CInt (IO CInt)))
+-foreign import ccall unsafe "compareI" c_compareI :: CV CInt (CV CInt   (CV CInt (IO CInt)))
+-foreign import ccall unsafe "compareL" c_compareL :: Z :> Z :> I :> Ok
++-- foreign import ccall unsafe "compareD" c_compareD :: CV Double (CV Double (CV CInt (IO CInt)))
++-- foreign import ccall unsafe "compareF" c_compareF :: CV Float (CV Float  (CV CInt (IO CInt)))
++-- foreign import ccall unsafe "compareI" c_compareI :: CV CInt (CV CInt   (CV CInt (IO CInt)))
++-- foreign import ccall unsafe "compareL" c_compareL :: Z :> Z :> I :> Ok
++
++c_compareD :: CV Double (CV Double (CV CInt (IO CInt)))
++c_compareD = error "c_compareD not implemented yet!"
++
++c_compareF :: CV Float (CV Float  (CV CInt (IO CInt)))
++c_compareF = error "c_compareF not implemented yet!"
++
++c_compareI :: CV CInt (CV CInt   (CV CInt (IO CInt)))
++c_compareI = error "c_compareI not implemented yet!"
++
++c_compareL :: Z :> Z :> I :> Ok
++c_compareL = error "c_compareL not implemented yet!"
+ 
+ --------------------------------------------------------------------------------
+ 
+@@ -584,12 +655,29 @@ selectQ = selectG c_selectQ
+ 
+ type Sel x = CV CInt (CV x (CV x (CV x (CV x (IO CInt)))))
+ 
+-foreign import ccall unsafe "chooseD" c_selectD :: Sel Double
+-foreign import ccall unsafe "chooseF" c_selectF :: Sel Float
+-foreign import ccall unsafe "chooseI" c_selectI :: Sel CInt
+-foreign import ccall unsafe "chooseC" c_selectC :: Sel (Complex Double)
+-foreign import ccall unsafe "chooseQ" c_selectQ :: Sel (Complex Float)
+-foreign import ccall unsafe "chooseL" c_selectL :: Sel Z
++-- foreign import ccall unsafe "chooseD" c_selectD :: Sel Double
++-- foreign import ccall unsafe "chooseF" c_selectF :: Sel Float
++-- foreign import ccall unsafe "chooseI" c_selectI :: Sel CInt
++-- foreign import ccall unsafe "chooseC" c_selectC :: Sel (Complex Double)
++-- foreign import ccall unsafe "chooseQ" c_selectQ :: Sel (Complex Float)
++-- foreign import ccall unsafe "chooseL" c_selectL :: Sel Z
++c_selectD :: Sel Double
++c_selectD = error "c_selectD not implemented yet!"
++
++c_selectF :: Sel Float
++c_selectF = error "c_selectF not implemented yet!"
++
++c_selectI :: Sel CInt
++c_selectI = error "c_selectI not implemented yet!"
++
++c_selectC :: Sel (Complex Double)
++c_selectC = error "c_selectC not implemented yet!"
++
++c_selectQ :: Sel (Complex Float)
++c_selectQ = error "c_selectQ not implemented yet!"
++
++c_selectL :: Sel Z
++c_selectL = error "c_selectL not implemented yet!"
+ 
+ ---------------------------------------------------------------------------
+ 
+@@ -620,12 +708,30 @@ remapQ = remapG c_remapQ
+ 
+ type Rem x = OM CInt (OM CInt (OM x (OM x (IO CInt))))
+ 
+-foreign import ccall unsafe "remapD" c_remapD :: Rem Double
+-foreign import ccall unsafe "remapF" c_remapF :: Rem Float
+-foreign import ccall unsafe "remapI" c_remapI :: Rem CInt
+-foreign import ccall unsafe "remapC" c_remapC :: Rem (Complex Double)
+-foreign import ccall unsafe "remapQ" c_remapQ :: Rem (Complex Float)
+-foreign import ccall unsafe "remapL" c_remapL :: Rem Z
++-- foreign import ccall unsafe "remapD" c_remapD :: Rem Double
++-- foreign import ccall unsafe "remapF" c_remapF :: Rem Float
++-- foreign import ccall unsafe "remapI" c_remapI :: Rem CInt
++-- foreign import ccall unsafe "remapC" c_remapC :: Rem (Complex Double)
++-- foreign import ccall unsafe "remapQ" c_remapQ :: Rem (Complex Float)
++-- foreign import ccall unsafe "remapL" c_remapL :: Rem Z
++
++c_remapD :: Rem Double
++c_remapD = error "c_remapD not implemented yet!"
++
++c_remapF :: Rem Float
++c_remapF = error "c_remapF not implemented yet!"
++
++c_remapI :: Rem CInt
++c_remapI = error "c_remapI not implemented yet!"
++
++c_remapC :: Rem (Complex Double)
++c_remapC = error "c_remapC not implemented yet!"
++
++c_remapQ :: Rem (Complex Float)
++c_remapQ = error "c_remapQ not implemented yet!"
++
++c_remapL :: Rem Z
++c_remapL = error "c_remapL not implemented yet!"
+ 
+ --------------------------------------------------------------------------------
+ 
+@@ -639,14 +745,38 @@ rowOpAux f c x i1 i2 j1 j2 m = do
+ 
+ type RowOp x = CInt -> Ptr x -> CInt -> CInt -> CInt -> CInt -> x ::> Ok
+ 
+-foreign import ccall unsafe "rowop_double"  c_rowOpD :: RowOp R
+-foreign import ccall unsafe "rowop_float"   c_rowOpF :: RowOp Float
+-foreign import ccall unsafe "rowop_TCD"     c_rowOpC :: RowOp C
+-foreign import ccall unsafe "rowop_TCF"     c_rowOpQ :: RowOp (Complex Float)
+-foreign import ccall unsafe "rowop_int32_t" c_rowOpI :: RowOp I
+-foreign import ccall unsafe "rowop_int64_t" c_rowOpL :: RowOp Z
+-foreign import ccall unsafe "rowop_mod_int32_t" c_rowOpMI :: I -> RowOp I
+-foreign import ccall unsafe "rowop_mod_int64_t" c_rowOpML :: Z -> RowOp Z
++-- foreign import ccall unsafe "rowop_double"  c_rowOpD :: RowOp R
++-- foreign import ccall unsafe "rowop_float"   c_rowOpF :: RowOp Float
++-- foreign import ccall unsafe "rowop_TCD"     c_rowOpC :: RowOp C
++-- foreign import ccall unsafe "rowop_TCF"     c_rowOpQ :: RowOp (Complex Float)
++-- foreign import ccall unsafe "rowop_int32_t" c_rowOpI :: RowOp I
++-- foreign import ccall unsafe "rowop_int64_t" c_rowOpL :: RowOp Z
++-- foreign import ccall unsafe "rowop_mod_int32_t" c_rowOpMI :: I -> RowOp I
++-- foreign import ccall unsafe "rowop_mod_int64_t" c_rowOpML :: Z -> RowOp Z
++
++c_rowOpD :: RowOp R
++c_rowOpD = error "c_rowOpD not implemented yet!"
++
++c_rowOpF :: RowOp Float
++c_rowOpF = error "c_rowOpF not implemented yet!"
++
++c_rowOpC :: RowOp C
++c_rowOpC = error "c_rowOpC not implemented yet!"
++
++c_rowOpQ :: RowOp (Complex Float)
++c_rowOpQ = error "c_rowOpQ not implemented yet!"
++
++c_rowOpI :: RowOp I
++c_rowOpI = error "c_rowOpI not implemented yet!"
++
++c_rowOpL :: RowOp Z
++c_rowOpL = error "c_rowOpL not implemented yet!"
++
++c_rowOpMI :: I -> RowOp I
++c_rowOpMI = error "c_rowOpMI not implemented yet!"
++
++c_rowOpML :: Z -> RowOp Z
++c_rowOpML = error "c_rowOpML not implemented yet!"
+ 
+ --------------------------------------------------------------------------------
+ 
+@@ -657,14 +787,38 @@ gemmg f v m1 m2 m3 = (v # m1 # m2 #! m3) f #|"gemmg"
+ 
+ type Tgemm x = x :> x ::> x ::> x ::> Ok
+ 
+-foreign import ccall unsafe "gemm_double"  c_gemmD :: Tgemm R
+-foreign import ccall unsafe "gemm_float"   c_gemmF :: Tgemm Float
+-foreign import ccall unsafe "gemm_TCD"     c_gemmC :: Tgemm C
+-foreign import ccall unsafe "gemm_TCF"     c_gemmQ :: Tgemm (Complex Float)
+-foreign import ccall unsafe "gemm_int32_t" c_gemmI :: Tgemm I
+-foreign import ccall unsafe "gemm_int64_t" c_gemmL :: Tgemm Z
+-foreign import ccall unsafe "gemm_mod_int32_t" c_gemmMI :: I -> Tgemm I
+-foreign import ccall unsafe "gemm_mod_int64_t" c_gemmML :: Z -> Tgemm Z
++-- foreign import ccall unsafe "gemm_double"  c_gemmD :: Tgemm R
++-- foreign import ccall unsafe "gemm_float"   c_gemmF :: Tgemm Float
++-- foreign import ccall unsafe "gemm_TCD"     c_gemmC :: Tgemm C
++-- foreign import ccall unsafe "gemm_TCF"     c_gemmQ :: Tgemm (Complex Float)
++-- foreign import ccall unsafe "gemm_int32_t" c_gemmI :: Tgemm I
++-- foreign import ccall unsafe "gemm_int64_t" c_gemmL :: Tgemm Z
++-- foreign import ccall unsafe "gemm_mod_int32_t" c_gemmMI :: I -> Tgemm I
++-- foreign import ccall unsafe "gemm_mod_int64_t" c_gemmML :: Z -> Tgemm Z
++
++c_gemmD :: Tgemm R
++c_gemmD = error "c_gemmD not implemented yet!"
++
++c_gemmF :: Tgemm Float
++c_gemmF = error "c_gemmF not implemented yet!"
++
++c_gemmC :: Tgemm C
++c_gemmC = error "c_gemmC not implemented yet!"
++
++c_gemmQ :: Tgemm (Complex Float)
++c_gemmQ = error "c_gemmQ not implemented yet!"
++
++c_gemmI :: Tgemm I
++c_gemmI = error "c_gemmI not implemented yet!"
++
++c_gemmL :: Tgemm Z
++c_gemmL = error "c_gemmL not implemented yet!"
++
++c_gemmMI :: I -> Tgemm I
++c_gemmMI = error "c_gemmMI not implemented yet!"
++
++c_gemmML :: Z -> Tgemm Z
++c_gemmML = error "c_gemmML not implemented yet!"
+ 
+ --------------------------------------------------------------------------------
+ 
+@@ -680,12 +834,30 @@ reorderAux f s d v = unsafePerformIO $ do
+ 
+ type Reorder x = CV CInt (CV CInt (CV CInt (CV x (CV x (IO CInt)))))
+ 
+-foreign import ccall unsafe "reorderD" c_reorderD :: Reorder Double
+-foreign import ccall unsafe "reorderF" c_reorderF :: Reorder Float
+-foreign import ccall unsafe "reorderI" c_reorderI :: Reorder CInt
+-foreign import ccall unsafe "reorderC" c_reorderC :: Reorder (Complex Double)
+-foreign import ccall unsafe "reorderQ" c_reorderQ :: Reorder (Complex Float)
+-foreign import ccall unsafe "reorderL" c_reorderL :: Reorder Z
++-- foreign import ccall unsafe "reorderD" c_reorderD :: Reorder Double
++-- foreign import ccall unsafe "reorderF" c_reorderF :: Reorder Float
++-- foreign import ccall unsafe "reorderI" c_reorderI :: Reorder CInt
++-- foreign import ccall unsafe "reorderC" c_reorderC :: Reorder (Complex Double)
++-- foreign import ccall unsafe "reorderQ" c_reorderQ :: Reorder (Complex Float)
++-- foreign import ccall unsafe "reorderL" c_reorderL :: Reorder Z
++
++c_reorderD :: Reorder Double
++c_reorderD = error "c_reorderD is not implemented yet!"
++
++c_reorderF :: Reorder Float
++c_reorderF = error "c_reorderF is not implemented yet!"
++
++c_reorderI :: Reorder CInt
++c_reorderI = error "c_reorderI is not implemented yet!"
++
++c_reorderC :: Reorder (Complex Double)
++c_reorderC = error "c_reorderC is not implemented yet!"
++
++c_reorderQ :: Reorder (Complex Float)
++c_reorderQ = error "c_reorderQ is not implemented yet!"
++
++c_reorderL :: Reorder Z
++c_reorderL = error "c_reorderL is not implemented yet!"
+ 
+ -- | Transpose an array with dimensions @dims@ by making a copy using @strides@. For example, for an array with 3 indices,
+ --   @(reorderVector strides dims v) ! ((i * dims ! 1 + j) * dims ! 2 + k) == v ! (i * strides ! 0 + j * strides ! 1 + k * strides ! 2)@
+@@ -699,8 +871,10 @@ reorderVector = reorderV
+ 
+ --------------------------------------------------------------------------------
+ 
+-foreign import ccall unsafe "saveMatrix" c_saveMatrix
+-    :: CString -> CString -> Double ::> Ok
++-- foreign import ccall unsafe "saveMatrix" c_saveMatrix
++--     :: CString -> CString -> Double ::> Ok
++c_saveMatrix :: CString -> CString -> Double ::> Ok
++c_saveMatrix = error "c_saveMatrix not implemented yet!"
+ 
+ {- | save a matrix as a 2D ASCII table
+ -}
+diff --git a/src/Internal/Sparse.hs b/src/Internal/Sparse.hs
+index 6233b03..854d75d 100644
+--- a/src/Internal/Sparse.hs
++++ b/src/Internal/Sparse.hs
+@@ -182,11 +182,13 @@ infixr 8 !#>
+ 
+ --------------------------------------------------------------------------------
+ 
+-foreign import ccall unsafe "smXv"
+-  c_smXv :: SMxV
++-- foreign import ccall unsafe "smXv"
++c_smXv :: SMxV
++c_smXv = error "c_smXv not implemented yet!"
+ 
+-foreign import ccall unsafe "smTXv"
+-  c_smTXv :: SMxV
++-- foreign import ccall unsafe "smTXv"
++c_smTXv :: SMxV
++c_smTXv = error "c_smTXv not implemented yet!"
+ 
+ --------------------------------------------------------------------------------
+ 
+diff --git a/src/Internal/Static.hs b/src/Internal/Static.hs
+index 649fbb5..e074a4a 100644
+--- a/src/Internal/Static.hs
++++ b/src/Internal/Static.hs
+@@ -16,7 +16,7 @@
+ {-# LANGUAGE DeriveGeneric #-}
+ 
+ {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+-{-# OPTIONS_GHC -fno-warn-simplifiable-class-constraints #-}
++-- {-# OPTIONS_GHC -fno-warn-simplifiable-class-constraints #-}
+ 
+ {- |
+ Module      :  Internal.Static
+@@ -586,4 +586,3 @@ overMatM' f = mkM . f . unwrap
+ module Numeric.LinearAlgebra.Static.Internal where
+ 
+ #endif
+-
+diff --git a/src/Internal/Vectorized.hs b/src/Internal/Vectorized.hs
+index c00c324..cfad917 100644
+--- a/src/Internal/Vectorized.hs
++++ b/src/Internal/Vectorized.hs
+@@ -124,12 +124,29 @@ sumg f x = unsafePerformIO $ do
+ 
+ type TVV t = t :> t :> Ok
+ 
+-foreign import ccall unsafe "sumF" c_sumF :: TVV Float
+-foreign import ccall unsafe "sumR" c_sumR :: TVV Double
+-foreign import ccall unsafe "sumQ" c_sumQ :: TVV (Complex Float)
+-foreign import ccall unsafe "sumC" c_sumC :: TVV (Complex Double)
+-foreign import ccall unsafe "sumI" c_sumI :: I -> TVV I
+-foreign import ccall unsafe "sumL" c_sumL :: Z -> TVV Z
++-- foreign import ccall unsafe "sumF" c_sumF :: TVV Float
++-- foreign import ccall unsafe "sumR" c_sumR :: TVV Double
++-- foreign import ccall unsafe "sumQ" c_sumQ :: TVV (Complex Float)
++-- foreign import ccall unsafe "sumC" c_sumC :: TVV (Complex Double)
++-- foreign import ccall unsafe "sumI" c_sumI :: I -> TVV I
++-- foreign import ccall unsafe "sumL" c_sumL :: Z -> TVV Z
++c_sumF :: TVV Float
++c_sumF = error "c_sumF not implemented yet!"
++
++c_sumR :: TVV Double
++c_sumR = error "c_sumR not implemented yet!"
++
++c_sumQ :: TVV (Complex Float)
++c_sumQ = error "c_sumQ not implemented yet!"
++
++c_sumC :: TVV (Complex Double)
++c_sumC = error "c_sumC not implemented yet!"
++
++c_sumI :: I -> TVV I
++c_sumI = error "c_sumI not implemented yet!"
++
++c_sumL :: Z -> TVV Z
++c_sumL = error "c_sumL not implemented yet!"
+ 
+ -- | product of elements
+ prodF :: Vector Float -> Float
+@@ -161,12 +178,30 @@ prodg f x = unsafePerformIO $ do
+     return $ r @> 0
+ 
+ 
+-foreign import ccall unsafe "prodF" c_prodF :: TVV Float
+-foreign import ccall unsafe "prodR" c_prodR :: TVV Double
+-foreign import ccall unsafe "prodQ" c_prodQ :: TVV (Complex Float)
+-foreign import ccall unsafe "prodC" c_prodC :: TVV (Complex Double)
+-foreign import ccall unsafe "prodI" c_prodI :: I -> TVV I
+-foreign import ccall unsafe "prodL" c_prodL :: Z -> TVV Z
++-- foreign import ccall unsafe "prodF" c_prodF :: TVV Float
++-- foreign import ccall unsafe "prodR" c_prodR :: TVV Double
++-- foreign import ccall unsafe "prodQ" c_prodQ :: TVV (Complex Float)
++-- foreign import ccall unsafe "prodC" c_prodC :: TVV (Complex Double)
++-- foreign import ccall unsafe "prodI" c_prodI :: I -> TVV I
++-- foreign import ccall unsafe "prodL" c_prodL :: Z -> TVV Z
++
++c_prodF :: TVV Float
++c_prodF = error "c_prodF not implemented yet!"
++
++c_prodR :: TVV Double
++c_prodR = error "c_prodR not implemented yet!"
++
++c_prodQ :: TVV (Complex Float)
++c_prodQ = error "c_prodQ not implemented yet!"
++
++c_prodC :: TVV (Complex Double)
++c_prodC = error "c_prodC not implemented yet!"
++
++c_prodI :: I -> TVV I
++c_prodI = error "c_prodI not implemented yet!"
++
++c_prodL :: Z -> TVV Z
++c_prodL = error "c_prodL not implemented yet!"
+ 
+ ------------------------------------------------------------------
+ 
+@@ -210,38 +245,48 @@ vectorZipAux fun code u v = unsafePerformIO $ do
+ toScalarR :: FunCodeS -> Vector Double -> Double
+ toScalarR oper =  toScalarAux c_toScalarR (fromei oper)
+ 
+-foreign import ccall unsafe "toScalarR" c_toScalarR :: CInt -> TVV Double
++-- foreign import ccall unsafe "toScalarR" c_toScalarR :: CInt -> TVV Double
++c_toScalarR :: CInt -> TVV Double
++c_toScalarR = error "c_toScalarR not implemented yet!"
+ 
+ -- | obtains different functions of a vector: norm1, norm2, max, min, posmax, posmin, etc.
+ toScalarF :: FunCodeS -> Vector Float -> Float
+ toScalarF oper =  toScalarAux c_toScalarF (fromei oper)
+ 
+-foreign import ccall unsafe "toScalarF" c_toScalarF :: CInt -> TVV Float
+-
++-- foreign import ccall unsafe "toScalarF" c_toScalarF :: CInt -> TVV Float
++c_toScalarF :: CInt -> TVV Float
++c_toScalarF = error "c_toScalarF not implemented yet!"
+ -- | obtains different functions of a vector: only norm1, norm2
+ toScalarC :: FunCodeS -> Vector (Complex Double) -> Double
+ toScalarC oper =  toScalarAux c_toScalarC (fromei oper)
+ 
+-foreign import ccall unsafe "toScalarC" c_toScalarC :: CInt -> Complex Double :> Double :> Ok
++-- foreign import ccall unsafe "toScalarC" c_toScalarC :: CInt -> Complex Double :> Double :> Ok
++c_toScalarC :: CInt -> Complex Double :> Double :> Ok
++c_toScalarC = error "c_toScalarC not implemented yet!"
+ 
+ -- | obtains different functions of a vector: only norm1, norm2
+ toScalarQ :: FunCodeS -> Vector (Complex Float) -> Float
+ toScalarQ oper =  toScalarAux c_toScalarQ (fromei oper)
+ 
+-foreign import ccall unsafe "toScalarQ" c_toScalarQ :: CInt -> Complex Float :> Float :> Ok
++-- foreign import ccall unsafe "toScalarQ" c_toScalarQ :: CInt -> Complex Float :> Float :> Ok
++c_toScalarQ :: CInt -> Complex Float :> Float :> Ok
++c_toScalarQ = error "c_toScalarQ not implemented yet!"
+ 
+ -- | obtains different functions of a vector: norm1, norm2, max, min, posmax, posmin, etc.
+ toScalarI :: FunCodeS -> Vector CInt -> CInt
+ toScalarI oper =  toScalarAux c_toScalarI (fromei oper)
+ 
+-foreign import ccall unsafe "toScalarI" c_toScalarI :: CInt -> TVV CInt
++-- foreign import ccall unsafe "toScalarI" c_toScalarI :: CInt -> TVV CInt
++c_toScalarI :: CInt -> TVV CInt
++c_toScalarI = error "c_toScalarI not implemented yet!"
+ 
+ -- | obtains different functions of a vector: norm1, norm2, max, min, posmax, posmin, etc.
+ toScalarL :: FunCodeS -> Vector Z -> Z
+ toScalarL oper =  toScalarAux c_toScalarL (fromei oper)
+ 
+-foreign import ccall unsafe "toScalarL" c_toScalarL :: CInt -> TVV Z
+-
++-- foreign import ccall unsafe "toScalarL" c_toScalarL :: CInt -> TVV Z
++c_toScalarL :: CInt -> TVV Z
++c_toScalarL = error "c_toScalarL not implemented yet!"
+ 
+ ------------------------------------------------------------------
+ 
+@@ -249,37 +294,49 @@ foreign import ccall unsafe "toScalarL" c_toScalarL :: CInt -> TVV Z
+ vectorMapR :: FunCodeV -> Vector Double -> Vector Double
+ vectorMapR = vectorMapAux c_vectorMapR
+ 
+-foreign import ccall unsafe "mapR" c_vectorMapR :: CInt -> TVV Double
++-- foreign import ccall unsafe "mapR" c_vectorMapR :: CInt -> TVV Double
++c_vectorMapR :: CInt -> TVV Double
++c_vectorMapR = error "c_vectorMapR not implemented yet!"
+ 
+ -- | map of complex vectors with given function
+ vectorMapC :: FunCodeV -> Vector (Complex Double) -> Vector (Complex Double)
+ vectorMapC oper = vectorMapAux c_vectorMapC (fromei oper)
+ 
+-foreign import ccall unsafe "mapC" c_vectorMapC :: CInt -> TVV (Complex Double)
++-- foreign import ccall unsafe "mapC" c_vectorMapC :: CInt -> TVV (Complex Double)
++c_vectorMapC :: CInt -> TVV (Complex Double)
++c_vectorMapC = error "c_vectorMapC not implemented yet!"
+ 
+ -- | map of real vectors with given function
+ vectorMapF :: FunCodeV -> Vector Float -> Vector Float
+ vectorMapF = vectorMapAux c_vectorMapF
+ 
+-foreign import ccall unsafe "mapF" c_vectorMapF :: CInt -> TVV Float
++-- foreign import ccall unsafe "mapF" c_vectorMapF :: CInt -> TVV Float
++c_vectorMapF :: CInt -> TVV Float
++c_vectorMapF = error "c_vectorMapF not implemented yet!"
+ 
+ -- | map of real vectors with given function
+ vectorMapQ :: FunCodeV -> Vector (Complex Float) -> Vector (Complex Float)
+ vectorMapQ = vectorMapAux c_vectorMapQ
+ 
+-foreign import ccall unsafe "mapQ" c_vectorMapQ :: CInt -> TVV (Complex Float)
++-- foreign import ccall unsafe "mapQ" c_vectorMapQ :: CInt -> TVV (Complex Float)
++c_vectorMapQ :: CInt -> TVV (Complex Float)
++c_vectorMapQ = error "c_vectorMapQ not implemented yet!"
+ 
+ -- | map of real vectors with given function
+ vectorMapI :: FunCodeV -> Vector CInt -> Vector CInt
+ vectorMapI = vectorMapAux c_vectorMapI
+ 
+-foreign import ccall unsafe "mapI" c_vectorMapI :: CInt -> TVV CInt
++-- foreign import ccall unsafe "mapI" c_vectorMapI :: CInt -> TVV CInt
++c_vectorMapI :: CInt -> TVV CInt
++c_vectorMapI = error "c_vectorMapI not implemented yet!"
+ 
+ -- | map of real vectors with given function
+ vectorMapL :: FunCodeV -> Vector Z -> Vector Z
+ vectorMapL = vectorMapAux c_vectorMapL
+ 
+-foreign import ccall unsafe "mapL" c_vectorMapL :: CInt -> TVV Z
++-- foreign import ccall unsafe "mapL" c_vectorMapL :: CInt -> TVV Z
++c_vectorMapL :: CInt -> TVV Z
++c_vectorMapL = error "c_vectorMapL not implemented yet!"
+ 
+ -------------------------------------------------------------------
+ 
+@@ -287,37 +344,49 @@ foreign import ccall unsafe "mapL" c_vectorMapL :: CInt -> TVV Z
+ vectorMapValR :: FunCodeSV -> Double -> Vector Double -> Vector Double
+ vectorMapValR oper = vectorMapValAux c_vectorMapValR (fromei oper)
+ 
+-foreign import ccall unsafe "mapValR" c_vectorMapValR :: CInt -> Ptr Double -> TVV Double
++-- foreign import ccall unsafe "mapValR" c_vectorMapValR :: CInt -> Ptr Double -> TVV Double
++c_vectorMapValR :: CInt -> Ptr Double -> TVV Double
++c_vectorMapValR = error "c_vectorMapValR not implemented yet!"
+ 
+ -- | map of complex vectors with given function
+ vectorMapValC :: FunCodeSV -> Complex Double -> Vector (Complex Double) -> Vector (Complex Double)
+ vectorMapValC = vectorMapValAux c_vectorMapValC
+ 
+-foreign import ccall unsafe "mapValC" c_vectorMapValC :: CInt -> Ptr (Complex Double) -> TVV (Complex Double)
++-- foreign import ccall unsafe "mapValC" c_vectorMapValC :: CInt -> Ptr (Complex Double) -> TVV (Complex Double)
++c_vectorMapValC :: CInt -> Ptr (Complex Double) -> TVV (Complex Double)
++c_vectorMapValC = error "c_vectorMapValC not implemented yet!"
+ 
+ -- | map of real vectors with given function
+ vectorMapValF :: FunCodeSV -> Float -> Vector Float -> Vector Float
+ vectorMapValF oper = vectorMapValAux c_vectorMapValF (fromei oper)
+ 
+-foreign import ccall unsafe "mapValF" c_vectorMapValF :: CInt -> Ptr Float -> TVV Float
++-- foreign import ccall unsafe "mapValF" c_vectorMapValF :: CInt -> Ptr Float -> TVV Float
++c_vectorMapValF :: CInt -> Ptr Float -> TVV Float
++c_vectorMapValF = error "c_vectorMapValF not implemented yet!"
+ 
+ -- | map of complex vectors with given function
+ vectorMapValQ :: FunCodeSV -> Complex Float -> Vector (Complex Float) -> Vector (Complex Float)
+ vectorMapValQ oper = vectorMapValAux c_vectorMapValQ (fromei oper)
+ 
+-foreign import ccall unsafe "mapValQ" c_vectorMapValQ :: CInt -> Ptr (Complex Float) -> TVV (Complex Float)
++-- foreign import ccall unsafe "mapValQ" c_vectorMapValQ :: CInt -> Ptr (Complex Float) -> TVV (Complex Float)
++c_vectorMapValQ :: CInt -> Ptr (Complex Float) -> TVV (Complex Float)
++c_vectorMapValQ = error "c_vectorMapValQ not implemented yet!"
+ 
+ -- | map of real vectors with given function
+ vectorMapValI :: FunCodeSV -> CInt -> Vector CInt -> Vector CInt
+ vectorMapValI oper = vectorMapValAux c_vectorMapValI (fromei oper)
+ 
+-foreign import ccall unsafe "mapValI" c_vectorMapValI :: CInt -> Ptr CInt -> TVV CInt
++-- foreign import ccall unsafe "mapValI" c_vectorMapValI :: CInt -> Ptr CInt -> TVV CInt
++c_vectorMapValI :: CInt -> Ptr CInt -> TVV CInt
++c_vectorMapValI = error "c_vectorMapValI not implemented yet!"
+ 
+ -- | map of real vectors with given function
+ vectorMapValL :: FunCodeSV -> Z -> Vector Z -> Vector Z
+ vectorMapValL oper = vectorMapValAux c_vectorMapValL (fromei oper)
+ 
+-foreign import ccall unsafe "mapValL" c_vectorMapValL :: CInt -> Ptr Z -> TVV Z
++-- foreign import ccall unsafe "mapValL" c_vectorMapValL :: CInt -> Ptr Z -> TVV Z
++c_vectorMapValL :: CInt -> Ptr Z -> TVV Z
++c_vectorMapValL = error "c_vectorMapValL not implemented yet!"
+ 
+ 
+ -------------------------------------------------------------------
+@@ -328,42 +397,56 @@ type TVVV t = t :> t :> t :> Ok
+ vectorZipR :: FunCodeVV -> Vector Double -> Vector Double -> Vector Double
+ vectorZipR = vectorZipAux c_vectorZipR
+ 
+-foreign import ccall unsafe "zipR" c_vectorZipR :: CInt -> TVVV Double
++-- foreign import ccall unsafe "zipR" c_vectorZipR :: CInt -> TVVV Double
++c_vectorZipR :: CInt -> TVVV Double
++c_vectorZipR = error "c_vectorZipR not implemented yet!"
+ 
+ -- | elementwise operation on complex vectors
+ vectorZipC :: FunCodeVV -> Vector (Complex Double) -> Vector (Complex Double) -> Vector (Complex Double)
+ vectorZipC = vectorZipAux c_vectorZipC
+ 
+-foreign import ccall unsafe "zipC" c_vectorZipC :: CInt -> TVVV (Complex Double)
++-- foreign import ccall unsafe "zipC" c_vectorZipC :: CInt -> TVVV (Complex Double)
++c_vectorZipC :: CInt -> TVVV (Complex Double)
++c_vectorZipC = error "c_vectorZipC not implemented yet!"
+ 
+ -- | elementwise operation on real vectors
+ vectorZipF :: FunCodeVV -> Vector Float -> Vector Float -> Vector Float
+ vectorZipF = vectorZipAux c_vectorZipF
+ 
+-foreign import ccall unsafe "zipF" c_vectorZipF :: CInt -> TVVV Float
++-- foreign import ccall unsafe "zipF" c_vectorZipF :: CInt -> TVVV Float
++c_vectorZipF :: CInt -> TVVV Float
++c_vectorZipF = error "c_vectorZipF not implemented yet!"
+ 
+ -- | elementwise operation on complex vectors
+ vectorZipQ :: FunCodeVV -> Vector (Complex Float) -> Vector (Complex Float) -> Vector (Complex Float)
+ vectorZipQ = vectorZipAux c_vectorZipQ
+ 
+-foreign import ccall unsafe "zipQ" c_vectorZipQ :: CInt -> TVVV (Complex Float)
++-- foreign import ccall unsafe "zipQ" c_vectorZipQ :: CInt -> TVVV (Complex Float)
++c_vectorZipQ :: CInt -> TVVV (Complex Float)
++c_vectorZipQ = error "c_vectorZipQ not implemented yet!"
+ 
+ -- | elementwise operation on CInt vectors
+ vectorZipI :: FunCodeVV -> Vector CInt -> Vector CInt -> Vector CInt
+ vectorZipI = vectorZipAux c_vectorZipI
+ 
+-foreign import ccall unsafe "zipI" c_vectorZipI :: CInt -> TVVV CInt
++-- foreign import ccall unsafe "zipI" c_vectorZipI :: CInt -> TVVV CInt
++c_vectorZipI :: CInt -> TVVV CInt
++c_vectorZipI = error "c_vectorZipI not implemented yet!"
+ 
+ -- | elementwise operation on CInt vectors
+ vectorZipL :: FunCodeVV -> Vector Z -> Vector Z -> Vector Z
+ vectorZipL = vectorZipAux c_vectorZipL
+ 
+-foreign import ccall unsafe "zipL" c_vectorZipL :: CInt -> TVVV Z
++-- foreign import ccall unsafe "zipL" c_vectorZipL :: CInt -> TVVV Z
++c_vectorZipL :: CInt -> TVVV Z
++c_vectorZipL = error "c_vectorZipL not implemented yet!"
+ 
+ --------------------------------------------------------------------------------
+ 
+-foreign import ccall unsafe "vectorScan" c_vectorScan
+-    :: CString -> Ptr CInt -> Ptr (Ptr Double) -> IO CInt
++-- foreign import ccall unsafe "vectorScan" c_vectorScan
++--    :: CString -> Ptr CInt -> Ptr (Ptr Double) -> IO CInt
++c_vectorScan :: CString -> Ptr CInt -> Ptr (Ptr Double) -> IO CInt
++c_vectorScan = error "c_vectorScan not implemented yet!"
+ 
+ vectorScan :: FilePath -> IO (Vector Double)
+ vectorScan s = do
+@@ -401,7 +484,9 @@ randomVector seed dist n = unsafePerformIO $ do
+     (r # id) (c_random_vector (fi seed) ((fi.fromEnum) dist)) #|"randomVector"
+     return r
+ 
+-foreign import ccall unsafe "random_vector" c_random_vector :: CInt -> CInt -> Double :> Ok
++-- foreign import ccall unsafe "random_vector" c_random_vector :: CInt -> CInt -> Double :> Ok
++c_random_vector :: CInt -> CInt -> Double :> Ok
++c_random_vector = error "c_random_vector not implemented yet!"
+ 
+ --------------------------------------------------------------------------------
+ 
+@@ -411,7 +496,9 @@ roundVector v = unsafePerformIO $ do
+     (v #! r) c_round_vector #|"roundVector"
+     return r
+ 
+-foreign import ccall unsafe "round_vector" c_round_vector :: TVV Double
++-- foreign import ccall unsafe "round_vector" c_round_vector :: TVV Double
++c_round_vector :: TVV Double
++c_round_vector = error "c_round_vector not implemented yet!"
+ 
+ --------------------------------------------------------------------------------
+ 
+@@ -425,8 +512,9 @@ range n = unsafePerformIO $ do
+     (r # id) c_range_vector #|"range"
+     return r
+ 
+-foreign import ccall unsafe "range_vector" c_range_vector :: CInt :> Ok
+-
++-- foreign import ccall unsafe "range_vector" c_range_vector :: CInt :> Ok
++c_range_vector :: CInt :> Ok
++c_range_vector = error "c_range_vector is not implemented yet!"
+ 
+ float2DoubleV :: Vector Float -> Vector Double
+ float2DoubleV = tog c_float2double
+@@ -467,17 +555,46 @@ tog f v = unsafePerformIO $ do
+     (v #! r) f #|"tog"
+     return r
+ 
+-foreign import ccall unsafe "float2double" c_float2double :: Float :> Double :> Ok
+-foreign import ccall unsafe "double2float" c_double2float :: Double :> Float :> Ok
+-foreign import ccall unsafe "int2double"   c_int2double   :: CInt :> Double :> Ok
+-foreign import ccall unsafe "double2int"   c_double2int   :: Double :> CInt :> Ok
+-foreign import ccall unsafe "long2double"  c_long2double   :: Z :> Double :> Ok
+-foreign import ccall unsafe "double2long"  c_double2long   :: Double :> Z :> Ok
+-foreign import ccall unsafe "int2float"    c_int2float    :: CInt :> Float :> Ok
+-foreign import ccall unsafe "float2int"    c_float2int    :: Float :> CInt :> Ok
+-foreign import ccall unsafe "int2long"    c_int2long    :: I :> Z :> Ok
+-foreign import ccall unsafe "long2int"    c_long2int    :: Z :> I :> Ok
++-- foreign import ccall unsafe "float2double" c_float2double :: Float :> Double :> Ok
++-- foreign import ccall unsafe "double2float" c_double2float :: Double :> Float :> Ok
++-- foreign import ccall unsafe "int2double"   c_int2double   :: CInt :> Double :> Ok
++-- foreign import ccall unsafe "double2int"   c_double2int   :: Double :> CInt :> Ok
++-- foreign import ccall unsafe "long2double"  c_long2double   :: Z :> Double :> Ok
++-- foreign import ccall unsafe "double2long"  c_double2long   :: Double :> Z :> Ok
++-- foreign import ccall unsafe "int2float"    c_int2float    :: CInt :> Float :> Ok
++-- foreign import ccall unsafe "float2int"    c_float2int    :: Float :> CInt :> Ok
++-- foreign import ccall unsafe "int2long"    c_int2long    :: I :> Z :> Ok
++-- foreign import ccall unsafe "long2int"    c_long2int    :: Z :> I :> Ok
++
++c_float2double :: Float :> Double :> Ok
++c_float2double = error "c_float2double not implemented yet!"
++
++c_double2float :: Double :> Float :> Ok
++c_double2float = error "c_double2float not implemented yet!"
++
++c_int2double   :: CInt :> Double :> Ok
++c_int2double = error "c_int2double not implemented yet!"
+ 
++c_double2int   :: Double :> CInt :> Ok
++c_double2int = error "c_double2int not implemented yet!"
++
++c_long2double   :: Z :> Double :> Ok
++c_long2double = error "c_long2double not implemented yet!"
++
++c_double2long   :: Double :> Z :> Ok
++c_double2long = error "c_double2long not implemented yet!"
++
++c_int2float    :: CInt :> Float :> Ok
++c_int2float = error "c_int2float not implemented yet!"
++
++c_float2int    :: Float :> CInt :> Ok
++c_float2int = error "c_float2int not implemented yet!"
++
++c_int2long    :: I :> Z :> Ok
++c_int2long = error "c_int2long not implemented yet!"
++
++c_long2int    :: Z :> I :> Ok
++c_long2int = error "c_long2int not implemented yet!"
+ 
+ ---------------------------------------------------------------
+ 
+@@ -501,10 +618,22 @@ stepL :: Vector Z -> Vector Z
+ stepL = stepg c_stepL
+ 
+ 
+-foreign import ccall unsafe "stepF" c_stepF :: TVV Float
+-foreign import ccall unsafe "stepD" c_stepD :: TVV Double
+-foreign import ccall unsafe "stepI" c_stepI :: TVV CInt
+-foreign import ccall unsafe "stepL" c_stepL :: TVV Z
++-- foreign import ccall unsafe "stepF" c_stepF :: TVV Float
++-- foreign import ccall unsafe "stepD" c_stepD :: TVV Double
++-- foreign import ccall unsafe "stepI" c_stepI :: TVV CInt
++-- foreign import ccall unsafe "stepL" c_stepL :: TVV Z
++
++c_stepF :: TVV Float
++c_stepF = error "c_stepF not implemented yet!"
++
++c_stepD :: TVV Double
++c_stepD = error "c_stepD not implemented yet!"
++
++c_stepI :: TVV CInt
++c_stepI = error "c_stepI not implemented yet!"
++
++c_stepL :: TVV Z
++c_stepL = error "c_stepL not implemented yet!"
+ 
+ --------------------------------------------------------------------------------
+ 
+@@ -517,11 +646,15 @@ conjugateAux fun x = unsafePerformIO $ do
+ 
+ conjugateQ :: Vector (Complex Float) -> Vector (Complex Float)
+ conjugateQ = conjugateAux c_conjugateQ
+-foreign import ccall unsafe "conjugateQ" c_conjugateQ :: TVV (Complex Float)
++-- foreign import ccall unsafe "conjugateQ" c_conjugateQ :: TVV (Complex Float)
++c_conjugateQ :: TVV (Complex Float)
++c_conjugateQ = error "c_conjugateQ not implemented yet!"
+ 
+ conjugateC :: Vector (Complex Double) -> Vector (Complex Double)
+ conjugateC = conjugateAux c_conjugateC
+-foreign import ccall unsafe "conjugateC" c_conjugateC :: TVV (Complex Double)
++-- foreign import ccall unsafe "conjugateC" c_conjugateC :: TVV (Complex Double)
++c_conjugateC :: TVV (Complex Double)
++c_conjugateC = error "conjugateC not implemented yet!"
+ 
+ --------------------------------------------------------------------------------
+ 
+@@ -546,11 +679,29 @@ constantAux fun x n = unsafePerformIO $ do
+ 
+ type TConst t = Ptr t -> t :> Ok
+ 
+-foreign import ccall unsafe "constantF" cconstantF :: TConst Float
+-foreign import ccall unsafe "constantR" cconstantR :: TConst Double
+-foreign import ccall unsafe "constantQ" cconstantQ :: TConst (Complex Float)
+-foreign import ccall unsafe "constantC" cconstantC :: TConst (Complex Double)
+-foreign import ccall unsafe "constantI" cconstantI :: TConst CInt
+-foreign import ccall unsafe "constantL" cconstantL :: TConst Z
++-- foreign import ccall unsafe "constantF" cconstantF :: TConst Float
++-- foreign import ccall unsafe "constantR" cconstantR :: TConst Double
++-- foreign import ccall unsafe "constantQ" cconstantQ :: TConst (Complex Float)
++-- foreign import ccall unsafe "constantC" cconstantC :: TConst (Complex Double)
++-- foreign import ccall unsafe "constantI" cconstantI :: TConst CInt
++-- foreign import ccall unsafe "constantL" cconstantL :: TConst Z
++
++cconstantF :: TConst Float
++cconstantF = error "cconstantF not implemented yet!"
++
++cconstantR :: TConst Double
++cconstantR = error "cconstantR not implemented yet!"
++
++cconstantQ :: TConst (Complex Float)
++cconstantQ = error "cconstantQ not implemented yet!"
++
++cconstantC :: TConst (Complex Double)
++cconstantC = error "cconstantC not implemented yet!"
++
++cconstantI :: TConst CInt
++cconstantI = error "cconstantI not implemented yet!"
++
++cconstantL :: TConst Z
++cconstantL = error "cconstantL not implemented yet!"
+ 
+ ----------------------------------------------------------------------
+-- 
+2.15.2 (Apple Git-101.1)
+

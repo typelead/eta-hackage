@@ -1,0 +1,152 @@
+Name:               hmatrix
+Version:            0.19.0.0
+License:            BSD3
+License-file:       LICENSE
+Author:             Alberto Ruiz
+Maintainer:         Alberto Ruiz
+Stability:          provisional
+Homepage:           https://github.com/albertoruiz/hmatrix
+Synopsis:           Numeric Linear Algebra
+Description:        Linear systems, matrix decompositions, and other numerical computations based on BLAS and LAPACK.
+                    .
+                    Standard interface: "Numeric.LinearAlgebra".
+                    .
+                    Safer interface with statically checked dimensions: "Numeric.LinearAlgebra.Static".
+                    .
+                    Code examples: <http://dis.um.es/~alberto/hmatrix/hmatrix.html>
+
+Category:           Math
+tested-with:        GHC==8.2, GHC==8.4
+
+cabal-version:      >=1.8
+
+build-type:         Simple
+
+extra-source-files: THANKS.md CHANGELOG
+
+extra-source-files: src/Internal/C/lapack-aux.h
+
+flag openblas
+    description:    Link with OpenBLAS (https://github.com/xianyi/OpenBLAS) optimized libraries.
+    default:        False
+    manual: True
+
+flag disable-default-paths
+    description:    When enabled, don't add default hardcoded include/link dirs by default. Needed for hermetic builds like in nix.
+    default:        False
+    manual: True
+
+library
+
+    Build-Depends:      base >= 4.8 && < 5,
+                        binary,
+                        array,
+                        deepseq,
+                        random,
+                        split,
+                        bytestring,
+                        storable-complex,
+                        semigroups,
+                        vector >= 0.8
+
+    hs-source-dirs:     src
+
+    exposed-modules:    Numeric.LinearAlgebra
+                        Numeric.LinearAlgebra.Devel
+                        Numeric.LinearAlgebra.Data
+                        Numeric.LinearAlgebra.HMatrix
+                        Numeric.LinearAlgebra.Static
+
+    other-modules:      Internal.Vector
+                        Internal.Devel
+                        Internal.Vectorized
+                        Internal.Matrix
+                        Internal.ST
+                        Internal.IO
+                        Internal.Element
+                        Internal.Conversion
+                        Internal.LAPACK
+                        Internal.Numeric
+                        Internal.Algorithms
+                        Internal.Random
+                        Internal.Container
+                        Internal.Sparse
+                        Internal.Convolution
+                        Internal.Chain
+                        Numeric.Vector
+                        Internal.CG
+                        Numeric.Matrix
+                        Internal.Util
+                        Internal.Modular
+                        Internal.Static
+
+    -- C-sources:          src/Internal/C/lapack-aux.c
+    --                     src/Internal/C/vector-aux.c
+
+
+    extensions:         ForeignFunctionInterface
+
+    ghc-options:        -Wall
+                        -fno-warn-missing-signatures
+                        -fno-warn-orphans
+                        -fno-prof-auto
+
+    -- cc-options:         -O4 -Wall
+    --
+    -- if arch(x86_64)
+    --     cc-options:     -msse2
+    -- if arch(i386)
+    --     cc-options:     -msse2
+
+
+    -- if os(OSX)
+    --     if flag(openblas)
+    --         if !flag(disable-default-paths)
+    --             extra-lib-dirs:     /opt/local/lib/openblas/lib
+    --         extra-libraries:    openblas
+    --     else
+    --         extra-libraries:    blas lapack
+    --
+    --     if !flag(disable-default-paths)
+    --         extra-lib-dirs: /opt/local/lib/
+    --         include-dirs: /opt/local/include/
+    --         extra-lib-dirs: /usr/local/lib/
+    --         include-dirs: /usr/local/include/
+    --     if arch(i386)
+    --         cc-options: -arch i386
+    --     frameworks: Accelerate
+    --
+    -- if os(freebsd)
+    --     if flag(openblas)
+    --         if !flag(disable-default-paths)
+    --             extra-lib-dirs:     /usr/local/lib/openblas/lib
+    --         extra-libraries:    openblas
+    --     else
+    --         extra-libraries:    blas lapack
+    --
+    --     if !flag(disable-default-paths)
+    --         extra-lib-dirs: /usr/local/lib
+    --         include-dirs: /usr/local/include
+    --     extra-libraries: gfortran
+    --
+    -- if os(windows)
+    --     if flag(openblas)
+    --         extra-libraries:    libopenblas, libgcc_s_seh-1, libgfortran, libquadmath-0
+    --     else
+    --         extra-libraries:    blas lapack
+    --
+    -- if os(linux)
+    --     if flag(openblas)
+    --         if !flag(disable-default-paths)
+    --             extra-lib-dirs:     /usr/lib/openblas/lib
+    --         extra-libraries:    openblas
+    --     else
+    --         extra-libraries:    blas lapack
+    --
+    --     if arch(x86_64)
+    --         cc-options: -fPIC
+
+
+source-repository head
+    type:     git
+    location: https://github.com/albertoruiz/hmatrix
