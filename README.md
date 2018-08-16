@@ -106,7 +106,7 @@ These packages are supported by `etlas`.
 - [base16-bytestring-0.1.1.6](https://hackage.haskell.org/package/base16-bytestring-0.1.1.6)
 - [base64-bytestring-1.0.0.1](https://hackage.haskell.org/package/base64-bytestring-1.0.0.1)
 - [basic-lens-0.0.0](https://hackage.haskell.org/package/basic-lens-0.0.0)
-- [basic-prelude-0.6.1](https://hackage.haskell.org/package/basic-prelude-0.6.1)
+- [basic-prelude >= 0.6.1 && <= 0.7.0](https://hackage.haskell.org/package/basic-prelude)
 - [binary-0.8.5.1](https://hackage.haskell.org/package/binary-0.8.5.1)
 - [binary-conduit-1.2.4.1](https://hackage.haskell.org/package/binary-conduit-1.2.4.1)
 - [binary-orphans-0.1.8.0](https://hackage.haskell.org/package/binary-orphans-0.1.8.0)

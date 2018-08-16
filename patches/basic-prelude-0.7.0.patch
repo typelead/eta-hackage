@@ -1,0 +1,22 @@
+From e04b3389790fb2d15370f5f3a2fbadec55e5c174 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 16 Aug 2018 10:44:07 +0530
+Subject: [PATCH] Patched
+
+---
+ src/CorePrelude.hs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/CorePrelude.hs b/src/CorePrelude.hs
+index 14cf4cb..3306edd 100644
+--- a/src/CorePrelude.hs
++++ b/src/CorePrelude.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE NoImplicitPrelude #-}
++{-# LANGUAGE NoImplicitPrelude, FlexibleContexts #-}
+ {-# LANGUAGE CPP #-}
+ 
+ module CorePrelude
+-- 
+2.15.2 (Apple Git-101.1)
+
