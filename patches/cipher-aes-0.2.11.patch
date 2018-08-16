@@ -1,18 +1,18 @@
-From 8739251ee5dd4bbd205066d82178fefb1b3a00db Mon Sep 17 00:00:00 2001
+From 7a84f6d2c3909dace275f256a73b1e5ecdefd2a0 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 13 Aug 2018 21:27:25 +0530
+Date: Thu, 16 Aug 2018 10:01:35 +0530
 Subject: [PATCH] Patched
 
 ---
- Crypto/Cipher/AES.hs | 157 +++++++++--------
- Tests/Tests.hs       |  11 +-
+ Crypto/Cipher/AES.hs | 164 ++++++++--------
+ Tests/Tests.hs       |   9 +-
  cipher-aes.cabal     |   9 +-
- java/AESContext.java | 393 +++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 493 insertions(+), 77 deletions(-)
+ java/AESContext.java | 448 +++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 550 insertions(+), 80 deletions(-)
  create mode 100644 java/AESContext.java
 
 diff --git a/Crypto/Cipher/AES.hs b/Crypto/Cipher/AES.hs
-index eab493e..32ceb9f 100644
+index eab493e..3455ee0 100644
 --- a/Crypto/Cipher/AES.hs
 +++ b/Crypto/Cipher/AES.hs
 @@ -67,7 +67,9 @@ import Crypto.Cipher.Types
@@ -105,25 +105,29 @@ index eab493e..32ceb9f 100644
  
  {-# DEPRECATED initKey "use initAES" #-}
  initKey :: Byteable b => b -> AES
-@@ -263,7 +272,7 @@ genCTR ctx iv len
+@@ -263,7 +272,8 @@ genCTR ctx iv len
      | len <= 0  = B.empty
      | byteableLength iv /= 16 = error $ "AES error: IV length must be block size (16). Its length is: " ++ (show $ byteableLength iv)
      | otherwise = unsafeCreate (nbBlocks * 16) generate
 -  where generate o = withKeyAndIV ctx iv $ \k i -> c_aes_gen_ctr (castPtr o) k i (fromIntegral nbBlocks)
-+  where generate o = withKeyAndIV "genCTR" ctx iv $ \k i -> c_aes_gen_ctr (castPtr o) k i (fromIntegral nbBlocks)
++  where generate o = withCtx ctx $ \k ->
++                     ivToPtr iv $ \i -> c_aes_gen_ctr k (castPtr o) i (fromIntegral nbBlocks)
          (nbBlocks',r) = len `quotRem` 16
          nbBlocks = if r == 0 then nbBlocks' else nbBlocks' + 1
  
-@@ -285,7 +294,7 @@ genCounter ctx iv len
+@@ -285,9 +295,9 @@ genCounter ctx iv len
      | otherwise = unsafePerformIO $ do
          fptr  <- B.mallocByteString outputLength
          newIv <- withForeignPtr fptr $ \o ->
 -                    keyToPtr ctx $ \k ->
-+                    keyToPtr "genCounter" ctx $ \k ->
++                    withCtx ctx $ \k ->
                      ivCopyPtr iv $ \i -> do
-                         c_aes_gen_ctr_cont (castPtr o) k i (fromIntegral nbBlocks)
+-                        c_aes_gen_ctr_cont (castPtr o) k i (fromIntegral nbBlocks)
++                        c_aes_gen_ctr_cont k (castPtr o) i (fromIntegral nbBlocks)
          let !out = B.PS fptr 0 outputLength
-@@ -312,8 +321,10 @@ encryptCTR ctx iv input
+         return $! (out `seq` newIv `seq` (out, newIv))
+   where
+@@ -312,8 +322,10 @@ encryptCTR ctx iv input
      | len <= 0  = B.empty
      | byteableLength iv /= 16 = error $ "AES error: IV length must be block size (16). Its length is: " ++ (show $ byteableLength iv)
      | otherwise = unsafeCreate len doEncrypt
@@ -136,7 +140,7 @@ index eab493e..32ceb9f 100644
          len = B.length input
  
  -- | encrypt using Galois counter mode (GCM)
-@@ -405,29 +416,30 @@ decryptOCB :: Byteable iv
+@@ -405,29 +417,30 @@ decryptOCB :: Byteable iv
  decryptOCB = doOCB ocbAppendDecrypt
  
  {-# INLINE doECB #-}
@@ -173,7 +177,7 @@ index eab493e..32ceb9f 100644
    where (nbBlocks, r) = len `quotRem` 16
          len           = B.length input
  
-@@ -469,10 +481,8 @@ doGCM f ctx iv aad input = (output, tag)
+@@ -469,10 +482,8 @@ doGCM f ctx iv aad input = (output, tag)
  {-# NOINLINE gcmInit #-}
  gcmInit :: Byteable iv => AES -> iv -> AESGCM
  gcmInit ctx iv = unsafePerformIO $ do
@@ -186,7 +190,7 @@ index eab493e..32ceb9f 100644
  
  -- | append data which is going to just be authentified to the GCM context.
  --
-@@ -491,12 +501,12 @@ gcmAppendAAD gcmSt input = unsafePerformIO doAppend
+@@ -491,12 +502,12 @@ gcmAppendAAD gcmSt input = unsafePerformIO doAppend
  -- need to happen after AAD appending, or after initialization if no AAD data.
  {-# NOINLINE gcmAppendEncrypt #-}
  gcmAppendEncrypt :: AES -> AESGCM -> ByteString -> (ByteString, AESGCM)
@@ -202,7 +206,7 @@ index eab493e..32ceb9f 100644
  
  -- | append data to decrypt and append to the GCM context
  --
-@@ -504,19 +514,19 @@ gcmAppendEncrypt ctx gcm input = unsafePerformIO $ withGCMKeyAndCopySt ctx gcm d
+@@ -504,19 +515,19 @@ gcmAppendEncrypt ctx gcm input = unsafePerformIO $ withGCMKeyAndCopySt ctx gcm d
  -- need to happen after AAD appending, or after initialization if no AAD data.
  {-# NOINLINE gcmAppendDecrypt #-}
  gcmAppendDecrypt :: AES -> AESGCM -> ByteString -> (ByteString, AESGCM)
@@ -226,7 +230,7 @@ index eab493e..32ceb9f 100644
  
  ------------------------------------------------------------------------
  -- OCB v3
-@@ -541,7 +551,7 @@ doOCB f ctx iv aad input = (output, tag)
+@@ -541,7 +552,7 @@ doOCB f ctx iv aad input = (output, tag)
  ocbInit :: Byteable iv => AES -> iv -> AESOCB
  ocbInit ctx iv = unsafePerformIO $ do
      sm <- createSecureMem sizeOCB $ \ocbStPtr ->
@@ -235,7 +239,7 @@ index eab493e..32ceb9f 100644
              c_aes_ocb_init (castPtr ocbStPtr) k v (fromIntegral $ byteableLength iv)
      return $ AESOCB sm
  
-@@ -589,68 +599,71 @@ ocbFinish ctx ocb taglen = AuthTag $ B.take taglen computeTag
+@@ -589,68 +600,71 @@ ocbFinish ctx ocb taglen = AuthTag $ B.take taglen computeTag
                          withOCBKeyAndCopySt ctx ocb (c_aes_ocb_finish (castPtr t)) >> return ()
  
  ------------------------------------------------------------------------
@@ -277,12 +281,14 @@ index eab493e..32ceb9f 100644
  
  ------------------------------------------------------------------------
 -foreign import ccall "aes.h aes_gen_ctr"
-+foreign import java unsafe "@static eta.cipher_aes.AESContext.aes_gen_ctr"
-     c_aes_gen_ctr :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
+-    c_aes_gen_ctr :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
++foreign import java unsafe "genCTR"
++    c_aes_gen_ctr :: AES -> CString -> Ptr Word8 -> CUInt -> IO ()
  
 -foreign import ccall unsafe "aes.h aes_gen_ctr_cont"
-+foreign import java unsafe "@static eta.cipher_aes.AESContext.aes_gen_ctr_cont"
-     c_aes_gen_ctr_cont :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
+-    c_aes_gen_ctr_cont :: CString -> Ptr AES -> Ptr Word8 -> CUInt -> IO ()
++foreign import java unsafe "genCounter"
++    c_aes_gen_ctr_cont :: AES -> CString -> Ptr Word8 -> CUInt -> IO ()
  
 -foreign import ccall "aes.h aes_encrypt_ctr"
 -    c_aes_encrypt_ctr :: CString -> Ptr AES -> Ptr Word8 -> CString -> CUInt -> IO ()
@@ -339,7 +345,7 @@ index eab493e..32ceb9f 100644
 +foreign import java unsafe "clone" c_aes_clone :: AES -> IO AES
 +foreign import java unsafe "deepClone" c_aes_gcm_clone :: AESGCM -> IO AESGCM
 diff --git a/Tests/Tests.hs b/Tests/Tests.hs
-index 7654515..942cb17 100644
+index 7654515..34dbb91 100644
 --- a/Tests/Tests.hs
 +++ b/Tests/Tests.hs
 @@ -49,6 +49,7 @@ toKatOCB = toKatAEAD AEAD_OCB
@@ -374,18 +380,6 @@ index 7654515..942cb17 100644
      , kat_AEAD = map toKatGCM KATGCM.vectors_aes256_enc
      }
  
-@@ -76,9 +83,11 @@ main = defaultMain
-     [ testBlockCipher kats128 (undefined :: AES.AES128)
-     , testBlockCipher kats192 (undefined :: AES.AES192)
-     , testBlockCipher kats256 (undefined :: AES.AES256)
-+{-
-     , testProperty "genCtr" $ \(key, iv1) ->
-         let (bs1, iv2)    = AES.genCounter key iv1 32
-             (bs2, iv3)    = AES.genCounter key iv2 32
-             (bsAll, iv3') = AES.genCounter key iv1 64
-          in (B.concat [bs1,bs2] == bsAll && iv3 == iv3')
-+-}
-     ]
 diff --git a/cipher-aes.cabal b/cipher-aes.cabal
 index 0b2da89..f0ac393 100644
 --- a/cipher-aes.cabal
@@ -415,10 +409,10 @@ index 0b2da89..f0ac393 100644
                     , crypto-cipher-types >= 0.0.6
 diff --git a/java/AESContext.java b/java/AESContext.java
 new file mode 100644
-index 0000000..2bb4903
+index 0000000..ee6bdd3
 --- /dev/null
 +++ b/java/AESContext.java
-@@ -0,0 +1,393 @@
+@@ -0,0 +1,448 @@
 +package eta.cipher_aes;
 +
 +import java.util.Arrays;
@@ -752,6 +746,61 @@ index 0000000..2bb4903
 +            initCipher(CipherType.CTR, true, getBytes(ivPtr, 16));
 +        }
 +        cipher.update(getBuffer(inputPtr, len), getBuffer(outputPtr));
++    }
++
++     /* This pseudoInput is the identity to the XOR function. */
++    public static final byte[] pseudoBytes = new byte[16];
++    public static final ThreadLocal<ByteBuffer> pseudoInput =
++        new ThreadLocal<ByteBuffer>() {
++            @Override
++            public ByteBuffer initialValue() {
++                return ByteBuffer.wrap(pseudoBytes);
++            }
++        };
++
++    public void genCTR(long outputPtr, long ivPtr, int blocks)
++        throws ShortBufferException, IllegalBlockSizeException, BadPaddingException,
++               NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException,
++               InvalidAlgorithmParameterException {
++        gen_ctr(outputPtr, getBytes(ivPtr, 16), blocks);
++    }
++
++    public void genCounter(long outputPtr, long ivPtr, int blocks)
++        throws ShortBufferException, IllegalBlockSizeException, BadPaddingException,
++               NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException,
++               InvalidAlgorithmParameterException {
++        final byte[] iv = getBytes(ivPtr, 16);
++        gen_ctr(outputPtr, iv, blocks);
++
++        // Increment iv by blocks
++        ByteBuffer q = ByteBuffer.wrap(iv);
++        long q0 = q.getLong();
++        long q1 = q.getLong();
++        for (int i = 0; i < blocks; i++) {
++            if (++q1 == 0) {
++                q0++;
++            }
++        }
++        q = ByteBuffer.wrap(new byte[16]);
++        q.putLong(q0);
++        q.putLong(q1);
++        putBytes(ivPtr, q.array());
++    }
++
++    private void gen_ctr(long outputPtr, byte[] iv, int blocks)
++        throws ShortBufferException, IllegalBlockSizeException, BadPaddingException,
++               NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException,
++               InvalidAlgorithmParameterException {
++        if (cipher == null) {
++            initCipher(CipherType.CTR, true, iv) ;
++        }
++        final ByteBuffer output = getBuffer(outputPtr);
++        final ByteBuffer input = pseudoInput.get();
++        input.clear();
++        for (int i = 0; i < blocks; i++) {
++            cipher.update(input, output);
++            input.clear();
++        }
 +    }
 +
 +    private void initCipher(CipherType cipherType, boolean forEncryption)
