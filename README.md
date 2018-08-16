@@ -230,6 +230,7 @@ These packages are supported by `etlas`.
 - [hashable >= 1.2.4.0 && <= 1.2.7.0](https://hackage.haskell.org/package/hashable)
 - [hashtables >= 1.2.1.0 && <= 1.2.3.1](https://hackage.haskell.org/package/hashtables)
 - [haxl >= 2.0.0.0 && <= 2.0.1.0](http://hackage.haskell.org/package/haxl)
+- [haste-prim-0.6.0.0](http://hackage.haskell.org/package/haste-prim-0.6.0.0)
 - [heap-1.0.3](https://hackage.haskell.org/package/heap-1.0.3)
 - [heaps-0.3.3](https://hackage.haskell.org/package/heaps-0.3.3)
 - [hedgehog >= 0.5.3 && <= 0.6](https://hackage.haskell.org/package/hedgehog-0.6)
