@@ -1,0 +1,63 @@
+From df03f4817c260332513e1681e2b3219e73f18f73 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 16 Aug 2018 12:37:47 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Foreign/Store.hs | 43 ++++++++++++++++++++++++-------------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
+
+diff --git a/src/Foreign/Store.hs b/src/Foreign/Store.hs
+index 61751db..fba0e23 100644
+--- a/src/Foreign/Store.hs
++++ b/src/Foreign/Store.hs
+@@ -111,22 +111,27 @@ withStore s f =
+   do v <- readStore s
+      f v
+ 
+-foreign import ccall
+-  "x-helpers.h x_store"
+-  x_store :: StablePtr a -> IO Word32
+-
+-foreign import ccall
+-  "x-helpers.h x_set"
+-  x_set :: Word32 -> StablePtr a -> IO ()
+-
+-foreign import ccall
+-  "x-helpers.h x_get"
+-  x_get :: Word32 -> IO (StablePtr a)
+-
+-foreign import ccall
+-  "x-helpers.h x_lookup"
+-  x_lookup :: Word32 -> IO Word32
+-
+-foreign import ccall
+-  "x-helpers.h x_delete"
+-  x_delete :: Word32 -> IO ()
++-- foreign import ccall
++--   "x-helpers.h x_store"
++x_store :: StablePtr a -> IO Word32
++x_store = error "x_store not implemented!"
++
++-- foreign import ccall
++--   "x-helpers.h x_set"
++x_set :: Word32 -> StablePtr a -> IO ()
++x_set = error "x-set not implemented!"
++
++-- foreign import ccall
++--   "x-helpers.h x_get"
++x_get :: Word32 -> IO (StablePtr a)
++x_get = error "x_get not implemented!"
++
++-- foreign import ccall
++--   "x-helpers.h x_lookup"
++x_lookup :: Word32 -> IO Word32
++x_lookup = error "x_lookup not implemented!"
++
++-- foreign import ccall
++--   "x-helpers.h x_delete"
++x_delete :: Word32 -> IO ()
++x_delete = error "x_delete not implemented!"
+-- 
+2.15.2 (Apple Git-101.1)
+
