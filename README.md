@@ -483,6 +483,7 @@ These packages are supported by `etlas`.
 - [xml-1.3.5](https://hackage.haskell.org/package/xml-1.3.5)
 - [xml-types-0.3.6](https://hackage.haskell.org/package/xml-types-0.3.6)
 - [xmlhtml >= 0.2.3.5 && <= 0.2.5.2](https://hackage.haskell.org/package/xmlhtml)
+- [yesod-1.6.0](https://hackage.haskell.org/package/yesod-1.6.0)
 - [yesod-core-1.6.6](https://hackage.haskell.org/package/yesod-core-1.6.6)
 - [yesod-static-1.6.0](https://hackage.haskell.org/package/yesod-static-1.6.0)
 - [yi-rope-0.10](https://hackage.haskell.org/package/yi-rope-0.10)
