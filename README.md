@@ -484,6 +484,7 @@ These packages are supported by `etlas`.
 - [xml-types-0.3.6](https://hackage.haskell.org/package/xml-types-0.3.6)
 - [xmlhtml >= 0.2.3.5 && <= 0.2.5.2](https://hackage.haskell.org/package/xmlhtml)
 - [yesod-core-1.6.6](https://hackage.haskell.org/package/yesod-core-1.6.6)
+- [yesod-static-1.6.0](https://hackage.haskell.org/package/yesod-static-1.6.0)
 - [yi-rope-0.10](https://hackage.haskell.org/package/yi-rope-0.10)
 - [zip-archive-0.3.3](https://hackage.haskell.org/package/zip-archive-0.3.3)
 - [zlib-0.6.1.2](https://hackage.haskell.org/package/zlib-0.6.1.2)

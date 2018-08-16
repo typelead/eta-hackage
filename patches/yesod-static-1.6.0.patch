@@ -1,0 +1,166 @@
+From c634ebbfc44e5054655c37713ca9f4e17ab11f9d Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 16 Aug 2018 11:46:44 +0530
+Subject: [PATCH] Patched
+
+---
+ Yesod/Static.hs        | 35 +++++++++++++++++++++++++----------
+ client_session_key.aes |  1 +
+ java/Utils.java        | 21 +++++++++++++++++++++
+ yesod-static.cabal     |  8 +++++---
+ 4 files changed, 52 insertions(+), 13 deletions(-)
+ create mode 100644 client_session_key.aes
+ create mode 100644 java/Utils.java
+
+diff --git a/Yesod/Static.hs b/Yesod/Static.hs
+index e426f62..0419296 100644
+--- a/Yesod/Static.hs
++++ b/Yesod/Static.hs
+@@ -7,6 +7,7 @@
+ {-# LANGUAGE OverloadedStrings #-}
+ {-# LANGUAGE RecordWildCards #-}
+ {-# LANGUAGE FlexibleContexts #-}
++{-# LANGUAGE ForeignFunctionInterface #-}
+ ---------------------------------------------------------
+ --
+ -- | Serve static files from a Yesod app.
+@@ -90,7 +91,7 @@ import Data.IORef (readIORef, newIORef, writeIORef)
+ import Data.Char (isLower, isDigit)
+ import Data.List (foldl')
+ import qualified Data.ByteString as S
+-import System.PosixCompat.Files (getFileStatus, modificationTime)
++-- import System.PosixCompat.Files (getFileStatus, modificationTime)
+ import System.Posix.Types (EpochTime)
+ import Conduit
+ import System.FilePath ((</>), (<.>), takeDirectory)
+@@ -98,6 +99,9 @@ import qualified System.FilePath as F
+ import qualified Data.Text.Lazy as TL
+ import qualified Data.Text.Lazy.Encoding as TLE
+ import Data.Default
++import Data.Time.Clock.POSIX
++import Data.Time.Clock (UTCTime)
++import Data.Int
+ --import Text.Lucius (luciusRTMinified)
+ 
+ import Network.Wai (pathInfo)
+@@ -335,22 +339,33 @@ pathFromRawPieces =
+   where
+     append a b = a ++ '/' : b
+ 
++data BasicFileAttributes = BasicFileAttributes @java.nio.file.attribute.BasicFileAttributes
++
++foreign import java unsafe "@static eta.yesod_static.Utils.getFileStatus"
++  getFileStatus :: FilePath -> IO (Maybe BasicFileAttributes)
++
+ cachedETagLookupDevel :: FilePath -> IO ETagLookup
+ cachedETagLookupDevel dir = do
+     etags <- mkHashMap dir
+-    mtimeVar <- newIORef (M.empty :: M.Map FilePath EpochTime)
++    mtimeVar <- newIORef (M.empty :: M.Map FilePath UTCTime)
+     return $ \f ->
+       case M.lookup f etags of
+         Nothing -> return Nothing
+         Just checksum -> do
+-          fs <- getFileStatus f
+-          let newt = modificationTime fs
+-          mtimes <- readIORef mtimeVar
+-          oldt <- case M.lookup f mtimes of
+-            Nothing -> writeIORef mtimeVar (M.insert f newt mtimes) >> return newt
+-            Just oldt -> return oldt
+-          return $ if newt /= oldt then Nothing else Just checksum
+-
++          maybeFileStatus <- getFileStatus f
++          case maybeFileStatus of
++             Nothing -> return Nothing
++             Just fs -> do
++                  fileModified <- getModifiedTime fs
++                  let newt = posixSecondsToUTCTime (fromIntegral fileModified / 1000000000)
++                  mtimes <- readIORef mtimeVar
++                  oldt <- case M.lookup f mtimes of
++                    Nothing -> writeIORef mtimeVar (M.insert f newt mtimes) >> return newt
++                    Just oldt -> return oldt
++                  return $ if newt /= oldt then Nothing else Just checksum
++
++foreign import java unsafe "@static eta.yesod_static.Utils.lastModifiedTime"
++  getModifiedTime :: BasicFileAttributes -> IO Int64
+ 
+ cachedETagLookup :: FilePath -> IO ETagLookup
+ cachedETagLookup dir = do
+diff --git a/client_session_key.aes b/client_session_key.aes
+new file mode 100644
+index 0000000..441db74
+--- /dev/null
++++ b/client_session_key.aes
+@@ -0,0 +1 @@
++IÕ#uê‹?2©Ó;B¯#*Ä˚L◊I…‡Ã+!†‹º@oπ@)„tÁÀ;&ﬂÖ„.nΩ'HìºÅ>2õSËf‹‡+Qqs<'é^ﬂª¶©Œ~¬µiÛ∞√4"—ùôH
+\ No newline at end of file
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..c80697b
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,21 @@
++package eta.yesod_static;
++
++import java.nio.file.Path;
++import java.nio.file.attribute.BasicFileAttributes;
++import java.nio.file.Paths;
++import java.nio.file.Files;
++import java.io.IOException;
++import java.util.concurrent.TimeUnit;
++
++public class Utils {
++  public static BasicFileAttributes getFileStatus(String path) {
++    try {
++      return Files.readAttributes(Paths.get(path), BasicFileAttributes.class);
++    } catch(IOException e) {
++      return null;
++    }
++  }
++  public static long lastModifiedTime(BasicFileAttributes attrs) {
++     return attrs.lastModifiedTime().to(TimeUnit.NANOSECONDS);
++   }
++}
+diff --git a/yesod-static.cabal b/yesod-static.cabal
+index e5135d0..82f44d9 100644
+--- a/yesod-static.cabal
++++ b/yesod-static.cabal
+@@ -41,7 +41,7 @@ library
+                    , text                  >= 0.9
+                    , file-embed            >= 0.0.4.1  && < 0.5
+                    , http-types            >= 0.7
+-                   , unix-compat           >= 0.2
++                   -- , unix-compat           >= 0.2
+                    , conduit               >= 1.3
+                    , cryptonite-conduit    >= 0.1
+                    , cryptonite            >= 0.11
+@@ -54,7 +54,7 @@ library
+                    , unordered-containers  >= 0.2
+                    , process
+                    , async
+-
++                   , time
+                    , attoparsec            >= 0.10
+                    , blaze-builder         >= 0.3
+                    , css-text              >= 0.1.2
+@@ -72,6 +72,7 @@ library
+ 
+     ghc-options:     -Wall
+     extensions: TemplateHaskell
++    java-sources: java/Utils.java
+ 
+ test-suite tests
+     hs-source-dirs: ., test
+@@ -110,7 +111,8 @@ test-suite tests
+                    , text
+                    , file-embed
+                    , http-types
+-                   , unix-compat
++                   -- , unix-compat
++                   , time
+                    , conduit
+                    , cryptonite-conduit
+                    , cryptonite
+-- 
+2.15.2 (Apple Git-101.1)
+
