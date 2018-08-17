@@ -1,0 +1,51 @@
+From 564ada1ee3fcca8b0dbfab0762095178fb3ce6f4 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Fri, 17 Aug 2018 10:57:50 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Network/Transport/Internal.hs | 21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
+
+diff --git a/src/Network/Transport/Internal.hs b/src/Network/Transport/Internal.hs
+index 96ae29d..87f50af 100644
+--- a/src/Network/Transport/Internal.hs
++++ b/src/Network/Transport/Internal.hs
+@@ -49,6 +49,7 @@ import Control.Concurrent (ThreadId, forkIO)
+ import Control.Concurrent.MVar (MVar, newEmptyMVar, takeMVar, putMVar)
+ import GHC.IO (unsafeUnmask)
+ import System.Timeout (timeout)
++import Data.Word
+ --import Control.Concurrent (myThreadId)
+ 
+ #ifdef mingw32_HOST_OS
+@@ -60,10 +61,22 @@ foreign import stdcall unsafe "ntohs" ntohs :: CShort -> CShort
+ 
+ #else
+ 
+-foreign import ccall unsafe "htonl" htonl :: CInt -> CInt
+-foreign import ccall unsafe "ntohl" ntohl :: CInt -> CInt
+-foreign import ccall unsafe "htons" htons :: CShort -> CShort
+-foreign import ccall unsafe "ntohs" ntohs :: CShort -> CShort
++-- foreign import ccall unsafe "htonl" htonl :: CInt -> CInt
++-- foreign import ccall unsafe "ntohl" ntohl :: CInt -> CInt
++-- foreign import ccall unsafe "htons" htons :: CShort -> CShort
++-- foreign import ccall unsafe "ntohs" ntohs :: CShort -> CShort
++htonl :: Word32 -> Word32
++htonl = id
++
++ntohl :: Word32 -> Word32
++ntohl = id
++
++htons :: Word16 -> Word16
++htons = id
++
++ntohs :: Word16 -> Word16
++ntohs = id
++#endif
+ 
+ #endif
+ 
+-- 
+2.15.2 (Apple Git-101.1)
+
