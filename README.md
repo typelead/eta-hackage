@@ -182,6 +182,7 @@ These packages are supported by `etlas`.
 - [directory >= 1.3.0.0 && <= 1.3.1.0](https://hackage.haskell.org/package/directory)
 - [directory-tree-0.12.1](https://hackage.haskell.org/package/directory-tree-0.12.1)
 - [disjoint-sets-st-0.1](https://hackage.haskell.org/package/disjoint-sets-st-0.1)
+- [distributed-process-p2p-0.1.3.2](https://hackage.haskell.org/package/distributed-process-p2p)
 - [distributive >= 0.5.0.2 && <= 0.5.3](https://hackage.haskell.org/package/distributive)
 - [dlist >= 0.8.0.2 && <= 0.8.0.3](https://hackage.haskell.org/package/dlist)
 - [dom-lt-0.1.3](https://hackage.haskell.org/package/dom-lt-0.1.3)

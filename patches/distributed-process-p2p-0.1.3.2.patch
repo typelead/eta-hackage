@@ -1,0 +1,35 @@
+From 1555cfcc125f7c9ee08e0177f5e5d1fbaeaad13d Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Fri, 17 Aug 2018 11:03:00 +0530
+Subject: [PATCH] Patched
+
+---
+ cabal.project                 | 2 ++
+ distributed-process-p2p.cabal | 2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+ create mode 100644 cabal.project
+
+diff --git a/cabal.project b/cabal.project
+new file mode 100644
+index 0000000..57d8b75
+--- /dev/null
++++ b/cabal.project
+@@ -0,0 +1,2 @@
++packages: .
++constraints: network-transport-tcp >=0.4 && <0.6, network-transport <0.5
+diff --git a/distributed-process-p2p.cabal b/distributed-process-p2p.cabal
+index 9f3b626..e9d4e24 100644
+--- a/distributed-process-p2p.cabal
++++ b/distributed-process-p2p.cabal
+@@ -37,7 +37,7 @@ library
+ 
+     distributed-process   >=0.5,
+     network-transport     >=0.4,
+-    network-transport-tcp >=0.4
++    network-transport-tcp >=0.4 && <0.6
+ 
+ executable jollycloud
+   if !flag(build-example)
+-- 
+2.15.2 (Apple Git-101.1)
+
