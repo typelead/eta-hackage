@@ -330,6 +330,7 @@ These packages are supported by `etlas`.
 - [nested-sets-0.0.1.1](https://hackage.haskell.org/package/nested-sets-0.0.1.1)
 - [network-2.6.3.2](https://hackage.haskell.org/package/network-2.6.3.2)
 - [network-info-0.2.0.10](https://hackage.haskell.org/package/network-info)
+- [network-multicast-0.2.0](https://hackage.haskell.org/package/network-multicast)
 - [network-transport >=0.4.4.0 && <= 0.5.2](https://hackage.haskell.org/package/network-transport)
 - [network-uri >= 2.6.0.2 && <= 2.6.1.0](https://hackage.haskell.org/package/network-uri)
 - [newtype-0.2](https://hackage.haskell.org/package/newtype-0.2)

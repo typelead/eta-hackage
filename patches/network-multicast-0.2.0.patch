@@ -1,0 +1,118 @@
+From 368c07b04a5e7fd570796c69793d297682390b42 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Fri, 17 Aug 2018 11:24:01 +0530
+Subject: [PATCH] Patched
+
+---
+ network-multicast.cabal                     |  4 +--
+ src/Network/{Multicast.hsc => Multicast.hs} | 41 ++++++++++++++++-------------
+ 2 files changed, 24 insertions(+), 21 deletions(-)
+ rename src/Network/{Multicast.hsc => Multicast.hs} (79%)
+
+diff --git a/network-multicast.cabal b/network-multicast.cabal
+index abae61d..9867791 100644
+--- a/network-multicast.cabal
++++ b/network-multicast.cabal
+@@ -19,8 +19,8 @@ library
+     exposed-modules:    Network.Multicast
+     build-depends:      base >= 4 && < 5, network
+     hs-source-dirs:     src
+-    if os(win32)
+-        extra-libraries: ws2_32
++    -- if os(win32)
++    --     extra-libraries: ws2_32
+ 
+ source-repository head
+   type:     git
+diff --git a/src/Network/Multicast.hsc b/src/Network/Multicast.hs
+similarity index 79%
+rename from src/Network/Multicast.hsc
+rename to src/Network/Multicast.hs
+index 11b9780..df648f8 100644
+--- a/src/Network/Multicast.hsc
++++ b/src/Network/Multicast.hs
+@@ -3,7 +3,7 @@
+ -- Module      :  Network.Multicast
+ -- Copyright   :  (c) Audrey Tang 2008
+ -- License     :  MIT License
+--- 
++--
+ -- Maintainer  :  audreyt@audreyt.org
+ -- Stability   :  experimental
+ -- Portability :  portable
+@@ -12,7 +12,7 @@
+ -- (class D) addresses.
+ --
+ -----------------------------------------------------------------------------
+-#include <HsNet.h>
++-- #include <HsNet.h>
+ 
+ module Network.Multicast (
+     -- * Simple sending and receiving
+@@ -95,7 +95,7 @@ multicastReceiver host port = bracketOnError get sClose setup
+ doSetSocketOption :: Storable a => CInt -> Socket -> a -> IO CInt
+ doSetSocketOption ip_multicast_option (MkSocket s _ _ _ _) x = alloca $ \ptr -> do
+     poke ptr x
+-    c_setsockopt s _IPPROTO_IP ip_multicast_option (castPtr ptr) (toEnum $ sizeOf x)
++    c_setsockopt undefined _IPPROTO_IP ip_multicast_option (castPtr ptr) (toEnum $ sizeOf x)
+ 
+ -- | Enable or disable the loopback mode on a socket created by 'multicastSender'.
+ -- Loopback is enabled by default; disabling it may improve performance a little bit.
+@@ -130,14 +130,16 @@ maybeIOError name f = f >>= \err -> case err of
+     _ -> ioError (errnoToIOError name (Errno (fromIntegral err)) Nothing Nothing)
+ 
+ doMulticastGroup :: CInt -> Socket -> HostName -> Maybe HostName -> IO CInt
+-doMulticastGroup flag (MkSocket s _ _ _ _) host local = allocaBytes #{size struct ip_mreq} $ \mReqPtr -> do
+-    addr <- inet_addr host
+-    iface <- case local of
+-        Nothing -> return (#{const INADDR_ANY} `asTypeOf` addr)
+-        Just loc -> inet_addr loc
+-    #{poke struct ip_mreq, imr_multiaddr} mReqPtr addr
+-    #{poke struct ip_mreq, imr_interface} mReqPtr iface
+-    c_setsockopt s _IPPROTO_IP flag (castPtr mReqPtr) (#{size struct ip_mreq})
++doMulticastGroup flag (MkSocket s _ _ _ _) host local = error "doMulticastGroup not implemented yet!"
++
++  -- allocaBytes #{size struct ip_mreq} $ \mReqPtr -> do
++  --   addr <- inet_addr host
++  --   iface <- case local of
++  --       Nothing -> return (#{const INADDR_ANY} `asTypeOf` addr)
++  --       Just loc -> inet_addr loc
++  --   #{poke struct ip_mreq, imr_multiaddr} mReqPtr addr
++  --   #{poke struct ip_mreq, imr_interface} mReqPtr iface
++  --   c_setsockopt s _IPPROTO_IP flag (castPtr mReqPtr) (#{size struct ip_mreq})
+ 
+ #ifdef mingw32_HOST_OS
+ foreign import stdcall unsafe "setsockopt"
+@@ -158,20 +160,21 @@ _IP_DROP_MEMBERSHIP = 13
+ 
+ #else
+ 
+-foreign import ccall unsafe "setsockopt"
+-    c_setsockopt :: CInt -> CInt -> CInt -> Ptr CInt -> CInt -> IO CInt
++-- foreign import ccall unsafe "setsockopt"
++c_setsockopt :: CInt -> CInt -> CInt -> Ptr CInt -> CInt -> IO CInt
++c_setsockopt = error "_IP_MULTICAST_IF not implemented!" --
+ 
+ getLastError :: CInt -> IO CInt
+ getLastError = return
+ 
+ _IP_MULTICAST_IF, _IP_MULTICAST_TTL, _IP_MULTICAST_LOOP, _IP_ADD_MEMBERSHIP, _IP_DROP_MEMBERSHIP :: CInt
+-_IP_MULTICAST_IF    = #const IP_MULTICAST_IF
+-_IP_MULTICAST_TTL   = #const IP_MULTICAST_TTL
+-_IP_MULTICAST_LOOP  = #const IP_MULTICAST_LOOP
+-_IP_ADD_MEMBERSHIP  = #const IP_ADD_MEMBERSHIP
+-_IP_DROP_MEMBERSHIP = #const IP_DROP_MEMBERSHIP
++_IP_MULTICAST_IF    = error "_IP_MULTICAST_IF not implemented!" -- #const IP_MULTICAST_IF
++_IP_MULTICAST_TTL   = error "_IP_MULTICAST_TTL not implemented!" -- #const IP_MULTICAST_TTL
++_IP_MULTICAST_LOOP  = error "_IP_MULTICAST_LOOP not implemented!" -- #const IP_MULTICAST_LOOP
++_IP_ADD_MEMBERSHIP  = error "_IP_ADD_MEMBERSHIP not implemented!" -- #const IP_ADD_MEMBERSHIP
++_IP_DROP_MEMBERSHIP = error "_IP_DROP_MEMBERSHIP not implemented!" -- #const IP_DROP_MEMBERSHIP
+ 
+ #endif
+ 
+ _IPPROTO_IP :: CInt
+-_IPPROTO_IP = #const IPPROTO_IP
++_IPPROTO_IP = error "_IPPROTO_IP not implemented!" -- #const IPPROTO_IP
+-- 
+2.15.2 (Apple Git-101.1)
+
