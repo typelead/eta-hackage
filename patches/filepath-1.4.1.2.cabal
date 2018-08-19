@@ -50,7 +50,7 @@ library
         System.FilePath.Internal
 
     build-depends:
-        base >= 4 && < 4.11
+        base >= 4 && < 4.12
 
     ghc-options: -Wall
 
