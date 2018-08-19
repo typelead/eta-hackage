@@ -453,6 +453,7 @@ These packages are supported by `etlas`.
 - [unexceptionalio-0.3.0](https://hackage.haskell.org/package/unexceptionalio-0.3.0)
 - [unicode-transforms-0.2.0](https://hackage.haskell.org/packages/unicode-transforms-0.2.0)
 - [unification-fd-0.10.0.1](https://hackage.haskell.org/package/unification-fd-0.10.0.1)
+- [unbounded-delays-0.1.1.0](https://hackage.haskell.org/package/unbounded-delays-0.1.1.0)
 - [union-find-0.2](https://hackage.haskell.org/package/union-find-0.2)
 - [union-find-array-0.1.0.2](https://hackage.haskell.org/package/union-find-array-0.1.0.2)
 - [unix-time-0.3.7](https://hackage.haskell.org/package/unix-time-0.3.7)

@@ -1,0 +1,25 @@
+From 0921def6c73ce7c4fa59a353483ebf62a675c96e Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 20 Aug 2018 00:14:04 +0530
+Subject: [PATCH] Patched
+
+---
+ Control/Concurrent/Timeout.hs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Control/Concurrent/Timeout.hs b/Control/Concurrent/Timeout.hs
+index d8e7cde..e595d8d 100644
+--- a/Control/Concurrent/Timeout.hs
++++ b/Control/Concurrent/Timeout.hs
+@@ -1,7 +1,7 @@
+ {-# LANGUAGE CPP, DeriveDataTypeable, NoImplicitPrelude #-}
+ 
+ #if __GLASGOW_HASKELL__ >= 704
+-{-# LANGUAGE Safe #-}
++-- {-# LANGUAGE Safe #-}
+ #endif
+ 
+ -------------------------------------------------------------------------------
+-- 
+2.15.2 (Apple Git-101.1)
+
