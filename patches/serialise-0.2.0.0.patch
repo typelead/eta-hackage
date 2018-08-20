@@ -1,0 +1,75 @@
+From 07df3e645788747267f107444fc90b1c20330b40 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Mon, 20 Aug 2018 10:15:03 +0200
+Subject: [PATCH] Patched
+
+---
+ serialise.cabal              |  2 +-
+ src/Codec/Serialise/Class.hs | 10 +++++-----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/serialise.cabal b/serialise.cabal
+index 7260ed9..aecdc0a 100644
+--- a/serialise.cabal
++++ b/serialise.cabal
+@@ -69,7 +69,7 @@ library
+     cborg                   == 0.2.*,
+     containers              >= 0.5     && < 0.6,
+     ghc-prim                >= 0.3     && < 0.6,
+-    half                    >= 0.2.2.3 && < 0.3,
++    half                    >= 0.2.2.3 && < 0.4,
+     hashable                >= 1.2     && < 2.0,
+     primitive               >= 0.5     && < 0.7,
+     text                    >= 1.1     && < 1.3,
+diff --git a/src/Codec/Serialise/Class.hs b/src/Codec/Serialise/Class.hs
+index 246860a..1c75df3 100644
+--- a/src/Codec/Serialise/Class.hs
++++ b/src/Codec/Serialise/Class.hs
+@@ -96,7 +96,7 @@ import           System.Exit                         (ExitCode(..))
+ 
+ import           Prelude hiding (decodeFloat, encodeFloat, foldr)
+ import qualified Prelude
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined (ETA_VERSION)
+ import           Type.Reflection
+ import           Type.Reflection.Unsafe
+ import           GHC.Fingerprint
+@@ -1072,7 +1072,7 @@ instance Serialise Fingerprint where
+ 
+ -- | @since 0.2.0.0
+ instance Serialise TyCon where
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined (ETA_VERSION)
+   encode tc
+     = encodeListLen 6
+    <> encodeWord 0
+@@ -1087,7 +1087,7 @@ instance Serialise TyCon where
+     case tag of
+       0 -> mkTyCon <$> decode <*> decode <*> decode <*> decode <*> decode
+       _ -> fail "unexpected tag"
+-#elif MIN_VERSION_base(4,9,0)
++#elif MIN_VERSION_base(4,9,0) && !defined (ETA_VERSION)
+   encode tycon
+     = encodeListLen 4
+    <> encodeWord 0
+@@ -1103,7 +1103,7 @@ instance Serialise TyCon where
+    <> encode name
+ #endif
+ 
+-#if !MIN_VERSION_base(4,10,0)
++#if !MIN_VERSION_base(4,10,0) || defined (ETA_VERSION)
+   decode = do
+     decodeListLenOf 4
+     tag <- decodeWord
+@@ -1115,7 +1115,7 @@ instance Serialise TyCon where
+       _ -> fail "unexpected tag"
+ #endif
+ 
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined (ETA_VERSION)
+ -- | @since 0.2.0.0
+ instance Serialise VecCount where
+   encode c = encodeListLen 1 <> encodeWord (fromIntegral $ fromEnum c)
+-- 
+2.16.2.windows.1
+
