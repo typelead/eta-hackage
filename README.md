@@ -61,7 +61,7 @@ and try the installation again.
     - [Pretty Printers](#pretty-printers)
     - [System](#system)
     - [Metaprogramming](#metaprogramming)
-    - [Others](#others)
+    - [Uncategorized](#uncategorized)
   - [Unsupported Packages](#unsupported-packages)
   - [Built-in Packages](#built-in-packages)
 - [Contributing](#contributing)
@@ -84,7 +84,7 @@ If you would like to have a given package/version made compatible with `etlas`, 
 
 These packages are supported by `etlas`.
 
-Web Development
+#### Web Development
 - [cookie >= 0.4.2.1 && <= 0.4.3](https://hackage.haskell.org/package/cookie)
 - [heist-1.0.1.1](https://hackage.haskell.org/package/heist-1.0.1.1)
 - [html-1.0.1.2](https://hackage.haskell.org/package/html-1.0.1.2)
@@ -118,17 +118,17 @@ Web Development
 - [yesod-core-1.6.6](https://hackage.haskell.org/package/yesod-core-1.6.6)
 - [yesod-static-1.6.0](https://hackage.haskell.org/package/yesod-static-1.6.0)
 
-Authentication
+#### Authentication
 - [authenticate-1.3.4](https://hackage.haskell.org/package/authenticate-1.3.4)
 - [authenticate-oauth-1.6](https://hackage.haskell.org/package/authenticate-oauth-1.6)
 
-Compilers
+#### Compilers
 - [Agda-2.5.4.1](https://hackage.haskell.org/package/Agda-2.5.4.1)
 - [Elm-0.13](https://hackage.haskell.org/package/Elm-0.13)
 - [idris-1.3.0](https://hackage.haskell.org/package/idris-1.3.0)
 - [purescript-0.12.0](https://hackage.haskell.org/package/purescript-0.12.0)
 
-Data Structures
+#### Data Structures
 - [abstract-deque-0.3](https://hackage.haskell.org/package/abstract-deque-0.3)
 - [array >= 0.5.1.1 && <= 0.5.2.0](https://hackage.haskell.org/package/array)
 - [array-utils-0.3](https://hackage.haskell.org/package/array-utils-0.3)
@@ -185,17 +185,17 @@ Data Structures
 - [vector-th-unbox-0.2.1.6](https://hackage.haskell.org/package/vector-th-unbox-0.2.1.6)
 - [yi-rope-0.10](https://hackage.haskell.org/package/yi-rope-0.10)
 
-Parallel Computing
+#### Parallel Computing
 - [abstract-par-0.3.3](https://hackage.haskell.org/package/abstract-par-0.3.3)
 - [monad-par-0.3.4.8](https://hackage.haskell.org/package/monad-par-0.3.4.8)
 - [monad-par-extras-0.3.3](https://hackage.haskell.org/package/monad-par-extras-0.3.3)
 - [monad-parallel-0.7.2.2](https://hackage.haskell.org/package/monad-parallel-0.7.2.2)
 - [parallel-3.2.1.0](https://hackage.haskell.org/package/parallel-3.2.1.0)
 
-Animations
+#### Animations
 - [active-0.2.0.13](https://hackage.haskell.org/package/active-0.2.0.13)
 
-Math & Abstractions
+#### Math & Abstractions
 - [ad-4.3.5](https://hackage.haskell.org/package/ad-4.3.5)
 - [adjunctions >= 4.3 && <= 4.4](https://hackage.haskell.org/package/adjunctions-4.4)
 - [affine-0.1.1.0](https://hackage.haskell.org/package/affine-0.1.1.0)
@@ -244,15 +244,15 @@ Math & Abstractions
 - [transformers-base-0.4.4](http://hackage.haskell.org/package/transformers-base-0.4.4)
 - [transformers-compat-0.5.1.4](http://hackage.haskell.org/package/transformers-compat-0.5.1.4)
 
-AWS
+#### AWS
 - [amazonka-1.6.0](https://hackage.haskell.org/package/amazonka-1.6.0)
 - [amazonka-core-1.6.0](https://hackage.haskell.org/package/amazonka-core-1.6.0)
 - [aws-0.20](https://hackage.haskell.org/package/aws-0.20)
 
-Incremental Computing
+#### Incremental Computing
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
 
-JSON
+#### JSON
 - [aeson == 0.11.0.0 || >= 0.11.3.0 && <= 1.2.3.0](https://hackage.haskell.org/package/aeson)
 - [aeson-compat >= 0.3.7.1 && <= 0.3.8](https://hackage.haskell.org/package/aeson-diff-1.1.0.5)
 - [aeson-diff-1.1.0.5](https://hackage.haskell.org/package/aeson-diff)
@@ -266,11 +266,11 @@ JSON
 - [aeson-quick-0.1.2.1](https://hackage.haskell.org/package/aeson-quick-0.1.2.1)
 - [dhall-json >= 1.2.1](https://hackage.haskell.org/package/dhall-json-1.2.1)
 
-Simulation
+#### Simulation
 - [aivika-5.8](https://hackage.haskell.org/package/aivika-5.8)
 - [aivika-distributed-1.4](https://hackage.haskell.org/package/aivika-distributed-1.4)
 
-Time
+#### Time
 - [alarmclock-0.5.0.2](https://hackage.haskell.org/package/alarmclock-0.5.0.2)
 - [clock-0.7.2](https://hackage.haskell.org/package/clock-0.7.2)
 - [hourglass >= 0.2.10 && <= 0.2.11](https://hackage.haskell.org/package/hourglass)
@@ -279,7 +279,7 @@ Time
 - [time >= 1.6.0.1 <= 1.8.0.3](https://hackage.haskell.org/package/time)
 - [time-locale-compat-0.1.1.3](https://hackage.haskell.org/package/time-locale-compat-0.1.1.3)
 
-Developer Tools
+#### Developer Tools
 - [alex-3.2.4](https://hackage.haskell.org/package/alex-3.2.4)
 - [alex-tools-0.4](https://hackage.haskell.org/package/alex-tools-0.4)
 - [api-builder-0.15.0.0](https://hackage.haskell.org/package/api-builder-0.15.0.0)
@@ -297,7 +297,7 @@ Developer Tools
 - [shake >= 0.16.2 && <= 0.16.4](https://hackage.haskell.org/package/shake)
 - [tagsoup-0.14](https://hackage.haskell.org/package/tagsoup-0.14)
 
-Network
+#### Network
 - [amqp-0.18.1](https://hackage.haskell.org/package/amqp-0.18.1)
 - [connection-0.2.8](https://hackage.haskell.org/package/connection-0.2.8)
 - [distributed-process-p2p-0.1.3.2](https://hackage.haskell.org/package/distributed-process-p2p)
@@ -311,7 +311,7 @@ Network
 - [socks-0.5.5](https://hackage.haskell.org/package/socks-0.5.5)
 - [tls-1.4.0](https://hackage.haskell.org/package/tls-1.4.0)
 
-Command Line
+#### Command Line
 - [ansi-terminal >= 0.6.2.3 && <= 0.6.3.1 || == 0.7.1.1 || == 0.8.0.4](https://hackage.haskell.org/package/ansi-terminal)
 - [ansi-wl-pprint-0.6.7.3](https://hackage.haskell.org/package/ansi-wl-pprint-0.6.7.3)
 - [cmdargs >= 0.10.18 && <= 0.10.20](https://hackage.haskell.org/package/cmdargs-0.10.19)
@@ -320,11 +320,11 @@ Command Line
 - [terminal-size-0.3.2.1](https://hackage.haskell.org/package/terminal-size-0.3.2.1)
 - [turtle-1.5.10](https://hackage.haskell.org/package/turtle-1.5.10)
 
-DevOps
+#### DevOps
 - [arx-0.3.2](https://hackage.haskell.org/package/arx-0.3.2)
 - [dhall >= 1.14.0](https://hackage.haskell.org/package/dhall-1.14.0)
 
-Concurrent Computing
+#### Concurrent Computing
 - [async-2.1.1.1](https://hackage.haskell.org/package/async-2.1.1.1)
 - [haxl >= 2.0.0.0 && <= 2.0.1.0](http://hackage.haskell.org/package/haxl)
 - [conceit-0.4.0.0](https://hackage.haskell.org/package/conceit-0.4.0.0)
@@ -336,7 +336,7 @@ Concurrent Computing
 - [stm-chans-3.0.0.4](https://hackage.haskell.org/package/stm-chans-3.0.0.4)
 - [unbounded-delays-0.1.1.0](https://hackage.haskell.org/package/unbounded-delays-0.1.1.0)
 
-Data Streaming
+#### Data Streaming
 - [conduit >= 1.2.8 && <= 1.3.0.3](https://hackage.haskell.org/package/conduit)
 - [conduit-combinators-1.1.2](https://hackage.haskell.org/package/conduit-combinators-1.1.2)
 - [conduit-extra-1.2.1](https://hackage.haskell.org/package/conduit-extra-1.2.1)
@@ -351,10 +351,10 @@ Data Streaming
 - [pipes-safe-2.2.5](https://hackage.haskell.org/package/pipes-safe-2.2.5)
 - [streaming-commons >= 0.1.18 && <= 0.1.19](https://hackage.haskell.org/package/streaming-commons)
 
-Data Serialization
+#### Data Serialization
 - [avro-0.3.2.0](https://hackage.haskell.org/package/avro-0.3.2.0)
 
-Data Manipulation
+#### Data Manipulation
 - [basic-lens-0.0.0](https://hackage.haskell.org/package/basic-lens-0.0.0)
 - [lens >= 4.15.1 && <= 4.17](https://hackage.haskell.org/package/lens)
 - [lens-aeson-1.0.2](https://hackage.haskell.org/package/lens-aeson-1.0.2)
@@ -365,7 +365,7 @@ Data Manipulation
 - [microlens-mtl >= 0.1.10.0 && <= 0.1.11.0](http://hackage.haskell.org/package/microlens-mtl)
 - [proto-lens-0.3.1.0](https://hackage.haskell.org/package/proto-lens)
 
-Base Libraries
+#### Base Libraries
 - [basement >= 0.0.4 && <= 0.0.6](https://hackage.haskell.org/package/basement)
 - [base-compat >= 0.9.1 && <= 0.10.4](https://hackage.haskell.org/package/base-compat)
 - [base-compat-batteries-0.10.4](https://hackage.haskell.org/package/base-compat-batteries-0.10.4)
@@ -379,7 +379,7 @@ Base Libraries
 - [protolude >= 0.1.10 && <= 0.2.2](https://hackage.haskell.org/package/protolude)
 - [rio-0.1.5.0](https://hackage.haskell.org/package/rio-0.1.5.0)
 
-Algorithms
+#### Algorithms
 - [binary-search-1.0.0.3](https://hackage.haskell.org/package/binary-search-1.0.0.3)
 - [DecisionTree-0.0](https://hackage.haskell.org/package/DecisionTree-0.0)
 - [dom-lt-0.1.3](https://hackage.haskell.org/package/dom-lt-0.1.3)
@@ -389,17 +389,17 @@ Algorithms
 - [union-find-0.2](https://hackage.haskell.org/package/union-find-0.2)
 - [union-find-array-0.1.0.2](https://hackage.haskell.org/package/union-find-array-0.1.0.2)
 
-Foreign Function Interface
+#### Foreign Function Interface
 - [bindings-DSL-1.0.23](https://hackage.haskell.org/package/bindings-DSL-1.0.23)
 
-Heuristics
+#### Heuristics
 - [Binpack-0.4.1](https://hackage.haskell.org/package/Binpack-0.4.1)
 
-Compression
+#### Compression
 - [bmp-1.2.6.3](https://hackage.haskell.org/package/bmp-1.2.6.3)
 - [zip-archive-0.3.3](https://hackage.haskell.org/package/zip-archive-0.3.3)
 
-Graphics
+#### Graphics
 - [colour-2.3.3](https://hackage.haskell.org/package/colour-2.3.3)
 - [FontyFruity-0.5.3.3](https://hackage.haskell.org/package/FontyFruity-0.5.3.3)
 - [integration-0.2.1](https://hackage.haskell.org/package/integration-0.2.1)
@@ -407,14 +407,14 @@ Graphics
 - [language-glsl-0.2.1](https://hackage.haskell.org/package/language-glsl-0.1.0)
 - [svg-builder-0.1.0.2](https://hackage.haskell.org/package/svg-builder-0.1.0.2)
 
-Distributed Computing
+#### Distributed Computing
 - [crdt >= 9.3 && <= 10.0](https://hackage.haskell.org/package/crdt)
 
-Benchmarks
+#### Benchmarks
 - [criterion-1.5.1.0](https://hackage.haskell.org/package/criterion)
 - [criterion-measurement-0.1.1.0](https://hackage.haskell.org/package/criterion-measurement)
 
-Cryptography
+#### Cryptography
 - [crypto-api-0.13.2](https://hackage.haskell.org/package/crypto-api-0.13.2)
 - [cryptohash-0.11.9](https://hackage.haskell.org/package/cryptohash-0.11.9)
 - [crypto-pubkey-types-0.4.3](https://hackage.haskell.org/package/crypto-pubkey-types-0.4.3)
@@ -433,7 +433,7 @@ Cryptography
 - [zlib-0.6.1.2](https://hackage.haskell.org/package/zlib-0.6.1.2)
 - [zlib-bindings-0.1.1.5](https://hackage.haskell.org/package/zlib-bindings-0.1.1.5)
 
-Files
+#### Files
 - [directory >= 1.3.0.0 && <= 1.3.1.0](https://hackage.haskell.org/package/directory)
 - [directory-tree-0.12.1](https://hackage.haskell.org/package/directory-tree-0.12.1)
 - [easy-file-0.2.1](https://hackage.haskell.org/package/easy-file-0.2.1)
@@ -442,10 +442,10 @@ Files
 - [fsnotify-0.3.0.1](https://hackage.haskell.org/package/fsnotify-0.3.0.1)
 - [temporary-1.2.1.1](http://hackage.haskell.org/package/temporary-1.2.1.1)
 
-Error Handling
+#### Error Handling
 - [errors >= 2.1.3 && <= 2.2.2](https://hackage.haskell.org/package/errors)
 
-Text
+#### Text
 - [formatting >= 6.3.2 && <= 6.3.4](https://hackage.haskell.org/package/formatting-6.3.4)
 - [microstache-1.0.1.1](http://hackage.haskell.org/package/microstache-1.0.1.1)
 - [pretty-show >= 1.6.16 && <= 1.8.1](https://hackage.haskell.org/package/pretty-show)
@@ -462,7 +462,7 @@ Text
 - [xml-types-0.3.6](https://hackage.haskell.org/package/xml-types-0.3.6)
 - [xmlhtml >= 0.2.3.5 && <= 0.2.5.2](https://hackage.haskell.org/package/xmlhtml)
 
-Testing
+#### Testing
 - [genvalidity-0.5.1.0](https://hackage.haskell.org/package/genvalidity-0.5.1.0)
 - [hedgehog >= 0.5.3 && <= 0.6](https://hackage.haskell.org/package/hedgehog-0.6)
 - [hspec-2.4.3](https://hackage.haskell.org/package/hspec-2.4.3)
@@ -475,31 +475,31 @@ Testing
 - [tasty >= 0.11.2.1 && <= 1.1.0.3](https://hackage.haskell.org/package/tasty)
 - [testpack-2.1.3.0](https://hackage.haskell.org/package/testpack-2.1.3.0)
 
-Database
+#### Database
 - [HDBC-2.4.0.1](https://hackage.haskell.org/package/HDBC-2.4.0.1)
 - [selda-0.1.9.0](https://hackage.haskell.org/package/selda-0.1.9.0)
 
-Memory
+#### Memory
 - [memory >= 0.14.10 && <= 0.14.14](https://hackage.haskell.org/package/memory)
 - [primitive >= 0.6.1.0 && <= 0.6.4.0](https://hackage.haskell.org/package/primitive-0.6.4.0)
 
-Pretty Printers
+#### Pretty Printers
 - [pretty >= 1.1.3.4 && <= 1.1.3.6](https://hackage.haskell.org/package/pretty-1.1.3.4)
 - [prettyclass-1.0.0.0](https://hackage.haskell.org/package/prettyclass-1.0.0.0)
 - [xhtml >= 3000.2.1 && <= 3000.2.2.1](https://hackage.haskell.org/package/xhtml-3000.2.1)
 
-System
+#### System
 - [process-1.6.2.0](https://hackage.haskell.org/package/process-1.6.2.0)
 - [setenv-0.1.1.3](https://hackage.haskell.org/package/setenv-0.1.1.3)
 - [system-filepath-0.4.13.4](https://hackage.haskell.org/package/system-filepath-0.4.13.4)
 - [system-fileio-0.3.16.3](https://hackage.haskell.org/package/system-fileio-0.3.16.3)
 - [typed-process >= 0.2.0.0 && <= 0.2.2.0](https://hackage.haskell.org/package/typed-process-0.2.0.0)
 
-Metaprogramming
+#### Metaprogramming
 - [template-haskell-2.11.1.0](https://hackage.haskell.org/package/template-haskell-2.11.1.0)
 - [th-lift-instances-0.1.11](https://hackage.haskell.org/package/th-lift-instances-0.1.11)
 
-Others
+#### Uncategorized
 - [asn1-encoding-0.9.5](https://hackage.haskell.org/package/asn1-encoding-0.9.5)
 - [asn1-parse-0.9.4](https://hackage.haskell.org/package/asn1-parse-0.9.4)
 - [auto-update-0.1.4](https://hackage.haskell.org/package/auto-update-0.1.4)
@@ -602,22 +602,6 @@ Others
 - [x509-store-1.6.5](https://hackage.haskell.org/package/x509-store-1.6.5)
 - [x509-system-1.6.6](https://hackage.haskell.org/package/x509-system-1.6.6)
 - [x509-validation-1.6.9](https://hackage.haskell.org/package/x509-validation-1.6.9)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ### Unsupported Packages
 
