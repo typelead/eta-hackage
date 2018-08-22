@@ -248,6 +248,7 @@ These packages are supported by `etlas`.
 - [amazonka-1.6.0](https://hackage.haskell.org/package/amazonka-1.6.0)
 - [amazonka-core-1.6.0](https://hackage.haskell.org/package/amazonka-core-1.6.0)
 - [aws-0.20](https://hackage.haskell.org/package/aws-0.20)
+- [amazonka-apigateway-1.6.0](https://hackage.haskell.org/package/amazonka-apigateway-1.6.0)
 
 #### Incremental Computing
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
