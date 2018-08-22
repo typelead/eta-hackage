@@ -462,6 +462,7 @@ These packages are supported by `etlas`.
 - [xml-1.3.5](https://hackage.haskell.org/package/xml-1.3.5)
 - [xml-types-0.3.6](https://hackage.haskell.org/package/xml-types-0.3.6)
 - [xmlhtml >= 0.2.3.5 && <= 0.2.5.2](https://hackage.haskell.org/package/xmlhtml)
+- [xml-hamlet-0.5.0](https://hackage.haskell.org/package/xml-hamlet-0.5.0)
 
 #### Testing
 - [genvalidity-0.5.1.0](https://hackage.haskell.org/package/genvalidity-0.5.1.0)
