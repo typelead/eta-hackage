@@ -1,0 +1,496 @@
+From ee7c9b95e62a64aed6b2cb83ff016eaba123acaa Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 23 Aug 2018 01:06:58 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Text/XML/HaXml/ByteStringPP.hs          |  6 +++---
+ src/Text/XML/HaXml/DtdToHaskell/Instance.hs |  3 +--
+ src/Text/XML/HaXml/DtdToHaskell/TypeDef.hs  |  1 +
+ src/Text/XML/HaXml/Html/Pretty.hs           |  8 ++++----
+ src/Text/XML/HaXml/Parse.hs                 |  5 ++---
+ src/Text/XML/HaXml/ParseLazy.hs             |  5 ++---
+ src/Text/XML/HaXml/Pretty.hs                |  6 +++---
+ src/Text/XML/HaXml/Schema/PrettyHaskell.hs  | 23 +++++++++++------------
+ src/Text/XML/HaXml/Schema/PrettyHsBoot.hs   |  7 +++----
+ src/Text/XML/HaXml/Schema/PrimitiveTypes.hs |  2 +-
+ src/Text/XML/HaXml/Schema/TypeConversion.hs | 12 +++++++++++-
+ src/Text/XML/HaXml/Schema/XSDTypeModel.hs   | 17 ++++++++++++++---
+ src/Text/XML/HaXml/ShowXmlLazy.hs           |  7 +++----
+ src/Text/XML/HaXml/Types.hs                 |  4 ++--
+ 14 files changed, 61 insertions(+), 45 deletions(-)
+
+diff --git a/src/Text/XML/HaXml/ByteStringPP.hs b/src/Text/XML/HaXml/ByteStringPP.hs
+index c782575..21c374f 100644
+--- a/src/Text/XML/HaXml/ByteStringPP.hs
++++ b/src/Text/XML/HaXml/ByteStringPP.hs
+@@ -20,7 +20,7 @@ module Text.XML.HaXml.ByteStringPP
+   ,   cp
+   ) where
+ 
+-import Prelude hiding (maybe,either,elem,concat)
++import Prelude hiding (maybe,either,elem,concat, (<>))
+ import Data.Maybe hiding (maybe)
+ import Data.List (intersperse)
+ --import Data.ByteString.Lazy hiding (pack,map,head,any,singleton,intersperse,join)
+@@ -236,7 +236,7 @@ tokenizedtype :: TokenizedType -> ByteString
+ tokenizedtype ID               = text "ID"
+ tokenizedtype IDREF            = text "IDREF"
+ tokenizedtype IDREFS           = text "IDREFS"
+-tokenizedtype ENTITY           = text "ENTITY"
++tokenizedtype ENTITY1          = text "ENTITY"
+ tokenizedtype ENTITIES         = text "ENTITIES"
+ tokenizedtype NMTOKEN          = text "NMTOKEN"
+ tokenizedtype NMTOKENS         = text "NMTOKENS"
+@@ -298,7 +298,7 @@ ndatadecl (NDATA n)            = text "NDATA" <+> text n
+ -- _ (ExtPE t esd)            = maybe textdecl t <+>
+ --                                  vcat (Prelude.map extsubsetdecl esd)
+ notationdecl :: NotationDecl -> ByteString
+-notationdecl (NOTATION n e)    = text "<!NOTATION" <+> text n <+>
++notationdecl (NOTATION1 n e)    = text "<!NOTATION" <+> text n <+>
+                                  either externalid publicid e <>
+                                  text ">"
+ publicid :: PublicID -> ByteString
+diff --git a/src/Text/XML/HaXml/DtdToHaskell/Instance.hs b/src/Text/XML/HaXml/DtdToHaskell/Instance.hs
+index 0d7f9e8..b1c47e4 100644
+--- a/src/Text/XML/HaXml/DtdToHaskell/Instance.hs
++++ b/src/Text/XML/HaXml/DtdToHaskell/Instance.hs
+@@ -3,7 +3,7 @@ module Text.XML.HaXml.DtdToHaskell.Instance
+   ) where
+ 
+ import Data.List (intersperse)
+-
++import Prelude hiding ((<>))
+ import Text.XML.HaXml.DtdToHaskell.TypeDef
+ import Text.PrettyPrint.HughesPJ
+ 
+@@ -394,4 +394,3 @@ mkToMult tag attrpat attrexp (n,sts) =
+     text "toContents" <+> parens (mkCpat n attrpat vs) <+> text "="
+     $$ nest 4 (text "[CElem (Elem (N \"" <> ppXName tag <> text "\")"<+> attrexp
+               <+> parens (mkToElem sts vs) <+> text ") ()]")
+-
+diff --git a/src/Text/XML/HaXml/DtdToHaskell/TypeDef.hs b/src/Text/XML/HaXml/DtdToHaskell/TypeDef.hs
+index 6fa3da3..0845d66 100644
+--- a/src/Text/XML/HaXml/DtdToHaskell/TypeDef.hs
++++ b/src/Text/XML/HaXml/DtdToHaskell/TypeDef.hs
+@@ -21,6 +21,7 @@ module Text.XML.HaXml.DtdToHaskell.TypeDef
+ import Data.Char (isLower, isUpper, toLower, toUpper, isDigit)
+ import Data.List (intersperse)
+ import Text.PrettyPrint.HughesPJ
++import Prelude hiding ((<>))
+ 
+ 
+ ---- Internal representation for typedefs ----
+diff --git a/src/Text/XML/HaXml/Html/Pretty.hs b/src/Text/XML/HaXml/Html/Pretty.hs
+index f918f28..8d10524 100644
+--- a/src/Text/XML/HaXml/Html/Pretty.hs
++++ b/src/Text/XML/HaXml/Html/Pretty.hs
+@@ -8,7 +8,7 @@ module Text.XML.HaXml.Html.Pretty
+   , content
+   ) where
+ 
+-import Prelude hiding (maybe,either)
++import Prelude hiding (maybe,either, (<>))
+ import Data.Maybe hiding (maybe)
+ import Data.List (intersperse)
+ import Data.Char (isSpace)
+@@ -58,7 +58,7 @@ misc (Comment s)           = text "<!--" <+> text s <+> text "-->"
+ misc (PI (n,s))            = text "<?" <> text n <+> text s <+> text "?>"
+ sddecl sd   | sd           = text "standalone='yes'"
+             | otherwise    = text "standalone='no'"
+-doctypedecl (DTD n eid ds) = if null ds then 
++doctypedecl (DTD n eid ds) = if null ds then
+                                   hd <> text ">"
+                              else hd <+> text " [" $$
+                                   vcat (map markupdecl ds) $$ text "]>"
+@@ -210,7 +210,7 @@ atttype (EnumeratedType t)     = enumeratedtype t
+ tokenizedtype ID               = text "ID"
+ tokenizedtype IDREF            = text "IDREF"
+ tokenizedtype IDREFS           = text "IDREFS"
+-tokenizedtype ENTITY           = text "ENTITY"
++tokenizedtype ENTITY1          = text "ENTITY"
+ tokenizedtype ENTITIES         = text "ENTITIES"
+ tokenizedtype NMTOKEN          = text "NMTOKEN"
+ tokenizedtype NMTOKENS         = text "NMTOKENS"
+@@ -255,7 +255,7 @@ ndatadecl (NDATA n)            = text "NDATA" <+> text n
+ --extparsedent (ExtParsedEnt t c)= maybe textdecl t <+> content c
+ --extpe (ExtPE t esd)            = maybe textdecl t <+>
+ --                                 vcat (map extsubsetdecl esd)
+-notationdecl (NOTATION n e)    = text "<!NOTATION" <+> text n <+>
++notationdecl (NOTATION1 n e)    = text "<!NOTATION" <+> text n <+>
+                                  either externalid publicid e <>
+                                  text ">"
+ publicid (PUBLICID p)          = text "PUBLICID" <+> pubidliteral p
+diff --git a/src/Text/XML/HaXml/Parse.hs b/src/Text/XML/HaXml/Parse.hs
+index 502e0e7..44cf113 100644
+--- a/src/Text/XML/HaXml/Parse.hs
++++ b/src/Text/XML/HaXml/Parse.hs
+@@ -616,7 +616,7 @@ tokenizedtype =
+     oneOf [ ( word "ID" >> return ID)
+           , ( word "IDREF" >> return IDREF)
+           , ( word "IDREFS" >> return IDREFS)
+-          , ( word "ENTITY" >> return ENTITY)
++          , ( word "ENTITY" >> return ENTITY1)
+           , ( word "ENTITIES" >> return ENTITIES)
+           , ( word "NMTOKEN" >> return NMTOKEN)
+           , ( word "NMTOKENS" >> return NMTOKENS)
+@@ -832,7 +832,7 @@ notationdecl = do
+     n <- name
+     e <- either externalid publicid
+     tok TokAnyClose `onFail` failBadP ("expected > terminating NOTATION decl "++n)
+-    return (NOTATION n e)
++    return (NOTATION1 n e)
+ 
+ publicid :: XParser PublicID
+ publicid = do
+@@ -884,4 +884,3 @@ pubidliteral = do
+ -- | Return parsed freetext (i.e. until the next markup)
+ chardata :: XParser CharData
+ chardata = freetext
+-
+diff --git a/src/Text/XML/HaXml/ParseLazy.hs b/src/Text/XML/HaXml/ParseLazy.hs
+index 621bf03..53f4543 100644
+--- a/src/Text/XML/HaXml/ParseLazy.hs
++++ b/src/Text/XML/HaXml/ParseLazy.hs
+@@ -625,7 +625,7 @@ tokenizedtype =
+     oneOf [ ( word "ID" >> return ID)
+           , ( word "IDREF" >> return IDREF)
+           , ( word "IDREFS" >> return IDREFS)
+-          , ( word "ENTITY" >> return ENTITY)
++          , ( word "ENTITY" >> return ENTITY1)
+           , ( word "ENTITIES" >> return ENTITIES)
+           , ( word "NMTOKEN" >> return NMTOKEN)
+           , ( word "NMTOKENS" >> return NMTOKENS)
+@@ -841,7 +841,7 @@ notationdecl = do
+     n <- name
+     e <- either externalid publicid
+     tok TokAnyClose `onFail` failBadP ("expected > terminating NOTATION decl "++n)
+-    return (NOTATION n e)
++    return (NOTATION1 n e)
+ 
+ publicid :: XParser PublicID
+ publicid = do
+@@ -894,4 +894,3 @@ pubidliteral = do
+ -- | Return parsed freetext (i.e. until the next markup)
+ chardata :: XParser CharData
+ chardata = freetext
+-
+diff --git a/src/Text/XML/HaXml/Pretty.hs b/src/Text/XML/HaXml/Pretty.hs
+index 409a359..e5c2b00 100644
+--- a/src/Text/XML/HaXml/Pretty.hs
++++ b/src/Text/XML/HaXml/Pretty.hs
+@@ -21,7 +21,7 @@ module Text.XML.HaXml.Pretty
+   ,   cp
+   ) where
+ 
+-import Prelude hiding (maybe,either)
++import Prelude hiding (maybe,either, (<>))
+ import Data.Maybe hiding (maybe)
+ import Data.List (intersperse)
+ --import Char (isSpace)
+@@ -179,7 +179,7 @@ tokenizedtype :: TokenizedType -> Doc
+ tokenizedtype ID               = text "ID"
+ tokenizedtype IDREF            = text "IDREF"
+ tokenizedtype IDREFS           = text "IDREFS"
+-tokenizedtype ENTITY           = text "ENTITY"
++tokenizedtype ENTITY1           = text "ENTITY"
+ tokenizedtype ENTITIES         = text "ENTITIES"
+ tokenizedtype NMTOKEN          = text "NMTOKEN"
+ tokenizedtype NMTOKENS         = text "NMTOKENS"
+@@ -239,7 +239,7 @@ ndatadecl (NDATA n)            = text "NDATA" <+> text n
+ --extpe (ExtPE t esd)            = maybe textdecl t <+>
+ --                                 vcat (map extsubsetdecl esd)
+ notationdecl :: NotationDecl -> Doc
+-notationdecl (NOTATION n e)    = text "<!NOTATION" <+> text n <+>
++notationdecl (NOTATION1 n e)    = text "<!NOTATION" <+> text n <+>
+                                  either externalid publicid e <>
+                                  text ">"
+ publicid :: PublicID -> Doc
+diff --git a/src/Text/XML/HaXml/Schema/PrettyHaskell.hs b/src/Text/XML/HaXml/Schema/PrettyHaskell.hs
+index 2dbfcba..7f36426 100644
+--- a/src/Text/XML/HaXml/Schema/PrettyHaskell.hs
++++ b/src/Text/XML/HaXml/Schema/PrettyHaskell.hs
+@@ -15,7 +15,7 @@ import Text.XML.HaXml.Schema.HaskellTypeModel
+ import Text.XML.HaXml.Schema.XSDTypeModel (Occurs(..))
+ import Text.XML.HaXml.Schema.NameConversion
+ import Text.PrettyPrint.HughesPJ as PP
+-
++import Prelude hiding ((<>))
+ import Data.List (intersperse,notElem,inits)
+ import Data.Maybe (isJust,fromJust,fromMaybe,catMaybes)
+ import Data.Char (toLower)
+@@ -241,11 +241,11 @@ ppHighLevelDecl nx (RestrictSimpleType t s r comm) =
+                       <+> text "where"
+         $$ nest 4 (text "restricts (" <> ppUnqConId nx t <+> text "x) = x")
+     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
+-        $$ nest 4 (text "parseSchemaType s = do" 
++        $$ nest 4 (text "parseSchemaType s = do"
+                   $$ nest 4 (text "e <- element [s]"
+                            $$ text "commit $ interior e $ parseSimpleType")
+                   )
+-        $$ nest 4 (text "schemaTypeToXML s ("<> ppUnqConId nx t <+> text "x) = " 
++        $$ nest 4 (text "schemaTypeToXML s ("<> ppUnqConId nx t <+> text "x) = "
+                   $$ nest 4 (text "toXMLElement s [] [toXMLText (simpleTypeText x)]")
+                   )
+     $$ text "instance SimpleType" <+> ppUnqConId nx t <+> text "where"
+@@ -278,7 +278,7 @@ ppHighLevelDecl nx (ExtendSimpleType t s as comm) =
+         $$ nest 4 (ppFields nx t_attrs [] as
+                   $$ text "deriving (Eq,Show)")
+     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
+-        $$ nest 4 (text "parseSchemaType s = do" 
++        $$ nest 4 (text "parseSchemaType s = do"
+                   $$ nest 4 (text "(pos,e) <- posnElement [s]"
+                             $$ text "commit $ do"
+                             $$ nest 2
+@@ -329,11 +329,11 @@ ppHighLevelDecl nx (EnumSimpleType t is comm) =
+     $$ text "data" <+> ppUnqConId nx t
+         $$ nest 4 ( ppvList "=" "|" "deriving (Eq,Show,Enum)" item is )
+     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
+-        $$ nest 4 (text "parseSchemaType s = do" 
++        $$ nest 4 (text "parseSchemaType s = do"
+                   $$ nest 4 (text "e <- element [s]"
+                            $$ text "commit $ interior e $ parseSimpleType")
+                   )
+-        $$ nest 4 (text "schemaTypeToXML s x = " 
++        $$ nest 4 (text "schemaTypeToXML s x = "
+                   $$ nest 4 (text "toXMLElement s [] [toXMLText (simpleTypeText x)]")
+                   )
+     $$ text "instance SimpleType" <+> ppUnqConId nx t <+> text "where"
+@@ -355,7 +355,7 @@ ppHighLevelDecl nx (ElementsAttrs t es as comm) =
+         $$ nest 8 (ppFields nx t (uniqueify es) as
+                   $$ text "deriving (Eq,Show)")
+     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
+-        $$ nest 4 (text "parseSchemaType s = do" 
++        $$ nest 4 (text "parseSchemaType s = do"
+                   $$ nest 4 (text "(pos,e) <- posnElement [s]"
+                        --   $$ text "commit $ do"
+                        --   $$ nest 2
+@@ -407,7 +407,7 @@ ppHighLevelDecl nx (ElementsAttrsAbstract t insts comm) =
+ --      <+> text "(declared in Instance module)"
+ --  *** Declare instance here
+     $$ text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
+-        $$ nest 4 (text "parseSchemaType s = do" 
++        $$ nest 4 (text "parseSchemaType s = do"
+                   $$ nest 4 (vcat (intersperse (text "`onFail`")
+                                                (map ppParse insts)
+                                    ++ [text "`onFail` fail" <+> errmsg])))
+@@ -527,7 +527,7 @@ ppHighLevelDecl nx (Group t es comm) = PP.empty
+ --  $$ text "data" <+> ppConId nx t <+> text "="
+ --                 <+> ppConId nx t <+> hsep (map (ppConId nx . elem_type) es)
+ 
+--- Possibly we want to declare a really more restrictive type, e.g. 
++-- Possibly we want to declare a really more restrictive type, e.g.
+ --    to remove optionality, (Maybe Foo) -> (Foo), [Foo] -> Foo
+ --    consequently the "restricts" method should do a proper translation,
+ --    not merely an unwrapping.
+@@ -598,7 +598,7 @@ ppHighLevelDecl nx (XSDComment comm) =
+ ppHighLevelInstances :: NameConverter -> Decl -> Doc
+ ppHighLevelInstances nx (ElementsAttrsAbstract t insts comm) =
+     text "instance SchemaType" <+> ppUnqConId nx t <+> text "where"
+-        $$ nest 4 (text "parseSchemaType s = do" 
++        $$ nest 4 (text "parseSchemaType s = do"
+                   $$ nest 4 (vcat (intersperse (text "`onFail`")
+                                                (map ppParse insts)
+                                    ++ [text "`onFail` fail" <+> errmsg])))
+@@ -762,7 +762,7 @@ ppFieldName nx t e@Text{}    i = ppFieldId nx t (XName $ N $"text"++show i)
+ ppElemTypeName :: NameConverter -> (Doc->Doc) -> Element -> Doc
+ ppElemTypeName nx brack e@Element{} =
+     ppTypeModifier (elem_modifier e) brack $ ppConId nx (elem_type e)
+-ppElemTypeName nx brack e@OneOf{}   = 
++ppElemTypeName nx brack e@OneOf{}   =
+     brack $ ppTypeModifier (liftedElemModifier e) parens $
+     text "OneOf" <> text (show (length (elem_oneOf e)))
+      <+> hsep (map (ppSeq . cleanChoices) (elem_oneOf e))
+@@ -876,4 +876,3 @@ uniqueify = go []
+                                  dropWhile pred [(n++show i) | i <- [2..]]
+     new pred (XName (QN ns n)) = XName $ QN ns $ head $
+                                  dropWhile pred [(n++show i) | i <- [2..]]
+-
+diff --git a/src/Text/XML/HaXml/Schema/PrettyHsBoot.hs b/src/Text/XML/HaXml/Schema/PrettyHsBoot.hs
+index 0808c9c..ef9f919 100644
+--- a/src/Text/XML/HaXml/Schema/PrettyHsBoot.hs
++++ b/src/Text/XML/HaXml/Schema/PrettyHsBoot.hs
+@@ -15,7 +15,7 @@ import Text.XML.HaXml.Schema.HaskellTypeModel
+ import Text.XML.HaXml.Schema.XSDTypeModel (Occurs(..))
+ import Text.XML.HaXml.Schema.NameConversion
+ import Text.PrettyPrint.HughesPJ as PP
+-
++import Prelude hiding ((<>))
+ import Data.List (intersperse,notElem,inits)
+ import Data.Maybe (isJust,fromJust,catMaybes)
+ 
+@@ -222,7 +222,7 @@ ppHighLevelDecl nx (Group t es comm) = PP.empty
+ --  $$ text "data" <+> ppConId nx t <+> text "="
+ --                 <+> ppConId nx t <+> hsep (map (ppConId nx . elem_type) es)
+ 
+--- Possibly we want to declare a really more restrictive type, e.g. 
++-- Possibly we want to declare a really more restrictive type, e.g.
+ --    to remove optionality, (Maybe Foo) -> (Foo), [Foo] -> Foo
+ --    consequently the "restricts" method should do a proper translation,
+ --    not merely an unwrapping.
+@@ -377,7 +377,7 @@ ppFieldElement nx t e@Text{}    i = ppFieldId nx t (XName $ N $"text"++show i)
+ ppElemTypeName :: NameConverter -> (Doc->Doc) -> Element -> Doc
+ ppElemTypeName nx brack e@Element{} =
+     ppTypeModifier (elem_modifier e) brack $ ppConId nx (elem_type e)
+-ppElemTypeName nx brack e@OneOf{}   = 
++ppElemTypeName nx brack e@OneOf{}   =
+     brack $ ppTypeModifier (elem_modifier e) parens $
+     text "OneOf" <> text (show (length (elem_oneOf e)))
+      <+> hsep (map ppSeq (elem_oneOf e))
+@@ -438,4 +438,3 @@ uniqueify = go []
+                                  dropWhile pred [(n++show i) | i <- [2..]]
+     new pred (XName (QN ns n)) = XName $ QN ns $ head $
+                                  dropWhile pred [(n++show i) | i <- [2..]]
+-
+diff --git a/src/Text/XML/HaXml/Schema/PrimitiveTypes.hs b/src/Text/XML/HaXml/Schema/PrimitiveTypes.hs
+index 1bbab38..238edb1 100644
+--- a/src/Text/XML/HaXml/Schema/PrimitiveTypes.hs
++++ b/src/Text/XML/HaXml/Schema/PrimitiveTypes.hs
+@@ -57,6 +57,7 @@ import Data.Char as Char
+ import Text.XML.HaXml.Types (QName(..))
+ import Data.Int
+ import Data.Word
++import Prelude hiding ((<>))
+ 
+ -- | Ultimately, an XML parser will find some plain text as the content
+ --   of a simpleType, which will need to be parsed.  We use a TextParser,
+@@ -297,4 +298,3 @@ instance SimpleType UnsignedByte where
+ instance SimpleType PositiveInteger where
+     acceptingParser = fmap Positive parse
+     simpleTypeText (Positive x) = show x
+-
+diff --git a/src/Text/XML/HaXml/Schema/TypeConversion.hs b/src/Text/XML/HaXml/Schema/TypeConversion.hs
+index b46222f..93aa0a1 100644
+--- a/src/Text/XML/HaXml/Schema/TypeConversion.hs
++++ b/src/Text/XML/HaXml/Schema/TypeConversion.hs
+@@ -548,7 +548,17 @@ instance Monoid Occurs where
+     (Occurs (Just z) (Just x)) `mappend` (Occurs min max)
+                                         = Occurs (Just $ maybe z (*z) min)
+                                                  (Just $ maybe x (*x) max)
+-
++#if MIN_VERSION_base(4,10,0)
++instance Semigroup Occurs where
++    (Occurs Nothing  Nothing)  <> o  = o
++    (Occurs (Just z) Nothing)  <> (Occurs min max)
++                                        = Occurs (Just $ maybe z (*z) min) max
++    (Occurs Nothing  (Just x)) <> (Occurs min max)
++                                        = Occurs min (Just $ maybe x (*x) max)
++    (Occurs (Just z) (Just x)) <> (Occurs min max)
++                                        = Occurs (Just $ maybe z (*z) min)
++                                                 (Just $ maybe x (*x) max)
++#endif                                                 
+ -- | Push another Occurs value inside an existing Modifier.
+ combineOccursModifier :: Occurs -> Modifier -> Modifier
+ combineOccursModifier o Haskell.Single     = occursToModifier $ mappend o
+diff --git a/src/Text/XML/HaXml/Schema/XSDTypeModel.hs b/src/Text/XML/HaXml/Schema/XSDTypeModel.hs
+index 578dc7a..cdcdaf6 100644
+--- a/src/Text/XML/HaXml/Schema/XSDTypeModel.hs
++++ b/src/Text/XML/HaXml/Schema/XSDTypeModel.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ module Text.XML.HaXml.Schema.XSDTypeModel
+   ( module Text.XML.HaXml.Schema.XSDTypeModel
+   ) where
+@@ -56,7 +57,7 @@ data SimpleType    = Primitive  { simple_primitive   :: PrimitiveType }
+                      deriving (Eq,Show)
+ 
+ data Restriction   = RestrictSim1 { restrict_annotation :: Annotation
+-                                  , restrict_base       :: Maybe QName 
++                                  , restrict_base       :: Maybe QName
+                                   , restrict_r1         :: Restriction1
+                                   }
+                    | RestrictType { restrict_annotation :: Annotation
+@@ -248,7 +249,7 @@ data PrimitiveType = String | Boolean | Decimal | Float | Double
+                    | Base64Binary | HexBinary
+                    | AnyURI | QName | Notation
+                      deriving (Eq,Show)
+-               
++
+ 
+ data MyRestriction = Range Occurs
+                    | Pattern Regexp
+@@ -295,8 +296,14 @@ instance Monoid Annotation where
+   mempty = NoAnnotation "Monoid.mempty <Annotation>"
+   (Documentation d) `mappend` (Documentation e) = Documentation (d++"\n"++e)
+   _                 `mappend` (Documentation e) = Documentation e
+-  ann               `mappend` _                 = ann          
++  ann               `mappend` _                 = ann
+ 
++#if MIN_VERSION_base(4,10,0)
++instance Semigroup Annotation where
++  (Documentation d) <> (Documentation e) = Documentation (d++"\n"++e)
++  _                 <> (Documentation e) = Documentation e
++  ann               <> _                 = ann
++#endif
+ -- This instance is pretty unsatisfactory, and is useful only for
+ -- building environments involving recursive modules.  The /mappend/
+ -- method is left-biased, and the /mempty/ value contains lots of
+@@ -305,3 +312,7 @@ instance Monoid Schema where
+   mempty        = Schema{ schema_items=[] }
+   s `mappend` t = s{ schema_items = schema_items s ++ schema_items t }
+ 
++#if MIN_VERSION_base(4,10,0)
++instance Semigroup Schema where
++  s <> t = s{ schema_items = schema_items s ++ schema_items t }
++#endif
+diff --git a/src/Text/XML/HaXml/ShowXmlLazy.hs b/src/Text/XML/HaXml/ShowXmlLazy.hs
+index f8898fe..ef55df7 100644
+--- a/src/Text/XML/HaXml/ShowXmlLazy.hs
++++ b/src/Text/XML/HaXml/ShowXmlLazy.hs
+@@ -5,7 +5,7 @@ import Text.XML.HaXml.Namespaces
+ import Text.XML.HaXml.TypeMapping -- (toHType, toDTD, Tuple(), Defined, showHType)
+ 
+ import qualified Text.XML.HaXml.XmlContent as X
+-import Prelude hiding (maybe,either)
++import Prelude hiding (maybe,either, (<>))
+ import Data.Maybe hiding (maybe)
+ import Data.List
+ 
+@@ -226,7 +226,7 @@ tokenizedtype :: TokenizedType -> [Char]
+ tokenizedtype ID               = text "ID"
+ tokenizedtype IDREF            = text "IDREF"
+ tokenizedtype IDREFS           = text "IDREFS"
+-tokenizedtype ENTITY           = text "ENTITY"
++tokenizedtype ENTITY1          = text "ENTITY"
+ tokenizedtype ENTITIES         = text "ENTITIES"
+ tokenizedtype NMTOKEN          = text "NMTOKEN"
+ tokenizedtype NMTOKENS         = text "NMTOKENS"
+@@ -286,7 +286,7 @@ ndatadecl (NDATA n)            = text "NDATA" <+> text n
+ -- _ (ExtPE t esd)            = maybe textdecl t <+>
+ --                                  vcat (map extsubsetdecl esd)
+ notationdecl :: NotationDecl -> [Char]
+-notationdecl (NOTATION n e)    = text "<!NOTATION" <+> text n <+>
++notationdecl (NOTATION1 n e)    = text "<!NOTATION" <+> text n <+>
+                                  either externalid publicid e <>
+                                  text ">"
+ publicid :: PublicID -> [Char]
+@@ -327,4 +327,3 @@ containsDoubleQuote :: [EV] -> Bool
+ containsDoubleQuote evs = any csq evs
+     where csq (EVString s) = '"' `elem` s
+           csq _            = False
+-
+diff --git a/src/Text/XML/HaXml/Types.hs b/src/Text/XML/HaXml/Types.hs
+index ab0d82e..2b6cdde 100644
+--- a/src/Text/XML/HaXml/Types.hs
++++ b/src/Text/XML/HaXml/Types.hs
+@@ -223,7 +223,7 @@ data AttType     = StringType
+ data TokenizedType = ID
+                    | IDREF
+                    | IDREFS
+-                   | ENTITY
++                   | ENTITY1
+                    | ENTITIES
+                    | NMTOKEN
+                    | NMTOKENS
+@@ -272,7 +272,7 @@ data TextDecl       = TextDecl (Maybe VersionInfo) EncodingDecl  deriving (Eq, S
+ data ExtParsedEnt i = ExtParsedEnt (Maybe TextDecl) (Content i) deriving (Eq, Show)
+ data ExtPE          = ExtPE (Maybe TextDecl) [ExtSubsetDecl] deriving (Eq, Show)
+ 
+-data NotationDecl    = NOTATION Name (Either ExternalID PublicID) deriving (Eq, Show)
++data NotationDecl    = NOTATION1 Name (Either ExternalID PublicID) deriving (Eq, Show)
+ newtype PublicID     = PUBLICID PubidLiteral deriving (Eq, Show)
+ newtype EncodingDecl = EncodingDecl String deriving (Eq, Show)
+ 
+-- 
+2.15.2 (Apple Git-101.1)
+
