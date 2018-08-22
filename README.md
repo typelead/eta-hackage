@@ -300,7 +300,6 @@ These packages are supported by `etlas`.
 #### Network
 - [amqp-0.18.1](https://hackage.haskell.org/package/amqp-0.18.1)
 - [connection-0.2.8](https://hackage.haskell.org/package/connection-0.2.8)
-- [distributed-process-p2p-0.1.3.2](https://hackage.haskell.org/package/distributed-process-p2p)
 - [hostname-1.0](https://hackage.haskell.org/package/hostname-1.0)
 - [iproute-1.7.1](https://hackage.haskell.org/package/iproute-1.7.1)
 - [network-2.6.3.2](https://hackage.haskell.org/package/network-2.6.3.2)
@@ -409,6 +408,8 @@ These packages are supported by `etlas`.
 
 #### Distributed Computing
 - [crdt >= 9.3 && <= 10.0](https://hackage.haskell.org/package/crdt)
+- [distributed-process-0.7.4](https://hackage.haskell.org/package/distributed-process-0.7.4)
+- [distributed-process-p2p-0.1.3.2](https://hackage.haskell.org/package/distributed-process-p2p)
 
 #### Benchmarks
 - [criterion-1.5.1.0](https://hackage.haskell.org/package/criterion)
