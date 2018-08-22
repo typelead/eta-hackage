@@ -466,6 +466,7 @@ These packages are supported by `etlas`.
 - [xml-hamlet-0.5.0](https://hackage.haskell.org/package/xml-hamlet-0.5.0)
 - [hxt-9.3.1.16](https://hackage.haskell.org/package/hxt-9.3.1.16)
 - [HaXml-1.25.4](https://hackage.haskell.org/package/HaXml-1.25.4)
+- [tagsoup-0.14.6](https://hackage.haskell.org/package/tagsoup-0.14.6)
 
 #### Testing
 - [genvalidity-0.5.1.0](https://hackage.haskell.org/package/genvalidity-0.5.1.0)
