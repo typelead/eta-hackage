@@ -123,6 +123,7 @@ These packages are supported by `etlas`.
 #### Authentication
 - [authenticate-1.3.4](https://hackage.haskell.org/package/authenticate-1.3.4)
 - [authenticate-oauth-1.6](https://hackage.haskell.org/package/authenticate-oauth-1.6)
+- [servant-auth-0.3.2.0](https://hackage.haskell.org/package/servant-auth-0.3.2.0)
 
 #### Compilers
 - [Agda-2.5.4.1](https://hackage.haskell.org/package/Agda-2.5.4.1)
