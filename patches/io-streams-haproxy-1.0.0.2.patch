@@ -1,0 +1,33 @@
+From 3a286ef146f868ed49081f0acd6a64a177c9e199 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Sat, 25 Aug 2018 17:59:28 +0530
+Subject: [PATCH] Patched
+
+---
+ src/System/IO/Streams/Network/HAProxy.hs | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/src/System/IO/Streams/Network/HAProxy.hs b/src/System/IO/Streams/Network/HAProxy.hs
+index aa56672..1a58ce3 100644
+--- a/src/System/IO/Streams/Network/HAProxy.hs
++++ b/src/System/IO/Streams/Network/HAProxy.hs
+@@ -331,8 +331,14 @@ parseNewHaProxy localProxyInfo = do
+     toUnixPath = S.unpack . fst . S.break (=='\x00')
+ #endif
+ 
+-foreign import ccall unsafe "iostreams_ntohs" c_ntohs :: CUShort -> CUShort
+-foreign import ccall unsafe "iostreams_ntohl" c_ntohl :: CUInt -> CUInt
++-- foreign import ccall unsafe "iostreams_ntohs" c_ntohs :: CUShort -> CUShort
++-- foreign import ccall unsafe "iostreams_ntohl" c_ntohl :: CUInt -> CUInt
++
++c_ntohs :: CUShort -> CUShort
++c_ntohs = error "c_ntohs not implemented yet!"
++
++c_ntohl :: CUInt -> CUInt
++c_ntohl = error "c_ntohl not implemented yet!"
+ 
+ ntohs :: Word16 -> Word16
+ ntohs = fromIntegral . c_ntohs . fromIntegral
+-- 
+2.15.2 (Apple Git-101.1)
+

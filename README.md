@@ -108,6 +108,8 @@ These packages are supported by `etlas`.
 - [superbuffer-0.3.1.1](https://hackage.haskell.org/package/superbuffer-0.3.1.1)
 - [Scotty](https://hackage.haskell.org/package/Scotty)
 - [Spock-0.13.0.0](https://hackage.haskell.org/package/Spock-0.13.0.0)
+- [Spock-api-0.12.0.1](https://hackage.haskell.org/package/Spock-api-0.12.0.1)
+- [Spock-api-server-0.12.0.1](https://hackage.haskell.org/package/Spock-api-server-0.12.0.1)
 - [uri-bytestring >= 0.2.2.1 && <= 0.3.0.1](https://hackage.haskell.org/package/uri-bytestring)
 - [wai-3.2.1.1](https://hackage.haskell.org/package/wai-3.2.1.1)
 - [wai-extra-3.0.21.0](https://hackage.haskell.org/package/wai-extra-3.0.21.0)
