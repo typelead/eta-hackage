@@ -507,6 +507,9 @@ These packages are supported by `etlas`.
 - [template-haskell-2.11.1.0](https://hackage.haskell.org/package/template-haskell-2.11.1.0)
 - [th-lift-instances-0.1.11](https://hackage.haskell.org/package/th-lift-instances-0.1.11)
 
+#### Audio
+- [cue-sheet-1.0.1](https://hackage.haskell.org/package/cue-sheet-1.0.1)
+
 #### Uncategorized
 - [asn1-encoding-0.9.5](https://hackage.haskell.org/package/asn1-encoding-0.9.5)
 - [asn1-parse-0.9.4](https://hackage.haskell.org/package/asn1-parse-0.9.4)
