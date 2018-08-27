@@ -424,6 +424,7 @@ These packages are supported by `etlas`.
 - [blockchain-0.0.3](https://hackage.haskell.org/package/blockchain-0.0.3)
 
 #### Bytestring
+- [base58-bytestring-0.1.0](https://hackage.haskell.org/package/base58-bytestring-0.1.0)
 - [bytestring >= 0.10.8.1.0 && <= 0.10.8.2.0](https://hackage.haskell.org/package/bytestring)
 - [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
 - [bytestring-trie-0.2.4.1](https://hackage.haskell.org/package/bytestring-trie-0.2.4.1)
