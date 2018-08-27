@@ -1,0 +1,109 @@
+name: sandi
+version: 0.4.2
+license: BSD3
+license-file: LICENSE
+cabal-version: >= 1.8
+build-type: Simple
+author: Magnus Therning
+maintainer: magnus@therning.org
+homepage: http://hackage.haskell.org/package/sandi
+copyright: Magnus Therning, 2012
+category: Codec, Conduit
+synopsis: Data encoding library
+description: Reasonably fast data encoding library.
+extra-source-files: csrc/*.h
+
+source-repository head
+    type: git
+    location: https://github.com/magthe/sandi
+
+flag with-conduit
+    default: True
+    manual: True
+
+library
+    hs-source-dirs: src
+    c-sources: csrc/codec.c
+    include-dirs: csrc
+    ghc-options: -Wall
+    cc-options: -fPIC -Wall -Wextra
+    build-depends:
+        base >= 4.7 && < 4.12,
+        bytestring ==0.10.*,
+        stringsearch ==0.3.*
+    exposed-modules:
+        Codec.Binary.Base16
+        Codec.Binary.Base32
+        Codec.Binary.Base32Hex
+        Codec.Binary.Base64
+        Codec.Binary.Base64Url
+        Codec.Binary.Base85
+        Codec.Binary.QuotedPrintable
+        Codec.Binary.Uu
+        Codec.Binary.Xx
+        Codec.Binary.Yenc
+
+    if flag(with-conduit)
+        build-depends:
+            conduit >=1.2 && < 1.4,
+            exceptions >=0.6 && < 0.11
+        exposed-modules:
+            Data.Conduit.Codec.Base16
+            Data.Conduit.Codec.Base32
+            Data.Conduit.Codec.Base32Hex
+            Data.Conduit.Codec.Base64
+            Data.Conduit.Codec.Base64Url
+            Data.Conduit.Codec.Base85
+            Data.Conduit.Codec.QuotedPrintable
+            Data.Conduit.Codec.Uu
+            Data.Conduit.Codec.Xx
+            Data.Conduit.Codec.Yenc
+        other-modules:
+            Data.Conduit.Codec.Util
+
+test-suite sandi-tests
+    type: exitcode-stdio-1.0
+    hs-source-dirs: src, test-src
+    build-depends:
+        sandi,
+        base,
+        bytestring,
+        HUnit,
+        tasty,
+        tasty-hunit,
+        tasty-quickcheck,
+        tasty-th
+    main-is: Main.hs
+    other-modules:
+        Codec.Binary.Base16Test
+        Codec.Binary.Base32HexTest
+        Codec.Binary.Base32Test
+        Codec.Binary.Base64Test
+        Codec.Binary.Base64UrlTest
+        Codec.Binary.Base85Test
+        Codec.Binary.QuotedPrintableTest
+        Codec.Binary.UuTest
+        Codec.Binary.XxTest
+        Codec.Binary.YencTest
+        Codec.TestUtils
+
+benchmark sandi-bench
+    type: exitcode-stdio-1.0
+    hs-source-dirs:   src, bench-src
+    build-depends:
+        sandi,
+        base,
+        bytestring,
+        criterion
+    main-is: Main.hs
+    other-modules:
+        Codec.Binary.Base16Bench
+        Codec.Binary.Base32Bench
+        Codec.Binary.Base32HexBench
+        Codec.Binary.Base64Bench
+        Codec.Binary.Base64UrlBench
+        Codec.Binary.Base85Bench
+        Codec.Binary.QuotedPrintableBench
+        Codec.Binary.UuBench
+        Codec.Binary.XxBench
+        Codec.Binary.YencBench

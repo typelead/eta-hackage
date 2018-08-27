@@ -1,0 +1,333 @@
+From 5e9a55c34b764bfbc982de43f436c7cdc63f7bc2 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Mon, 27 Aug 2018 17:31:10 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Codec/Binary/Base16.hs          | 10 ++++++----
+ src/Codec/Binary/Base32.hs          | 20 ++++++++++++--------
+ src/Codec/Binary/Base32Hex.hs       | 24 ++++++++++++++----------
+ src/Codec/Binary/Base64.hs          | 21 ++++++++++++---------
+ src/Codec/Binary/Base64Url.hs       | 20 ++++++++++++--------
+ src/Codec/Binary/Base85.hs          | 21 ++++++++++++---------
+ src/Codec/Binary/QuotedPrintable.hs | 10 +++++-----
+ src/Codec/Binary/Uu.hs              | 20 ++++++++++++--------
+ src/Codec/Binary/Xx.hs              | 20 ++++++++++++--------
+ src/Codec/Binary/Yenc.hs            | 10 ++++++----
+ 10 files changed, 103 insertions(+), 73 deletions(-)
+
+diff --git a/src/Codec/Binary/Base16.hs b/src/Codec/Binary/Base16.hs
+index 1f4ed59..f93b97e 100644
+--- a/src/Codec/Binary/Base16.hs
++++ b/src/Codec/Binary/Base16.hs
+@@ -23,11 +23,13 @@ import qualified Data.ByteString.Unsafe as BSU
+ castEnum :: (Enum a, Enum b) => a -> b
+ castEnum = toEnum . fromEnum
+ 
+-foreign import ccall "static b16.h b16_enc"
+-    c_b16_enc :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++-- foreign import ccall "static b16.h b16_enc"
++c_b16_enc :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++c_b16_enc = error "c_b16_enc not implemented yet!"
+ 
+-foreign import ccall "static b16.h b16_dec"
+-    c_b16_dec :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b16.h b16_dec"
++c_b16_dec :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++c_b16_dec = error "c_b16_dec not implemented yet!"
+ 
+ -- | Encoding function.
+ --
+diff --git a/src/Codec/Binary/Base32.hs b/src/Codec/Binary/Base32.hs
+index 28e1216..aa2efac 100644
+--- a/src/Codec/Binary/Base32.hs
++++ b/src/Codec/Binary/Base32.hs
+@@ -29,17 +29,21 @@ import System.IO.Unsafe as U
+ castEnum :: (Enum a, Enum b) => a -> b
+ castEnum = toEnum . fromEnum
+ 
+-foreign import ccall "static b32.h b32_enc_part"
+-    c_b32_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++-- foreign import ccall "static b32.h b32_enc_part"
++c_b32_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++c_b32_enc_part = error "c_b32_enc_part not implemented yet!"
+ 
+-foreign import ccall "static b32.h b32_enc_final"
+-    c_b32_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b32.h b32_enc_final"
++c_b32_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_b32_enc_final = error "c_b32_enc_final not implemented yet!"
+ 
+-foreign import ccall "static b32.h b32_dec_part"
+-    c_b32_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b32.h b32_dec_part"
++c_b32_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++c_b32_dec_part = error "c_b32_dec_part not implemented yet!"
+ 
+-foreign import ccall "static b32.h b32_dec_final"
+-    c_b32_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b32.h b32_dec_final"
++c_b32_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_b32_dec_final = error "c_b32_dec_final not implemented yet!"
+ 
+ -- | Encoding function.
+ --
+diff --git a/src/Codec/Binary/Base32Hex.hs b/src/Codec/Binary/Base32Hex.hs
+index 32f3412..dcdc7e6 100644
+--- a/src/Codec/Binary/Base32Hex.hs
++++ b/src/Codec/Binary/Base32Hex.hs
+@@ -27,17 +27,21 @@ import System.IO.Unsafe as U
+ castEnum :: (Enum a, Enum b) => a -> b
+ castEnum = toEnum . fromEnum
+ 
+-foreign import ccall "static b32.h b32h_enc_part"
+-    c_b32h_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+-
+-foreign import ccall "static b32.h b32h_enc_final"
+-    c_b32h_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
+-
+-foreign import ccall "static b32.h b32h_dec_part"
+-    c_b32h_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b32.h b32h_enc_part"
++c_b32h_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++c_b32h_enc_part = error "c_b32h_enc_part not implemented yet!"
++--
++-- foreign import ccall "static b32.h b32h_enc_final"
++c_b32h_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_b32h_enc_final = error "c_b32h_enc_final not implemented yet!"
++--
++-- foreign import ccall "static b32.h b32h_dec_part"
++c_b32h_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++c_b32h_dec_part = error "c_b32h_dec_part not implemented yet!"
+ 
+-foreign import ccall "static b32.h b32h_dec_final"
+-    c_b32h_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b32.h b32h_dec_final"
++c_b32h_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_b32h_dec_final = error "c_b32h_dec_final not implemented yet!"
+ 
+ -- | Encoding function.
+ --
+diff --git a/src/Codec/Binary/Base64.hs b/src/Codec/Binary/Base64.hs
+index 325dc0f..d63e082 100644
+--- a/src/Codec/Binary/Base64.hs
++++ b/src/Codec/Binary/Base64.hs
+@@ -29,18 +29,21 @@ import System.IO.Unsafe as U
+ castEnum :: (Enum a, Enum b) => a -> b
+ castEnum = toEnum . fromEnum
+ 
+-foreign import ccall "static b64.h b64_enc_part"
+-    c_b64_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++-- foreign import ccall "static b64.h b64_enc_part"
++c_b64_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++c_b64_enc_part = error "c_b64_enc_part not implemented yet!"
+ 
+-foreign import ccall "static b64.h b64_enc_final"
+-    c_b64_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b64.h b64_enc_final"
++c_b64_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_b64_enc_final = error "c_b64_enc_final not implemented yet!"
+ 
+-foreign import ccall "static b64.h b64_dec_part"
+-    c_b64_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
+-
+-foreign import ccall "static b64.h b64_dec_final"
+-    c_b64_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b64.h b64_dec_part"
++c_b64_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++c_b64_dec_part = error "c_b64_dec_part not implemented yet!"
+ 
++-- foreign import ccall "static b64.h b64_dec_final"
++c_b64_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_b64_dec_final = error "c_b64_dec_final not implemented yet!"
+ -- | Encoding function.
+ --
+ -- This function encodes as large a portion of the input as possible and
+diff --git a/src/Codec/Binary/Base64Url.hs b/src/Codec/Binary/Base64Url.hs
+index 1a679b9..0eb475e 100644
+--- a/src/Codec/Binary/Base64Url.hs
++++ b/src/Codec/Binary/Base64Url.hs
+@@ -31,17 +31,21 @@ import System.IO.Unsafe as U
+ castEnum :: (Enum a, Enum b) => a -> b
+ castEnum = toEnum . fromEnum
+ 
+-foreign import ccall "static b64.h b64u_enc_part"
+-    c_b64u_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++-- foreign import ccall "static b64.h b64u_enc_part"
++c_b64u_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++c_b64u_enc_part = error "c_b64u_enc_part not implemented yet!"
+ 
+-foreign import ccall "static b64.h b64u_enc_final"
+-    c_b64u_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b64.h b64u_enc_final"
++c_b64u_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_b64u_enc_final = error "c_b64u_enc_final not implemented yet!"
+ 
+-foreign import ccall "static b64.h b64u_dec_part"
+-    c_b64u_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b64.h b64u_dec_part"
++c_b64u_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++c_b64u_dec_part = error "c_b64u_dec_part not implemented yet!"
+ 
+-foreign import ccall "static b64.h b64u_dec_final"
+-    c_b64u_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b64.h b64u_dec_final"
++c_b64u_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_b64u_dec_final = error "c_b64u_dec_final not implemented yet!"
+ 
+ b64uEncodePart :: BS.ByteString -> (BS.ByteString, BS.ByteString)
+ b64uEncodePart bs = U.unsafePerformIO $ unsafeUseAsCStringLen bs $ \ (inBuf, inLen) -> do
+diff --git a/src/Codec/Binary/Base85.hs b/src/Codec/Binary/Base85.hs
+index d5c14b2..fd1a81b 100644
+--- a/src/Codec/Binary/Base85.hs
++++ b/src/Codec/Binary/Base85.hs
+@@ -24,17 +24,21 @@ import Data.ByteString.Unsafe
+ castEnum :: (Enum a, Enum b) => a -> b
+ castEnum = toEnum . fromEnum
+ 
+-foreign import ccall "static b85.h b85_enc_part"
+-    c_b85_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++-- foreign import ccall "static b85.h b85_enc_part"
++c_b85_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++c_b85_enc_part = error "c_b85_enc_part not implemented yet!"
+ 
+-foreign import ccall "static b85.h b85_enc_final"
+-    c_b85_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b85.h b85_enc_final"
++c_b85_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_b85_enc_final = error "c_b85_enc_final not implemented yet!"
+ 
+-foreign import ccall "static b85.h b85_dec_part"
+-    c_b85_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b85.h b85_dec_part"
++c_b85_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++c_b85_dec_part = error "c_b85_dec_part not implemented yet!"
+ 
+-foreign import ccall "static b85.h b85_dec_final"
+-    c_b85_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++-- foreign import ccall "static b85.h b85_dec_final"
++c_b85_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_b85_dec_final = error "c_b85_dec_final not implemented yet!"
+ 
+ -- | Encoding function.
+ --
+@@ -176,4 +180,3 @@ decode bs = either Left handleFinal (iterateDecode [] bs)
+             (Left a)
+             (\ final -> Right (first `BS.append` final))
+             (b85DecodeFinal rest)
+-
+diff --git a/src/Codec/Binary/QuotedPrintable.hs b/src/Codec/Binary/QuotedPrintable.hs
+index 5d5c626..ffc0813 100644
+--- a/src/Codec/Binary/QuotedPrintable.hs
++++ b/src/Codec/Binary/QuotedPrintable.hs
+@@ -25,12 +25,12 @@ import qualified Data.ByteString.Unsafe as BSU
+ castEnum :: (Enum a, Enum b) => a -> b
+ castEnum = toEnum . fromEnum
+ 
+-foreign import ccall "static qp.h qp_enc"
+-    c_qp_enc :: Word8 -> Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
+-
+-foreign import ccall "static qp.h qp_dec"
+-    c_qp_dec :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++c_qp_enc :: Word8 -> Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++c_qp_enc = error "c_qp_enc not implemented yet!"
+ 
++-- foreign import ccall "static qp.h qp_dec"
++c_qp_dec :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++c_qp_dec = error "c_qp_dec not implemented yet!"
+ -- | Encoding function.
+ --
+ -- This function encodes /everything/ that is passed in, it will not try to
+diff --git a/src/Codec/Binary/Uu.hs b/src/Codec/Binary/Uu.hs
+index d823885..9b2c309 100644
+--- a/src/Codec/Binary/Uu.hs
++++ b/src/Codec/Binary/Uu.hs
+@@ -35,17 +35,21 @@ import qualified Data.ByteString as BS
+ castEnum :: (Enum a, Enum b) => a -> b
+ castEnum = toEnum . fromEnum
+ 
+-foreign import ccall "static uu.h uu_enc_part"
+-    c_uu_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++-- foreign import ccall "static uu.h uu_enc_part"
++c_uu_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++c_uu_enc_part = error "c_uu_enc_part not implemented yet!"
+ 
+-foreign import ccall "static uu.h uu_enc_final"
+-    c_uu_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++-- foreign import ccall "static uu.h uu_enc_final"
++c_uu_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_uu_enc_final = error "c_uu_enc_final not implemented yet!"
+ 
+-foreign import ccall "static uu.h uu_dec_part"
+-    c_uu_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++-- foreign import ccall "static uu.h uu_dec_part"
++c_uu_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++c_uu_dec_part = error "c_uu_dec_part implemented yet!"
+ 
+-foreign import ccall "static uu.h uu_dec_final"
+-    c_uu_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++-- foreign import ccall "static uu.h uu_dec_final"
++c_uu_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_uu_dec_final = error "c_uu_dec_final not implemented yet!"
+ 
+ -- | Encoding function.
+ --
+diff --git a/src/Codec/Binary/Xx.hs b/src/Codec/Binary/Xx.hs
+index dab5f13..b58a94e 100644
+--- a/src/Codec/Binary/Xx.hs
++++ b/src/Codec/Binary/Xx.hs
+@@ -31,17 +31,21 @@ import qualified Data.ByteString as BS
+ castEnum :: (Enum a, Enum b) => a -> b
+ castEnum = toEnum . fromEnum
+ 
+-foreign import ccall "static uu.h xx_enc_part"
+-    c_xx_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++-- foreign import ccall "static uu.h xx_enc_part"
++c_xx_enc_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++c_xx_enc_part = error "c_xx_enc_part implemented yet!"
+ 
+-foreign import ccall "static uu.h xx_enc_final"
+-    c_xx_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++-- foreign import ccall "static uu.h xx_enc_final"
++c_xx_enc_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_xx_enc_final = error "c_xx_enc_final implemented yet!"
+ 
+-foreign import ccall "static uu.h xx_dec_part"
+-    c_xx_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++-- foreign import ccall "static uu.h xx_dec_part"
++c_xx_dec_part :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++c_xx_dec_part = error "c_xx_dec_part implemented yet!"
+ 
+-foreign import ccall "static uu.h xx_dec_final"
+-    c_xx_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++-- foreign import ccall "static uu.h xx_dec_final"
++c_xx_dec_final :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> IO CInt
++c_xx_dec_final = error "c_xx_dec_final implemented yet!"
+ 
+ -- | Encoding function.
+ --
+diff --git a/src/Codec/Binary/Yenc.hs b/src/Codec/Binary/Yenc.hs
+index 5d9110a..e4ed385 100644
+--- a/src/Codec/Binary/Yenc.hs
++++ b/src/Codec/Binary/Yenc.hs
+@@ -24,11 +24,13 @@ import Data.List
+ castEnum :: (Enum a, Enum b) => a -> b
+ castEnum = toEnum . fromEnum
+ 
+-foreign import ccall "static yenc.h y_enc"
+-    c_y_enc :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++-- foreign import ccall "static yenc.h y_enc"
++c_y_enc :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO ()
++c_y_enc = error "c_y_enc implemented yet!"
+ 
+-foreign import ccall "static yenc.h y_dec"
+-    c_y_dec :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++-- foreign import ccall "static yenc.h y_dec"
++c_y_dec :: Ptr Word8 -> CSize -> Ptr Word8 -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> IO CInt
++c_y_dec = error "c_y_dec implemented yet!"    
+ 
+ -- | Encoding function.
+ --
+-- 
+2.15.2 (Apple Git-101.1)
+
