@@ -429,6 +429,7 @@ These packages are supported by `etlas`.
 - [bytestring-trie-0.2.4.1](https://hackage.haskell.org/package/bytestring-trie-0.2.4.1)
 - [bytestring-show-0.3.5.6](https://hackage.haskell.org/package/bytestring-show-0.3.5.6)
 - [bytestring-strict-builder-0.4.5.1](https://hackage.haskell.org/package/bytestring-strict-builder-0.4.5.1)
+- [bytestring-tree-builder-0.2.7.2](https://hackage.haskell.org/package/bytestring-tree-builder-0.2.7.2)
 
 #### Cryptography
 - [crypto-api-0.13.2](https://hackage.haskell.org/package/crypto-api-0.13.2)
