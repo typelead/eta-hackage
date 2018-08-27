@@ -420,6 +420,9 @@ These packages are supported by `etlas`.
 - [criterion-1.5.1.0](https://hackage.haskell.org/package/criterion)
 - [criterion-measurement-0.1.1.0](https://hackage.haskell.org/package/criterion-measurement)
 
+#### Blockchain
+- [blockchain-0.0.3](https://hackage.haskell.org/package/blockchain-0.0.3)
+
 #### Cryptography
 - [crypto-api-0.13.2](https://hackage.haskell.org/package/crypto-api-0.13.2)
 - [cryptohash-0.11.9](https://hackage.haskell.org/package/cryptohash-0.11.9)

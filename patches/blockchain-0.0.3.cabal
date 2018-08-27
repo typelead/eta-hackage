@@ -1,0 +1,107 @@
+-- This file has been generated from package.yaml by hpack version 0.14.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           blockchain
+version:        0.0.3
+synopsis:       Generic blockchain implementation.
+description:    Please see README.md
+category:       Blockchain
+homepage:       https://github.com/TGOlson/blockchain
+author:         Tyler Olson
+maintainer:     tydotg@gmail.com
+copyright:      2017 Tyler Olson
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+
+extra-source-files:
+    README.md
+
+library
+  hs-source-dirs:
+      lib
+  default-extensions: BangPatterns DefaultSignatures DeriveGeneric FlexibleInstances GeneralizedNewtypeDeriving LambdaCase OverloadedStrings RecordWildCards ScopedTypeVariables
+  ghc-options: -Wall
+  build-depends:
+      aeson
+    , base >= 4.7 && < 5
+    , byteable
+    , bytestring
+    , cryptonite
+    , either
+    , errors
+    , hashable
+    , memory
+    , mtl
+    , text
+    , time
+    , transformers
+    , unordered-containers
+  exposed-modules:
+      Data.Blockchain
+      Data.Blockchain.Builder
+      Data.Blockchain.Crypto
+      Data.Blockchain.Types
+      Data.Blockchain.Mining
+  other-modules:
+      Data.Blockchain.Crypto.ECDSA
+      Data.Blockchain.Crypto.Hash
+      Data.Blockchain.Crypto.HashTree
+      Data.Blockchain.Mining.Block
+      Data.Blockchain.Mining.Blockchain
+      Data.Blockchain.Types.Block
+      Data.Blockchain.Types.Blockchain
+      Data.Blockchain.Types.BlockchainConfig
+      Data.Blockchain.Types.Difficulty
+      Data.Blockchain.Types.Hex
+      Data.Blockchain.Types.Transaction
+      Paths_blockchain
+  default-language: Haskell2010
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      test
+  default-extensions: BangPatterns DefaultSignatures DeriveGeneric FlexibleInstances GeneralizedNewtypeDeriving LambdaCase OverloadedStrings RecordWildCards ScopedTypeVariables
+  ghc-options: -Wall
+  build-depends:
+      aeson
+    , base >= 4.7 && < 5
+    , byteable
+    , bytestring
+    , cryptonite
+    , either
+    , errors
+    , hashable
+    , memory
+    , mtl
+    , text
+    , time
+    , transformers
+    , unordered-containers
+    , async
+    , blockchain
+    , deepseq
+    , hspec
+    , QuickCheck
+    , quickcheck-instances
+  other-modules:
+      ArbitraryInstances
+      Data.Blockchain.Builder.TransactionSpec
+      Data.Blockchain.Crypto.ECDSASpec
+      Data.Blockchain.Crypto.HashSpec
+      Data.Blockchain.Crypto.HashTreeSpec
+      Data.Blockchain.Mining.BlockSpec
+      Data.Blockchain.Types.BlockchainConfigSpec
+      Data.Blockchain.Types.BlockchainSpec
+      Data.Blockchain.Types.DifficultySpec
+      Data.Blockchain.Types.HexSpec
+      Data.Blockchain.Types.TransactionSpec
+      Integration.Mining
+      Integration.Stats
+      TestData
+      TestUtil
+  default-language: Haskell2010
