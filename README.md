@@ -423,6 +423,13 @@ These packages are supported by `etlas`.
 #### Blockchain
 - [blockchain-0.0.3](https://hackage.haskell.org/package/blockchain-0.0.3)
 
+#### Bytestring
+- [bytestring >= 0.10.8.1.0 && <= 0.10.8.2.0](https://hackage.haskell.org/package/bytestring)
+- [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
+- [bytestring-trie-0.2.4.1](https://hackage.haskell.org/package/bytestring-trie-0.2.4.1)
+- [bytestring-show-0.3.5.6](https://hackage.haskell.org/package/bytestring-show-0.3.5.6)
+- [bytestring-strict-builder-0.4.5.1](https://hackage.haskell.org/package/bytestring-strict-builder-0.4.5.1)
+
 #### Cryptography
 - [crypto-api-0.13.2](https://hackage.haskell.org/package/crypto-api-0.13.2)
 - [cryptohash-0.11.9](https://hackage.haskell.org/package/cryptohash-0.11.9)
@@ -528,10 +535,6 @@ These packages are supported by `etlas`.
 - [byteable-0.1.1](https://hackage.haskell.org/package/byteable-0.1.1)
 - [byteorder-1.0.4](https://hackage.haskell.org/package/byteorder-1.0.4)
 - [bytes-0.15.3](https://hackage.haskell.org/package/bytes-0.15.3)
-- [bytestring >= 0.10.8.1.0 && <= 0.10.8.2.0](https://hackage.haskell.org/package/bytestring)
-- [bytestring-builder-0.10.8.1.0](https://hackage.haskell.org/package/bytestring-builder-0.10.8.1.0)
-- [bytestring-trie-0.2.4.1](https://hackage.haskell.org/package/bytestring-trie-0.2.4.1)
-- [bytestring-show-0.3.5.6](https://hackage.haskell.org/package/bytestring-show-0.3.5.6)
 - [call-stack-0.1.0](https://hackage.haskell.org/package/call-stack-0.1.0)
 - [case-insensitive >= 1.2.0.7 && <= 1.2.0.10](https://hackage.haskell.org/package/case-insensitive)
 - [cereal-0.5.4.0](https://hackage.haskell.org/package/cereal-0.5.4.0)
