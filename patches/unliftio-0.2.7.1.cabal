@@ -1,0 +1,82 @@
+cabal-version: >= 1.10
+
+-- This file has been generated from package.yaml by hpack version 0.29.6.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 80f98ec8618eddf5cd9e60732404c2af04ec9c97f9edefb9aa7b236b776e10ea
+
+name:           unliftio
+version:        0.2.7.1
+synopsis:       The MonadUnliftIO typeclass for unlifting monads to IO (batteries included)
+description:    Please see the documentation and README at <https://www.stackage.org/package/unliftio>
+category:       Control
+homepage:       https://github.com/fpco/unliftio/tree/master/unliftio#readme
+author:         Michael Snoyman, Francesco Mazzoli
+maintainer:     michael@snoyman.com
+copyright:      2017 FP Complete
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    ChangeLog.md
+    README.md
+
+library
+  hs-source-dirs:
+      src
+  build-depends:
+      async >2.1.1
+    , base >=4.7 && <5
+    , deepseq
+    , directory
+    , filepath
+    , process >=1.2.0.0
+    , stm >=2.4.3
+    , time
+    , transformers
+    , unliftio-core >=0.1.1.0
+
+  exposed-modules:
+      UnliftIO
+      UnliftIO.Async
+      UnliftIO.Chan
+      UnliftIO.Concurrent
+      UnliftIO.Directory
+      UnliftIO.Environment
+      UnliftIO.Exception
+      UnliftIO.Foreign
+      UnliftIO.IO
+      UnliftIO.IORef
+      UnliftIO.MVar
+      UnliftIO.Process
+      UnliftIO.STM
+      UnliftIO.Temporary
+      UnliftIO.Timeout
+  other-modules:
+      Paths_unliftio
+  default-language: Haskell2010
+
+test-suite unliftio-spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs:
+      test
+  build-depends:
+      async >2.1.1
+    , base >=4.7 && <5
+    , deepseq
+    , directory
+    , filepath
+    , hspec
+    , process >=1.2.0.0
+    , stm >=2.4.3
+    , time
+    , transformers
+    , unliftio
+    , unliftio-core >=0.1.1.0
+  other-modules:
+      UnliftIO.ExceptionSpec
+      UnliftIO.IOSpec
+      Paths_unliftio
+  default-language: Haskell2010

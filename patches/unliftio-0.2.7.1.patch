@@ -1,0 +1,150 @@
+From d77ac7df72b794722d1cdb974a37c88db721489d Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Tue, 28 Aug 2018 19:50:29 +0530
+Subject: [PATCH] Patched
+
+---
+ src/UnliftIO/Concurrent.hs |  7 +++++--
+ src/UnliftIO/Foreign.hs    |  4 +++-
+ src/UnliftIO/IO.hs         |  6 ++++--
+ src/UnliftIO/Temporary.hs  | 14 ++++++++------
+ unliftio.cabal             | 17 +----------------
+ 5 files changed, 21 insertions(+), 27 deletions(-)
+
+diff --git a/src/UnliftIO/Concurrent.hs b/src/UnliftIO/Concurrent.hs
+index 15a0cbc..9cace2f 100644
+--- a/src/UnliftIO/Concurrent.hs
++++ b/src/UnliftIO/Concurrent.hs
+@@ -134,14 +134,14 @@ threadDelay = liftIO .  C.threadDelay
+ --
+ -- @since 0.1.1.0
+ threadWaitRead :: MonadIO m => Fd -> m ()
+-threadWaitRead = liftIO . C.threadWaitRead
++threadWaitRead = liftIO . threadWaitRead1
+ {-# INLINABLE threadWaitRead #-}
+ 
+ -- | Lifted version of 'C.threadWaitWrite'.
+ --
+ -- @since 0.1.1.0
+ threadWaitWrite :: MonadIO m => Fd -> m ()
+-threadWaitWrite = liftIO . C.threadWaitWrite
++threadWaitWrite = liftIO . threadWaitWrite1
+ {-# INLINABLE threadWaitWrite #-}
+ 
+ -- | Unflifted version of 'C.forkOS'.
+@@ -178,3 +178,6 @@ runInUnboundThread m = withRunInIO $ \run -> C.runInUnboundThread $ run m
+ mkWeakThreadId :: MonadIO m => ThreadId -> m (Weak ThreadId)
+ mkWeakThreadId = liftIO . C.mkWeakThreadId
+ {-# INLINABLE mkWeakThreadId #-}
++
++threadWaitRead1 = error "threadWaitRead1 not implemented!"
++threadWaitWrite1 = error "threadWaitWrite1 not implemented"
+diff --git a/src/UnliftIO/Foreign.hs b/src/UnliftIO/Foreign.hs
+index 63e8f5c..d628a8a 100644
+--- a/src/UnliftIO/Foreign.hs
++++ b/src/UnliftIO/Foreign.hs
+@@ -796,7 +796,7 @@ throwErrnoPathIfMinus1_ loc path f =
+ -- @since 0.2.5.0
+ {-# INLINE freeHaskellFunPtr #-}
+ freeHaskellFunPtr :: MonadIO m => FunPtr a -> m ()
+-freeHaskellFunPtr = liftIO . F.freeHaskellFunPtr
++freeHaskellFunPtr = liftIO . freeHaskellFunPtr1
+ 
+ -- | Lifted 'F.newForeignPtr'.
+ --
+@@ -1346,3 +1346,5 @@ moveBytes dest src size = liftIO (F.moveBytes dest src size)
+ fillBytes :: MonadIO m => Ptr a -> Word8 -> Int -> m ()
+ fillBytes dest char size = liftIO (F.fillBytes dest char size)
+ #endif
++
++freeHaskellFunPtr1 = error "freeHaskellFunPtr not implemented"
+diff --git a/src/UnliftIO/IO.hs b/src/UnliftIO/IO.hs
+index 3f0b5f0..2ec7b24 100644
+--- a/src/UnliftIO/IO.hs
++++ b/src/UnliftIO/IO.hs
+@@ -173,10 +173,12 @@ getMonotonicTime :: MonadIO m => m Double
+ getMonotonicTime = liftIO $ initted `seq` getMonotonicTime'
+ 
+ -- | Set up time measurement.
+-foreign import ccall unsafe "unliftio_inittime" initializeTime :: IO ()
++initializeTime :: IO ()
++initializeTime = error "initializeTime not implemented"
+ 
+ initted :: ()
+ initted = unsafePerformIO initializeTime
+ {-# NOINLINE initted #-}
+ 
+-foreign import ccall unsafe "unliftio_gettime" getMonotonicTime' :: IO Double
++getMonotonicTime' :: IO Double
++getMonotonicTime' = error "getMonotonicTime' not implemented"
+diff --git a/src/UnliftIO/Temporary.hs b/src/UnliftIO/Temporary.hs
+index 6688d4e..cba04f4 100644
+--- a/src/UnliftIO/Temporary.hs
++++ b/src/UnliftIO/Temporary.hs
+@@ -20,11 +20,11 @@ import System.IO.Error
+ import System.Posix.Internals (c_getpid)
+ import System.FilePath ((</>))
+ 
+-#ifdef mingw32_HOST_OS
+-import System.Directory       ( createDirectory )
+-#else
+-import qualified System.Posix
+-#endif
++-- #ifdef mingw32_HOST_OS
++-- import System.Directory       ( createDirectory )
++-- #else
++-- import qualified System.Posix
++-- #endif
+ 
+ -- | Create and use a temporary file in the system standard temporary directory.
+ --
+@@ -128,8 +128,10 @@ mkPrivateDir :: String -> IO ()
+ #ifdef mingw32_HOST_OS
+ mkPrivateDir s = createDirectory s
+ #else
+-mkPrivateDir s = System.Posix.createDirectory s 0o700
++mkPrivateDir s = createDirectory1 s 0o700
+ #endif
+ 
+ ignoringIOErrors :: MonadUnliftIO m => m () -> m ()
+ ignoringIOErrors = liftM (const ()) . tryIO -- yes, it's just void, but for pre-AMP GHCs
++
++createDirectory1 = error "createDirectory not implemented!"
+diff --git a/unliftio.cabal b/unliftio.cabal
+index 12ae642..c40f5bc 100644
+--- a/unliftio.cabal
++++ b/unliftio.cabal
+@@ -36,19 +36,7 @@ library
+     , time
+     , transformers
+     , unliftio-core >=0.1.1.0
+-  if !os(Windows)
+-    build-depends:
+-        unix
+-  if os(darwin)
+-    c-sources:
+-        cbits/time-osx.c
+-  else
+-    if os(windows)
+-      c-sources:
+-          cbits/time-windows.c
+-    else
+-      c-sources:
+-          cbits/time-posix.c
++
+   exposed-modules:
+       UnliftIO
+       UnliftIO.Async
+@@ -87,9 +75,6 @@ test-suite unliftio-spec
+     , transformers
+     , unliftio
+     , unliftio-core >=0.1.1.0
+-  if !os(Windows)
+-    build-depends:
+-        unix
+   other-modules:
+       UnliftIO.ExceptionSpec
+       UnliftIO.IOSpec
+-- 
+2.15.2 (Apple Git-101.1)
+

@@ -611,7 +611,7 @@ These packages are supported by `etlas`.
 - [unexceptionalio-0.3.0](https://hackage.haskell.org/package/unexceptionalio-0.3.0)
 - [unicode-transforms-0.2.0](https://hackage.haskell.org/packages/unicode-transforms-0.2.0)
 - [unix-time-0.3.7](https://hackage.haskell.org/package/unix-time-0.3.7)
-- [unliftio-0.2.7.0](https://hackage.haskell.org/package/unliftio-0.2.7.0)
+- [unliftio >= 0.2.7.0 && <= 0.2.7.1](https://hackage.haskell.org/package/unliftio)
 - [unliftio-core-0.1.1.0](https://hackage.haskell.org/package/unliftio-core-0.1.1.0)
 - [unordered-containers >= 0.2.7.1 && <= 0.2.9.0](https://hackage.haskell.org/package/unordered-containers)
 - [uuid-types-1.0.3](https://hackage.haskell.org/package/uuid-types-1.0.3)
