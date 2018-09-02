@@ -1,54 +1,195 @@
-From ab1966bef1e956633301b965afd1ca7d5b74a5d8 Mon Sep 17 00:00:00 2001
-From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Tue, 5 Jun 2018 08:37:21 +0530
+From 1021bc74cea19b7f8456ead193d08955f4c4609d Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 3 Sep 2018 01:22:46 +0530
 Subject: [PATCH] Patched
 
 ---
- src/Network/{Info.hsc => Info.hs} | 78 +++++++++++++++++++--------------------
- 1 file changed, 39 insertions(+), 39 deletions(-)
- rename src/Network/{Info.hsc => Info.hs} (69%)
+ java/Utils.java                   | 95 +++++++++++++++++++++++++++++++
+ network-info.cabal                | 10 +---
+ src/Network/{Info.hsc => Info.hs} | 49 +++++++++-------
+ 3 files changed, 125 insertions(+), 29 deletions(-)
+ create mode 100644 java/Utils.java
+ rename src/Network/{Info.hsc => Info.hs} (81%)
 
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..e56d711
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,95 @@
++package eta.network_info;
++
++import java.util.ArrayList;
++import java.util.Enumeration;
++import java.util.List;
++import java.net.InetAddress;
++import java.net.NetworkInterface;
++import java.net.SocketException;
++import java.nio.ByteOrder;
++
++public class Utils {
++    public static List<NI> getNIs() {
++        ArrayList<NI> nis = new ArrayList<NI>();
++        Enumeration<NetworkInterface> interfaces = null;
++
++        try {
++            interfaces = NetworkInterface.getNetworkInterfaces();
++        } catch (SocketException e) {
++            interfaces = null;
++        }
++
++        if (interfaces != null) {
++            while (interfaces.hasMoreElements()) {
++                NetworkInterface ni = interfaces.nextElement();
++                Enumeration<InetAddress> addresses = ni.getInetAddresses();
++                byte[] ipv4 = null;
++                byte[] ipv6 = null;
++                byte[] mac  = null;
++                while (addresses.hasMoreElements()) {
++                    InetAddress ia = addresses.nextElement();
++                    byte[] address = ia.getAddress();
++                    int len = address.length;
++                    if (len == 4 && ipv4 == null) {
++                        ipv4 = address;
++                    } else if (len == 16 && ipv6 == null) {
++                        ipv6 = address;
++                    }
++                }
++
++                try {
++                    mac = ni.getHardwareAddress();
++                } catch (SocketException e) {
++                    mac = null;
++                }
++                if (mac == null) {
++                    mac = new byte[6];
++                }
++                if (ipv4 == null) {
++                    ipv4 = new byte[4];
++                }
++                if (ipv6 == null) {
++                    ipv6 = new byte[16];
++                }
++                nis.add(new NI(ni.getName(), ipv4, ipv6, mac));
++            }
++        }
++        return nis;
++    }
++
++    public static class NI {
++        public final String name;
++        public final int    ipv4;
++        public final int[]  ipv6;
++        public final byte[] mac;
++
++        public NI(final String name, final byte[] ipv4, final byte[] ipv6, final byte[] mac) {
++            this.name = name;
++            this.ipv4 = bytesToInts(ipv4)[0];
++            this.ipv6 = bytesToInts(ipv6);
++            this.mac  = mac;
++        }
++
++        private static int[] bytesToInts(byte[] bytes) {
++            int len = bytes.length;
++            int[] ints = new int[len / 4];
++            for (int i = 0; i < len; i += 4) {
++                if (BIGENDIAN) {
++                    ints[i / 4] = ((bytes[i] & 0xFF) << 24)
++                                | ((bytes[i + 1] & 0xFF) << 16)
++                                | ((bytes[i + 2] & 0xFF) << 8)
++                                |  (bytes[i + 3] & 0xFF);
++                } else {
++                    ints[i / 4] = ((bytes[i + 3] & 0xFF) << 24)
++                                | ((bytes[i + 2] & 0xFF) << 16)
++                                | ((bytes[i + 1] & 0xFF) << 8)
++                                |  (bytes[i] & 0xFF);
++                }
++            }
++            return ints;
++        }
++
++        private static boolean BIGENDIAN =
++            ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
++    }
++}
+diff --git a/network-info.cabal b/network-info.cabal
+index 8208b9c..db1e11e 100644
+--- a/network-info.cabal
++++ b/network-info.cabal
+@@ -40,18 +40,10 @@ source-repository head
+ 
+ Library
+   hs-source-dirs: src
+-  include-dirs: cbits
+-  cc-options: -Wall -std=c99
+ 
+   exposed-modules: Network.Info
+ 
+   build-depends:
+     base == 4.*
+ 
+-  if os(windows)
+-    c-sources: cbits/network-windows.c
+-    extra-libraries: iphlpapi
+-  else
+-    c-sources: cbits/network-unix.c
+-  if os(solaris)
+-    extra-libraries: socket, nsl
++  java-sources: java/Utils.java
 diff --git a/src/Network/Info.hsc b/src/Network/Info.hs
-similarity index 69%
+similarity index 81%
 rename from src/Network/Info.hsc
 rename to src/Network/Info.hs
-index c1b6040..fd19316 100644
+index c1b6040..2e13260 100644
 --- a/src/Network/Info.hsc
 +++ b/src/Network/Info.hs
-@@ -1,8 +1,8 @@
- {-# LANGUAGE ForeignFunctionInterface #-}
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE ForeignFunctionInterface #-}
++{-# LANGUAGE ForeignFunctionInterface, MultiParamTypeClasses #-}
  
  module Network.Info (
--    getNetworkInterfaces,
--    NetworkInterface (..),
-+    -- getNetworkInterfaces,
-+    -- NetworkInterface (..),
-     IPv4 (..),
-     IPv6 (..),
-     MAC (..),
-@@ -24,43 +24,43 @@ import Text.Printf
+     getNetworkInterfaces,
+@@ -17,18 +17,33 @@ import Foreign.Marshal.Array
+ import Foreign.Ptr
+ import Foreign.Storable
+ import Numeric (showHex)
++import Control.Monad (forM)
+ import Text.Printf
++import Java
+ 
+ 
+ ----------------------------------------------------------------------
  -- FFI
  ----------------------------------------------------------------------
  
 -#include "network.h"
--
+ 
 -foreign import ccall unsafe "c_get_network_interfaces"
 -        c_get_network_interfaces :: Ptr NetworkInterface -> CInt -> IO CInt
--
--
------------------------------------------------------------------------
---- Network interfaces
------------------------------------------------------------------------
--
---- | Describes the basic configuration of a network interface. /This/
----   /definition is currently limited to just one address per family./
--data NetworkInterface = NetworkInterface
--    { name :: String -- ^ Interface name (e.g. \"eth0\", \"lo\", \"Local Area Connection\")
--    , ipv4 :: IPv4   -- ^ IPv4 address
--    , ipv6 :: IPv6   -- ^ IPv6 address
--    , mac  :: MAC    -- ^ MAC address
--    } deriving (Show)
--
++data NI = NI @eta.network_info.Utils$NI
++  deriving Class
+ 
++foreign import java unsafe "@static eta.network_info.Utils.getNIs"
++  c_get_network_interfaces :: IO (List NI)
++
++foreign import java unsafe "@field name"
++  getName :: Java NI String
++
++foreign import java unsafe "@field ipv4"
++  getIpv4 :: Java NI Int
++
++foreign import java unsafe "@field ipv6"
++  getIpv6 :: Java NI JIntArray
++
++foreign import java unsafe "@field mac"
++  getMac :: Java NI JByteArray
+ 
+ ----------------------------------------------------------------------
+ -- Network interfaces
+@@ -43,25 +58,19 @@ data NetworkInterface = NetworkInterface
+     , mac  :: MAC    -- ^ MAC address
+     } deriving (Show)
+ 
 -instance Storable NetworkInterface where
 -    alignment _ = #const offsetof(struct {char x__; struct network_interface (y__); }, y__)
 -    sizeOf _    = #size struct network_interface
@@ -60,53 +201,27 @@ index c1b6040..fd19316 100644
 -        return $ NetworkInterface name ipv4 ipv6 mac
 -
 -
---- | Gets the address information for each of the network interfaces on
----   the local computer.
--getNetworkInterfaces :: IO [NetworkInterface]
+ -- | Gets the address information for each of the network interfaces on
+ --   the local computer.
+ getNetworkInterfaces :: IO [NetworkInterface]
 -getNetworkInterfaces =
 -    allocaArray 64 $ \ptr -> do
 -    count <- c_get_network_interfaces ptr 64
 -    peekArray (fromIntegral count) ptr
-+-- #include "network.h"
-+--
-+-- foreign import ccall unsafe "c_get_network_interfaces"
-+--         c_get_network_interfaces :: Ptr NetworkInterface -> CInt -> IO CInt
-+--
-+--
-+-- ----------------------------------------------------------------------
-+-- -- Network interfaces
-+-- ----------------------------------------------------------------------
-+--
-+-- -- | Describes the basic configuration of a network interface. /This/
-+-- --   /definition is currently limited to just one address per family./
-+-- data NetworkInterface = NetworkInterface
-+--     { name :: String -- ^ Interface name (e.g. \"eth0\", \"lo\", \"Local Area Connection\")
-+--     , ipv4 :: IPv4   -- ^ IPv4 address
-+--     , ipv6 :: IPv6   -- ^ IPv6 address
-+--     , mac  :: MAC    -- ^ MAC address
-+--     } deriving (Show)
-+--
-+-- instance Storable NetworkInterface where
-+--     alignment _ = #const offsetof(struct {char x__; struct network_interface (y__); }, y__)
-+--     sizeOf _    = #size struct network_interface
-+--     peek ptr    = do
-+--         name <- peekCWString $ (#ptr struct network_interface, name) ptr
-+--         ipv4 <- (#peek struct network_interface, ip_address) ptr
-+--         ipv6 <- (#peek struct network_interface, ip6_address) ptr
-+--         mac  <- (#peek struct network_interface, mac_address) ptr
-+--         return $ NetworkInterface name ipv4 ipv6 mac
-+--
-+--
-+-- -- | Gets the address information for each of the network interfaces on
-+-- --   the local computer.
-+-- getNetworkInterfaces :: IO [NetworkInterface]
-+-- getNetworkInterfaces =
-+--     allocaArray 64 $ \ptr -> do
-+--     count <- c_get_network_interfaces ptr 64
-+--     peekArray (fromIntegral count) ptr
- 
+-
++getNetworkInterfaces = do
++    interfaces <- c_get_network_interfaces
++    forM (fromJava interfaces) $ \interface -> do
++      javaWith interface $
++        NetworkInterface <$> getName
++                         <*> fmap (IPv4 . fromIntegral) getIpv4
++                         <*> fmap (toIpv6 . fromJava) getIpv6
++                         <*> fmap (toMac . fromJava) getMac
++    where toIpv6 [i1, i2, i3, i4] = IPv6 i1 i2 i3 i4
++          toMac  [b1, b2, b3, b4, b5, b6] = MAC b1 b2 b3 b4 b5 b6
  
  ----------------------------------------------------------------------
+ -- IPv4 addresses
 -- 
-2.14.3 (Apple Git-98)
+2.18.0
 

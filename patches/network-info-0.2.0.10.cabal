@@ -40,18 +40,10 @@ source-repository head
 
 Library
   hs-source-dirs: src
-  include-dirs: cbits
-  cc-options: -Wall -std=c99
 
   exposed-modules: Network.Info
 
   build-depends:
     base == 4.*
 
-  if os(windows)
-    c-sources: cbits/network-windows.c
-    extra-libraries: iphlpapi
-  else
-    c-sources: cbits/network-unix.c
-  if os(solaris)
-    extra-libraries: socket, nsl
+  java-sources: java/Utils.java
