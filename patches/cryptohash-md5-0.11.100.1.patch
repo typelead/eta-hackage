@@ -1,21 +1,28 @@
-From 8fbd0e93fcf8f64016bb5c10c099d833b542e43c Mon Sep 17 00:00:00 2001
+From 86b5e1d63c38fd45980c1cdc5986714186a8da2b Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 11 Aug 2018 18:22:34 +0530
+Date: Tue, 4 Sep 2018 22:17:48 +0530
 Subject: [PATCH] Patched
 
 ---
- cryptohash-md5.cabal   |   1 +
- java/Utils.java        |  32 +++++++++++++++
+ cryptohash-md5.cabal   |   3 +-
+ java/Utils.java        |  32 +++++++++++++
  src-tests/test-md5.hs  |   4 +-
- src/Crypto/Hash/MD5.hs | 105 ++++++++++++++++++++-----------------------------
- 4 files changed, 77 insertions(+), 65 deletions(-)
+ src/Crypto/Hash/MD5.hs | 105 +++++++++++++++++------------------------
+ 4 files changed, 78 insertions(+), 66 deletions(-)
  create mode 100644 java/Utils.java
 
 diff --git a/cryptohash-md5.cabal b/cryptohash-md5.cabal
-index 9e8eed6..543931b 100644
+index 9e8eed6..d35c6cc 100644
 --- a/cryptohash-md5.cabal
 +++ b/cryptohash-md5.cabal
-@@ -47,6 +47,7 @@ library
+@@ -41,12 +41,13 @@ source-repository head
+ 
+ library
+   default-language:  Haskell2010
+-  build-depends:     base             >= 4.5   && < 4.10
++  build-depends:     base             >= 4.5   && < 4.13
+                    , bytestring       >= 0.9.2 && < 0.11
+ 
    hs-source-dirs:    src
    exposed-modules:   Crypto.Hash.MD5
    ghc-options:       -Wall -fno-cse -O2
@@ -266,5 +273,5 @@ index 6a98314..63d2d44 100644
  {-# NOINLINE hmac #-}
  -- | Compute 16-byte <https://tools.ietf.org/html/rfc2104 RFC2104>-compatible
 -- 
-2.7.4 (Apple Git-66)
+2.18.0
 
