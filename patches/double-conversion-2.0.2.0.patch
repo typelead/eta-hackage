@@ -1,0 +1,166 @@
+From 247a0ea9ed0c348a7f797fdc2e9330b9645035aa Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 4 Sep 2018 18:36:30 +0530
+Subject: [PATCH] Patched
+
+---
+ Data/Double/Conversion/FFI.hs | 32 +++++++++++------------
+ double-conversion.cabal       | 26 +------------------
+ java/Utils.java               | 49 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 66 insertions(+), 41 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/Data/Double/Conversion/FFI.hs b/Data/Double/Conversion/FFI.hs
+index 853c0c3..8b9ba84 100644
+--- a/Data/Double/Conversion/FFI.hs
++++ b/Data/Double/Conversion/FFI.hs
+@@ -37,38 +37,38 @@ import Foreign.C.Types (CDouble, CInt)
+ import Foreign.Ptr (Ptr)
+ import GHC.Prim (MutableByteArray#)
+ 
+-foreign import ccall unsafe "hs-double-conversion.h _hs_ToShortestLength"
+-    c_ToShortestLength :: CInt
++c_ToShortestLength :: CInt
++c_ToShortestLength = 26
+ 
+-foreign import ccall unsafe "hs-double-conversion.h _hs_Text_ToShortest"
++foreign import java unsafe "@static eta.double_conversion.Utils.textToShortest"
+     c_Text_ToShortest :: CDouble -> MutableByteArray# s -> IO CInt
+ 
+-foreign import ccall unsafe "hs-double-conversion.h _hs_ToShortest"
++foreign import java unsafe "@static eta.double_conversion.Utils.toShortest"
+     c_ToShortest :: CDouble -> Ptr Word8 -> IO CInt
+ 
+-foreign import ccall unsafe "hs-double-conversion.h _hs_ToFixedLength"
+-    c_ToFixedLength :: CInt
++c_ToFixedLength :: CInt
++c_ToFixedLength = 1 + 60 + 1 + 60
+ 
+-foreign import ccall unsafe "hs-double-conversion.h _hs_Text_ToFixed"
++foreign import java unsafe "@static eta.double_conversion.Utils.textToFixed"
+     c_Text_ToFixed :: CDouble -> MutableByteArray# s -> CInt -> IO CInt
+ 
+-foreign import ccall unsafe "hs-double-conversion.h _hs_ToFixed"
++foreign import java unsafe "@static eta.double_conversion.Utils.toFixed"
+     c_ToFixed :: CDouble -> Ptr Word8 -> CInt -> IO CInt
+ 
+-foreign import ccall unsafe "hs-double-conversion.h _hs_ToExponentialLength"
+-    c_ToExponentialLength :: CInt
++c_ToExponentialLength :: CInt
++c_ToExponentialLength = 120 + 8
+ 
+-foreign import ccall unsafe "hs-double-conversion.h _hs_Text_ToExponential"
++foreign import java unsafe "@static eta.double_conversion.Utils.textToExponential"
+     c_Text_ToExponential :: CDouble -> MutableByteArray# s -> CInt -> IO CInt
+ 
+-foreign import ccall unsafe "hs-double-conversion.h _hs_ToExponential"
++foreign import java unsafe "@static eta.double_conversion.Utils.toExponential"
+     c_ToExponential :: CDouble -> Ptr Word8 -> CInt -> IO CInt
+ 
+-foreign import ccall unsafe "hs-double-conversion.h _hs_ToPrecisionLength"
+-    c_ToPrecisionLength :: CInt
++c_ToPrecisionLength :: CInt
++c_ToPrecisionLength = 120 + 7 
+ 
+-foreign import ccall unsafe "hs-double-conversion.h _hs_Text_ToPrecision"
++foreign import java unsafe "@static eta.double_conversion.Utils.textToPrecision"
+     c_Text_ToPrecision :: CDouble -> MutableByteArray# s -> CInt -> IO CInt
+ 
+-foreign import ccall unsafe "hs-double-conversion.h _hs_ToPrecision"
++foreign import java unsafe "@static eta.double_conversion.Utils.toPrecision"
+     c_ToPrecision :: CDouble -> Ptr Word8 -> CInt -> IO CInt
+diff --git a/double-conversion.cabal b/double-conversion.cabal
+index 96114ee..1866ecc 100644
+--- a/double-conversion.cabal
++++ b/double-conversion.cabal
+@@ -60,31 +60,7 @@ flag developer
+   manual: True
+ 
+ library
+-  c-sources:
+-    cbits/hs-double-conversion.cc
+-    double-conversion/src/bignum.cc
+-    double-conversion/src/bignum-dtoa.cc
+-    double-conversion/src/cached-powers.cc
+-    double-conversion/src/diy-fp.cc
+-    double-conversion/src/double-conversion.cc
+-    double-conversion/src/fast-dtoa.cc
+-    double-conversion/src/fixed-dtoa.cc
+-    double-conversion/src/strtod.cc
+-
+-  if os(windows)
+-    if arch(x86_64)
+-      extra-libraries: stdc++-6 gcc_s_seh-1
+-    else
+-      extra-libraries: stdc++-6 gcc_s_dw2-1
+-  else
+-    if os(darwin)
+-      extra-libraries: c++
+-    else
+-      extra-libraries: stdc++
+-
+-  include-dirs:
+-    double-conversion/src
+-    include
++  java-sources: java/Utils.java
+ 
+   exposed-modules:
+     Data.Double.Conversion.ByteString
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..5691208
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,49 @@
++package eta.double_conversion;
++
++import java.text.DecimalFormat;
++import java.text.DecimalFormatSymbols;
++import java.util.Locale;
++import java.math.RoundingMode;
++import eta.runtime.io.MemoryManager;
++import eta.runtime.io.ByteArray;
++import java.io.UnsupportedEncodingException ;
++
++public class Utils {
++    public static int toExponential(double d, long ptr, int n)
++        throws UnsupportedEncodingException  {
++        StringBuilder sb = new StringBuilder();
++        sb.append("0.");
++        for (int i = 0; i < n; i++) {
++            sb.append('0');
++        }
++        sb.append("E0");
++        DecimalFormat df = new DecimalFormat(sb.toString(),
++                               DecimalFormatSymbols.getInstance(Locale.ENGLISH));
++        df.setRoundingMode(RoundingMode.HALF_UP);
++        MemoryManager.getBoundedBuffer(ptr)
++            .put(df.format(d).replace('E','e').getBytes("UTF-8"));
++        return -1;
++    }
++
++    private static String toShortestImpl(double d) {
++        if (d == (long) d) {
++            return Long.toString((long) d);
++        } else {
++            return Double.toString(d).replace('E','e');
++        }
++    }
++
++    public static int toShortest(double d, long ptr)
++        throws UnsupportedEncodingException {
++        byte[] bytes = toShortestImpl(d).getBytes("UTF-8");
++        MemoryManager.getBoundedBuffer(ptr).put(bytes);
++        return bytes.length;
++    }
++
++    public static int textToShortest(double d, ByteArray b)
++        throws UnsupportedEncodingException  {
++        byte[] bytes = toShortestImpl(d).getBytes("UTF-16BE");
++        MemoryManager.getBoundedBuffer(b.bufferAddress).put(bytes);
++        return bytes.length / 2;
++    }
++}
+-- 
+2.18.0
+
