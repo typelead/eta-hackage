@@ -1,0 +1,218 @@
+From 75f3d55ae8fee91a257295e98a1d2745239aeb43 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Tue, 4 Sep 2018 20:24:51 +0530
+Subject: [PATCH] Patched
+
+---
+ cql-io.cabal                               |  2 +-
+ src/Database/CQL/IO/Client.hs              |  8 ++---
+ src/Database/CQL/IO/Connection.hs          |  4 +--
+ src/Database/CQL/IO/Connection/Settings.hs |  4 ++-
+ src/Database/CQL/IO/Connection/Socket.hs   | 39 +++++++++++++---------
+ src/Database/CQL/IO/Settings.hs            |  4 ++-
+ 6 files changed, 37 insertions(+), 24 deletions(-)
+
+diff --git a/cql-io.cabal b/cql-io.cabal
+index 9b4f4ab..960c9bf 100644
+--- a/cql-io.cabal
++++ b/cql-io.cabal
+@@ -88,7 +88,7 @@ library
+         , exceptions         >= 0.4
+         , hashable           >= 1.2
+         , iproute            >= 1.3
+-        , HsOpenSSL          >= 0.11
++        --, HsOpenSSL          >= 0.11
+         , lens               >= 4.4
+         , monad-control      >= 0.3
+         , mtl                >= 2.1
+diff --git a/src/Database/CQL/IO/Client.hs b/src/Database/CQL/IO/Client.hs
+index fa6088b..d703174 100644
+--- a/src/Database/CQL/IO/Client.hs
++++ b/src/Database/CQL/IO/Client.hs
+@@ -78,7 +78,7 @@ import Database.CQL.IO.Timeouts (TimeoutManager)
+ import Database.CQL.IO.Types
+ import Database.CQL.Protocol hiding (Map)
+ import Network.Socket (SockAddr (..), PortNumber)
+-import OpenSSL.Session (SomeSSLException)
++-- import OpenSSL.Session (SomeSSLException)
+ import System.Logger.Class hiding (Settings, new, settings, create)
+ import Prelude hiding (init)
+ 
+@@ -277,7 +277,7 @@ request1 h a s = do
+     handlers =
+         [ Handler $ \(e :: ConnectionError)  -> onConnectionError h e >> throwM e
+         , Handler $ \(e :: IOException)      -> onConnectionError h e >> throwM e
+-        , Handler $ \(e :: SomeSSLException) -> onConnectionError h e >> throwM e
++        --, Handler $ \(e :: SomeSSLException) -> onConnectionError h e >> throwM e
+         ]
+ 
+ -- | Execute the given request. If an 'Unprepared' error is returned, this
+@@ -553,7 +553,7 @@ withRetries fn a = do
+         , const $ Handler $ \(_ :: ConnectionError)  -> return True
+         , const $ Handler $ \(_ :: IOException)      -> return True
+         , const $ Handler $ \(_ :: HostError)        -> return True
+-        , const $ Handler $ \(_ :: SomeSSLException) -> return True
++        -- , const $ Handler $ \(_ :: SomeSSLException) -> return True
+         ]
+ 
+ onConnectionError :: Exception e => Host -> e -> Client ()
+@@ -595,7 +595,7 @@ onConnectionError h exc = do
+         [ const (Handler $ \(_ :: IOException)      -> return True)
+         , const (Handler $ \(_ :: ConnectionError)  -> return True)
+         , const (Handler $ \(_ :: HostError)        -> return True)
+-        , const (Handler $ \(_ :: SomeSSLException) -> return True)
++        -- , const (Handler $ \(_ :: SomeSSLException) -> return True)
+         ]
+ 
+ replaceControl :: InetAddr -> Client ()
+diff --git a/src/Database/CQL/IO/Connection.hs b/src/Database/CQL/IO/Connection.hs
+index aa309f8..8f94c25 100644
+--- a/src/Database/CQL/IO/Connection.hs
++++ b/src/Database/CQL/IO/Connection.hs
+@@ -95,7 +95,7 @@ instance Show Connection where
+     show = Char8.unpack . eval . bytes
+ 
+ instance ToBytes Connection where
+-    bytes c = bytes (c^.address) +++ val "#" +++ c^.sock
++    bytes c = bytes (c^.address) +++ val "#" -- +++ c^.sock
+ 
+ resolve :: String -> PortNumber -> IO [InetAddr]
+ resolve host port =
+@@ -202,7 +202,7 @@ readSocket v g i s n = do
+         RsHeader -> do
+             let len = lengthRepr (bodyLength h)
+             x <- Socket.recv n i s (fromIntegral len)
+-            trace g $ msg (i +++ val "#" +++ s)
++            trace g $ msg (i +++ val "#") -- +++ s)
+                 ~~ "stream" .= fromStreamId (streamId h)
+                 ~~ "type"   .= val "response"
+                 ~~ msg' (hexdump $ L.take 160 (b <> x))
+diff --git a/src/Database/CQL/IO/Connection/Settings.hs b/src/Database/CQL/IO/Connection/Settings.hs
+index 267dc9f..6275e2a 100644
+--- a/src/Database/CQL/IO/Connection/Settings.hs
++++ b/src/Database/CQL/IO/Connection/Settings.hs
+@@ -39,7 +39,7 @@ import Data.Int
+ import Database.CQL.Protocol
+ import Database.CQL.IO.Cluster.Host
+ import Database.CQL.IO.Types
+-import OpenSSL.Session (SSLContext)
++-- import OpenSSL.Session (SSLContext)
+ import Prelude
+ 
+ import qualified Data.ByteString.Lazy.Char8 as Char8
+@@ -47,6 +47,8 @@ import qualified Data.HashMap.Strict        as HashMap
+ import qualified Data.Text.Lazy             as Lazy
+ import qualified Data.Text.Lazy.Encoding    as Lazy
+ 
++type SSLContext = ()
++
+ data ConnectionSettings = ConnectionSettings
+     { _connectTimeout  :: !Milliseconds
+     , _sendTimeout     :: !Milliseconds
+diff --git a/src/Database/CQL/IO/Connection/Socket.hs b/src/Database/CQL/IO/Connection/Socket.hs
+index 34e44ba..e2b55a1 100644
+--- a/src/Database/CQL/IO/Connection/Socket.hs
++++ b/src/Database/CQL/IO/Connection/Socket.hs
+@@ -28,7 +28,7 @@ import Database.CQL.IO.Types
+ import Foreign.C.Types (CInt (..))
+ import Network.Socket hiding (Stream, Socket, connect, close, recv, send, shutdown)
+ import Network.Socket.ByteString.Lazy (sendAll)
+-import OpenSSL.Session (SSL, SSLContext)
++-- import OpenSSL.Session (SSL, SSLContext)
+ import System.Logger (ToBytes (..))
+ import System.Timeout
+ import Prelude
+@@ -37,16 +37,19 @@ import qualified Data.ByteString            as Bytes
+ import qualified Data.ByteString.Lazy       as Lazy
+ import qualified Network.Socket             as S
+ import qualified Network.Socket.ByteString  as NB
+-import qualified OpenSSL.Session            as SSL
++-- import qualified OpenSSL.Session            as SSL
++
++type SSL = ()
++type SSLContext = ()
+ 
+ data Socket = Stream !S.Socket | Tls !S.Socket !SSL
+ 
+-instance ToBytes Socket where
+-    bytes s = bytes $ case s of
+-        Stream x -> fd x
+-        Tls  x _ -> fd x
+-      where
+-        fd x = let CInt n = S.fdSocket x in n
++-- instance ToBytes Socket where
++--     bytes s = bytes $ case s of
++--         Stream x -> fd x
++--         Tls  x _ -> fd x
++--       where
++--         fd x = let CInt n = S.fdSocket x in n
+ 
+ open :: Milliseconds -> InetAddr -> Maybe SSLContext -> IO Socket
+ open to a ctx = do
+@@ -56,10 +59,13 @@ open to a ctx = do
+             throwM (ConnectTimeout a)
+         case ctx of
+             Nothing  -> return (Stream s)
+-            Just set -> do
+-                c <- SSL.connection set s
+-                SSL.connect c
+-                return (Tls s c)
++            Just set -> sslNotSupported "open"
++                -- c <- SSL.connection set s
++                -- SSL.connect c
++                -- return (Tls s c)
++
++sslNotSupported :: String -> a
++sslNotSupported ctxt = error $ "cql-io: " ++ ctxt ++ ": SSL not supported!"
+ 
+ mkSock :: InetAddr -> IO S.Socket
+ mkSock (InetAddr a) = S.socket (familyOf a) S.Stream defaultProtocol
+@@ -73,7 +79,8 @@ mkSock (InetAddr a) = S.socket (familyOf a) S.Stream defaultProtocol
+ 
+ close :: Socket -> IO ()
+ close (Stream s) = S.close s
+-close (Tls s  c) = SSL.shutdown c SSL.Bidirectional >> S.close s
++close (Tls s  c) = sslNotSupported "close"
++  -- SSL.shutdown c SSL.Bidirectional >> S.close s
+ 
+ shutdown :: Socket -> ShutdownCmd -> IO ()
+ shutdown (Stream s) cmd = S.shutdown s cmd
+@@ -81,7 +88,8 @@ shutdown _          _   = return ()
+ 
+ recv :: Int -> InetAddr -> Socket -> Int -> IO Lazy.ByteString
+ recv x a (Stream s) n = receive x a (NB.recv s) n
+-recv x a (Tls _  c) n = receive x a (SSL.read c) n
++recv x a (Tls _  c) n = sslNotSupported "recv"
++  -- receive x a (SSL.read c) n
+ 
+ receive :: Int -> InetAddr -> (Int -> IO ByteString) -> Int -> IO Lazy.ByteString
+ receive _ _ _ 0 = return Lazy.empty
+@@ -97,4 +105,5 @@ receive x i f n = toLazyByteString <$> go n mempty
+ 
+ send :: Socket -> Lazy.ByteString -> IO ()
+ send (Stream s) b = sendAll s b
+-send (Tls _  c) b = mapM_ (SSL.write c) (Lazy.toChunks b)
++send (Tls _  c) b = sslNotSupported "send"
++ -- mapM_ (SSL.write c) (Lazy.toChunks b)
+diff --git a/src/Database/CQL/IO/Settings.hs b/src/Database/CQL/IO/Settings.hs
+index ca73610..6eea858 100644
+--- a/src/Database/CQL/IO/Settings.hs
++++ b/src/Database/CQL/IO/Settings.hs
+@@ -20,11 +20,13 @@ import Database.CQL.IO.Connection.Settings as C
+ import Database.CQL.IO.Pool as P
+ import Database.CQL.IO.Types (Milliseconds (..))
+ import Network.Socket (PortNumber (..))
+-import OpenSSL.Session (SSLContext)
++-- import OpenSSL.Session (SSLContext)
+ import Prelude
+ 
+ import qualified Data.HashMap.Strict as HashMap
+ 
++type SSLContext = ()
++
+ -- | Strategy for the execution of 'PrepQuery's.
+ data PrepareStrategy
+     = EagerPrepare -- ^ cluster-wide preparation
+-- 
+2.18.0
+
