@@ -522,6 +522,9 @@ These packages are supported by `etlas`.
 - [template-haskell-2.11.1.0](https://hackage.haskell.org/package/template-haskell-2.11.1.0)
 - [th-lift-instances-0.1.11](https://hackage.haskell.org/package/th-lift-instances-0.1.11)
 
+#### Generic Programming
+- [generics-sop-0.3.2.0](https://hackage.haskell.org/package/generics-sop-0.3.2.0)
+
 #### Audio
 - [cue-sheet-1.0.1](https://hackage.haskell.org/package/cue-sheet-1.0.1)
 

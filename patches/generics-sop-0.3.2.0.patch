@@ -1,0 +1,254 @@
+From 147d76b0d4c90d2ae6b1b0f7811e815f773d8c7f Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Wed, 5 Sep 2018 17:15:35 +0530
+Subject: [PATCH] Patched
+
+---
+ generics-sop-0.3.2.0.patch   | 123 +++++++++++++++++++++++++++++++++++++++++++
+ src/Generics/SOP/GGP.hs      |  26 +++++----
+ src/Generics/SOP/Universe.hs |   2 +-
+ 3 files changed, 140 insertions(+), 11 deletions(-)
+ create mode 100644 generics-sop-0.3.2.0.patch
+
+diff --git a/generics-sop-0.3.2.0.patch b/generics-sop-0.3.2.0.patch
+new file mode 100644
+index 0000000..a8a68b6
+--- /dev/null
++++ b/generics-sop-0.3.2.0.patch
+@@ -0,0 +1,123 @@
++From bb1cec92634671b2900b3caa0b27ec741d17f727 Mon Sep 17 00:00:00 2001
++From: Rahul Muttineni <rahulmutt@gmail.com>
++Date: Wed, 5 Sep 2018 17:09:37 +0530
++Subject: [PATCH] Patched
++
++---
++ src/Generics/SOP/GGP.hs      | 26 ++++++++++++++++----------
++ src/Generics/SOP/Universe.hs |  2 +-
++ 2 files changed, 17 insertions(+), 11 deletions(-)
++
++diff --git a/src/Generics/SOP/GGP.hs b/src/Generics/SOP/GGP.hs
++index 78554ba..e5da7b2 100644
++--- a/src/Generics/SOP/GGP.hs
+++++ b/src/Generics/SOP/GGP.hs
++@@ -10,12 +10,17 @@
++ --     <http://www.andres-loeh.de/GenericGenericProgramming Generic Generic Programming>.
++ --     Practical Aspects of Declarative Languages (PADL) 2014.
++ --
+++
+++#if MIN_VERSION_base(4,9,0) && !defined(ETA_VERSION)
+++#define NEW_GENERICS
+++#endif
+++
++ module Generics.SOP.GGP
++   ( GCode
++   , GFrom
++   , GTo
++   , GDatatypeInfo
++-#if MIN_VERSION_base(4,9,0)
+++#if defined(NEW_GENERICS)
++   , GDatatypeInfoOf
++ #endif
++   , gfrom
++@@ -23,19 +28,20 @@ module Generics.SOP.GGP
++   , gdatatypeInfo
++   ) where
++ 
+++
++ import Data.Proxy
++ import GHC.Generics as GHC
++ import Generics.SOP.NP as SOP
++ import Generics.SOP.NS as SOP
++ import Generics.SOP.BasicFunctors as SOP
++-#if !(MIN_VERSION_base(4,9,0))
+++#if !defined(NEW_GENERICS)
++ import Generics.SOP.Constraint as SOP
++ #endif
++-#if MIN_VERSION_base(4,9,0)
+++#if defined(NEW_GENERICS)
++ import qualified Generics.SOP.Type.Metadata as SOP.T
++ #endif
++ import Generics.SOP.Metadata as SOP
++-#if !(MIN_VERSION_base(4,9,0))
+++#if !defined(NEW_GENERICS)
++ import Generics.SOP.Sing
++ #endif
++ 
++@@ -53,13 +59,13 @@ type instance ToSumCode V1          xs = xs
++ type instance ToSumCode (M1 D _c a) xs = ToSumCode a xs
++ type instance ToSumCode (M1 C _c a) xs = ToProductCode a '[] ': xs
++ 
++-#if MIN_VERSION_base(4,9,0)
+++#if defined(NEW_GENERICS)
++ data InfoProxy (c :: Meta) (f :: * -> *) (x :: *) = InfoProxy
++ #else
++ data InfoProxy (c :: *) (f :: * -> *) (x :: *) = InfoProxy
++ #endif
++ 
++-#if !(MIN_VERSION_base(4,9,0))
+++#if !defined(NEW_GENERICS)
++ class GDatatypeInfo' (a :: * -> *) where
++   gDatatypeInfo' :: proxy a -> DatatypeInfo (ToSumCode a '[])
++ 
++@@ -121,7 +127,7 @@ instance (Constructor c, GFieldInfos a, SListI (ToProductCode a '[])) => GConstr
++       p = InfoProxy
++ #endif
++ 
++-#if MIN_VERSION_base(4,9,0)
+++#if defined(NEW_GENERICS)
++ type family ToInfo (a :: * -> *) :: SOP.T.DatatypeInfo
++ type instance ToInfo (M1 D (MetaData n m p False) a) =
++   SOP.T.ADT m n (ToSumInfo a '[])
++@@ -253,13 +259,13 @@ type GFrom a = GSumFrom (GHC.Rep a)
++ type GTo a = GSumTo (GHC.Rep a)
++ 
++ -- | Constraint for the class that computes 'gdatatypeInfo'.
++-#if MIN_VERSION_base(4,9,0)
+++#if defined(NEW_GENERICS)
++ type GDatatypeInfo a = SOP.T.DemoteDatatypeInfo (GDatatypeInfoOf a) (GCode a)
++ #else
++ type GDatatypeInfo a = GDatatypeInfo' (GHC.Rep a)
++ #endif
++ 
++-#if MIN_VERSION_base(4,9,0)
+++#if defined(NEW_GENERICS)
++ -- | Compute the datatype info of a datatype.
++ --
++ -- @since 0.3.0.0
++@@ -298,7 +304,7 @@ gto x = GHC.to (gSumTo x id ((\ _ -> error "inaccessible") :: SOP I '[] -> (GHC.
++ -- For more info, see 'Generics.SOP.HasDatatypeInfo'.
++ --
++ gdatatypeInfo :: forall proxy a. (GDatatypeInfo a) => proxy a -> DatatypeInfo (GCode a)
++-#if MIN_VERSION_base(4,9,0)
+++#if defined(NEW_GENERICS)
++ gdatatypeInfo _ = SOP.T.demoteDatatypeInfo (Proxy :: Proxy (GDatatypeInfoOf a))
++ #else
++ gdatatypeInfo _ = gDatatypeInfo' (Proxy :: Proxy (GHC.Rep a))
++diff --git a/src/Generics/SOP/Universe.hs b/src/Generics/SOP/Universe.hs
++index b159ecc..c2ac498 100644
++--- a/src/Generics/SOP/Universe.hs
+++++ b/src/Generics/SOP/Universe.hs
++@@ -141,7 +141,7 @@ class (All SListI (Code a)) => Generic (a :: *) where
++ class HasDatatypeInfo a where
++   -- | Type-level datatype info
++   type DatatypeInfoOf a :: T.DatatypeInfo
++-#if MIN_VERSION_base(4,9,0)
+++#if MIN_VERSION_base(4,9,0) && !defined(ETA_VERSION)
++   type DatatypeInfoOf a = GDatatypeInfoOf a
++ #else
++   type DatatypeInfoOf a = DatatypeInfoOf a
++-- 
++2.18.0
++
+diff --git a/src/Generics/SOP/GGP.hs b/src/Generics/SOP/GGP.hs
+index 78554ba..e5da7b2 100644
+--- a/src/Generics/SOP/GGP.hs
++++ b/src/Generics/SOP/GGP.hs
+@@ -10,12 +10,17 @@
+ --     <http://www.andres-loeh.de/GenericGenericProgramming Generic Generic Programming>.
+ --     Practical Aspects of Declarative Languages (PADL) 2014.
+ --
++
++#if MIN_VERSION_base(4,9,0) && !defined(ETA_VERSION)
++#define NEW_GENERICS
++#endif
++
+ module Generics.SOP.GGP
+   ( GCode
+   , GFrom
+   , GTo
+   , GDatatypeInfo
+-#if MIN_VERSION_base(4,9,0)
++#if defined(NEW_GENERICS)
+   , GDatatypeInfoOf
+ #endif
+   , gfrom
+@@ -23,19 +28,20 @@ module Generics.SOP.GGP
+   , gdatatypeInfo
+   ) where
+ 
++
+ import Data.Proxy
+ import GHC.Generics as GHC
+ import Generics.SOP.NP as SOP
+ import Generics.SOP.NS as SOP
+ import Generics.SOP.BasicFunctors as SOP
+-#if !(MIN_VERSION_base(4,9,0))
++#if !defined(NEW_GENERICS)
+ import Generics.SOP.Constraint as SOP
+ #endif
+-#if MIN_VERSION_base(4,9,0)
++#if defined(NEW_GENERICS)
+ import qualified Generics.SOP.Type.Metadata as SOP.T
+ #endif
+ import Generics.SOP.Metadata as SOP
+-#if !(MIN_VERSION_base(4,9,0))
++#if !defined(NEW_GENERICS)
+ import Generics.SOP.Sing
+ #endif
+ 
+@@ -53,13 +59,13 @@ type instance ToSumCode V1          xs = xs
+ type instance ToSumCode (M1 D _c a) xs = ToSumCode a xs
+ type instance ToSumCode (M1 C _c a) xs = ToProductCode a '[] ': xs
+ 
+-#if MIN_VERSION_base(4,9,0)
++#if defined(NEW_GENERICS)
+ data InfoProxy (c :: Meta) (f :: * -> *) (x :: *) = InfoProxy
+ #else
+ data InfoProxy (c :: *) (f :: * -> *) (x :: *) = InfoProxy
+ #endif
+ 
+-#if !(MIN_VERSION_base(4,9,0))
++#if !defined(NEW_GENERICS)
+ class GDatatypeInfo' (a :: * -> *) where
+   gDatatypeInfo' :: proxy a -> DatatypeInfo (ToSumCode a '[])
+ 
+@@ -121,7 +127,7 @@ instance (Constructor c, GFieldInfos a, SListI (ToProductCode a '[])) => GConstr
+       p = InfoProxy
+ #endif
+ 
+-#if MIN_VERSION_base(4,9,0)
++#if defined(NEW_GENERICS)
+ type family ToInfo (a :: * -> *) :: SOP.T.DatatypeInfo
+ type instance ToInfo (M1 D (MetaData n m p False) a) =
+   SOP.T.ADT m n (ToSumInfo a '[])
+@@ -253,13 +259,13 @@ type GFrom a = GSumFrom (GHC.Rep a)
+ type GTo a = GSumTo (GHC.Rep a)
+ 
+ -- | Constraint for the class that computes 'gdatatypeInfo'.
+-#if MIN_VERSION_base(4,9,0)
++#if defined(NEW_GENERICS)
+ type GDatatypeInfo a = SOP.T.DemoteDatatypeInfo (GDatatypeInfoOf a) (GCode a)
+ #else
+ type GDatatypeInfo a = GDatatypeInfo' (GHC.Rep a)
+ #endif
+ 
+-#if MIN_VERSION_base(4,9,0)
++#if defined(NEW_GENERICS)
+ -- | Compute the datatype info of a datatype.
+ --
+ -- @since 0.3.0.0
+@@ -298,7 +304,7 @@ gto x = GHC.to (gSumTo x id ((\ _ -> error "inaccessible") :: SOP I '[] -> (GHC.
+ -- For more info, see 'Generics.SOP.HasDatatypeInfo'.
+ --
+ gdatatypeInfo :: forall proxy a. (GDatatypeInfo a) => proxy a -> DatatypeInfo (GCode a)
+-#if MIN_VERSION_base(4,9,0)
++#if defined(NEW_GENERICS)
+ gdatatypeInfo _ = SOP.T.demoteDatatypeInfo (Proxy :: Proxy (GDatatypeInfoOf a))
+ #else
+ gdatatypeInfo _ = gDatatypeInfo' (Proxy :: Proxy (GHC.Rep a))
+diff --git a/src/Generics/SOP/Universe.hs b/src/Generics/SOP/Universe.hs
+index b159ecc..c2ac498 100644
+--- a/src/Generics/SOP/Universe.hs
++++ b/src/Generics/SOP/Universe.hs
+@@ -141,7 +141,7 @@ class (All SListI (Code a)) => Generic (a :: *) where
+ class HasDatatypeInfo a where
+   -- | Type-level datatype info
+   type DatatypeInfoOf a :: T.DatatypeInfo
+-#if MIN_VERSION_base(4,9,0)
++#if MIN_VERSION_base(4,9,0) && !defined(ETA_VERSION)
+   type DatatypeInfoOf a = GDatatypeInfoOf a
+ #else
+   type DatatypeInfoOf a = DatatypeInfoOf a
+-- 
+2.15.2 (Apple Git-101.1)
+
