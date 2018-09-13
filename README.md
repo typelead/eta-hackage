@@ -599,7 +599,7 @@ These packages are supported by `etlas`.
 - [pem-0.2.2](https://hackage.haskell.org/package/pipes-0.2.2)
 - [pointed-5](https://hackage.haskell.org/package/pointed-5)
 - [reflection-2.1.2](https://hackage.haskell.org/package/reflection-2.1.2)
-- [resourcet >= 1.1.8.1 && <= 1.1.10](https://hackage.haskell.org/package/resourcet)
+- [resourcet >= 1.1.8.1 && <= 1.1.11](https://hackage.haskell.org/package/resourcet)
 - [safe >= 0.3.9 && <= 0.3.11](https://hackage.haskell.org/package/safe-0.3.11)
 - [safe-exceptions-0.1.6.0](https://hackage.haskell.org/package/safe-exceptions-0.1.6.0)
 - [scientific >= 0.3.4.9 && <= 0.3.5.1](https://hackage.haskell.org/package/scientific)
