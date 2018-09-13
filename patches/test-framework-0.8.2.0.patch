@@ -1,23 +1,23 @@
-From 2aea8164a2a0e585464488c9ee9632ce9c779c1c Mon Sep 17 00:00:00 2001
+From 780b73093a12c3bb0a789a8cc9340c41efeeb923 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Adam=20Sch=C3=B8nemann?= <adamschoenemann@gmail.com>
-Date: Thu, 13 Sep 2018 14:31:20 +0200
-Subject: [PATCH] Patched. bang patterns are necessary
+Date: Thu, 13 Sep 2018 15:06:23 +0200
+Subject: [PATCH] Patched! bang patterns necessary
 
 ---
- Test/Framework/Runners/Statistics.hs | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ Test/Framework/Runners/Statistics.hs | 22 +++++++++++++++++-----
+ test-framework.cabal                 |  2 ++
+ 2 files changed, 19 insertions(+), 5 deletions(-)
 
 diff --git a/Test/Framework/Runners/Statistics.hs b/Test/Framework/Runners/Statistics.hs
-index aad63c3..d0a4874 100644
+index fc8bf7a..d0a4874 100644
 --- a/Test/Framework/Runners/Statistics.hs
 +++ b/Test/Framework/Runners/Statistics.hs
-@@ -1,4 +1,4 @@
--{-# LANGUAGE CPP #-}
+@@ -1,3 +1,4 @@
 +{-# LANGUAGE BangPatterns #-}
  module Test.Framework.Runners.Statistics (
          TestCount, testCountTestTypes, testCountForType, adjustTestCount, testCountTotal,
          TestStatistics(..), ts_pending_tests, ts_no_failures,
-@@ -9,11 +9,12 @@ module Test.Framework.Runners.Statistics (
+@@ -8,13 +9,24 @@ module Test.Framework.Runners.Statistics (
  import Test.Framework.Core (TestTypeName)
  import Test.Framework.Runners.Core
  
@@ -28,20 +28,23 @@ index aad63c3..d0a4874 100644
  #if !MIN_VERSION_base(4,8,0)
  import Data.Monoid
  #endif
-+import Data.Semigroup as Sem
+ import Data.Semigroup as Sem
  
- #ifdef HAS_TRAMPOLINE
- import qualified Data.Function as F
-@@ -24,7 +25,7 @@ trampoline :: a -> a
- trampoline = F.trampoline
- #else
- trampoline = id
--#endifmport Data.Semigroup as Sem
++#ifdef HAS_TRAMPOLINE
++import qualified Data.Function as F
 +#endif
- 
++
++trampoline :: a -> a
++#ifdef HAS_TRAMPOLINE
++trampoline = F.trampoline
++#else
++trampoline = id
++#endif
++
  
  -- | Records a count of the various kinds of test that have been run
-@@ -45,14 +46,14 @@ testCountTotal :: TestCount -> Int
+ newtype TestCount = TestCount { unTestCount :: Map TestTypeName Int }
+@@ -34,14 +46,14 @@ testCountTotal :: TestCount -> Int
  testCountTotal = sum . Map.elems . unTestCount
  
  instance Semigroup TestCount where
@@ -58,6 +61,28 @@ index aad63c3..d0a4874 100644
  
  
  -- | Records information about the run of a number of tests, such
+@@ -93,7 +105,7 @@ totalRunTestsList :: [RunTest a] -> TestCount
+ totalRunTestsList = mconcat . map totalRunTests
+ 
+ gatherStatistics :: [FinishedTest] -> TestStatistics
+-gatherStatistics = mconcat . map f
++gatherStatistics = trampoline . mconcat . map f
+   where
+     f (RunTest _ test_type (_, success)) = singleTestStatistics test_type success
+     f (RunTestGroup _ tests)             = gatherStatistics tests
+diff --git a/test-framework.cabal b/test-framework.cabal
+index df3b918..57f3b78 100644
+--- a/test-framework.cabal
++++ b/test-framework.cabal
+@@ -79,6 +79,8 @@ Library
+ 
+         if impl(ghc)
+                 Cpp-Options:            -DCOMPILER_GHC
++        if impl(eta >= 0.0.9.7)
++                Cpp-Options:            -DHAS_TRAMPOLINE
+ 
+         if impl(ghc >= 8.0)
+                 Ghc-Options: -Wcompat -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
 -- 
 2.17.1
 
