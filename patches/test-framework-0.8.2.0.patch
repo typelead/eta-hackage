@@ -1,0 +1,63 @@
+From 2aea8164a2a0e585464488c9ee9632ce9c779c1c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Adam=20Sch=C3=B8nemann?= <adamschoenemann@gmail.com>
+Date: Thu, 13 Sep 2018 14:31:20 +0200
+Subject: [PATCH] Patched. bang patterns are necessary
+
+---
+ Test/Framework/Runners/Statistics.hs | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/Test/Framework/Runners/Statistics.hs b/Test/Framework/Runners/Statistics.hs
+index aad63c3..d0a4874 100644
+--- a/Test/Framework/Runners/Statistics.hs
++++ b/Test/Framework/Runners/Statistics.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE CPP #-}
++{-# LANGUAGE BangPatterns #-}
+ module Test.Framework.Runners.Statistics (
+         TestCount, testCountTestTypes, testCountForType, adjustTestCount, testCountTotal,
+         TestStatistics(..), ts_pending_tests, ts_no_failures,
+@@ -9,11 +9,12 @@ module Test.Framework.Runners.Statistics (
+ import Test.Framework.Core (TestTypeName)
+ import Test.Framework.Runners.Core
+ 
+-import Data.Map (Map)
+-import qualified Data.Map as Map
++import Data.Map.Strict (Map)
++import qualified Data.Map.Strict as Map
+ #if !MIN_VERSION_base(4,8,0)
+ import Data.Monoid
+ #endif
++import Data.Semigroup as Sem
+ 
+ #ifdef HAS_TRAMPOLINE
+ import qualified Data.Function as F
+@@ -24,7 +25,7 @@ trampoline :: a -> a
+ trampoline = F.trampoline
+ #else
+ trampoline = id
+-#endifmport Data.Semigroup as Sem
++#endif
+ 
+ 
+ -- | Records a count of the various kinds of test that have been run
+@@ -45,14 +46,14 @@ testCountTotal :: TestCount -> Int
+ testCountTotal = sum . Map.elems . unTestCount
+ 
+ instance Semigroup TestCount where
+-    TestCount tcm1 <> TestCount tcm2 = TestCount $ Map.unionWith (+) tcm1 tcm2
++    TestCount (!tcm1) <> TestCount (!tcm2) = TestCount $ trampoline $ Map.unionWith (+) tcm1 tcm2
+ 
+ instance Monoid TestCount where
+     mempty = TestCount $ Map.empty
+     mappend = (Sem.<>)
+ 
+ minusTestCount :: TestCount -> TestCount -> TestCount
+-minusTestCount (TestCount tcm1) (TestCount tcm2) = TestCount $ Map.unionWith (-) tcm1 tcm2
++minusTestCount (TestCount tcm1) (TestCount tcm2) = TestCount $ trampoline $ Map.unionWith (-) tcm1 tcm2
+ 
+ 
+ -- | Records information about the run of a number of tests, such
+-- 
+2.17.1
+
