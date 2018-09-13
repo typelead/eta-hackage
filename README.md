@@ -459,6 +459,7 @@ These packages are supported by `etlas`.
 - [filepath >= 1.4.1.0 && <= 1.4.1.1](hackage.haskell.org/package/filepath)
 - [file-embed >= 0.0.10.1 && <= 0.0.11](hackage.haskell.org/package/file-embed)
 - [fsnotify-0.3.0.1](https://hackage.haskell.org/package/fsnotify-0.3.0.1)
+- [path-io-1.4.0](http://hackage.haskell.org/package/path-io-1.4.0)
 - [temporary-1.2.1.1](http://hackage.haskell.org/package/temporary-1.2.1.1)
 
 #### Error Handling

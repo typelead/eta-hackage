@@ -1,0 +1,69 @@
+From fb094c30174a89bf3c52100010ff19f7c8b80512 Mon Sep 17 00:00:00 2001
+From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
+Date: Thu, 13 Sep 2018 20:10:36 +0530
+Subject: [PATCH] Patched
+
+---
+ Path/IO.hs    | 11 +++++++----
+ path-io.cabal |  2 --
+ 2 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/Path/IO.hs b/Path/IO.hs
+index 403af95..5c89bb2 100644
+--- a/Path/IO.hs
++++ b/Path/IO.hs
+@@ -121,7 +121,7 @@ import qualified Data.Set                 as S
+ import qualified System.Directory         as D
+ import qualified System.FilePath          as F
+ import qualified System.IO.Temp           as T
+-import qualified System.PosixCompat.Files as P
++-- import qualified System.PosixCompat.Files as P
+ 
+ #if MIN_VERSION_directory(1,2,3)
+ import System.Directory (XdgDirectory)
+@@ -535,8 +535,10 @@ walkDir handler topdir = void $
+             ds -> runMaybeT $ mapM_ (MaybeT . walkAvoidLoop traversed) ds
+ 
+     checkLoop traversed dir = do
+-      st <- liftIO $ P.getFileStatus (toFilePath dir)
+-      let ufid = (P.deviceID st, P.fileID st)
++      error "path-io: checkLoop not implemented yet!"
++      let ufid = error "path-io: ufid not implemented yet!" :: Int
++      -- st <- liftIO $ P.getFileStatus (toFilePath dir)
++      -- let ufid = (P.deviceID st, P.fileID st)
+ 
+       -- check for loop, have we already traversed this dir?
+       return $ if S.member ufid traversed
+@@ -1162,7 +1164,8 @@ findFilesWith f (d:ds) file = do
+ -- @since 1.3.0
+ 
+ isSymlink :: MonadIO m => Path b t -> m Bool
+-isSymlink p = liftIO (P.isSymbolicLink <$> P.getSymbolicLinkStatus path)
++isSymlink p = error "path-io: isSymlink not implemented yet"
++-- liftIO (P.isSymbolicLink <$> P.getSymbolicLinkStatus path)
+   where
+     -- NOTE: To be able to correctly check whether it is a symlink or not we
+     -- have to drop the trailing separator from the dir path.
+diff --git a/path-io.cabal b/path-io.cabal
+index d80a5aa..cac53ec 100644
+--- a/path-io.cabal
++++ b/path-io.cabal
+@@ -31,7 +31,6 @@ library
+                     , temporary    >= 1.1     && < 1.4
+                     , time         >= 1.4     && < 1.9
+                     , transformers >= 0.3     && < 0.6
+-                    , unix-compat
+   exposed-modules:    Path.IO
+   if flag(dev)
+     ghc-options:      -Wall -Werror
+@@ -60,7 +59,6 @@ test-suite tests
+                     , path         >= 0.5     && < 0.7
+                     , path-io
+                     , transformers >= 0.3     && < 0.6
+-                    , unix-compat
+   default-language:   Haskell2010
+ 
+ source-repository head
+-- 
+2.15.2 (Apple Git-101.1)
+
