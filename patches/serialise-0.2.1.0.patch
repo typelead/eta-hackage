@@ -1,0 +1,52 @@
+From ecdf5f2708c7bf102ccf9a7e2c727c78bc0b0536 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Mon, 15 Oct 2018 08:40:52 +0200
+Subject: [PATCH] Patched
+
+---
+ src/Codec/Serialise/Class.hs | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/Codec/Serialise/Class.hs b/src/Codec/Serialise/Class.hs
+index 246860a..0352253 100644
+--- a/src/Codec/Serialise/Class.hs
++++ b/src/Codec/Serialise/Class.hs
+@@ -96,7 +96,7 @@ import           System.Exit                         (ExitCode(..))
+ 
+ import           Prelude hiding (decodeFloat, encodeFloat, foldr)
+ import qualified Prelude
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined (ETA_VERSION)
+ import           Type.Reflection
+ import           Type.Reflection.Unsafe
+ import           GHC.Fingerprint
+@@ -1072,7 +1072,7 @@ instance Serialise Fingerprint where
+ 
+ -- | @since 0.2.0.0
+ instance Serialise TyCon where
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined (ETA_VERSION)
+   encode tc
+     = encodeListLen 6
+    <> encodeWord 0
+@@ -1103,7 +1103,7 @@ instance Serialise TyCon where
+    <> encode name
+ #endif
+ 
+-#if !MIN_VERSION_base(4,10,0)
++#if !MIN_VERSION_base(4,10,0) || defined (ETA_VERSION)
+   decode = do
+     decodeListLenOf 4
+     tag <- decodeWord
+@@ -1115,7 +1115,7 @@ instance Serialise TyCon where
+       _ -> fail "unexpected tag"
+ #endif
+ 
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined (ETA_VERSION)
+ -- | @since 0.2.0.0
+ instance Serialise VecCount where
+   encode c = encodeListLen 1 <> encodeWord (fromIntegral $ fromEnum c)
+-- 
+2.16.2.windows.1
+

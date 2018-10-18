@@ -1,0 +1,80 @@
+From f4f2a192f8f433d201e459b56e7ee1d7ef337a3a Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Mon, 15 Oct 2018 08:13:27 +0200
+Subject: [PATCH] Patched
+
+---
+ cborg.cabal             | 2 +-
+ src/Codec/CBOR/Magic.hs | 8 ++++----
+ src/Codec/CBOR/Read.hs  | 2 +-
+ src/Codec/CBOR/Write.hs | 2 +-
+ 4 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/cborg.cabal b/cborg.cabal
+index 4ed719e..31befad 100644
+--- a/cborg.cabal
++++ b/cborg.cabal
+@@ -90,7 +90,7 @@ library
+   if flag(optimize-gmp)
+     cpp-options:            -DFLAG_OPTIMIZE_GMP
+     build-depends:
+-      integer-gmp
++      integer
+ 
+   if impl(ghc >= 8.0)
+     ghc-options: -Wcompat -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
+diff --git a/src/Codec/CBOR/Magic.hs b/src/Codec/CBOR/Magic.hs
+index c2900db..d0ca34b 100644
+--- a/src/Codec/CBOR/Magic.hs
++++ b/src/Codec/CBOR/Magic.hs
+@@ -90,7 +90,7 @@ import           GHC.Int
+ import           Foreign.Ptr
+ 
+ #if defined(OPTIMIZE_GMP)
+-import qualified GHC.Integer.GMP.Internals      as Gmp
++import qualified GHC.Integer.BigInteger.Internals as Gmp
+ #endif
+ 
+ import           Data.ByteString (ByteString)
+@@ -109,9 +109,9 @@ import           Data.Bits ((.|.), unsafeShiftL)
+ #endif
+ 
+ #if defined(ARCH_32bit)
+-import           GHC.IntWord64 (wordToWord64#, word64ToWord#,
+-                                intToInt64#, int64ToInt#,
+-                                leWord64#, ltWord64#, word64ToInt64#)
++import           GHC.Prim (wordToWord64#, word64ToWord#,
++                           intToInt64#, int64ToInt#,
++                           leWord64#, ltWord64#, word64ToInt64#)
+ 
+ #endif
+ 
+diff --git a/src/Codec/CBOR/Read.hs b/src/Codec/CBOR/Read.hs
+index f838cf0..6f9120d 100644
+--- a/src/Codec/CBOR/Read.hs
++++ b/src/Codec/CBOR/Read.hs
+@@ -59,7 +59,7 @@ import qualified Data.Text.Encoding as T
+ import           Data.Word
+ import           GHC.Word
+ #if defined(ARCH_32bit)
+-import           GHC.IntWord64
++import           GHC.Prim
+ #endif
+ import           GHC.Exts
+ import           GHC.Float (float2Double)
+diff --git a/src/Codec/CBOR/Write.hs b/src/Codec/CBOR/Write.hs
+index fdd70ac..9395c55 100644
+--- a/src/Codec/CBOR/Write.hs
++++ b/src/Codec/CBOR/Write.hs
+@@ -48,7 +48,7 @@ import qualified Data.Text.Encoding                    as T
+ #if defined(OPTIMIZE_GMP)
+ import           Control.Exception.Base                (assert)
+ import           GHC.Exts
+-import qualified GHC.Integer.GMP.Internals             as Gmp
++import qualified GHC.Integer.BigInteger.Internals      as Gmp
+ #if __GLASGOW_HASKELL__ < 710
+ import           GHC.Word
+ #endif
+-- 
+2.16.2.windows.1
+
