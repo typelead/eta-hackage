@@ -1,19 +1,20 @@
-From c95d12b03cb5a8521a7dab4456f1e2825dc2ae13 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 9 Jun 2018 02:04:17 +0530
-Subject: [PATCH] Patched
+From b8d4b242f703f9b05b84f6bddbd40e464ea52836 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Wed, 24 Oct 2018 08:32:58 +0200
+Subject: [PATCH] Patched including JavaConverter JByteArray
 
 ---
  Data/ByteString/Builder/Internal.hs    |  12 +-
  Data/ByteString/Builder/Prim/ASCII.hs  |  24 +--
  Data/ByteString/Builder/Prim/Binary.hs | 119 +++++---------
- Data/ByteString/Internal.hs            |  42 +++--
+ Data/ByteString/Internal.hs            |  57 +++++--
+ Data/ByteString/Lazy/Internal.hs       |   7 +
  Data/ByteString/Short/Internal.hs      |   2 +-
  Data/ByteString/Unsafe.hs              |   8 +
  bytestring.cabal                       |  16 +-
  java/Utils.java                        | 283 +++++++++++++++++++++++++++++++++
  java/eta-0.0.9/Utils.java              | 254 +++++++++++++++++++++++++++++
- 9 files changed, 647 insertions(+), 113 deletions(-)
+ 10 files changed, 668 insertions(+), 114 deletions(-)
  create mode 100644 java/Utils.java
  create mode 100644 java/eta-0.0.9/Utils.java
 
@@ -271,10 +272,18 @@ index af0c0bb..88bc0e5 100644
  -- | Encode a single native machine 'Word'. The 'Word's is encoded in host order,
  -- host endian form, for the machine you are on. On a 64 bit machine the 'Word'
 diff --git a/Data/ByteString/Internal.hs b/Data/ByteString/Internal.hs
-index 031403e..22df068 100644
+index 031403e..37f690a 100644
 --- a/Data/ByteString/Internal.hs
 +++ b/Data/ByteString/Internal.hs
-@@ -54,7 +54,9 @@ module Data.ByteString.Internal (
+@@ -1,6 +1,7 @@
+ {-# LANGUAGE CPP, ForeignFunctionInterface, BangPatterns #-}
+ {-# LANGUAGE UnliftedFFITypes, MagicHash,
+             UnboxedTuples, DeriveDataTypeable #-}
++{-# LANGUAGE MultiParamTypeClasses #-}
+ #if __GLASGOW_HASKELL__ >= 703
+ {-# LANGUAGE Unsafe #-}
+ #endif
+@@ -54,7 +55,9 @@ module Data.ByteString.Internal (
  
          -- * Standard C Functions
          c_strlen,               -- :: CString -> IO CInt
@@ -284,7 +293,39 @@ index 031403e..22df068 100644
  
          memchr,                 -- :: Ptr Word8 -> Word8 -> CSize -> IO Ptr Word8
          memcmp,                 -- :: Ptr Word8 -> Ptr Word8 -> Int -> IO CInt
-@@ -195,12 +197,12 @@ packChars :: [Char] -> ByteString
+@@ -125,11 +128,13 @@ import GHC.IO                   (IO(IO),unsafeDupablePerformIO)
+ #else
+ import GHC.IOBase               (IO(IO),RawBuffer,unsafeDupablePerformIO)
+ #endif
+-
++import GHC.IO.Unsafe            (unsafePerformIO)
+ import GHC.ForeignPtr           (ForeignPtr(ForeignPtr)
+                                 ,newForeignPtr_, mallocPlainForeignPtrBytes)
+ import GHC.Ptr                  (Ptr(..), castPtr)
+ 
++import Java
++
+ -- CFILES stuff is Hugs only
+ {-# CFILES cbits/fpstring.c #-}
+ 
+@@ -185,6 +190,16 @@ instance Data ByteString where
+   gunfold _ _    = error "Data.ByteString.ByteString.gunfold"
+   dataTypeOf _   = mkNoRepType "Data.ByteString.ByteString"
+ 
++instance JavaConverter ByteString JByteArray where
++  toJava bs = unsafePerformIO $
++              withForeignPtr fptr
++              $ \ ptr -> return $ toByteArray ptr offset length
++    where (fptr,offset,length) = toForeignPtr bs
++  fromJava = packBytes . fromJava 
++
++foreign import java unsafe "@static eta.runtime.io.MemoryManager.getBytes"
++   toByteArray :: Ptr Word8 -> Int -> Int -> JByteArray
++
+ ------------------------------------------------------------------------
+ -- Packing and unpacking from lists
+ 
+@@ -195,12 +210,12 @@ packChars :: [Char] -> ByteString
  packChars cs = unsafePackLenChars (List.length cs) cs
  
  {-# INLINE [0] packChars #-}
@@ -299,7 +340,7 @@ index 031403e..22df068 100644
  unsafePackLenBytes :: Int -> [Word8] -> ByteString
  unsafePackLenBytes len xs0 =
      unsafeCreate len $ \p -> go p xs0
-@@ -601,32 +603,39 @@ inlinePerformIO = accursedUnutterablePerformIO
+@@ -601,32 +616,39 @@ inlinePerformIO = accursedUnutterablePerformIO
  -- Standard C functions
  --
  
@@ -330,10 +371,10 @@ index 031403e..22df068 100644
 -foreign import ccall unsafe "string.h memcpy" c_memcpy
 +#if ETA_VERSION >= 9
 +foreign import java unsafe "@static eta.base.Utils.c_memcpy" c_memcpy
-     :: Ptr Word8 -> Ptr Word8 -> CSize -> IO (Ptr Word8)
++    :: Ptr Word8 -> Ptr Word8 -> CSize -> IO (Ptr Word8)
 +#else
 +foreign import java unsafe "@static eta.bytestring.Utils.memcpy" c_memcpy
-+    :: Ptr Word8 -> Ptr Word8 -> CSize -> IO (Ptr Word8)
+     :: Ptr Word8 -> Ptr Word8 -> CSize -> IO (Ptr Word8)
 +#endif
  
  memcpy :: Ptr Word8 -> Ptr Word8 -> Int -> IO ()
@@ -345,7 +386,7 @@ index 031403e..22df068 100644
      :: Ptr Word8 -> Ptr Word8 -> CSize -> IO (Ptr Word8)
  
  memmove :: Ptr Word8 -> Ptr Word8 -> CSize -> IO ()
-@@ -634,8 +643,13 @@ memmove p q s = do c_memmove p q s
+@@ -634,8 +656,13 @@ memmove p q s = do c_memmove p q s
                     return ()
  -}
  
@@ -360,7 +401,7 @@ index 031403e..22df068 100644
  
  memset :: Ptr Word8 -> Word8 -> CSize -> IO (Ptr Word8)
  memset p w s = c_memset p (fromIntegral w) s
-@@ -645,17 +659,17 @@ memset p w s = c_memset p (fromIntegral w) s
+@@ -645,17 +672,17 @@ memset p w s = c_memset p (fromIntegral w) s
  -- Uses our C code
  --
  
@@ -383,6 +424,37 @@ index 031403e..22df068 100644
 -foreign import ccall unsafe "static fpstring.h fps_count" c_count
 +foreign import java unsafe "@static eta.bytestring.Utils.fps_count" c_count
      :: Ptr Word8 -> CULong -> Word8 -> IO CULong
+diff --git a/Data/ByteString/Lazy/Internal.hs b/Data/ByteString/Lazy/Internal.hs
+index fcf6cc6..5b319e9 100644
+--- a/Data/ByteString/Lazy/Internal.hs
++++ b/Data/ByteString/Lazy/Internal.hs
+@@ -1,5 +1,6 @@
+ {-# LANGUAGE CPP #-}
+ {-# LANGUAGE DeriveDataTypeable #-}
++{-# LANGUAGE MultiParamTypeClasses #-}
+ #if __GLASGOW_HASKELL__ >= 703
+ {-# LANGUAGE Unsafe #-}
+ #endif
+@@ -64,6 +65,8 @@ import Data.String      (IsString(..))
+ import Data.Typeable            (Typeable)
+ import Data.Data                (Data(..), mkNoRepType)
+ 
++import Java
++
+ -- | A space-efficient representation of a 'Word8' vector, supporting many
+ -- efficient operations.
+ --
+@@ -114,6 +117,10 @@ instance Data ByteString where
+   gunfold _ _    = error "Data.ByteString.Lazy.ByteString.gunfold"
+   dataTypeOf _   = mkNoRepType "Data.ByteString.Lazy.ByteString"
+ 
++instance JavaConverter ByteString JByteArray where
++  toJava = toJava . unpackBytes
++  fromJava = packBytes . fromJava
++
+ ------------------------------------------------------------------------
+ -- Packing and unpacking from lists
+ 
 diff --git a/Data/ByteString/Short/Internal.hs b/Data/ByteString/Short/Internal.hs
 index a52c52c..fd186b7 100644
 --- a/Data/ByteString/Short/Internal.hs
@@ -1013,5 +1085,5 @@ index 0000000..e5fcb48
 +    }
 +}
 -- 
-2.7.4 (Apple Git-66)
+2.16.2.windows.1
 
