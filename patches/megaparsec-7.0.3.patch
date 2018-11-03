@@ -1,0 +1,82 @@
+From f37175b58cccc5674bb25eeca9faad6f1d2ad26a Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Sat, 3 Nov 2018 01:16:23 +0100
+Subject: [PATCH] Patched
+
+---
+ Text/Megaparsec/Internal.hs | 3 ++-
+ megaparsec.cabal            | 9 +++++----
+ 2 files changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/Text/Megaparsec/Internal.hs b/Text/Megaparsec/Internal.hs
+index 89ac159..61bc2ab 100644
+--- a/Text/Megaparsec/Internal.hs
++++ b/Text/Megaparsec/Internal.hs
+@@ -54,6 +54,7 @@ import Control.Monad.IO.Class
+ import Control.Monad.Reader.Class
+ import Control.Monad.State.Class
+ import Control.Monad.Trans
++import Data.Function (trampoline)
+ import Data.List.NonEmpty (NonEmpty (..))
+ import Data.Proxy
+ import Data.Semigroup
+@@ -603,7 +604,7 @@ runParsecT :: Monad m
+   => ParsecT e s m a -- ^ Parser to run
+   -> State s       -- ^ Initial state
+   -> m (Reply e s a)
+-runParsecT p s = unParser p s cok cerr eok eerr
++runParsecT p s = trampoline $ unParser p s cok cerr eok eerr
+   where
+     cok a s' _  = return $ Reply s' Consumed (OK a)
+     cerr err s' = return $ Reply s' Consumed (Error err)
+diff --git a/megaparsec.cabal b/megaparsec.cabal
+index 5145c07..e555e31 100644
+--- a/megaparsec.cabal
++++ b/megaparsec.cabal
+@@ -44,7 +44,7 @@ library
+                     , scientific   >= 0.3.1 && < 0.4
+                     , text         >= 0.2   && < 1.3
+                     , transformers >= 0.4   && < 0.6
+-  if !impl(ghc >= 8.0)
++  if !impl(ghc >= 8.0) && !impl(eta >= 0.8.4)
+     build-depends:    fail         == 4.9.*
+                     , semigroups   == 0.18.*
+   if !impl(ghc >= 7.10)
+@@ -64,6 +64,7 @@ library
+                     , Text.Megaparsec.Common
+                     , Text.Megaparsec.Lexer
+                     , Text.Megaparsec.State
++  
+   if flag(dev)
+     ghc-options:      -O0 -Wall -Werror
+   else
+@@ -112,7 +113,7 @@ test-suite tests
+                     , scientific   >= 0.3.1 && < 0.4
+                     , text         >= 0.2   && < 1.3
+                     , transformers >= 0.4   && < 0.6
+-  if !impl(ghc >= 8.0)
++  if !impl(ghc >= 8.0) && !impl(eta >= 0.8.4)
+     build-depends:    semigroups   == 0.18.*
+   if !impl(ghc >= 7.10)
+     build-depends:    void         == 0.7.*
+@@ -128,7 +129,7 @@ benchmark bench-speed
+                     , deepseq      >= 1.3  && < 1.5
+                     , megaparsec
+                     , text         >= 0.2  && < 1.3
+-  if !impl(ghc >= 8.0)
++  if !impl(ghc >= 8.0) && !impl(eta >= 0.8.4)
+     build-depends:    semigroups   == 0.18.*
+   if !impl(ghc >= 7.10)
+     build-depends:    void         == 0.7.*
+@@ -148,7 +149,7 @@ benchmark bench-memory
+                     , megaparsec
+                     , text         >= 0.2  && < 1.3
+                     , weigh        >= 0.0.4
+-  if !impl(ghc >= 8.0)
++  if !impl(ghc >= 8.0) && !impl(eta >= 0.8.4)
+     build-depends:    semigroups   == 0.18.*
+   if !impl(ghc >= 7.10)
+     build-depends:    void         == 0.7.*
+-- 
+2.16.2.windows.1
+
