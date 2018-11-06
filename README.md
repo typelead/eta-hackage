@@ -496,7 +496,7 @@ These packages are supported by `etlas`.
 - [HUnit >= 1.2.5.2 && <= 1.6.0.0](https://hackage.haskell.org/package/HUnit)
 - [QuickCheck >= 2.7.6 && <= 2.10.0.1](https://hackage.haskell.org/package/QuickCheck)
 - [quickcheck-io-0.1.4](https://hackage.haskell.org/package/quickcheck-io-0.1.4)
-- [tasty >= 0.11.2.1 && <= 1.1.0.3](https://hackage.haskell.org/package/tasty)
+- [tasty >= 0.11.2.1 && <= 1.1.0.4](https://hackage.haskell.org/package/tasty)
 - [test-framework-0.8.2.0](https://hackage.haskell.org/package/test-framework-0.8.2.0)
 - [testpack-2.1.3.0](https://hackage.haskell.org/package/testpack-2.1.3.0)
 
