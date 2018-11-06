@@ -1,0 +1,90 @@
+From 0ad5d0d29c088279a4d201a967d4faefa9a4cd8f Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Tue, 6 Nov 2018 22:58:33 +0100
+Subject: [PATCH] Patched
+
+---
+ Test/Tasty/CmdLine.hs                     | 1 -
+ Test/Tasty/Ingredients/ConsoleReporter.hs | 2 +-
+ Test/Tasty/Options.hs                     | 2 +-
+ Test/Tasty/Runners/Reducers.hs            | 2 +-
+ tasty.cabal                               | 7 +------
+ 5 files changed, 4 insertions(+), 10 deletions(-)
+
+diff --git a/Test/Tasty/CmdLine.hs b/Test/Tasty/CmdLine.hs
+index c91269b..ecbf000 100644
+--- a/Test/Tasty/CmdLine.hs
++++ b/Test/Tasty/CmdLine.hs
+@@ -19,7 +19,6 @@ import System.IO
+ -- GHC 7.4 lacks mkWeakThreadId (see #181), and this is not important
+ -- enough to look for an alternative implementation, so we just disable it
+ -- there.
+-#define INSTALL_HANDLERS defined UNIX && MIN_VERSION_base(4,6,0)
+ 
+ #if INSTALL_HANDLERS
+ import Control.Concurrent (mkWeakThreadId, myThreadId)
+diff --git a/Test/Tasty/Ingredients/ConsoleReporter.hs b/Test/Tasty/Ingredients/ConsoleReporter.hs
+index 90cedc2..7a8b85b 100644
+--- a/Test/Tasty/Ingredients/ConsoleReporter.hs
++++ b/Test/Tasty/Ingredients/ConsoleReporter.hs
+@@ -1,5 +1,5 @@
+ -- vim:fdm=marker:foldtext=foldtext()
+-{-# LANGUAGE BangPatterns, ImplicitParams, MultiParamTypeClasses, DeriveDataTypeable, FlexibleContexts #-}
++{-# LANGUAGE BangPatterns, ImplicitParams, MultiParamTypeClasses, DeriveDataTypeable, FlexibleContexts, CPP #-}
+ -- | Console reporter ingredient
+ module Test.Tasty.Ingredients.ConsoleReporter
+   ( consoleTestReporter
+diff --git a/Test/Tasty/Options.hs b/Test/Tasty/Options.hs
+index 72e73eb..2a829a5 100644
+--- a/Test/Tasty/Options.hs
++++ b/Test/Tasty/Options.hs
+@@ -1,7 +1,7 @@
+ {-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable,
+              ExistentialQuantification, GADTs,
+              FlexibleInstances, UndecidableInstances,
+-             TypeOperators #-}
++             TypeOperators, CPP #-}
+ -- | Extensible options. They are used for provider-specific settings,
+ -- ingredient-specific settings and core settings (such as the test name pattern).
+ module Test.Tasty.Options
+diff --git a/Test/Tasty/Runners/Reducers.hs b/Test/Tasty/Runners/Reducers.hs
+index dd3a301..8562690 100644
+--- a/Test/Tasty/Runners/Reducers.hs
++++ b/Test/Tasty/Runners/Reducers.hs
+@@ -37,7 +37,7 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ -}
+ 
+-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
++{-# LANGUAGE GeneralizedNewtypeDeriving, CPP #-}
+ 
+ module Test.Tasty.Runners.Reducers where
+ 
+diff --git a/tasty.cabal b/tasty.cabal
+index 3eefddf..acfc51e 100644
+--- a/tasty.cabal
++++ b/tasty.cabal
+@@ -14,7 +14,7 @@ author:              Roman Cheplyaka <roma@ro-che.info>
+ maintainer:          Roman Cheplyaka <roma@ro-che.info>
+ homepage:            https://github.com/feuerbach/tasty
+ bug-reports:         https://github.com/feuerbach/tasty/issues
+--- copyright:           
++-- copyright:
+ category:            Testing
+ build-type:          Simple
+ extra-source-files:  CHANGELOG.md, README.md
+@@ -77,11 +77,6 @@ library
+     -- for GHC.Generics
+     build-depends: ghc-prim
+ 
+-  if !os(windows) && !impl(ghcjs)
+-    build-depends: unix,
+-                   wcwidth
+-    cpp-options: -DUNIX
+-
+   -- hs-source-dirs:      
+   default-language:    Haskell2010
+   default-extensions:  CPP
+-- 
+2.16.2.windows.1
+
