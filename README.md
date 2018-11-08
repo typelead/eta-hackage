@@ -269,7 +269,7 @@ These packages are supported by `etlas`.
 - [aeson-picker-0.1.0.4](https://hackage.haskell.org/package/aeson-picker)
 - [aeson-pretty >= 0.8.2 && <= 0.8.5](https://hackage.haskell.org/package/aeson-pretty)
 - [aeson-quick-0.1.2.1](https://hackage.haskell.org/package/aeson-quick-0.1.2.1)
-- [dhall-json >= 1.2.1](https://hackage.haskell.org/package/dhall-json-1.2.1)
+- [dhall-json == 1.2.1 || == 1.2.4](https://hackage.haskell.org/package/dhall-json)
 
 #### Simulation
 - [aivika-5.8](https://hackage.haskell.org/package/aivika-5.8)
@@ -326,7 +326,7 @@ These packages are supported by `etlas`.
 
 #### DevOps
 - [arx-0.3.2](https://hackage.haskell.org/package/arx-0.3.2)
-- [dhall >= 1.14.0](https://hackage.haskell.org/package/dhall-1.14.0)
+- [dhall >= 1.14.0](https://hackage.haskell.org/package/dhall)
 
 #### Concurrent Computing
 - [async-2.1.1.1](https://hackage.haskell.org/package/async-2.1.1.1)
