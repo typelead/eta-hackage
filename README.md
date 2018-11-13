@@ -115,7 +115,7 @@ These packages are supported by `etlas`.
 - [wai-extra-3.0.21.0](https://hackage.haskell.org/package/wai-extra-3.0.21.0)
 - [wai-logger-2.3.1](https://hackage.haskell.org/package/wai-logger-2.3.1)
 - [wai-app-static-3.1.6.2](https://hackage.haskell.org/package/wai-app-static-3.1.6.2)
-- [websockets-0.12.5.1](https://hackage.haskell.org/package/websockets-0.12.5.1)
+- [websockets >= 0.12.5.1 && <= 0.12.5.2](https://hackage.haskell.org/package/websockets)
 - [yesod-1.6.0](https://hackage.haskell.org/package/yesod-1.6.0)
 - [yesod-core-1.6.6](https://hackage.haskell.org/package/yesod-core-1.6.6)
 - [yesod-static-1.6.0](https://hackage.haskell.org/package/yesod-static-1.6.0)
