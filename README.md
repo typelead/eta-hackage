@@ -91,7 +91,7 @@ These packages are supported by `etlas`.
 - [html-truncate-0.3.0.0](https://hackage.haskell.org/package/html-truncate-0.3.0.0)
 - [http2 >= 1.6.2 && <= 1.6.3](https://hackage.haskell.org/package/http2)
 - [http-api-data >= 0.3.5 && <= 0.3.7.1](https://hackage.haskell.org/package/http-api-data)
-- [http-client >= 0.5.11 && <= 0.5.13.1](https://hackage.haskell.org/package/http-client-0.5.13)
+- [http-client >= 0.5.11 && <= 0.5.14](https://hackage.haskell.org/package/http-client-0.5.13)
 - [http-client-tls-0.3.5.1](https://hackage.haskell.org/package/http-client-tls-0.3.5.1)
 - [http-conduit-2.3.2](https://hackage.haskell.org/package/http-conduit-2.3.2)
 - [http-date-0.0.6.1](https://hackage.haskell.org/package/http-date-0.0.6.1)
