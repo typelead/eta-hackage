@@ -1,0 +1,27 @@
+From c860d311dcf962d25cc7469d9bd776dfa7f1baf0 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Mon, 19 Nov 2018 15:01:38 +0100
+Subject: [PATCH] Patched
+
+---
+ http-client.cabal | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/http-client.cabal b/http-client.cabal
+index 03d5141..cf1aeed 100644
+--- a/http-client.cabal
++++ b/http-client.cabal
+@@ -75,8 +75,8 @@ library
+     build-depends: unsupported-ghc-version > 1 && < 1
+ 
+ 
+-  if os(mingw32)
+-    build-depends: Win32, safe
++  -- if os(mingw32)
++  --   build-depends: Win32, safe
+ 
+   default-language:    Haskell2010
+ 
+-- 
+2.16.2.windows.1
+
