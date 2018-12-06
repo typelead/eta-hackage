@@ -54,7 +54,8 @@
         "servant-docs",
         "regex-tdfa",
         "tasty",
-        "conduit-combinators"
+        "conduit-combinators",
+        "Agda"
     ],
     "ignored-versions": []
 }
