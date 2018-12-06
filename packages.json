@@ -55,7 +55,8 @@
         "regex-tdfa",
         "tasty",
         "conduit-combinators",
-        "Agda"
+        "Agda",
+        "Elm"
     ],
     "ignored-versions": []
 }
