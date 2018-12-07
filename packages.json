@@ -56,7 +56,8 @@
         "tasty",
         "conduit-combinators",
         "Agda",
-        "Elm"
+        "Elm",
+        "idris"
     ],
     "ignored-versions": []
 }
