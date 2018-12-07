@@ -1,0 +1,25 @@
+From 9c2a260becbd7c9b3f98655e6e7f86d90655c101 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 7 Dec 2018 11:26:57 +0530
+Subject: [PATCH] Patched
+
+---
+ alg.cabal | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/alg.cabal b/alg.cabal
+index 99000a7..49cebd1 100644
+--- a/alg.cabal
++++ b/alg.cabal
+@@ -33,4 +33,7 @@ library
+                      , FlexibleInstances
+                      , StandaloneDeriving
+                      , GeneralizedNewtypeDeriving
+-  ghc-options:         -Wall -Wcompat -Wredundant-constraints -Wno-partial-type-signatures
++  ghc-options:         -Wall -Wno-partial-type-signatures
++  if impl(ghc > 8.0)
++    ghc-options: -Wcompat -Wredundant-constraints 
++
+-- 
+2.18.0
+
