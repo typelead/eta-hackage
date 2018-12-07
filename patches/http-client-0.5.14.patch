@@ -1,16 +1,25 @@
-From c860d311dcf962d25cc7469d9bd776dfa7f1baf0 Mon Sep 17 00:00:00 2001
-From: jneira <atreyu.bbb@gmail.com>
-Date: Mon, 19 Nov 2018 15:01:38 +0100
+From 8e713111f1d34d50deae17fac44784fbb3a96c66 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 7 Dec 2018 15:16:50 +0530
 Subject: [PATCH] Patched
 
 ---
- http-client.cabal | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ http-client.cabal | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/http-client.cabal b/http-client.cabal
-index 03d5141..cf1aeed 100644
+index 03d5141..db00d62 100644
 --- a/http-client.cabal
 +++ b/http-client.cabal
+@@ -50,7 +50,7 @@ library
+                      , deepseq           >= 1.3    && <1.5
+                      , case-insensitive  >= 1.0
+                      , memory            >= 0.7
+-                     , cookie
++                     , cookie            < 0.4.4
+                      , exceptions        >= 0.4
+                      , array
+                      , random
 @@ -75,8 +75,8 @@ library
      build-depends: unsupported-ghc-version > 1 && < 1
  
@@ -23,5 +32,5 @@ index 03d5141..cf1aeed 100644
    default-language:    Haskell2010
  
 -- 
-2.16.2.windows.1
+2.18.0
 
