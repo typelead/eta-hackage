@@ -20,25 +20,29 @@ import System.Process
 
 data Packages = Packages {
       patched :: [Text],
-      vanilla :: [Text]
+      vanilla :: [Text],
+      ignored :: [Text],
+      ignoredVersions :: [Text]
     } deriving (Show, Eq, Ord)
 
 instance FromJSON Packages where
-    parseJSON (Object v) = Packages <$> v.: "patched" <*> v.: "vanilla"
+    parseJSON (Object v) =
+      Packages <$> v.: "patched"
+               <*> v.: "vanilla"
+               <*> v.: "ignored"
+               <*> v.: "ignored-versions"
     parseJSON _ = empty
 
 parsePackagesFile :: FilePath -> IO (Maybe Packages)
 parsePackagesFile fname = do
   contents <- BS.readFile fname
-  let packages = decode contents
-  patched' <- patchedLibraries
-  return $ fmap (\p -> p { patched = patched' }) packages
+  traverse modifyPatchedLibraries $ decode contents
 
 packagesFilePath :: IO FilePath
 packagesFilePath = return "packages.json"
 
-patchedLibraries :: IO [Text]
-patchedLibraries = do
+modifyPatchedLibraries :: Packages -> IO Packages
+modifyPatchedLibraries pkgs = do
   packageListing <- getDirectoryContents "patches"
   let packages = map T.pack
                . sort
@@ -46,17 +50,12 @@ patchedLibraries = do
                . map dropExtension
                . filter (\p -> p `notElem` ["",".",".."])
                $ packageListing
-  return $ filterLibraries packages
+  return $ pkgs { patched = filterLibraries pkgs packages }
 
--- These will not be built for various reasons.
-ignoredPackages :: [Text]
-ignoredPackages = ["singletons" ,"directory", "servant-docs", "conduit-combinators", "regex-tdfa", "tasty"]
-
-ignoredPackageVersions :: [Text]
-ignoredPackageVersions = []
-
-filterLibraries :: [Text] -> [Text]
-filterLibraries set0 = recentVersions
+filterLibraries :: Packages -> [Text] -> [Text]
+filterLibraries Packages { ignored         = ignoredPackages
+                         , ignoredVersions = ignoredPackageVersions } set0 =
+  recentVersions
   -- TODO: Find a way to validate older versions too that isn't crazy slow.
   -- ++ remoteVersions ++ concat restVersions
   where (recentVersions, restVersions) = unzip $ map findAndExtractMaximum
