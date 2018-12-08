@@ -57,7 +57,8 @@
         "conduit-combinators",
         "Agda",
         "Elm",
-        "idris"
+        "idris",
+        "purescript"
     ],
     "ignored-versions": []
 }
