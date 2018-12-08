@@ -28,11 +28,11 @@ library
   build-depends:
       async >2.1.1
     , base >=4.7 && <5
-    , deepseq
+    , deepseq >= 1.1.0.0
     , directory
     , filepath
     , process >=1.2.0.0
-    , stm >=2.4.3
+    , stm >=2.4.3 && < 2.5
     , time
     , transformers
     , unliftio-core >=0.1.1.0
@@ -65,12 +65,12 @@ test-suite unliftio-spec
   build-depends:
       async >2.1.1
     , base >=4.7 && <5
-    , deepseq
+    , deepseq >= 1.1.0.0
     , directory
     , filepath
     , hspec
     , process >=1.2.0.0
-    , stm >=2.4.3
+    , stm >=2.4.3 && < 2.5
     , time
     , transformers
     , unliftio

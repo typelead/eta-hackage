@@ -1,6 +1,6 @@
-From d77ac7df72b794722d1cdb974a37c88db721489d Mon Sep 17 00:00:00 2001
-From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Tue, 28 Aug 2018 19:50:29 +0530
+From 96770752b760711e88b80aa7eb5427411a26b56d Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sat, 8 Dec 2018 18:32:53 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -8,8 +8,8 @@ Subject: [PATCH] Patched
  src/UnliftIO/Foreign.hs    |  4 +++-
  src/UnliftIO/IO.hs         |  6 ++++--
  src/UnliftIO/Temporary.hs  | 14 ++++++++------
- unliftio.cabal             | 17 +----------------
- 5 files changed, 21 insertions(+), 27 deletions(-)
+ unliftio.cabal             | 25 +++++--------------------
+ 5 files changed, 25 insertions(+), 31 deletions(-)
 
 diff --git a/src/UnliftIO/Concurrent.hs b/src/UnliftIO/Concurrent.hs
 index 15a0cbc..9cace2f 100644
@@ -111,10 +111,20 @@ index 6688d4e..cba04f4 100644
 +
 +createDirectory1 = error "createDirectory not implemented!"
 diff --git a/unliftio.cabal b/unliftio.cabal
-index 12ae642..c40f5bc 100644
+index 12ae642..9427508 100644
 --- a/unliftio.cabal
 +++ b/unliftio.cabal
-@@ -36,19 +36,7 @@ library
+@@ -28,27 +28,15 @@ library
+   build-depends:
+       async >2.1.1
+     , base >=4.7 && <5
+-    , deepseq
++    , deepseq >= 1.1.0.0
+     , directory
+     , filepath
+     , process >=1.2.0.0
+-    , stm >=2.4.3
++    , stm >=2.4.3 && < 2.5
      , time
      , transformers
      , unliftio-core >=0.1.1.0
@@ -135,7 +145,19 @@ index 12ae642..c40f5bc 100644
    exposed-modules:
        UnliftIO
        UnliftIO.Async
-@@ -87,9 +75,6 @@ test-suite unliftio-spec
+@@ -77,19 +65,16 @@ test-suite unliftio-spec
+   build-depends:
+       async >2.1.1
+     , base >=4.7 && <5
+-    , deepseq
++    , deepseq >= 1.1.0.0
+     , directory
+     , filepath
+     , hspec
+     , process >=1.2.0.0
+-    , stm >=2.4.3
++    , stm >=2.4.3 && < 2.5
+     , time
      , transformers
      , unliftio
      , unliftio-core >=0.1.1.0
@@ -146,5 +168,5 @@ index 12ae642..c40f5bc 100644
        UnliftIO.ExceptionSpec
        UnliftIO.IOSpec
 -- 
-2.15.2 (Apple Git-101.1)
+2.18.0
 
