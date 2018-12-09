@@ -1,21 +1,25 @@
-From 565fc52f0cd357c9ebb3acbcc8b86fd48a6f73cc Mon Sep 17 00:00:00 2001
-From: Denys Dushyn <Denys.Dushyn@dataart.com>
-Date: Wed, 10 Jan 2018 11:41:08 +0100
-Subject: [PATCH] Corrected paths
+From 71d40d7c5cc4d6cd4c62d0aa12b224cc1bc9edae Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sun, 9 Dec 2018 12:33:57 +0530
+Subject: [PATCH] Patched
 
 ---
- System/IO/Temp.hs |  9 ---------
- temporary.cabal   |  7 +------
+ System/IO/Temp.hs | 12 ++----------
+ java/Utils.java   | 10 ++++++++++
+ temporary.cabal   |  6 +-----
  tests/test.hs     | 18 ------------------
- 3 files changed, 1 insertion(+), 33 deletions(-)
+ 4 files changed, 13 insertions(+), 33 deletions(-)
+ create mode 100644 java/Utils.java
 
 diff --git a/System/IO/Temp.hs b/System/IO/Temp.hs
-index 9abbb99..e85da9f 100644
+index 9abbb99..a792721 100644
 --- a/System/IO/Temp.hs
 +++ b/System/IO/Temp.hs
-@@ -49,11 +49,6 @@ import System.IO (Handle, hClose, openTempFile, openBinaryTempFile,
+@@ -47,13 +47,7 @@ import System.Directory
+ import System.IO (Handle, hClose, openTempFile, openBinaryTempFile,
+        openBinaryTempFileWithDefaultPermissions, hPutStr)
  import System.IO.Error        (isAlreadyExistsError)
- import System.Posix.Internals (c_getpid)
+-import System.Posix.Internals (c_getpid)
  import System.FilePath        ((</>))
 -#ifdef mingw32_HOST_OS
 -import System.Directory       ( createDirectory )
@@ -25,9 +29,12 @@ index 9abbb99..e85da9f 100644
  
  -- | Create, open, and use a temporary file in the system standard temporary directory.
  --
-@@ -177,11 +172,7 @@ createTempDirectory dir template = do
+@@ -176,12 +170,10 @@ createTempDirectory dir template = do
+         Left  e | isAlreadyExistsError e -> findTempName (x+1)
                  | otherwise              -> ioError e
  
++foreign import java unsafe "@static eta.temporary.Utils.getpid" c_getpid :: IO Int
++
  mkPrivateDir :: String -> IO ()
 -#ifdef mingw32_HOST_OS
  mkPrivateDir s = createDirectory s
@@ -37,29 +44,43 @@ index 9abbb99..e85da9f 100644
  
  -- | Return the absolute and canonical path to the system temporary
  -- directory.
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..30eb3e4
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,10 @@
++package eta.temporary;
++
++import java.security.SecureRandom;
++
++public class Utils {
++    public static int getpid() {
++        return new SecureRandom().nextInt();
++    }
++}
++
 diff --git a/temporary.cabal b/temporary.cabal
-index aa18a23..4cdbaa4 100644
+index aa18a23..571d207 100644
 --- a/temporary.cabal
 +++ b/temporary.cabal
-@@ -24,9 +24,6 @@ Library
+@@ -24,9 +24,7 @@ Library
                       -- note: the transformers dependency is needed for MonadIO
                       -- on older GHCs; on newer ones, it is included in base.
      ghc-options:     -Wall
 -    
 -    if !os(windows)
 -        build-depends: unix >= 2.3
++    java-sources:    java/Utils.java
  
  test-suite test
    default-language:
-@@ -45,6 +42,4 @@ test-suite test
-     , tasty-hunit
+@@ -46,5 +44,3 @@ test-suite test
      , temporary
      , filepath
--    , base-compat
+     , base-compat
 -  if !os(windows)
 -      build-depends: unix >= 2.3
-+    , base-compat
-\ No newline at end of file
 diff --git a/tests/test.hs b/tests/test.hs
 index 21bcd29..4ee2a64 100644
 --- a/tests/test.hs
@@ -118,5 +139,5 @@ index 21bcd29..4ee2a64 100644
          assertBool "Directory still exists" . not =<< doesDirectoryExist fp
      , testCase "writeSystemTempFile" $ do
 -- 
-2.14.1.windows.1
+2.18.0
 
