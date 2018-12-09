@@ -15,10 +15,3 @@ executable eta-hackage
                      , text
                      , process
   default-language:    Haskell2010
-
-executable gen-etlas-index
-  main-is:             gen/Main.hs
-  build-depends:       base >=4.8 && <4.12
-                     , directory == 1.0 || == 1.2
-                     , filepath
-  default-language:    Haskell2010
