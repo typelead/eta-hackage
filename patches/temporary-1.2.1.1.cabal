@@ -24,6 +24,7 @@ Library
                      -- note: the transformers dependency is needed for MonadIO
                      -- on older GHCs; on newer ones, it is included in base.
     ghc-options:     -Wall
+    java-sources:    java/Utils.java
 
 test-suite test
   default-language:

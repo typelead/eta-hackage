@@ -1,0 +1,27 @@
+From e70956db8decfcccf5f1c961c02dbe82c2dc88e9 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 7 Dec 2018 11:17:53 +0530
+Subject: [PATCH] Patched
+
+---
+ appar.cabal | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/appar.cabal b/appar.cabal
+index 020c08e..43c8963 100644
+--- a/appar.cabal
++++ b/appar.cabal
+@@ -11,7 +11,9 @@ Cabal-Version:          >= 1.6
+ Build-Type:             Simple
+ Extra-Source-Files:     README
+ library
+-  GHC-Options:          -Wall -Wcompat -Wnoncanonical-monadfail-instances
++  GHC-Options:          -Wall 
++  if impl(ghc > 8.0)
++    GHC-Options: -Wcompat -Wnoncanonical-monadfail-instances
+   Exposed-Modules:      Text.Appar.String
+                         Text.Appar.ByteString
+                         Text.Appar.LazyByteString
+-- 
+2.18.0
+

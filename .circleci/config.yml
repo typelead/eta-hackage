@@ -13,7 +13,7 @@ jobs:
           key: eta-hackage-v1300-etlas-cache-
 
       - run: etlas update
-      - run: etlas run
+      - run: etlas run eta-hackage
 
       - save_cache:
           key: eta-hackage-v1300-etlas-cache-{{ epoch }}

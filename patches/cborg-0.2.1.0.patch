@@ -1,14 +1,14 @@
-From f4f2a192f8f433d201e459b56e7ee1d7ef337a3a Mon Sep 17 00:00:00 2001
+From a0ea39a5361667d0068bd994f639c23cc87656e4 Mon Sep 17 00:00:00 2001
 From: jneira <atreyu.bbb@gmail.com>
-Date: Mon, 15 Oct 2018 08:13:27 +0200
-Subject: [PATCH] Patched
+Date: Fri, 7 Dec 2018 15:00:54 +0100
+Subject: [PATCH] Set inlinining off to avoid too long java methods size
 
 ---
- cborg.cabal             | 2 +-
- src/Codec/CBOR/Magic.hs | 8 ++++----
- src/Codec/CBOR/Read.hs  | 2 +-
- src/Codec/CBOR/Write.hs | 2 +-
- 4 files changed, 7 insertions(+), 7 deletions(-)
+ cborg.cabal             |  2 +-
+ src/Codec/CBOR/Magic.hs |  8 +++----
+ src/Codec/CBOR/Read.hs  | 56 ++++++++++++++++++++++++-------------------------
+ src/Codec/CBOR/Write.hs |  2 +-
+ 4 files changed, 34 insertions(+), 34 deletions(-)
 
 diff --git a/cborg.cabal b/cborg.cabal
 index 4ed719e..31befad 100644
@@ -50,7 +50,7 @@ index c2900db..d0ca34b 100644
  #endif
  
 diff --git a/src/Codec/CBOR/Read.hs b/src/Codec/CBOR/Read.hs
-index f838cf0..6f9120d 100644
+index f838cf0..c56c39b 100644
 --- a/src/Codec/CBOR/Read.hs
 +++ b/src/Codec/CBOR/Read.hs
 @@ -59,7 +59,7 @@ import qualified Data.Text.Encoding as T
@@ -62,6 +62,239 @@ index f838cf0..6f9120d 100644
  #endif
  import           GHC.Exts
  import           GHC.Float (float2Double)
+@@ -1541,7 +1541,7 @@ isInt64Canonical sz i#
+ -- of >= tests. It could use a jump table, or at least it could use a binary
+ -- division. Whereas for Int or Word it does the right thing.
+ 
+-{-# INLINE tryConsumeWord #-}
++{-# NOINLINE tryConsumeWord #-}
+ tryConsumeWord :: Word8 -> ByteString -> DecodedToken Word
+ tryConsumeWord hdr !bs = case word8ToWord hdr of
+   -- Positive integers (type 0)
+@@ -1582,7 +1582,7 @@ tryConsumeWord hdr !bs = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeNegWord #-}
++{-# NOINLINE tryConsumeNegWord #-}
+ tryConsumeNegWord :: Word8 -> ByteString -> DecodedToken Word
+ tryConsumeNegWord hdr !bs = case word8ToWord hdr of
+   -- Positive integers (type 0)
+@@ -1623,7 +1623,7 @@ tryConsumeNegWord hdr !bs = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeInt #-}
++{-# NOINLINE tryConsumeInt #-}
+ tryConsumeInt :: Word8 -> ByteString -> DecodedToken Int
+ tryConsumeInt hdr !bs = case word8ToWord hdr of
+   -- Positive integers (type 0)
+@@ -1704,7 +1704,7 @@ tryConsumeInt hdr !bs = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeInteger #-}
++{-# NOINLINE tryConsumeInteger #-}
+ tryConsumeInteger :: Word8 -> ByteString -> DecodedToken (BigIntToken Integer)
+ tryConsumeInteger hdr !bs = case word8ToWord hdr of
+ 
+@@ -1799,7 +1799,7 @@ tryConsumeInteger hdr !bs = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeBytes #-}
++{-# NOINLINE tryConsumeBytes #-}
+ tryConsumeBytes :: Word8 -> ByteString -> DecodedToken (LongToken ByteString)
+ tryConsumeBytes hdr !bs = case word8ToWord hdr of
+ 
+@@ -1835,7 +1835,7 @@ tryConsumeBytes hdr !bs = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeString #-}
++{-# NOINLINE tryConsumeString #-}
+ tryConsumeString :: Word8 -> ByteString -> DecodedToken (LongToken ByteString)
+ tryConsumeString hdr !bs = case word8ToWord hdr of
+ 
+@@ -1871,7 +1871,7 @@ tryConsumeString hdr !bs = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeListLen #-}
++{-# NOINLINE tryConsumeListLen #-}
+ tryConsumeListLen :: Word8 -> ByteString -> DecodedToken Int
+ tryConsumeListLen hdr !bs = case word8ToWord hdr of
+   -- List structures (type 4)
+@@ -1914,7 +1914,7 @@ tryConsumeListLen hdr !bs = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeMapLen #-}
++{-# NOINLINE tryConsumeMapLen #-}
+ tryConsumeMapLen :: Word8 -> ByteString -> DecodedToken Int
+ tryConsumeMapLen hdr !bs = case word8ToWord hdr of
+   -- Map structures (type 5)
+@@ -1957,21 +1957,21 @@ tryConsumeMapLen hdr !bs = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeListLenIndef #-}
++{-# NOINLINE tryConsumeListLenIndef #-}
+ tryConsumeListLenIndef :: Word8 -> DecodedToken ()
+ tryConsumeListLenIndef hdr = case word8ToWord hdr of
+   0x9f -> DecodedToken 1 ()
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeMapLenIndef #-}
++{-# NOINLINE tryConsumeMapLenIndef #-}
+ tryConsumeMapLenIndef :: Word8 -> DecodedToken ()
+ tryConsumeMapLenIndef hdr = case word8ToWord hdr of
+   0xbf -> DecodedToken 1 ()
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeListLenOrIndef #-}
++{-# NOINLINE tryConsumeListLenOrIndef #-}
+ tryConsumeListLenOrIndef :: Word8 -> ByteString -> DecodedToken Int
+ tryConsumeListLenOrIndef hdr !bs = case word8ToWord hdr of
+ 
+@@ -2016,7 +2016,7 @@ tryConsumeListLenOrIndef hdr !bs = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeMapLenOrIndef #-}
++{-# NOINLINE tryConsumeMapLenOrIndef #-}
+ tryConsumeMapLenOrIndef :: Word8 -> ByteString -> DecodedToken Int
+ tryConsumeMapLenOrIndef hdr !bs = case word8ToWord hdr of
+ 
+@@ -2061,7 +2061,7 @@ tryConsumeMapLenOrIndef hdr !bs = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeTag #-}
++{-# NOINLINE tryConsumeTag #-}
+ tryConsumeTag :: Word8 -> ByteString -> DecodedToken Word
+ tryConsumeTag hdr !bs = case word8ToWord hdr of
+ 
+@@ -2139,7 +2139,7 @@ tryConsumeWord64 hdr !bs = case word8ToWord hdr of
+   0x1a -> DecodedToken 5 (word32ToWord64 (eatTailWord32 bs))
+   0x1b -> DecodedToken 9                 (eatTailWord64 bs)
+   _    -> DecodeFailure
+-{-# INLINE tryConsumeWord64 #-}
++{-# NOINLINE tryConsumeWord64 #-}
+ 
+ tryConsumeNegWord64 :: Word8 -> ByteString -> DecodedToken Word64
+ tryConsumeNegWord64 hdr !bs = case word8ToWord hdr of
+@@ -2173,7 +2173,7 @@ tryConsumeNegWord64 hdr !bs = case word8ToWord hdr of
+   0x3a -> DecodedToken 5 (word32ToWord64 (eatTailWord32 bs))
+   0x3b -> DecodedToken 9                 (eatTailWord64 bs)
+   _    -> DecodeFailure
+-{-# INLINE tryConsumeNegWord64 #-}
++{-# NOINLINE tryConsumeNegWord64 #-}
+ 
+ tryConsumeInt64 :: Word8 -> ByteString -> DecodedToken Int64
+ tryConsumeInt64 hdr !bs = case word8ToWord hdr of
+@@ -2241,7 +2241,7 @@ tryConsumeInt64 hdr !bs = case word8ToWord hdr of
+             Just n  -> DecodedToken 9 (-1 - n)
+             Nothing -> DecodeFailure
+   _    -> DecodeFailure
+-{-# INLINE tryConsumeInt64 #-}
++{-# NOINLINE tryConsumeInt64 #-}
+ 
+ tryConsumeListLen64 :: Word8 -> ByteString -> DecodedToken Int64
+ tryConsumeListLen64 hdr !bs = case word8ToWord hdr of
+@@ -2277,7 +2277,7 @@ tryConsumeListLen64 hdr !bs = case word8ToWord hdr of
+             Just n  -> DecodedToken 9 n
+             Nothing -> DecodeFailure
+   _    -> DecodeFailure
+-{-# INLINE tryConsumeListLen64 #-}
++{-# NOINLINE tryConsumeListLen64 #-}
+ 
+ tryConsumeMapLen64 :: Word8 -> ByteString -> DecodedToken Int64
+ tryConsumeMapLen64 hdr !bs = case word8ToWord hdr of
+@@ -2313,7 +2313,7 @@ tryConsumeMapLen64 hdr !bs = case word8ToWord hdr of
+             Just n  -> DecodedToken 9 n
+             Nothing -> DecodeFailure
+   _    -> DecodeFailure
+-{-# INLINE tryConsumeMapLen64 #-}
++{-# NOINLINE tryConsumeMapLen64 #-}
+ 
+ tryConsumeTag64 :: Word8 -> ByteString -> DecodedToken Word64
+ tryConsumeTag64 hdr !bs = case word8ToWord hdr of
+@@ -2347,10 +2347,10 @@ tryConsumeTag64 hdr !bs = case word8ToWord hdr of
+   0xda -> DecodedToken 5 (word32ToWord64 (eatTailWord32 bs))
+   0xdb -> DecodedToken 9                 (eatTailWord64 bs)
+   _    -> DecodeFailure
+-{-# INLINE tryConsumeTag64 #-}
++{-# NOINLINE tryConsumeTag64 #-}
+ #endif
+ 
+-{-# INLINE tryConsumeFloat #-}
++{-# NOINLINE tryConsumeFloat #-}
+ tryConsumeFloat :: Word8 -> ByteString -> DecodedToken Float
+ tryConsumeFloat hdr !bs = case word8ToWord hdr of
+   0xf9 -> DecodedToken 3 (wordToFloat16 (eatTailWord16 bs))
+@@ -2358,7 +2358,7 @@ tryConsumeFloat hdr !bs = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeDouble #-}
++{-# NOINLINE tryConsumeDouble #-}
+ tryConsumeDouble :: Word8 -> ByteString -> DecodedToken Double
+ tryConsumeDouble hdr !bs = case word8ToWord hdr of
+   0xf9 -> DecodedToken 3 (float2Double $ wordToFloat16 (eatTailWord16 bs))
+@@ -2367,7 +2367,7 @@ tryConsumeDouble hdr !bs = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeBool #-}
++{-# NOINLINE tryConsumeBool #-}
+ tryConsumeBool :: Word8 -> DecodedToken Bool
+ tryConsumeBool hdr = case word8ToWord hdr of
+   0xf4 -> DecodedToken 1 False
+@@ -2375,7 +2375,7 @@ tryConsumeBool hdr = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeSimple #-}
++{-# NOINLINE tryConsumeSimple #-}
+ tryConsumeSimple :: Word8 -> ByteString -> DecodedToken Word
+ tryConsumeSimple hdr !bs = case word8ToWord hdr of
+ 
+@@ -2408,28 +2408,28 @@ tryConsumeSimple hdr !bs = case word8ToWord hdr of
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeBytesIndef #-}
++{-# NOINLINE tryConsumeBytesIndef #-}
+ tryConsumeBytesIndef :: Word8 -> DecodedToken ()
+ tryConsumeBytesIndef hdr = case word8ToWord hdr of
+   0x5f -> DecodedToken 1 ()
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeStringIndef #-}
++{-# NOINLINE tryConsumeStringIndef #-}
+ tryConsumeStringIndef :: Word8 -> DecodedToken ()
+ tryConsumeStringIndef hdr = case word8ToWord hdr of
+   0x7f -> DecodedToken 1 ()
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeNull #-}
++{-# NOINLINE tryConsumeNull #-}
+ tryConsumeNull :: Word8 -> DecodedToken ()
+ tryConsumeNull hdr = case word8ToWord hdr of
+   0xf6 -> DecodedToken 1 ()
+   _    -> DecodeFailure
+ 
+ 
+-{-# INLINE tryConsumeBreakOr #-}
++{-# NOINLINE tryConsumeBreakOr #-}
+ tryConsumeBreakOr :: Word8 -> DecodedToken ()
+ tryConsumeBreakOr hdr = case word8ToWord hdr of
+   0xff -> DecodedToken 1 ()
 diff --git a/src/Codec/CBOR/Write.hs b/src/Codec/CBOR/Write.hs
 index fdd70ac..9395c55 100644
 --- a/src/Codec/CBOR/Write.hs

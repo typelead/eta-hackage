@@ -1,6 +1,6 @@
-From 96770752b760711e88b80aa7eb5427411a26b56d Mon Sep 17 00:00:00 2001
+From 51dee8f44298ae8cb2943f14e939dd9372565816 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 8 Dec 2018 18:32:53 +0530
+Date: Sun, 9 Dec 2018 09:37:36 +0530
 Subject: [PATCH] Patched
 
 ---
@@ -111,7 +111,7 @@ index 6688d4e..cba04f4 100644
 +
 +createDirectory1 = error "createDirectory not implemented!"
 diff --git a/unliftio.cabal b/unliftio.cabal
-index 12ae642..9427508 100644
+index 8d78e9a..0e54326 100644
 --- a/unliftio.cabal
 +++ b/unliftio.cabal
 @@ -28,27 +28,15 @@ library
@@ -124,7 +124,7 @@ index 12ae642..9427508 100644
      , filepath
      , process >=1.2.0.0
 -    , stm >=2.4.3
-+    , stm >=2.4.3 && < 2.5
++    , stm >=2.4.3 && < 2.6
      , time
      , transformers
      , unliftio-core >=0.1.1.0
@@ -145,7 +145,7 @@ index 12ae642..9427508 100644
    exposed-modules:
        UnliftIO
        UnliftIO.Async
-@@ -77,19 +65,16 @@ test-suite unliftio-spec
+@@ -78,19 +66,16 @@ test-suite unliftio-spec
    build-depends:
        async >2.1.1
      , base >=4.7 && <5
@@ -156,7 +156,7 @@ index 12ae642..9427508 100644
      , hspec
      , process >=1.2.0.0
 -    , stm >=2.4.3
-+    , stm >=2.4.3 && < 2.5
++    , stm >=2.4.3 && < 2.6
      , time
      , transformers
      , unliftio

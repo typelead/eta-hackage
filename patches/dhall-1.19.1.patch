@@ -1,0 +1,41 @@
+From 888bd5d4aad105945b18be10d1e91da914d9bcd7 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Wed, 12 Dec 2018 09:46:27 +0100
+Subject: [PATCH] Patched
+
+---
+ dhall.cabal         | 2 +-
+ src/Dhall/Import.hs | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/dhall.cabal b/dhall.cabal
+index 5522e56..59eace3 100644
+--- a/dhall.cabal
++++ b/dhall.cabal
+@@ -331,7 +331,7 @@ Library
+         http-types                  >= 0.7.0    && < 0.13,
+         http-client                 >= 0.4.30   && < 0.6 ,
+         http-client-tls             >= 0.2.0    && < 0.4
+-    if !impl(ghc >= 8.0)
++    if !impl(ghc >= 8.0) && !impl(eta >= 0.8.4)
+       Build-Depends: semigroups == 0.18.*
+       Build-Depends: transformers == 0.4.2.*
+       Build-Depends: fail == 4.9.*
+diff --git a/src/Dhall/Import.hs b/src/Dhall/Import.hs
+index 972fbb3..e08363b 100644
+--- a/src/Dhall/Import.hs
++++ b/src/Dhall/Import.hs
+@@ -561,8 +561,8 @@ getCacheFile hash = do
+ 
+                 else do
+                     assertDirectory (FilePath.takeDirectory directory)
+-
+-                    liftIO (Directory.createDirectory directory)
++                    -- Double checking to handle a possible IO error in doesDirectoryExist
++                    liftIO (Directory.createDirectoryIfMissing False directory)
+ 
+                     liftIO (Directory.setPermissions directory private)
+ 
+-- 
+2.16.2.windows.1
+

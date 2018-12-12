@@ -1,0 +1,131 @@
+From 2d02392d0988f164961554bbfec42b5587ad3bec Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Mon, 26 Nov 2018 23:29:07 +0100
+Subject: [PATCH] Patched
+
+---
+ dhall-json.cabal      | 10 ++++++++--
+ dhall-to-yaml/Main.hs | 29 ++++++++++++++++++-----------
+ java/Utils.java       | 17 +++++++++++++++++
+ 3 files changed, 43 insertions(+), 13 deletions(-)
+ create mode 100644 java/Utils.java
+
+diff --git a/dhall-json.cabal b/dhall-json.cabal
+index f3bb1d7..02f7e56 100644
+--- a/dhall-json.cabal
++++ b/dhall-json.cabal
+@@ -61,15 +61,21 @@ Executable dhall-to-yaml
+     Main-Is: Main.hs
+     Build-Depends:
+         base                                   ,
++        aeson                                  ,
+         bytestring                       < 0.11,
+         dhall                                  ,
+         dhall-json                             ,
+         optparse-applicative                   ,
+-        yaml                 >= 0.5.0 && < 0.12,
++--        yaml                 >= 0.5.0 && < 0.12,
++        utf8-string          >= 1.0   && <= 1.1,
+         vector                                 ,
+         text
+     GHC-Options: -Wall
+-
++    Maven-Depends: com.fasterxml.jackson.core:jackson-core:2.9.6,
++                   com.fasterxml.jackson.core:jackson-databind:2.9.6,
++                   com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.6
++    Java-Sources: java/Utils.java
++                   
+ Test-Suite tasty
+     Type: exitcode-stdio-1.0
+     Hs-Source-Dirs: tasty
+diff --git a/dhall-to-yaml/Main.hs b/dhall-to-yaml/Main.hs
+index cec56be..efaf5c7 100644
+--- a/dhall-to-yaml/Main.hs
++++ b/dhall-to-yaml/Main.hs
+@@ -1,19 +1,22 @@
+-{-# LANGUAGE ApplicativeDo     #-}
+-{-# LANGUAGE OverloadedStrings #-}
+-{-# LANGUAGE RecordWildCards   #-}
++{-# LANGUAGE ApplicativeDo            #-}
++{-# LANGUAGE OverloadedStrings        #-}
++{-# LANGUAGE RecordWildCards          #-}
++{-# LANGUAGE ForeignFunctionInterface #-}
+ 
+ module Main where
+ 
+ import Control.Exception (SomeException)
++import Data.List (intercalate)
+ import Data.Monoid ((<>))
+ import Dhall.JSON (Conversion)
+ import Options.Applicative (Parser, ParserInfo)
+ 
+ import qualified Control.Exception
+-import qualified Data.ByteString
++import qualified Data.Aeson
++import qualified Data.ByteString.Lazy.UTF8
+ import qualified Data.Text.IO
+ import qualified Data.Vector
+-import qualified Data.Yaml
++-- import qualified Data.Yaml
+ import qualified Dhall
+ import qualified Dhall.JSON
+ import qualified GHC.IO.Encoding
+@@ -62,6 +65,9 @@ parserInfo =
+         <>  Options.Applicative.progDesc "Compile Dhall to YAML"
+         )
+ 
++foreign import java unsafe "@static Utils.jsonToYaml" jsonToYaml
++  :: String -> String
++
+ main :: IO ()
+ main = do
+     GHC.IO.Encoding.setLocaleEncoding GHC.IO.Encoding.utf8
+@@ -76,15 +82,16 @@ main = do
+         stdin <- Data.Text.IO.getContents
+ 
+         json <- omittingNull <$> explaining (Dhall.JSON.codeToValue conversion "(stdin)" stdin)
+-
++        let aesonToYaml = jsonToYaml . Data.ByteString.Lazy.UTF8.toString
++                                     . Data.Aeson.encode
+         let yaml = case (documents, json) of
+-              (True, Data.Yaml.Array elems)
+-                -> Data.ByteString.intercalate "\n---\n"
+-                   $ fmap Data.Yaml.encode
++              (True,  Data.Aeson.Array elems)
++                -> intercalate "\n---\n"
++                   $ fmap aesonToYaml
+                    $ Data.Vector.toList elems
+-              _ -> Data.Yaml.encode json
++              _ -> aesonToYaml json
+ 
+-        Data.ByteString.putStr yaml
++        putStr yaml
+ 
+ handle :: IO a -> IO a
+ handle = Control.Exception.handle handler
+diff --git a/java/Utils.java b/java/Utils.java
+new file mode 100644
+index 0000000..6f8c233
+--- /dev/null
++++ b/java/Utils.java
+@@ -0,0 +1,17 @@
++import java.io.IOException;
++
++import com.fasterxml.jackson.core.JsonProcessingException;
++import com.fasterxml.jackson.databind.JsonNode;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
++
++public class Utils {
++
++    public static String jsonToYaml (String jsonString) throws
++        JsonProcessingException, IOException {
++        JsonNode jsonNodeTree = new ObjectMapper().readTree(jsonString);
++        String jsonAsYaml = new YAMLMapper().writeValueAsString(jsonNodeTree);
++        return jsonAsYaml;
++    }
++    
++}
+-- 
+2.16.2.windows.1
+
