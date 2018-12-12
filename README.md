@@ -289,7 +289,7 @@ These packages are supported by `etlas`.
 - [alex-tools-0.4](https://hackage.haskell.org/package/alex-tools-0.4)
 - [api-builder-0.15.0.0](https://hackage.haskell.org/package/api-builder-0.15.0.0)
 - [appar >= 0.1.4 && <= 0.1.5](https://hackage.haskell.org/package/appar)
-- [attoparsec >= 0.13.1.0 && <= 0.13.2.1](https://hackage.haskell.org/package/attoparsec)
+- [attoparsec >= 0.13.1.0 && <= 0.13.2.2](https://hackage.haskell.org/package/attoparsec)
 - [attoparsec-iso8601-1.0.0.0](https://hackage.haskell.org/package/attoparsec-iso8601-1.0.0.0)
 - [binary-0.8.5.1](https://hackage.haskell.org/package/binary-0.8.5.1)
 - [cassava-0.5.1.0](https://hackage.haskell.org/package/carray-0.1.6.6)
