@@ -3,15 +3,10 @@
 [![Build Status](https://circleci.com/gh/typelead/eta-hackage.svg?style=shield&circle-token=d70d4858668d80ca74fbaf0172c7f270a6b0a4f6)](https://circleci.com/gh/typelead/eta-hackage)
 
 This repository contains a set of patches for particular packages from
-Hackage that cannot be built out-of-the-box with `etlas`. To install a package, you
-have to run the following command:
+Hackage that cannot be built out-of-the-box with `etlas`. Packages are automatically installed when
+you add them as a dependency to your project.
 
-```
-etlas install <package-name>
-```
-
-`etlas` will take care of downloading the tar file, optionally patching it, and installing it. If a patch is in the repo, but your local `etlas` in unable to find a patch
-for it, run
+If a patch is in the repo, but your local `etlas` in unable to find a patch for it, run
 
 ```
 etlas update
@@ -597,7 +592,8 @@ These packages are supported by `etlas`.
 - [old-locale-1.0.0.7](https://hackage.haskell.org/package/old-locale-1.0.0.7)
 - [OneTuple-0.2.1](https://hackage.haskell.org/package/OneTuple-0.2.1)
 - [Only-0.1](https://hackage.haskell.org/package/Only-0.1)
-- [pem-0.2.2](https://hackage.haskell.org/package/pipes-0.2.2)
+- [pandoc-types-1.17.5.4](https://hackage.haskell.org/package/pandoc-types-1.17.5.4)
+- [pem-0.2.2](https://hackage.haskell.org/package/pem-0.2.2)
 - [pointed-5](https://hackage.haskell.org/package/pointed-5)
 - [reflection-2.1.2](https://hackage.haskell.org/package/reflection-2.1.2)
 - [resourcet >= 1.1.8.1 && <= 1.1.11](https://hackage.haskell.org/package/resourcet)

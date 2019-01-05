@@ -1,0 +1,25 @@
+From 98bff0102f14db28d93ebb19b00f58fb7f581743 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sat, 5 Jan 2019 09:47:57 +0530
+Subject: [PATCH] Patched
+
+---
+ Text/Pandoc/Walk.hs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Text/Pandoc/Walk.hs b/Text/Pandoc/Walk.hs
+index d51b74b..6c627d5 100644
+--- a/Text/Pandoc/Walk.hs
++++ b/Text/Pandoc/Walk.hs
+@@ -3,7 +3,7 @@
+ {-# LANGUAGE FlexibleContexts #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE CPP #-}
+-#if MIN_VERSION_base(4,9,0)
++#if MIN_VERSION_base(4,9,0) && !defined(ETA_VERSION)
+ {-# OPTIONS_GHC -fno-warn-redundant-constraints -O2 #-}
+ #endif
+ #if MIN_VERSION_base(4,8,0)
+-- 
+2.18.0
+

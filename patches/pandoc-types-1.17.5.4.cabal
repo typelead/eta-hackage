@@ -1,0 +1,91 @@
+Name:                pandoc-types
+Version:             1.17.5.4
+Synopsis:            Types for representing a structured document
+Description:         @Text.Pandoc.Definition@ defines the 'Pandoc' data
+                     structure, which is used by pandoc to represent
+                     structured documents.  This module used to live
+                     in the pandoc package, but starting with pandoc 1.7, it
+                     has been split off, so that other packages can use it
+                     without drawing in all of pandoc's dependencies, and
+                     pandoc itself can depend on packages (like citeproc-hs)
+                     that use them.
+                     .
+                     @Text.Pandoc.Builder@ provides functions for building
+                     up @Pandoc@ structures programmatically.
+                     .
+                     @Text.Pandoc.Generic@ provides generic functions for
+                     manipulating Pandoc documents.
+                     .
+                     @Text.Pandoc.Walk@ provides faster, nongeneric functions
+                     for manipulating Pandoc documents.
+                     .
+                     @Text.Pandoc.JSON@ provides functions for serializing
+                     and deserializing a @Pandoc@ structure to and from JSON.
+
+Homepage:            http://johnmacfarlane.net/pandoc
+License:             BSD3
+License-file:        LICENSE
+Author:              John MacFarlane
+Maintainer:          jgm@berkeley.edu
+Bug-Reports:         https://github.com/jgm/pandoc-types/issues
+Copyright:           (c) 2006-2017 John MacFarlane
+Category:            Text
+Build-type:          Simple
+Cabal-version:       >=1.8
+Tested-With:         GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.1
+Extra-Source-Files:  changelog
+Source-repository    head
+  type:              git
+  location:          git://github.com/jgm/pandoc-types.git
+
+Library
+  Exposed-modules:   Text.Pandoc.Definition
+                     Text.Pandoc.Generic
+                     Text.Pandoc.Walk
+                     Text.Pandoc.Builder
+                     Text.Pandoc.JSON
+                     Text.Pandoc.Arbitrary
+  Other-modules:     Paths_pandoc_types
+  Build-depends:     base >= 4.5 && < 5,
+                     containers >= 0.3,
+                     syb >= 0.1 && < 0.8,
+                     ghc-prim >= 0.2,
+                     bytestring >= 0.9 && < 0.11,
+                     aeson >= 0.6.2 && < 1.5,
+                     transformers >= 0.2 && < 0.6,
+                     QuickCheck >= 2.4 && < 2.13
+  if !impl(ghc >= 8.0)
+    Build-depends:   semigroups == 0.18.*
+  if impl(ghc < 7.10)
+    Build-depends:   deepseq-generics >= 0.2 && < 0.3,
+                     deepseq >= 1.3 && < 1.5
+  else
+    Build-depends:   deepseq >= 1.4.1 && < 1.5
+  ghc-options:       -Wall
+
+test-suite test-pandoc-types
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             test-pandoc-types.hs
+  build-depends:       base,
+                       pandoc-types,
+                       syb,
+                       aeson >= 0.6.2 && < 1.5,
+                       containers >= 0.3,
+                       bytestring >= 0.9 && < 0.11,
+                       test-framework >= 0.3 && < 0.9,
+                       test-framework-hunit >= 0.2 && < 0.4,
+                       test-framework-quickcheck2 >= 0.2.9 && < 0.4,
+                       QuickCheck >= 2.4 && < 2.13,
+                       HUnit >= 1.2 && < 1.7,
+                       string-qq == 0.0.2
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall -O2
+
+benchmark benchmark-pandoc-types
+  type:            exitcode-stdio-1.0
+  main-is:         bench.hs
+  hs-source-dirs:  benchmark
+  build-depends:   pandoc-types,
+                   base >= 4.5 && < 5,
+                   criterion >= 1.0 && < 1.6
+  ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind -O2
