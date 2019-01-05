@@ -1,0 +1,249 @@
+From 9879bb864d1995dc93daa2e4bd9ed2bf1e5e983b Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Sat, 5 Jan 2019 11:09:57 +0530
+Subject: [PATCH] Patched
+
+---
+ pandoc.cabal                          | 34 +++++++++++++--------------
+ src/Text/Pandoc/Filter/Lua.hs         |  7 ++++--
+ src/Text/Pandoc/Readers/CommonMark.hs |  6 +++--
+ src/Text/Pandoc/Readers/RST.hs        |  8 +++----
+ src/Text/Pandoc/Writers/CommonMark.hs |  5 +++-
+ src/Text/Pandoc/Writers/Custom.hs     | 15 ++++++++----
+ 6 files changed, 44 insertions(+), 31 deletions(-)
+
+diff --git a/pandoc.cabal b/pandoc.cabal
+index 878f97e..ec40c43 100644
+--- a/pandoc.cabal
++++ b/pandoc.cabal
+@@ -382,15 +382,15 @@ library
+                  blaze-html >= 0.9 && < 0.10,
+                  blaze-markup >= 0.8 && < 0.9,
+                  vector >= 0.10 && < 0.13,
+-                 hslua >= 1.0.1 && < 1.1,
+-                 hslua-module-text >= 0.2 && < 0.3,
++                 -- hslua >= 1.0.1 && < 1.1,
++                 -- hslua-module-text >= 0.2 && < 0.3,
+                  binary >= 0.5 && < 0.11,
+                  SHA >= 1.6 && < 1.7,
+                  haddock-library >= 1.7 && < 1.8,
+                  deepseq >= 1.3 && < 1.5,
+                  JuicyPixels >= 3.1.6.1 && < 3.4,
+                  Glob >= 0.7 && < 0.10,
+-                 cmark-gfm >= 0.1.1 && < 0.2,
++                 -- cmark-gfm >= 0.1.1 && < 0.2,
+                  doctemplates >= 0.2.1 && < 0.3,
+                  network-uri >= 2.6 && < 2.7,
+                  network >= 2.6,
+@@ -410,10 +410,10 @@ library
+      hs-source-dirs: prelude
+      other-modules:  Prelude
+      build-depends:  base-compat >= 0.9
+-  if os(windows)
+-    cpp-options:      -D_WINDOWS
+-  else
+-    build-depends:  unix >= 2.4 && < 2.8
++  -- if os(windows)
++  cpp-options:      -D_WINDOWS
++  -- else
++  --   build-depends:  unix >= 2.4 && < 2.8
+   if flag(embed_data_files)
+      cpp-options:   -DEMBED_DATA_FILES
+      build-depends: file-embed >= 0.0 && < 0.1
+@@ -505,7 +505,7 @@ library
+                    Text.Pandoc.Writers.Math,
+                    Text.Pandoc.Writers.Shared,
+                    Text.Pandoc.Writers.OOXML,
+-                   Text.Pandoc.Lua,
++                   -- Text.Pandoc.Lua,
+                    Text.Pandoc.PDF,
+                    Text.Pandoc.UTF8,
+                    Text.Pandoc.Templates,
+@@ -560,15 +560,15 @@ library
+                    Text.Pandoc.Writers.Roff,
+                    Text.Pandoc.Writers.Powerpoint.Presentation,
+                    Text.Pandoc.Writers.Powerpoint.Output,
+-                   Text.Pandoc.Lua.Filter,
+-                   Text.Pandoc.Lua.Global,
+-                   Text.Pandoc.Lua.Init,
+-                   Text.Pandoc.Lua.Module.MediaBag,
+-                   Text.Pandoc.Lua.Module.Pandoc,
+-                   Text.Pandoc.Lua.Module.Utils,
+-                   Text.Pandoc.Lua.Packages,
+-                   Text.Pandoc.Lua.StackInstances,
+-                   Text.Pandoc.Lua.Util,
++                   -- Text.Pandoc.Lua.Filter,
++                   -- Text.Pandoc.Lua.Global,
++                   -- Text.Pandoc.Lua.Init,
++                   -- Text.Pandoc.Lua.Module.MediaBag,
++                   -- Text.Pandoc.Lua.Module.Pandoc,
++                   -- Text.Pandoc.Lua.Module.Utils,
++                   -- Text.Pandoc.Lua.Packages,
++                   -- Text.Pandoc.Lua.StackInstances,
++                   -- Text.Pandoc.Lua.Util,
+                    Text.Pandoc.CSS,
+                    Text.Pandoc.CSV,
+                    Text.Pandoc.RoffChar,
+diff --git a/src/Text/Pandoc/Filter/Lua.hs b/src/Text/Pandoc/Filter/Lua.hs
+index e5c34c7..dd12fc4 100644
+--- a/src/Text/Pandoc/Filter/Lua.hs
++++ b/src/Text/Pandoc/Filter/Lua.hs
+@@ -36,8 +36,8 @@ import Control.Monad ((>=>))
+ import Text.Pandoc.Class (PandocIO)
+ import Text.Pandoc.Definition (Pandoc)
+ import Text.Pandoc.Error (PandocError (PandocFilterError))
+-import Text.Pandoc.Lua (Global (..), LuaException (..),
+-                        runLua, runFilterFile, setGlobals)
++-- import Text.Pandoc.Lua (Global (..), LuaException (..),
++--                        runLua, runFilterFile, setGlobals)
+ import Text.Pandoc.Options (ReaderOptions)
+ 
+ -- | Run the Lua filter in @filterPath@ for a transformation to the
+@@ -48,6 +48,8 @@ apply :: ReaderOptions
+       -> FilePath
+       -> Pandoc
+       -> PandocIO Pandoc
++apply _ _ _ _ = return (error "Lua filtering is not enabled")
++{-
+ apply ropts args fp doc = do
+   let format = case args of
+                  (x:_) -> x
+@@ -63,3 +65,4 @@ forceResult :: FilePath -> Either LuaException Pandoc -> PandocIO Pandoc
+ forceResult fp eitherResult = case eitherResult of
+   Right x               -> return x
+   Left (LuaException s) -> throw (PandocFilterError fp s)
++-}
+diff --git a/src/Text/Pandoc/Readers/CommonMark.hs b/src/Text/Pandoc/Readers/CommonMark.hs
+index 3cc75e2..8d35c5b 100644
+--- a/src/Text/Pandoc/Readers/CommonMark.hs
++++ b/src/Text/Pandoc/Readers/CommonMark.hs
+@@ -32,9 +32,8 @@ CommonMark is a strongly specified variant of Markdown: http://commonmark.org.
+ -}
+ module Text.Pandoc.Readers.CommonMark (readCommonMark)
+ where
+-
+ import Prelude
+-import CMarkGFM
++-- import CMarkGFM
+ import Control.Monad.State
+ import Data.List (groupBy)
+ import qualified Data.Set as Set
+@@ -48,6 +47,8 @@ import Text.Pandoc.Walk (walkM)
+ 
+ -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
+ readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
++readCommonMark _ _ = return (error "CommonMark is not supported")
++{-
+ readCommonMark opts s = return $
+   (if isEnabled Ext_auto_identifiers opts
+       then addHeaderIdentifiers opts
+@@ -225,3 +226,4 @@ addInline opts (Node _ (LINK url title) nodes) =
+ addInline opts (Node _ (IMAGE url title) nodes) =
+   (Image nullAttr (addInlines opts nodes) (unpack url, unpack title) :)
+ addInline _ _ = id
++-}
+diff --git a/src/Text/Pandoc/Readers/RST.hs b/src/Text/Pandoc/Readers/RST.hs
+index 1938ca1..ba4e777 100644
+--- a/src/Text/Pandoc/Readers/RST.hs
++++ b/src/Text/Pandoc/Readers/RST.hs
+@@ -739,7 +739,7 @@ directive' = do
+                                      ""   -> stateRstDefaultRole def
+                                      role -> role })
+         x | x == "code" || x == "code-block" ->
+-          codeblock name classes
++          codeblock' name classes
+                     (lookup "number-lines" fields) (trim top) body
+         "aafig" -> do
+           let attribs = (name, ["aafig"], map (second trimr) fields)
+@@ -991,9 +991,9 @@ toChunks = dropWhile null
+                           then "\\begin{aligned}\n" ++ s ++ "\n\\end{aligned}"
+                           else s
+ 
+-codeblock :: String -> [String] -> Maybe String -> String -> String
+-          -> RSTParser m Blocks
+-codeblock ident classes numberLines lang body =
++codeblock' :: String -> [String] -> Maybe String -> String -> String
++           -> RSTParser m Blocks
++codeblock' ident classes numberLines lang body =
+   return $ B.codeBlockWith attribs $ stripTrailingNewlines body
+     where attribs = (ident, classes', kvs)
+           classes' = "sourceCode" : lang
+diff --git a/src/Text/Pandoc/Writers/CommonMark.hs b/src/Text/Pandoc/Writers/CommonMark.hs
+index c007f77..292cfdd 100644
+--- a/src/Text/Pandoc/Writers/CommonMark.hs
++++ b/src/Text/Pandoc/Writers/CommonMark.hs
+@@ -34,7 +34,7 @@ CommonMark:  <http://commonmark.org>
+ module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
+ 
+ import Prelude
+-import CMarkGFM
++-- import CMarkGFM
+ import Control.Monad.State.Strict (State, get, modify, runState)
+ import Data.Char (isAscii)
+ import Data.Foldable (foldrM)
+@@ -55,6 +55,8 @@ import Text.Pandoc.XML (toHtml5Entities)
+ 
+ -- | Convert Pandoc to CommonMark.
+ writeCommonMark :: PandocMonad m => WriterOptions -> Pandoc -> m Text
++writeCommonMark _ _ = return (error "CommonMark is not supported")
++{-
+ writeCommonMark opts (Pandoc meta blocks) = do
+   let (blocks', notes) = runState (walkM processNotes blocks) []
+       notes' = if null notes
+@@ -374,3 +376,4 @@ toSuperscriptInline (Str s) = Str <$> traverse toSuperscript s
+ toSuperscriptInline LineBreak = Just LineBreak
+ toSuperscriptInline SoftBreak = Just SoftBreak
+ toSuperscriptInline _ = Nothing
++-}
+diff --git a/src/Text/Pandoc/Writers/Custom.hs b/src/Text/Pandoc/Writers/Custom.hs
+index f383859..7804fa1 100644
+--- a/src/Text/Pandoc/Writers/Custom.hs
++++ b/src/Text/Pandoc/Writers/Custom.hs
+@@ -39,20 +39,21 @@ import Data.List (intersperse)
+ import qualified Data.Map as M
+ import Data.Text (Text, pack)
+ import Data.Typeable
+-import Foreign.Lua (Lua, Pushable)
++--import Foreign.Lua (Lua, Pushable)
+ import Text.Pandoc.Class (PandocIO)
+ import Text.Pandoc.Definition
+ import Text.Pandoc.Error
+-import Text.Pandoc.Lua (Global (..), LuaException (LuaException),
+-                        runLua, setGlobals)
+-import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)
++--import Text.Pandoc.Lua (Global (..), LuaException (LuaException),
++--                        runLua, setGlobals)
++--import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)
+ import Text.Pandoc.Options
+ import Text.Pandoc.Templates
+ import qualified Text.Pandoc.UTF8 as UTF8
+ import Text.Pandoc.Writers.Shared
+ 
+-import qualified Foreign.Lua as Lua
++-- import qualified Foreign.Lua as Lua
+ 
++{-
+ attrToMap :: Attr -> M.Map String String
+ attrToMap (id',classes,keyvals) = M.fromList
+     $ ("id", id')
+@@ -103,9 +104,12 @@ data PandocLuaException = PandocLuaException String
+     deriving (Show, Typeable)
+ 
+ instance Exception PandocLuaException
++-}
+ 
+ -- | Convert Pandoc to custom markup.
+ writeCustom :: FilePath -> WriterOptions -> Pandoc -> PandocIO Text
++writeCustom _ _ _ = return (error "Custom markup is not supported.")
++{-
+ writeCustom luaFile opts doc@(Pandoc meta _) = do
+   let globals = [ PANDOC_DOCUMENT doc
+                 , PANDOC_SCRIPT_FILE luaFile
+@@ -253,3 +257,4 @@ inlineToCustom (Note contents) = Lua.callFunc "Note" (Stringify contents)
+ 
+ inlineToCustom (Span attr items) =
+   Lua.callFunc "Span" (Stringify items) (attrToMap attr)
++-}
+-- 
+2.18.0
+

@@ -592,6 +592,7 @@ These packages are supported by `etlas`.
 - [old-locale-1.0.0.7](https://hackage.haskell.org/package/old-locale-1.0.0.7)
 - [OneTuple-0.2.1](https://hackage.haskell.org/package/OneTuple-0.2.1)
 - [Only-0.1](https://hackage.haskell.org/package/Only-0.1)
+- [pandoc-2.5](https://hackage.haskell.org/package/pandoc-2.5)
 - [pandoc-types-1.17.5.4](https://hackage.haskell.org/package/pandoc-types-1.17.5.4)
 - [pem-0.2.2](https://hackage.haskell.org/package/pem-0.2.2)
 - [pointed-5](https://hackage.haskell.org/package/pointed-5)
