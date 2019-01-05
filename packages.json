@@ -58,7 +58,8 @@
         "Agda",
         "Elm",
         "idris",
-        "purescript"
+        "purescript",
+        "pandoc"
     ],
     "ignored-versions": []
 }
