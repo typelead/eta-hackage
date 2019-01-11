@@ -1,15 +1,15 @@
-From e3d2d263672207c9982de425ed1a9639545613b9 Mon Sep 17 00:00:00 2001
+From 11648bfcc06ca1e892745cf0a2a14ae2bacb98dd Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Tue, 14 Nov 2017 20:37:47 +0530
+Date: Sat, 12 Jan 2019 00:43:59 +0530
 Subject: [PATCH] Patched
 
 ---
- Text/Regex/Posix/Wrap.hs  | 804 ++++++++++++++++++++++++++++++++++++++++++++++
- Text/Regex/Posix/Wrap.hsc | 676 --------------------------------------
- java/MatchDetails.java    |  21 ++
- java/Utils.java           |  59 ++++
+ Text/Regex/Posix/Wrap.hs  | 806 ++++++++++++++++++++++++++++++++++++++
+ Text/Regex/Posix/Wrap.hsc | 676 --------------------------------
+ java/MatchDetails.java    |  21 +
+ java/Utils.java           |  59 +++
  regex-posix.cabal         |  10 +-
- 5 files changed, 887 insertions(+), 683 deletions(-)
+ 5 files changed, 889 insertions(+), 683 deletions(-)
  create mode 100644 Text/Regex/Posix/Wrap.hs
  delete mode 100644 Text/Regex/Posix/Wrap.hsc
  create mode 100644 java/MatchDetails.java
@@ -17,10 +17,10 @@ Subject: [PATCH] Patched
 
 diff --git a/Text/Regex/Posix/Wrap.hs b/Text/Regex/Posix/Wrap.hs
 new file mode 100644
-index 0000000..a75d798
+index 0000000..56b7af0
 --- /dev/null
 +++ b/Text/Regex/Posix/Wrap.hs
-@@ -0,0 +1,804 @@
+@@ -0,0 +1,806 @@
 +{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 +{-# LANGUAGE CPP, MagicHash, MultiParamTypeClasses, ScopedTypeVariables, TypeOperators #-}
 +
@@ -465,16 +465,16 @@ index 0000000..a75d798
 +--   compNewline = REG_NEWLINE
 +
 +compExtended :: CompOption
-+compExtended = undefined
++compExtended = CompOption 0
 +
-+compIgnoreCase :: CompOption
-+compIgnoreCase = CompOption 2
++foreign import java unsafe "@static @field java.util.regex.Pattern.CASE_INSENSITIVE"
++  compIgnoreCase :: CompOption
 +
 +compNoSub :: CompOption
-+compNoSub = undefined
++compNoSub = CompOption 0
 +
-+compNewline :: CompOption
-+compNewline = CompOption 1
++foreign import java unsafe "@static @field java.util.regex.Pattern.DOTALL"
++  compNewline :: CompOption
 +
 +execNotBOL  :: ExecOption
 +execNotBOL  = ExecOption 1
@@ -568,8 +568,10 @@ index 0000000..a75d798
 +wrapEitherRegex :: CompOption -> ExecOption -> Pattern -> IO (Either WrapError Regex)
 +wrapEitherRegex c e p = return . Right $ Regex p c e
 +
-+wrapCompile c@(CompOption 0) e pattern = (peekCString pattern >>= compile') >>= (wrapEitherRegex c e)
-+wrapCompile c@(CompOption n) e pattern = (peekCString pattern >>= (flip compile n)) >>= (wrapEitherRegex c e)
++wrapCompile c e pattern =
++  case c of
++    CompOption 0 -> (peekCString pattern >>= compile') >>= (wrapEitherRegex c e)
++    CompOption n -> (peekCString pattern >>= (flip compile n)) >>= (wrapEitherRegex c e)
 +
 +foreign import java unsafe "@static java.util.regex.Pattern.matches"
 +  matches  :: (a <: CharSequence) => String -> a -> IO Bool                            -- TODO: CharSequence
@@ -1622,5 +1624,5 @@ index 8bba3e5..49afe69 100644
    -- Data-Files:
    -- Extra-Tmp-Files:
 -- 
-2.7.4 (Apple Git-66)
+2.18.0
 
