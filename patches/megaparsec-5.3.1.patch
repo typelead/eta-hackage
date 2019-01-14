@@ -1,0 +1,56 @@
+From 58b30ed99413b9a87d59758f99e45414a9f8d756 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 14 Jan 2019 10:50:31 +0530
+Subject: [PATCH] Patched
+
+---
+ Text/Megaparsec/Prim.hs | 3 ++-
+ megaparsec.cabal        | 4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/Text/Megaparsec/Prim.hs b/Text/Megaparsec/Prim.hs
+index f8619da..3eaa4fc 100644
+--- a/Text/Megaparsec/Prim.hs
++++ b/Text/Megaparsec/Prim.hs
+@@ -74,6 +74,7 @@ import Control.Monad.Reader.Class
+ import Control.Monad.State.Class hiding (state)
+ import Control.Monad.Trans
+ import Control.Monad.Trans.Identity
++import Data.Function (trampoline)
+ import Data.Data (Data)
+ import Data.Foldable (foldl')
+ import Data.List (genericTake)
+@@ -1120,7 +1121,7 @@ runParsecT :: Monad m
+   => ParsecT e s m a -- ^ Parser to run
+   -> State s       -- ^ Initial state
+   -> m (Reply e s a)
+-runParsecT p s = unParser p s cok cerr eok eerr
++runParsecT p s = trampoline $ unParser p s cok cerr eok eerr
+   where cok a s' _  = return $ Reply s' Consumed (OK a)
+         cerr err s' = return $ Reply s' Consumed (Error err)
+         eok a s' _  = return $ Reply s' Virgin   (OK a)
+diff --git a/megaparsec.cabal b/megaparsec.cabal
+index 55ec03e..26dacbd 100644
+--- a/megaparsec.cabal
++++ b/megaparsec.cabal
+@@ -44,7 +44,7 @@ library
+                     , text         >= 0.2   && < 1.3
+                     , transformers >= 0.4   && < 0.6
+ 
+-  if !impl(ghc >= 8.0)
++  if !impl(ghc >= 8.0) && !impl(eta >= 0.8.4)
+     -- packages providing modules that moved into base-4.9.0.0
+     build-depends:    fail         == 4.9.*
+                     , semigroups   == 0.18.*
+@@ -103,7 +103,7 @@ test-suite tests
+                     , text         >= 0.2   && < 1.3
+                     , transformers >= 0.4   && < 0.6
+ 
+-  if !impl(ghc >= 8.0)
++  if !impl(ghc >= 8.0) && !impl(eta >= 0.8.4)
+     -- packages providing modules that moved into base-4.9.0.0
+     build-depends:    semigroups     == 0.18.*
+ 
+-- 
+2.18.0
+

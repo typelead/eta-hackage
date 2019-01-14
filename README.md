@@ -291,7 +291,7 @@ These packages are supported by `etlas`.
 - [extra >= 1.5.2 && <= 1.6.3](https://hackage.haskell.org/package/extra)
 - [happy-1.19.9](https://hackage.haskell.org/package/happy-1.19.9)
 - [highlighting-kate-0.6.4](https://hackage.haskell.org/package/highlighting-kate-0.6.4)
-- [megaparsec (>= 6.4.1 && <= 6.5.0) || (>= 7.0.3 && <= 7.0.4)](http://hackage.haskell.org/package/megaparsec)
+- [megaparsec == 5.3.1 || (>= 6.4.1 && <= 6.5.0) || (>= 7.0.3 && <= 7.0.4)](http://hackage.haskell.org/package/megaparsec)
 - [optparse-applicative >= 0.13.2.0 && <= 0.14.0.0 || == 0.14.0.2](https://hackage.haskell.org/package/optparse-applicative)
 - [parsec >= 3.1.11 && <= 3.1.13.0](https://hackage.haskell.org/package/parsec-3.1.11)
 - [polyparse-1.12](https://hackage.haskell.org/package/polyparse-1.12)
