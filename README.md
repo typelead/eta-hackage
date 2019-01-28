@@ -623,6 +623,7 @@ These packages are supported by `etlas`.
 - [versions-3.0.1.1](https://hackage.haskell.org/package/versions-3.0.1.1)
 - [vinyl >= 0.5.1.1 && <= 0.8.1.1](https://hackage.haskell.org/package/vinyl)
 - [void >= 0.7.1 && <= 0.7.2](https://hackage.haskell.org/package/void)
+- [webdriver-0.8.5](https://hackage.haskell.org/package/webdriver-0.8.5)
 - [x509-1.7.2](https://hackage.haskell.org/package/x509-1.7.2)
 - [x509-store-1.6.5](https://hackage.haskell.org/package/x509-store-1.6.5)
 - [x509-system-1.6.6](https://hackage.haskell.org/package/x509-system-1.6.6)

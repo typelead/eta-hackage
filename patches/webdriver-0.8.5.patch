@@ -1,0 +1,27 @@
+From 1b2593eed4f55fc59b66bd836ba9b2599d3904eb Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Mon, 28 Jan 2019 21:23:41 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Test/WebDriver/Common/Keys.hs | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/Test/WebDriver/Common/Keys.hs b/src/Test/WebDriver/Common/Keys.hs
+index 0fe89a8..dc97e20 100644
+--- a/src/Test/WebDriver/Common/Keys.hs
++++ b/src/Test/WebDriver/Common/Keys.hs
+@@ -27,8 +27,8 @@ arrowUp = "\xe013"
+ backspace :: Text
+ backspace = "\xe003"
+ 
+-backSpace :: Text
+-backSpace = "\xe003"
++-- backSpace :: Text
++-- backSpace = "\xe003"
+ 
+ cancel :: Text
+ cancel = "\xe001"
+-- 
+2.18.0
+
