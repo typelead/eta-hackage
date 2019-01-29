@@ -1,13 +1,14 @@
-From 81665007808961f243c53d5c5f4a9c6b9eea6c7a Mon Sep 17 00:00:00 2001
+From 98a17e5216763579790310213f8e0f0407bb58a9 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Mon, 13 Aug 2018 12:25:36 +0530
+Date: Tue, 29 Jan 2019 12:04:37 +0530
 Subject: [PATCH] Patched
 
 ---
- Data/Aeson/Types/Generic.hs  |  2 +-
- Data/Aeson/Types/Internal.hs | 18 ++++++++++++++----
- aeson.cabal                  |  4 +++-
- 3 files changed, 18 insertions(+), 6 deletions(-)
+ Data/Aeson/Types/Generic.hs            |  2 +-
+ Data/Aeson/Types/Internal.hs           | 18 ++++++++++++++----
+ aeson.cabal                            |  4 +++-
+ pure/Data/Aeson/Parser/UnescapePure.hs |  4 +++-
+ 4 files changed, 21 insertions(+), 7 deletions(-)
 
 diff --git a/Data/Aeson/Types/Generic.hs b/Data/Aeson/Types/Generic.hs
 index 671a914..a6df3d9 100644
@@ -100,6 +101,28 @@ index d251478..a01f26c 100644
  
  test-suite tests
    default-language: Haskell2010
+diff --git a/pure/Data/Aeson/Parser/UnescapePure.hs b/pure/Data/Aeson/Parser/UnescapePure.hs
+index 26e9ac8..c4714b4 100644
+--- a/pure/Data/Aeson/Parser/UnescapePure.hs
++++ b/pure/Data/Aeson/Parser/UnescapePure.hs
+@@ -21,6 +21,8 @@ import Data.Text.Internal.Private (runText)
+ import Data.Text.Unsafe (unsafeDupablePerformIO)
+ import Data.Word (Word8, Word16, Word32)
+ import GHC.ST (ST)
++import GHC.IO (trampolineIO)
++import Unsafe.Coerce (unsafeCoerce)
+ 
+ -- Different UTF states.
+ data Utf =
+@@ -130,7 +132,7 @@ unescapeText' :: ByteString -> Text
+ unescapeText' bs = runText $ \done -> do
+     dest <- A.new len
+ 
+-    (pos, finalState) <- loop dest (0, StateNone) 0
++    (pos, finalState) <- (unsafeCoerce trampolineIO) $ loop dest (0, StateNone) 0
+ 
+     -- Check final state. Currently pos gets only increased over time, so this check should catch overflows.
+     when ( finalState /= StateNone || pos > len)
 -- 
-2.7.4 (Apple Git-66)
+2.18.0
 
