@@ -611,6 +611,7 @@ These packages are supported by `etlas`.
 - [stringsearch-0.3.6.6](https://hackage.haskell.org/package/stringsearch-0.3.6.6)
 - [syb >= 0.6 && <= 0.7](https://hackage.haskell.org/package/syb)
 - [tagged-0.8.5](https://hackage.haskell.org/package/tagged-0.8.5)
+- [texmath-0.11.2](https://hackage.haskell.org/package/texmath-0.11.2)
 - [unexceptionalio-0.3.0](https://hackage.haskell.org/package/unexceptionalio-0.3.0)
 - [unicode-transforms-0.2.0](https://hackage.haskell.org/packages/unicode-transforms-0.2.0)
 - [unix-time-0.3.7](https://hackage.haskell.org/package/unix-time-0.3.7)
