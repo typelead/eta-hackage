@@ -1,19 +1,22 @@
-From 9879bb864d1995dc93daa2e4bd9ed2bf1e5e983b Mon Sep 17 00:00:00 2001
+From bf2a77ffe1f304c76fabe6d4bf48d45edeb39396 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Sat, 5 Jan 2019 11:09:57 +0530
+Date: Fri, 1 Feb 2019 20:57:24 +0530
 Subject: [PATCH] Patched
 
 ---
- pandoc.cabal                          | 34 +++++++++++++--------------
- src/Text/Pandoc/Filter/Lua.hs         |  7 ++++--
- src/Text/Pandoc/Readers/CommonMark.hs |  6 +++--
- src/Text/Pandoc/Readers/RST.hs        |  8 +++----
- src/Text/Pandoc/Writers/CommonMark.hs |  5 +++-
- src/Text/Pandoc/Writers/Custom.hs     | 15 ++++++++----
- 6 files changed, 44 insertions(+), 31 deletions(-)
+ pandoc.cabal                          |  35 +--
+ src/Text/Pandoc/Filter/Lua.hs         |   7 +-
+ src/Text/Pandoc/Readers/CommonMark.hs |   6 +-
+ src/Text/Pandoc/Readers/LaTeX.hs      | 265 +---------------------
+ src/Text/Pandoc/Readers/LaTeX2.hs     | 313 ++++++++++++++++++++++++++
+ src/Text/Pandoc/Readers/RST.hs        |   8 +-
+ src/Text/Pandoc/Writers/CommonMark.hs |   5 +-
+ src/Text/Pandoc/Writers/Custom.hs     |  15 +-
+ 8 files changed, 361 insertions(+), 293 deletions(-)
+ create mode 100644 src/Text/Pandoc/Readers/LaTeX2.hs
 
 diff --git a/pandoc.cabal b/pandoc.cabal
-index 878f97e..ec40c43 100644
+index 878f97e..8d374e8 100644
 --- a/pandoc.cabal
 +++ b/pandoc.cabal
 @@ -382,15 +382,15 @@ library
@@ -59,7 +62,15 @@ index 878f97e..ec40c43 100644
                     Text.Pandoc.PDF,
                     Text.Pandoc.UTF8,
                     Text.Pandoc.Templates,
-@@ -560,15 +560,15 @@ library
+@@ -534,6 +534,7 @@ library
+                    Text.Pandoc.Readers.Docx.Util,
+                    Text.Pandoc.Readers.Docx.StyleMap,
+                    Text.Pandoc.Readers.Docx.Fields,
++                   Text.Pandoc.Readers.LaTeX2,
+                    Text.Pandoc.Readers.LaTeX.Parsing,
+                    Text.Pandoc.Readers.LaTeX.Lang,
+                    Text.Pandoc.Readers.Odt.Base,
+@@ -560,15 +561,15 @@ library
                     Text.Pandoc.Writers.Roff,
                     Text.Pandoc.Writers.Powerpoint.Presentation,
                     Text.Pandoc.Writers.Powerpoint.Output,
@@ -142,6 +153,686 @@ index 3cc75e2..8d35c5b 100644
    (Image nullAttr (addInlines opts nodes) (unpack url, unpack title) :)
  addInline _ _ = id
 +-}
+diff --git a/src/Text/Pandoc/Readers/LaTeX.hs b/src/Text/Pandoc/Readers/LaTeX.hs
+index 09c724f..746a5d4 100644
+--- a/src/Text/Pandoc/Readers/LaTeX.hs
++++ b/src/Text/Pandoc/Readers/LaTeX.hs
+@@ -79,6 +79,7 @@ import qualified Text.Pandoc.Translations as Translations
+ import Text.Pandoc.Walk
+ import qualified Text.Pandoc.Builder as B
+ import qualified Data.Text.Normalize as Normalize
++import Text.Pandoc.Readers.LaTeX2
+ 
+ -- for debugging:
+ -- import Text.Pandoc.Extensions (getDefaultExtensions)
+@@ -261,175 +262,6 @@ siUnit = do
+             Just il -> return il
+             Nothing -> mzero
+ 
+-siUnitMap :: M.Map Text Inlines
+-siUnitMap = M.fromList
+-  [ ("fg", str "fg")
+-  , ("pg", str "pg")
+-  , ("ng", str "ng")
+-  , ("ug", str "μg")
+-  , ("mg", str "mg")
+-  , ("g", str "g")
+-  , ("kg", str "kg")
+-  , ("amu", str "u")
+-  , ("pm", str "pm")
+-  , ("nm", str "nm")
+-  , ("um", str "μm")
+-  , ("mm", str "mm")
+-  , ("cm", str "cm")
+-  , ("dm", str "dm")
+-  , ("m", str "m")
+-  , ("km", str "km")
+-  , ("as", str "as")
+-  , ("fs", str "fs")
+-  , ("ps", str "ps")
+-  , ("ns", str "ns")
+-  , ("us", str "μs")
+-  , ("ms", str "ms")
+-  , ("s", str "s")
+-  , ("fmol", str "fmol")
+-  , ("pmol", str "pmol")
+-  , ("nmol", str "nmol")
+-  , ("umol", str "μmol")
+-  , ("mmol", str "mmol")
+-  , ("mol", str "mol")
+-  , ("kmol", str "kmol")
+-  , ("pA", str "pA")
+-  , ("nA", str "nA")
+-  , ("uA", str "μA")
+-  , ("mA", str "mA")
+-  , ("A", str "A")
+-  , ("kA", str "kA")
+-  , ("ul", str "μl")
+-  , ("ml", str "ml")
+-  , ("l", str "l")
+-  , ("hl", str "hl")
+-  , ("uL", str "μL")
+-  , ("mL", str "mL")
+-  , ("L", str "L")
+-  , ("hL", str "hL")
+-  , ("mHz", str "mHz")
+-  , ("Hz", str "Hz")
+-  , ("kHz", str "kHz")
+-  , ("MHz", str "MHz")
+-  , ("GHz", str "GHz")
+-  , ("THz", str "THz")
+-  , ("mN", str "mN")
+-  , ("N", str "N")
+-  , ("kN", str "kN")
+-  , ("MN", str "MN")
+-  , ("Pa", str "Pa")
+-  , ("kPa", str "kPa")
+-  , ("MPa", str "MPa")
+-  , ("GPa", str "GPa")
+-  , ("mohm", str "mΩ")
+-  , ("kohm", str "kΩ")
+-  , ("Mohm", str "MΩ")
+-  , ("pV", str "pV")
+-  , ("nV", str "nV")
+-  , ("uV", str "μV")
+-  , ("mV", str "mV")
+-  , ("V", str "V")
+-  , ("kV", str "kV")
+-  , ("W", str "W")
+-  , ("uW", str "μW")
+-  , ("mW", str "mW")
+-  , ("kW", str "kW")
+-  , ("MW", str "MW")
+-  , ("GW", str "GW")
+-  , ("J", str "J")
+-  , ("uJ", str "μJ")
+-  , ("mJ", str "mJ")
+-  , ("kJ", str "kJ")
+-  , ("eV", str "eV")
+-  , ("meV", str "meV")
+-  , ("keV", str "keV")
+-  , ("MeV", str "MeV")
+-  , ("GeV", str "GeV")
+-  , ("TeV", str "TeV")
+-  , ("kWh", str "kWh")
+-  , ("F", str "F")
+-  , ("fF", str "fF")
+-  , ("pF", str "pF")
+-  , ("K", str "K")
+-  , ("dB", str "dB")
+-  , ("angstrom", str "Å")
+-  , ("arcmin", str "′")
+-  , ("arcminute", str "′")
+-  , ("arcsecond", str "″")
+-  , ("astronomicalunit", str "ua")
+-  , ("atomicmassunit", str "u")
+-  , ("atto", str "a")
+-  , ("bar", str "bar")
+-  , ("barn", str "b")
+-  , ("becquerel", str "Bq")
+-  , ("bel", str "B")
+-  , ("candela", str "cd")
+-  , ("celsius", str "°C")
+-  , ("centi", str "c")
+-  , ("coulomb", str "C")
+-  , ("dalton", str "Da")
+-  , ("day", str "d")
+-  , ("deca", str "d")
+-  , ("deci", str "d")
+-  , ("decibel", str "db")
+-  , ("degreeCelsius",str "°C")
+-  , ("degree", str "°")
+-  , ("deka", str "d")
+-  , ("electronvolt", str "eV")
+-  , ("exa", str "E")
+-  , ("farad", str "F")
+-  , ("femto", str "f")
+-  , ("giga", str "G")
+-  , ("gram", str "g")
+-  , ("hectare", str "ha")
+-  , ("hecto", str "h")
+-  , ("henry", str "H")
+-  , ("hertz", str "Hz")
+-  , ("hour", str "h")
+-  , ("joule", str "J")
+-  , ("katal", str "kat")
+-  , ("kelvin", str "K")
+-  , ("kilo", str "k")
+-  , ("kilogram", str "kg")
+-  , ("knot", str "kn")
+-  , ("liter", str "L")
+-  , ("litre", str "l")
+-  , ("lumen", str "lm")
+-  , ("lux", str "lx")
+-  , ("mega", str "M")
+-  , ("meter", str "m")
+-  , ("metre", str "m")
+-  , ("milli", str "m")
+-  , ("minute", str "min")
+-  , ("mmHg", str "mmHg")
+-  , ("mole", str "mol")
+-  , ("nano", str "n")
+-  , ("nauticalmile", str "M")
+-  , ("neper", str "Np")
+-  , ("newton", str "N")
+-  , ("ohm", str "Ω")
+-  , ("Pa", str "Pa")
+-  , ("pascal", str "Pa")
+-  , ("percent", str "%")
+-  , ("per", str "/")
+-  , ("peta", str "P")
+-  , ("pico", str "p")
+-  , ("radian", str "rad")
+-  , ("second", str "s")
+-  , ("siemens", str "S")
+-  , ("sievert", str "Sv")
+-  , ("steradian", str "sr")
+-  , ("tera", str "T")
+-  , ("tesla", str "T")
+-  , ("tonne", str "t")
+-  , ("volt", str "V")
+-  , ("watt", str "W")
+-  , ("weber", str "Wb")
+-  , ("yocto", str "y")
+-  , ("yotta", str "Y")
+-  , ("zepto", str "z")
+-  , ("zetta", str "Z")
+-  ]
+ 
+ lit :: String -> LP m Inlines
+ lit = pure . str
+@@ -859,7 +691,7 @@ inlineEnvironments = M.fromList [
+   ]
+ 
+ inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
+-inlineCommands = M.union inlineLanguageCommands $ M.fromList
++inlineCommands = M.union inlineLanguageCommands $ M.fromList $
+   [ ("emph", extractSpaces emph <$> tok)
+   , ("textit", extractSpaces emph <$> tok)
+   , ("textsl", extractSpaces emph <$> tok)
+@@ -871,25 +703,10 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+   , ("texttt", ttfamily)
+   , ("sout", extractSpaces strikeout <$> tok)
+   , ("alert", skipopts >> spanWith ("",["alert"],[]) <$> tok) -- beamer
+-  , ("lq", return (str "‘"))
+-  , ("rq", return (str "’"))
+-  , ("textquoteleft", return (str "‘"))
+-  , ("textquoteright", return (str "’"))
+-  , ("textquotedblleft", return (str "“"))
+-  , ("textquotedblright", return (str "”"))
+   , ("textsuperscript", extractSpaces superscript <$> tok)
+   , ("textsubscript", extractSpaces subscript <$> tok)
+-  , ("textbackslash", lit "\\")
+-  , ("backslash", lit "\\")
+-  , ("slash", lit "/")
+   , ("textbf", extractSpaces strong <$> tok)
+   , ("textnormal", extractSpaces (spanWith ("",["nodecor"],[])) <$> tok)
+-  , ("ldots", lit "…")
+-  , ("vdots", lit "\8942")
+-  , ("dots", lit "…")
+-  , ("mdots", lit "…")
+-  , ("sim", lit "~")
+-  , ("sep", lit ",")
+   , ("label", rawInlineOr "label" dolabel)
+   , ("ref", rawInlineOr "ref" $ doref "ref")
+   , ("cref", rawInlineOr "cref" $ doref "ref")       -- from cleveref.sty
+@@ -900,15 +717,6 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+   , ("[", mathDisplay . toksToString <$> manyTill anyTok (controlSeq "]"))
+   , ("ensuremath", mathInline . toksToString <$> braced)
+   , ("texorpdfstring", const <$> tok <*> tok)
+-  , ("P", lit "¶")
+-  , ("S", lit "§")
+-  , ("$", lit "$")
+-  , ("%", lit "%")
+-  , ("&", lit "&")
+-  , ("#", lit "#")
+-  , ("_", lit "_")
+-  , ("{", lit "{")
+-  , ("}", lit "}")
+   -- old TeX commands
+   , ("em", extractSpaces emph <$> inlines)
+   , ("it", extractSpaces emph <$> inlines)
+@@ -925,23 +733,6 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+   , ("MakeLowercase", makeLowercase <$> tok)
+   , ("MakeTextLowercase", makeLowercase <$> tok)
+   , ("lowercase", makeLowercase <$> tok)
+-  , ("/", pure mempty) -- italic correction
+-  , ("aa", lit "å")
+-  , ("AA", lit "Å")
+-  , ("ss", lit "ß")
+-  , ("o", lit "ø")
+-  , ("O", lit "Ø")
+-  , ("L", lit "Ł")
+-  , ("l", lit "ł")
+-  , ("ae", lit "æ")
+-  , ("AE", lit "Æ")
+-  , ("oe", lit "œ")
+-  , ("OE", lit "Œ")
+-  , ("pounds", lit "£")
+-  , ("euro", lit "€")
+-  , ("copyright", lit "©")
+-  , ("textasciicircum", lit "^")
+-  , ("textasciitilde", lit "~")
+   , ("H", accent '\779' Nothing) -- hungarumlaut
+   , ("`", accent '\768' (Just '`')) -- grave
+   , ("'", accent '\769' (Just '\'')) -- acute
+@@ -964,23 +755,12 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+   , ("u", accent '\774' Nothing) -- breve
+   , ("k", accent '\808' Nothing) -- ogonek
+   , ("textogonekcentered", accent '\808' Nothing) -- ogonek
+-  , ("i", lit "ı")  -- dotless i
+-  , ("j", lit "ȷ")  -- dotless j
+   , ("newtie", accent '\785' Nothing) -- inverted breve
+   , ("textcircled", accent '\8413' Nothing) -- combining circle
+   , ("\\", linebreak <$ (do inTableCell <- sInTableCell <$> getState
+                             guard $ not inTableCell
+                             optional opt
+                             spaces))
+-  , (",", lit "\8198")
+-  , ("@", pure mempty)
+-  , (" ", lit "\160")
+-  , ("ps", pure $ str "PS." <> space)
+-  , ("TeX", lit "TeX")
+-  , ("LaTeX", lit "LaTeX")
+-  , ("bar", lit "|")
+-  , ("textless", lit "<")
+-  , ("textgreater", lit ">")
+   , ("thanks", skipopts >> note <$> grouped block)
+   , ("footnote", skipopts >> note <$> grouped block)
+   , ("verb", doverb)
+@@ -1111,20 +891,12 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+   -- siuntix
+   , ("SI", dosiunitx)
+   -- hyphenat
+-  , ("bshyp", lit "\\\173")
+-  , ("fshyp", lit "/\173")
+-  , ("dothyp", lit ".\173")
+-  , ("colonhyp", lit ":\173")
+-  , ("hyp", lit "-")
+   , ("nohyphens", tok)
+   , ("textnhtt", ttfamily)
+   , ("nhttfamily", ttfamily)
+   -- LaTeX colors
+   , ("textcolor", coloredInline "color")
+   , ("colorbox", coloredInline "background-color")
+-  -- fontawesome
+-  , ("faCheck", lit "\10003")
+-  , ("faClose", lit "\10007")
+   -- xspace
+   , ("xspace", doxspace)
+   -- etoolbox
+@@ -1142,7 +914,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+   , ("input", include "input")
+   -- plain tex stuff that should just be passed through as raw tex
+   , ("ifdim", ifdim)
+-  ]
++  ] ++ inlCommands
+ 
+ ifdim :: PandocMonad m => LP m Inlines
+ ifdim = do
+@@ -1323,43 +1095,12 @@ isBlockCommand s =
+   s `M.member` (blockCommands :: M.Map Text (LP PandocPure Blocks))
+   || s `Set.member` treatAsBlock
+ 
+-treatAsBlock :: Set.Set Text
+-treatAsBlock = Set.fromList
+-   [ "special", "pdfannot", "pdfstringdef"
+-   , "bibliographystyle"
+-   , "maketitle", "makeindex", "makeglossary"
+-   , "addcontentsline", "addtocontents", "addtocounter"
+-      -- \ignore{} is used conventionally in literate haskell for definitions
+-      -- that are to be processed by the compiler but not printed.
+-   , "ignore"
+-   , "hyperdef"
+-   , "markboth", "markright", "markleft"
+-   , "hspace", "vspace"
+-   , "newpage"
+-   , "clearpage"
+-   , "pagebreak"
+-   , "titleformat"
+-   , "listoffigures"
+-   , "listoftables"
+-   , "write"
+-   ]
+ 
+ isInlineCommand :: Text -> Bool
+ isInlineCommand s =
+   s `M.member` (inlineCommands :: M.Map Text (LP PandocPure Inlines))
+   || s `Set.member` treatAsInline
+ 
+-treatAsInline :: Set.Set Text
+-treatAsInline = Set.fromList
+-  [ "index"
+-  , "hspace"
+-  , "vspace"
+-  , "noindent"
+-  , "newpage"
+-  , "clearpage"
+-  , "pagebreak"
+-  ]
+-
+ dolabel :: PandocMonad m => LP m Inlines
+ dolabel = do
+   v <- braced
+diff --git a/src/Text/Pandoc/Readers/LaTeX2.hs b/src/Text/Pandoc/Readers/LaTeX2.hs
+new file mode 100644
+index 0000000..ffad778
+--- /dev/null
++++ b/src/Text/Pandoc/Readers/LaTeX2.hs
+@@ -0,0 +1,313 @@
++{-# LANGUAGE NoImplicitPrelude #-}
++{-# LANGUAGE FlexibleInstances     #-}
++{-# LANGUAGE MultiParamTypeClasses #-}
++{-# LANGUAGE OverloadedStrings     #-}
++{-# LANGUAGE PatternGuards         #-}
++{-# LANGUAGE ScopedTypeVariables   #-}
++module Text.Pandoc.Readers.LaTeX2 (siUnitMap, treatAsBlock, treatAsInline, inlCommands) where
++
++import Prelude
++import Control.Applicative (many, optional, (<|>))
++import Control.Monad
++import Control.Monad.Except (throwError)
++import Data.Char (isDigit, isLetter, toLower, toUpper)
++import Data.Default
++import Data.List (intercalate, isPrefixOf)
++import qualified Data.Map as M
++import Data.Maybe (fromMaybe, maybeToList)
++import qualified Data.Set as Set
++import Data.Text (Text)
++import qualified Data.Text as T
++import Safe (minimumDef)
++import System.FilePath (addExtension, replaceExtension, takeExtension)
++import Text.Pandoc.BCP47 (Lang (..), renderLang)
++import Text.Pandoc.Builder
++import Text.Pandoc.Class (PandocMonad, PandocPure, getResourcePath, lookupEnv,
++                          readFileFromDirs, report, setResourcePath,
++                          setTranslations, translateTerm, trace)
++import Text.Pandoc.Error (PandocError ( PandocParseError, PandocParsecError))
++import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
++import Text.Pandoc.ImageSize (numUnit, showFl)
++import Text.Pandoc.Logging
++import Text.Pandoc.Options
++import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
++                            optional, space, spaces, withRaw, (<|>))
++import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
++                                        ArgSpec (..), Tok (..), TokType (..))
++import Text.Pandoc.Readers.LaTeX.Parsing
++import Text.Pandoc.Readers.LaTeX.Lang (polyglossiaLangToBCP47,
++                                       babelLangToBCP47)
++import Text.Pandoc.Shared
++import qualified Text.Pandoc.Translations as Translations
++import Text.Pandoc.Walk
++import qualified Text.Pandoc.Builder as B
++import qualified Data.Text.Normalize as Normalize
++
++siUnitMap :: M.Map Text Inlines
++siUnitMap = M.fromList
++  [ ("fg", str "fg")
++  , ("pg", str "pg")
++  , ("ng", str "ng")
++  , ("ug", str "μg")
++  , ("mg", str "mg")
++  , ("g", str "g")
++  , ("kg", str "kg")
++  , ("amu", str "u")
++  , ("pm", str "pm")
++  , ("nm", str "nm")
++  , ("um", str "μm")
++  , ("mm", str "mm")
++  , ("cm", str "cm")
++  , ("dm", str "dm")
++  , ("m", str "m")
++  , ("km", str "km")
++  , ("as", str "as")
++  , ("fs", str "fs")
++  , ("ps", str "ps")
++  , ("ns", str "ns")
++  , ("us", str "μs")
++  , ("ms", str "ms")
++  , ("s", str "s")
++  , ("fmol", str "fmol")
++  , ("pmol", str "pmol")
++  , ("nmol", str "nmol")
++  , ("umol", str "μmol")
++  , ("mmol", str "mmol")
++  , ("mol", str "mol")
++  , ("kmol", str "kmol")
++  , ("pA", str "pA")
++  , ("nA", str "nA")
++  , ("uA", str "μA")
++  , ("mA", str "mA")
++  , ("A", str "A")
++  , ("kA", str "kA")
++  , ("ul", str "μl")
++  , ("ml", str "ml")
++  , ("l", str "l")
++  , ("hl", str "hl")
++  , ("uL", str "μL")
++  , ("mL", str "mL")
++  , ("L", str "L")
++  , ("hL", str "hL")
++  , ("mHz", str "mHz")
++  , ("Hz", str "Hz")
++  , ("kHz", str "kHz")
++  , ("MHz", str "MHz")
++  , ("GHz", str "GHz")
++  , ("THz", str "THz")
++  , ("mN", str "mN")
++  , ("N", str "N")
++  , ("kN", str "kN")
++  , ("MN", str "MN")
++  , ("Pa", str "Pa")
++  , ("kPa", str "kPa")
++  , ("MPa", str "MPa")
++  , ("GPa", str "GPa")
++  , ("mohm", str "mΩ")
++  , ("kohm", str "kΩ")
++  , ("Mohm", str "MΩ")
++  , ("pV", str "pV")
++  , ("nV", str "nV")
++  , ("uV", str "μV")
++  , ("mV", str "mV")
++  , ("V", str "V")
++  , ("kV", str "kV")
++  , ("W", str "W")
++  , ("uW", str "μW")
++  , ("mW", str "mW")
++  , ("kW", str "kW")
++  , ("MW", str "MW")
++  , ("GW", str "GW")
++  , ("J", str "J")
++  , ("uJ", str "μJ")
++  , ("mJ", str "mJ")
++  , ("kJ", str "kJ")
++  , ("eV", str "eV")
++  , ("meV", str "meV")
++  , ("keV", str "keV")
++  , ("MeV", str "MeV")
++  , ("GeV", str "GeV")
++  , ("TeV", str "TeV")
++  , ("kWh", str "kWh")
++  , ("F", str "F")
++  , ("fF", str "fF")
++  , ("pF", str "pF")
++  , ("K", str "K")
++  , ("dB", str "dB")
++  , ("angstrom", str "Å")
++  , ("arcmin", str "′")
++  , ("arcminute", str "′")
++  , ("arcsecond", str "″")
++  , ("astronomicalunit", str "ua")
++  , ("atomicmassunit", str "u")
++  , ("atto", str "a")
++  , ("bar", str "bar")
++  , ("barn", str "b")
++  , ("becquerel", str "Bq")
++  , ("bel", str "B")
++  , ("candela", str "cd")
++  , ("celsius", str "°C")
++  , ("centi", str "c")
++  , ("coulomb", str "C")
++  , ("dalton", str "Da")
++  , ("day", str "d")
++  , ("deca", str "d")
++  , ("deci", str "d")
++  , ("decibel", str "db")
++  , ("degreeCelsius",str "°C")
++  , ("degree", str "°")
++  , ("deka", str "d")
++  , ("electronvolt", str "eV")
++  , ("exa", str "E")
++  , ("farad", str "F")
++  , ("femto", str "f")
++  , ("giga", str "G")
++  , ("gram", str "g")
++  , ("hectare", str "ha")
++  , ("hecto", str "h")
++  , ("henry", str "H")
++  , ("hertz", str "Hz")
++  , ("hour", str "h")
++  , ("joule", str "J")
++  , ("katal", str "kat")
++  , ("kelvin", str "K")
++  , ("kilo", str "k")
++  , ("kilogram", str "kg")
++  , ("knot", str "kn")
++  , ("liter", str "L")
++  , ("litre", str "l")
++  , ("lumen", str "lm")
++  , ("lux", str "lx")
++  , ("mega", str "M")
++  , ("meter", str "m")
++  , ("metre", str "m")
++  , ("milli", str "m")
++  , ("minute", str "min")
++  , ("mmHg", str "mmHg")
++  , ("mole", str "mol")
++  , ("nano", str "n")
++  , ("nauticalmile", str "M")
++  , ("neper", str "Np")
++  , ("newton", str "N")
++  , ("ohm", str "Ω")
++  , ("Pa", str "Pa")
++  , ("pascal", str "Pa")
++  , ("percent", str "%")
++  , ("per", str "/")
++  , ("peta", str "P")
++  , ("pico", str "p")
++  , ("radian", str "rad")
++  , ("second", str "s")
++  , ("siemens", str "S")
++  , ("sievert", str "Sv")
++  , ("steradian", str "sr")
++  , ("tera", str "T")
++  , ("tesla", str "T")
++  , ("tonne", str "t")
++  , ("volt", str "V")
++  , ("watt", str "W")
++  , ("weber", str "Wb")
++  , ("yocto", str "y")
++  , ("yotta", str "Y")
++  , ("zepto", str "z")
++  , ("zetta", str "Z")
++  ]
++
++treatAsBlock :: Set.Set Text
++treatAsBlock = Set.fromList
++   [ "special", "pdfannot", "pdfstringdef"
++   , "bibliographystyle"
++   , "maketitle", "makeindex", "makeglossary"
++   , "addcontentsline", "addtocontents", "addtocounter"
++      -- \ignore{} is used conventionally in literate haskell for definitions
++      -- that are to be processed by the compiler but not printed.
++   , "ignore"
++   , "hyperdef"
++   , "markboth", "markright", "markleft"
++   , "hspace", "vspace"
++   , "newpage"
++   , "clearpage"
++   , "pagebreak"
++   , "titleformat"
++   , "listoffigures"
++   , "listoftables"
++   , "write"
++   ]
++
++treatAsInline :: Set.Set Text
++treatAsInline = Set.fromList
++  [ "index"
++  , "hspace"
++  , "vspace"
++  , "noindent"
++  , "newpage"
++  , "clearpage"
++  , "pagebreak"
++  ]
++
++inlCommands :: PandocMonad m => [(Text, LP m Inlines)]
++inlCommands =
++  [ ("lq", return (str "‘"))
++  , ("rq", return (str "’"))
++  , ("textquoteleft", return (str "‘"))
++  , ("textquoteright", return (str "’"))
++  , ("textquotedblleft", return (str "“"))
++  , ("textquotedblright", return (str "”"))
++  , ("textbackslash", lit "\\")
++  , ("backslash", lit "\\")
++  , ("slash", lit "/")
++  , ("ldots", lit "…")
++  , ("vdots", lit "\8942")
++  , ("dots", lit "…")
++  , ("mdots", lit "…")
++  , ("sim", lit "~")
++  , ("sep", lit ",")
++  , ("P", lit "¶")
++  , ("S", lit "§")
++  , ("$", lit "$")
++  , ("%", lit "%")
++  , ("&", lit "&")
++  , ("#", lit "#")
++  , ("_", lit "_")
++  , ("{", lit "{")
++  , ("}", lit "}")
++  , ("/", pure mempty) -- italic correction
++  , ("aa", lit "å")
++  , ("AA", lit "Å")
++  , ("ss", lit "ß")
++  , ("o", lit "ø")
++  , ("O", lit "Ø")
++  , ("L", lit "Ł")
++  , ("l", lit "ł")
++  , ("ae", lit "æ")
++  , ("AE", lit "Æ")
++  , ("oe", lit "œ")
++  , ("OE", lit "Œ")
++  , ("pounds", lit "£")
++  , ("euro", lit "€")
++  , ("copyright", lit "©")
++  , ("textasciicircum", lit "^")
++  , ("textasciitilde", lit "~")
++  , ("i", lit "ı")  -- dotless i
++  , ("j", lit "ȷ")  -- dotless j
++  , (",", lit "\8198")
++  , ("@", pure mempty)
++  , (" ", lit "\160")
++  , ("ps", pure $ str "PS." <> space)
++  , ("TeX", lit "TeX")
++  , ("LaTeX", lit "LaTeX")
++  , ("bar", lit "|")
++  , ("textless", lit "<")
++  , ("textgreater", lit ">")
++  , ("bshyp", lit "\\\173")
++  , ("fshyp", lit "/\173")
++  , ("dothyp", lit ".\173")
++  , ("colonhyp", lit ":\173")
++  , ("hyp", lit "-")
++  -- fontawesome
++  , ("faCheck", lit "\10003")
++  , ("faClose", lit "\10007")
++  ]
++
++lit :: String -> LP m Inlines
++lit = pure . str
 diff --git a/src/Text/Pandoc/Readers/RST.hs b/src/Text/Pandoc/Readers/RST.hs
 index 1938ca1..ba4e777 100644
 --- a/src/Text/Pandoc/Readers/RST.hs
