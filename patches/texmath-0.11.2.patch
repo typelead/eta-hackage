@@ -1,4 +1,4 @@
-From cb875b600aa179d18bbdb3038df08d56adb97956 Mon Sep 17 00:00:00 2001
+From bc419bf71d76c4794f69d1e5c10abb95438c69e9 Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
 Date: Thu, 31 Jan 2019 22:59:22 +0530
 Subject: [PATCH] Patched
@@ -6,12 +6,13 @@ Subject: [PATCH] Patched
 ---
  src/Text/TeXMath/Readers/TeX.hs    | 1468 +--------------
  src/Text/TeXMath/Readers/TeX2.hs   | 1468 +++++++++++++++
+ src/Text/TeXMath/Shared.hs         |   14 +-
  src/Text/TeXMath/Unicode/ToTeX.hs  | 2760 +---------------------------
  src/Text/TeXMath/Unicode/ToTeX1.hs |  925 ++++++++++
  src/Text/TeXMath/Unicode/ToTeX2.hs |  922 ++++++++++
  src/Text/TeXMath/Unicode/ToTeX3.hs |  927 ++++++++++
  texmath.cabal                      |    4 +
- 7 files changed, 4254 insertions(+), 4220 deletions(-)
+ 8 files changed, 4261 insertions(+), 4227 deletions(-)
  create mode 100644 src/Text/TeXMath/Readers/TeX2.hs
  create mode 100644 src/Text/TeXMath/Unicode/ToTeX1.hs
  create mode 100644 src/Text/TeXMath/Unicode/ToTeX2.hs
@@ -2984,6 +2985,38 @@ index 0000000..47ab046
 +  , ("\\|",ESymbol Fence "\8214")
 +  , ("\\}",ESymbol Close "}")
 +  ]
+diff --git a/src/Text/TeXMath/Shared.hs b/src/Text/TeXMath/Shared.hs
+index ee658d6..9f75d76 100644
+--- a/src/Text/TeXMath/Shared.hs
++++ b/src/Text/TeXMath/Shared.hs
+@@ -226,20 +226,20 @@ textPackage s e
+ scalers :: [(String, Rational)]
+ scalers =
+           [ ("\\bigg", widthbigg)
+-          , ("\\Bigg", widthBigg)
++          , ("\\Bigg", withBig1g)
+           , ("\\big", widthbig)
+-          , ("\\Big", widthBig)
++          , ("\\Big", withBig1)
+           , ("\\biggr", widthbigg)
+-          , ("\\Biggr", widthBigg)
++          , ("\\Biggr", withBig1g)
+           , ("\\bigr", widthbig)
+-          , ("\\Bigr", widthBig)
++          , ("\\Bigr", withBig1)
+           , ("\\biggl", widthbigg)
+-          , ("\\Biggl", widthBigg)
++          , ("\\Biggl", withBig1g)
+           , ("\\bigl", widthbig)]
+   where widthbig = 6 / 5
+-        widthBig = 9 / 5
++        withBig1 = 9 / 5
+         widthbigg = 12 / 5
+-        widthBigg = 3
++        withBig1g = 3
+ 
+ -- | Returns the space width for a unicode space character, or Nothing.
+ getSpaceWidth :: Char -> Maybe Rational
 diff --git a/src/Text/TeXMath/Unicode/ToTeX.hs b/src/Text/TeXMath/Unicode/ToTeX.hs
 index f79e942..8a00c3e 100644
 --- a/src/Text/TeXMath/Unicode/ToTeX.hs
