@@ -4561,7 +4561,7 @@ index 0000000..4a39549
 +
 +package eta.zlib;
 +
-+import java.nio.ByteBuffer;
++import java.nio.ByteBuffer;import java.nio.Buffer;
 +
 +final class InfBlocks{
 +  static final private int MANY=1440;
@@ -5103,7 +5103,7 @@ index 0000000..4a39549
 +
 +    // copy as far as end of window
 +    // System.arraycopy(window, q, z.next_out, p, n);
-+    ((ByteBuffer)(z.next_out.duplicate().position(z.next_out.position() + p)))
++    ((ByteBuffer)(((Buffer)z.next_out.duplicate()).position(z.next_out.position() + p)))
 +      .put(window, q, n);
 +    p += n;
 +    q += n;
@@ -7674,7 +7674,7 @@ index 0000000..f38e44e
 +package eta.zlib;
 +
 +import eta.runtime.io.MemoryManager;
-+import java.nio.ByteBuffer;
++import java.nio.ByteBuffer;import java.nio.Buffer;
 +import java.util.Arrays;
 +
 +public class Utils {
@@ -7708,7 +7708,7 @@ index 0000000..f38e44e
 +
 +    private static byte[] getBytesFromBuffer(long ptr, int size) {
 +        ByteBuffer buffer = MemoryManager.getBoundedBuffer(ptr);
-+        buffer.limit(buffer.position() + size);
++        ((Buffer)buffer).limit(buffer.position() + size);
 +        byte[] bytes = new byte[buffer.remaining()];
 +        buffer.get(bytes);
 +        return bytes;
@@ -7770,7 +7770,7 @@ index 0000000..3ba7675
 +
 +package eta.zlib;
 +
-+import java.nio.ByteBuffer;
++import java.nio.ByteBuffer;import java.nio.Buffer;
 +
 +/**
 + * ZStream
@@ -7965,7 +7965,7 @@ index 0000000..3ba7675
 +    }
 +
 +    ((ByteBuffer)
-+     (next_out.duplicate().position(next_out.position() + next_out_index)))
++     (((Buffer)next_out.duplicate()).position(next_out.position() + next_out_index)))
 +      .put(dstate.pending_buf, dstate.pending_out, len);
 +
 +    next_out_index+=len;

@@ -115,7 +115,7 @@ index 0000000..c07395b
 @@ -0,0 +1,29 @@
 +package eta.array;
 +
-+import java.nio.ByteBuffer;
++import java.nio.ByteBuffer;import java.nio.Buffer;
 +import eta.runtime.io.StgByteArray;
 +import eta.runtime.stg.StgClosure;
 +
@@ -124,7 +124,7 @@ index 0000000..c07395b
 +        ByteBuffer dest = destBuffer.duplicate();
 +        ByteBuffer src = srcBuffer.duplicate();
 +        int srcOffset = src.position();
-+        src.limit(srcOffset + size);
++        ((Buffer)src).limit(srcOffset + size);
 +        dest.put(srcBuffer);
 +        return dest;
 +    }

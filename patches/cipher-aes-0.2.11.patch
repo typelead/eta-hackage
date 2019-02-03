@@ -432,7 +432,7 @@ index 0000000..ee6bdd3
 +import org.bouncycastle.jcajce.provider.symmetric.util.BlockCipherProvider;
 +import org.bouncycastle.jcajce.provider.symmetric.util.BaseBlockCipher;
 +
-+import java.nio.ByteBuffer;
++import java.nio.ByteBuffer;import java.nio.Buffer;
 +import java.security.Key;
 +import java.security.Provider;
 +import java.security.NoSuchAlgorithmException;
@@ -796,10 +796,10 @@ index 0000000..ee6bdd3
 +        }
 +        final ByteBuffer output = getBuffer(outputPtr);
 +        final ByteBuffer input = pseudoInput.get();
-+        input.clear();
++        ((Buffer)input).clear();
 +        for (int i = 0; i < blocks; i++) {
 +            cipher.update(input, output);
-+            input.clear();
++            ((Buffer)input).clear();
 +        }
 +    }
 +
@@ -842,7 +842,7 @@ index 0000000..ee6bdd3
 +
 +    public static ByteBuffer getBuffer(final long ptr, final int size) {
 +        final ByteBuffer buf = getBuffer(ptr);
-+        buf.limit(buf.position() + size);
++        ((Buffer)buf).limit(buf.position() + size);
 +        return buf;
 +    }
 +

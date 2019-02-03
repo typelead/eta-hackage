@@ -403,7 +403,7 @@ index 0000000..b94159e
 +package eta.text;
 +
 +import java.io.UnsupportedEncodingException;
-+import java.nio.ByteBuffer;
++import java.nio.ByteBuffer;import java.nio.Buffer;
 +import java.nio.charset.Charset;
 +import java.nio.charset.CharacterCodingException;
 +import eta.runtime.io.ByteArray;
@@ -417,9 +417,9 @@ index 0000000..b94159e
 +        destOffset <<= 1;
 +        srcOffset <<= 1;
 +        n <<= 1;
-+        src.position(src.position() + srcOffset);
-+        src.limit(src.position() + n);
-+        dest.position(dest.position() + destOffset);
++        ((Buffer)src).position(src.position() + srcOffset);
++        ((Buffer)src).limit(src.position() + n);
++        ((Buffer)dest).position(dest.position() + destOffset);
 +        dest.put(src);
 +    }
 +
@@ -430,8 +430,8 @@ index 0000000..b94159e
 +        aOffset <<= 1;
 +        bOffset <<= 1;
 +        n <<= 1;
-+        a.position(a.position() + aOffset);
-+        b.position(b.position() + bOffset);
++        ((Buffer)a).position(a.position() + aOffset);
++        ((Buffer)b).position(b.position() + bOffset);
 +        while (n-- != 0) {
 +            int c = a.get() & 0xFF;
 +            int d = b.get() & 0xFF;
@@ -519,7 +519,7 @@ index 0000000..b94159e
 +        long destInit = destAddress;
 +        int doffset = MemoryManager.getInt(destOffset);
 +        ByteBuffer d = MemoryManager.getBoundedBuffer(destAddress);
-+        d.position(d.position() + 2 * doffset);
++        ((Buffer)d).position(d.position() + 2 * doffset);
 +        destAddress += 2 * doffset;
 +        long src = MemoryManager.getLong(src0);
 +        long last = src;
@@ -565,7 +565,7 @@ index 0000000..b94159e
 +        ByteBuffer dest  = MemoryManager.getBoundedBuffer(destAddress);
 +        long srcAddress  = srcArray.bufferAddress;
 +        ByteBuffer src   = MemoryManager.getBoundedBuffer(srcAddress);
-+        src.position(src.position() + srcoff * 2);
++        ((Buffer)src).position(src.position() + srcoff * 2);
 +        long srcend = srcAddress + srclen * 2;
 +
 +        while (srcAddress < srcend) {
@@ -608,8 +608,8 @@ index 0000000..b94159e
 +    public static String populateJString(int off, int len, long addr) throws
 +        UnsupportedEncodingException, CharacterCodingException {
 +        ByteBuffer src = MemoryManager.getBoundedBuffer(addr);
-+        src.position(src.position() + off);
-+        src.limit(src.position() + len);
++        ((Buffer)src).position(src.position() + off);
++        ((Buffer)src).limit(src.position() + len);
 +        return Charset.forName("UTF-16BE").newDecoder().decode(src).toString();
 +    }
 +}

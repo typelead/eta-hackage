@@ -128,7 +128,7 @@ index 0000000..3af1423
 @@ -0,0 +1,116 @@
 +package eta.primitive;
 +
-+import java.nio.ByteBuffer;
++import java.nio.ByteBuffer;import java.nio.Buffer;
 +import eta.runtime.stg.StgClosure;
 +import eta.runtime.io.StgByteArray;
 +import eta.runtime.io.MemoryManager;
@@ -136,7 +136,7 @@ index 0000000..3af1423
 +public class Utils {
 +    public static void memset(ByteBuffer buf, int offset, int n, int val) {
 +        buf = buf.duplicate();
-+        buf.position(offset);
++        ((Buffer)buf).position(offset);
 +        while (n > 0) {
 +            buf.put((byte) val);
 +            --n;
@@ -145,7 +145,7 @@ index 0000000..3af1423
 +
 +    public static void memset_short(ByteBuffer buf, int offset, int n, int val) {
 +        buf = buf.duplicate();
-+        buf.position(2 * offset);
++        ((Buffer)buf).position(2 * offset);
 +        while (n > 0) {
 +            buf.putShort((short) val);
 +            --n;
@@ -154,7 +154,7 @@ index 0000000..3af1423
 +
 +    public static void memset_int(ByteBuffer buf, int offset, int n, int val) {
 +        buf = buf.duplicate();
-+        buf.position(4 * offset);
++        ((Buffer)buf).position(4 * offset);
 +        while (n > 0) {
 +            buf.putInt(val);
 +            --n;
@@ -163,7 +163,7 @@ index 0000000..3af1423
 +
 +    public static void memset_long(ByteBuffer buf, int offset, int n, long val) {
 +        buf = buf.duplicate();
-+        buf.position(8 * offset);
++        ((Buffer)buf).position(8 * offset);
 +        while (n > 0) {
 +            buf.putLong(val);
 +            --n;
@@ -172,7 +172,7 @@ index 0000000..3af1423
 +
 +    public static void memset_float(ByteBuffer buf, int offset, int n, float val) {
 +        buf = buf.duplicate();
-+        buf.position(4 * offset);
++        ((Buffer)buf).position(4 * offset);
 +        while (n > 0) {
 +            buf.putFloat(val);
 +            --n;
@@ -181,7 +181,7 @@ index 0000000..3af1423
 +
 +    public static void memset_double(ByteBuffer buf, int offset, int n, double val) {
 +        buf = buf.duplicate();
-+        buf.position(8 * offset);
++        ((Buffer)buf).position(8 * offset);
 +        while (n > 0) {
 +            buf.putDouble(val);
 +            --n;
@@ -191,7 +191,7 @@ index 0000000..3af1423
 +    public static void memset_ptr(ByteBuffer buf, int offset, int n, ByteBuffer addr) {
 +        buf = buf.duplicate();
 +        int val = MemoryManager.getAddress(addr);
-+        buf.position(4 * offset);
++        ((Buffer)buf).position(4 * offset);
 +        while (n > 0) {
 +            buf.putInt(val);
 +            --n;
@@ -234,11 +234,11 @@ index 0000000..3af1423
 +        // TODO: Check whether srcArray and destArray share the same
 +        //       address. If so, avoid the intermediate ByteBuffer.
 +        ByteBuffer copy = ByteBuffer.allocate(n);
-+        src.position(srcOffset + 4);
-+        src.limit(srcOffset + 4 + n);
++        ((Buffer)src).position(srcOffset + 4);
++        ((Buffer)src).limit(srcOffset + 4 + n);
 +        copy.put(src);
-+        copy.flip();
-+        dest.position(destOffset + 4);
++        ((Buffer)copy).flip();
++        ((Buffer)dest).position(destOffset + 4);
 +        dest.put(copy);
 +    }
 +}

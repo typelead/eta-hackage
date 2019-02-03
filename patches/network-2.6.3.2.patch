@@ -2827,7 +2827,7 @@ index 0000000..9229860
 +import java.net.ProtocolFamily;
 +import java.net.StandardProtocolFamily;
 +
-+import java.nio.ByteBuffer;
++import java.nio.ByteBuffer; import java.nio.Buffer;
 +import java.nio.channels.Channel;
 +import java.nio.channels.DatagramChannel;
 +import java.nio.channels.NetworkChannel;
@@ -2973,7 +2973,7 @@ index 0000000..9229860
 +
 +    public static int sendto(Channel c, long ptr, int size, SocketAddress addr) throws IOException {
 +        ByteBuffer src = MemoryManager.getBoundedBuffer(ptr);
-+        src.limit(src.position() + size);
++        ((Buffer)src).limit(src.position() + size);
 +        return ((DatagramChannel) c).send(src, addr);
 +    }
 +

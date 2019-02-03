@@ -544,7 +544,7 @@ index 0000000..69a327a
 +package eta.bytestring;
 +
 +import java.io.UnsupportedEncodingException;
-+import java.nio.ByteBuffer;
++import java.nio.ByteBuffer;import java.nio.Buffer;
 +
 +import eta.runtime.io.StgByteArray;
 +import eta.runtime.stg.StgClosure;
@@ -576,7 +576,7 @@ index 0000000..69a327a
 +
 +        while (n-- != 0) {
 +            if (b.get() == c) {
-+                return (ByteBuffer) b.position(b.position() - 1);
++                return (ByteBuffer) ((Buffer)b).position(b.position() - 1);
 +            }
 +        }
 +        return MemoryManager.nullAddress;
@@ -601,7 +601,7 @@ index 0000000..69a327a
 +    public static ByteBuffer memcpy(ByteBuffer dest, ByteBuffer src, int size) {
 +        src = src.duplicate();
 +        ByteBuffer dest2 = dest.duplicate();
-+        src.limit(src.position() + size);
++        ((Buffer)src).limit(src.position() + size);
 +        dest2.put(src);
 +        return dest;
 +    }
@@ -704,7 +704,7 @@ index 0000000..69a327a
 +            ptr.put(n--, ptr.get(m));
 +            ptr.put(m++, c);
 +        }
-+        return (ByteBuffer) ptr.position(nfree);
++        return (ByteBuffer) ((Buffer)ptr).position(nfree);
 +    }
 +
 +    public static ByteBuffer uint_hex(int x, ByteBuffer buf) {
@@ -721,7 +721,7 @@ index 0000000..69a327a
 +            ptr.put(n--, ptr.get(m));
 +            ptr.put(m++, c);
 +        }
-+        return (ByteBuffer) ptr.position(nfree);
++        return (ByteBuffer) ((Buffer)ptr).position(nfree);
 +    }
 +
 +    public static ByteBuffer long_long_uint_dec(long x, ByteBuffer buf) {
@@ -739,7 +739,7 @@ index 0000000..69a327a
 +            ptr.put(n--, ptr.get(m));
 +            ptr.put(m++, c);
 +        }
-+        return (ByteBuffer) ptr.position(nfree);
++        return (ByteBuffer) ((Buffer)ptr).position(nfree);
 +    }
 +
 +    public static ByteBuffer uint_dec(int x, ByteBuffer buf) {
@@ -757,7 +757,7 @@ index 0000000..69a327a
 +            ptr.put(n--, ptr.get(m));
 +            ptr.put(m++, c);
 +        }
-+        return (ByteBuffer) ptr.position(nfree);
++        return (ByteBuffer) ((Buffer)ptr).position(nfree);
 +    }
 +
 +    public static ByteBuffer long_long_int_dec(long x, ByteBuffer buf) {
@@ -789,7 +789,7 @@ index 0000000..69a327a
 +            ptr.put(n--, ptr.get(m));
 +            ptr.put(m++, c);
 +        }
-+        return (ByteBuffer) ptr.position(nfree);
++        return (ByteBuffer) ((Buffer)ptr).position(nfree);
 +    }
 +
 +    public static ByteBuffer int_dec(int x, ByteBuffer buf) {
@@ -821,7 +821,7 @@ index 0000000..69a327a
 +            ptr.put(n--, ptr.get(m));
 +            ptr.put(m++, c);
 +        }
-+        return (ByteBuffer) ptr.position(nfree);
++        return (ByteBuffer) ((Buffer)ptr).position(nfree);
 +    }
 +}
 diff --git a/java/eta-0.0.9/Utils.java b/java/eta-0.0.9/Utils.java

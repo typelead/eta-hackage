@@ -636,14 +636,14 @@ index 0000000..342fa61
 @@ -0,0 +1,62 @@
 +package eta.basement;
 +
-+import java.nio.ByteBuffer;
++import java.nio.ByteBuffer;import java.nio.Buffer;
 +import eta.runtime.io.MemoryManager;
 +
 +public class Utils {
 +    private static ByteBuffer buf(long address, int off, int n) {
 +        ByteBuffer buf = MemoryManager.getBoundedBuffer(address);
-+        buf.position(buf.position() + off);
-+        buf.limit(buf.position() + n);
++        ((Buffer)buf).position(buf.position() + off);
++        ((Buffer)buf).limit(buf.position() + n);
 +        return buf;
 +    }
 +

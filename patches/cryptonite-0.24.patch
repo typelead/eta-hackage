@@ -2754,7 +2754,7 @@ index 0000000..55c404d
 +        int position = destBuf.position();
 +        byte[] output = new byte[64];
 +
-+        for (; bytes >= 16; bytes -= 16, position += 16, destBuf.position(position)) {
++        for (; bytes >= 16; bytes -= 16, position += 16, ((Buffer)destBuf).position(position)) {
 +            chacha.generateKeyStream(output);
 +            destBuf.put(output, 40, 16);
 +            chacha.setKey(Arrays.copyOfRange(output, 0, 32),
