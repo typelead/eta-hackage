@@ -1,18 +1,18 @@
-From bf2a77ffe1f304c76fabe6d4bf48d45edeb39396 Mon Sep 17 00:00:00 2001
+From 508659b7425f568e11ebc39c1ee3d55e30e66a6e Mon Sep 17 00:00:00 2001
 From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Fri, 1 Feb 2019 20:57:24 +0530
+Date: Sun, 3 Feb 2019 22:50:20 +0530
 Subject: [PATCH] Patched
 
 ---
  pandoc.cabal                          |  35 +--
  src/Text/Pandoc/Filter/Lua.hs         |   7 +-
  src/Text/Pandoc/Readers/CommonMark.hs |   6 +-
- src/Text/Pandoc/Readers/LaTeX.hs      | 265 +---------------------
- src/Text/Pandoc/Readers/LaTeX2.hs     | 313 ++++++++++++++++++++++++++
+ src/Text/Pandoc/Readers/LaTeX.hs      | 328 +---------------------
+ src/Text/Pandoc/Readers/LaTeX2.hs     | 376 ++++++++++++++++++++++++++
  src/Text/Pandoc/Readers/RST.hs        |   8 +-
  src/Text/Pandoc/Writers/CommonMark.hs |   5 +-
  src/Text/Pandoc/Writers/Custom.hs     |  15 +-
- 8 files changed, 361 insertions(+), 293 deletions(-)
+ 8 files changed, 424 insertions(+), 356 deletions(-)
  create mode 100644 src/Text/Pandoc/Readers/LaTeX2.hs
 
 diff --git a/pandoc.cabal b/pandoc.cabal
@@ -154,7 +154,7 @@ index 3cc75e2..8d35c5b 100644
  addInline _ _ = id
 +-}
 diff --git a/src/Text/Pandoc/Readers/LaTeX.hs b/src/Text/Pandoc/Readers/LaTeX.hs
-index 09c724f..746a5d4 100644
+index 09c724f..d12e4dc 100644
 --- a/src/Text/Pandoc/Readers/LaTeX.hs
 +++ b/src/Text/Pandoc/Readers/LaTeX.hs
 @@ -79,6 +79,7 @@ import qualified Text.Pandoc.Translations as Translations
@@ -341,7 +341,29 @@ index 09c724f..746a5d4 100644
  
  lit :: String -> LP m Inlines
  lit = pure . str
-@@ -859,7 +691,7 @@ inlineEnvironments = M.fromList [
+@@ -506,21 +338,6 @@ blockquote citations mblang = do
+   bs <- grouped block
+   return $ blockQuote . langdiv $ (bs <> citePar)
+ 
+-doAcronym :: PandocMonad m => String -> LP m Inlines
+-doAcronym form = do
+-  acro <- braced
+-  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro),
+-    ("acronym-form", "singular+" ++ form)])
+-    $ str $ toksToString acro]
+-
+-doAcronymPlural :: PandocMonad m => String -> LP m Inlines
+-doAcronymPlural form = do
+-  acro <- braced
+-  plural <- lit "s"
+-  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro),
+-    ("acronym-form", "plural+" ++ form)]) $
+-   mconcat [str $ toksToString acro, plural]]
+-
+ doverb :: PandocMonad m => LP m Inlines
+ doverb = do
+   Tok _ Symbol t <- anySymbol
+@@ -859,7 +676,7 @@ inlineEnvironments = M.fromList [
    ]
  
  inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
@@ -350,7 +372,7 @@ index 09c724f..746a5d4 100644
    [ ("emph", extractSpaces emph <$> tok)
    , ("textit", extractSpaces emph <$> tok)
    , ("textsl", extractSpaces emph <$> tok)
-@@ -871,25 +703,10 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+@@ -871,25 +688,10 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
    , ("texttt", ttfamily)
    , ("sout", extractSpaces strikeout <$> tok)
    , ("alert", skipopts >> spanWith ("",["alert"],[]) <$> tok) -- beamer
@@ -376,7 +398,7 @@ index 09c724f..746a5d4 100644
    , ("label", rawInlineOr "label" dolabel)
    , ("ref", rawInlineOr "ref" $ doref "ref")
    , ("cref", rawInlineOr "cref" $ doref "ref")       -- from cleveref.sty
-@@ -900,15 +717,6 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+@@ -900,15 +702,6 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
    , ("[", mathDisplay . toksToString <$> manyTill anyTok (controlSeq "]"))
    , ("ensuremath", mathInline . toksToString <$> braced)
    , ("texorpdfstring", const <$> tok <*> tok)
@@ -392,7 +414,7 @@ index 09c724f..746a5d4 100644
    -- old TeX commands
    , ("em", extractSpaces emph <$> inlines)
    , ("it", extractSpaces emph <$> inlines)
-@@ -925,23 +733,6 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+@@ -925,23 +718,6 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
    , ("MakeLowercase", makeLowercase <$> tok)
    , ("MakeTextLowercase", makeLowercase <$> tok)
    , ("lowercase", makeLowercase <$> tok)
@@ -416,7 +438,7 @@ index 09c724f..746a5d4 100644
    , ("H", accent '\779' Nothing) -- hungarumlaut
    , ("`", accent '\768' (Just '`')) -- grave
    , ("'", accent '\769' (Just '\'')) -- acute
-@@ -964,23 +755,12 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+@@ -964,23 +740,12 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
    , ("u", accent '\774' Nothing) -- breve
    , ("k", accent '\808' Nothing) -- ogonek
    , ("textogonekcentered", accent '\808' Nothing) -- ogonek
@@ -440,7 +462,62 @@ index 09c724f..746a5d4 100644
    , ("thanks", skipopts >> note <$> grouped block)
    , ("footnote", skipopts >> note <$> grouped block)
    , ("verb", doverb)
-@@ -1111,20 +891,12 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+@@ -1006,27 +771,6 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+   -- hypehnquote uses regular quotes
+   , ("hyphenquote*", braced >>= enquote True . Just . untokenize)
+   , ("hyphenquote", braced >>= enquote False . Just . untokenize)
+-  , ("figurename", doTerm Translations.Figure)
+-  , ("prefacename", doTerm Translations.Preface)
+-  , ("refname", doTerm Translations.References)
+-  , ("bibname", doTerm Translations.Bibliography)
+-  , ("chaptername", doTerm Translations.Chapter)
+-  , ("partname", doTerm Translations.Part)
+-  , ("contentsname", doTerm Translations.Contents)
+-  , ("listfigurename", doTerm Translations.ListOfFigures)
+-  , ("listtablename", doTerm Translations.ListOfTables)
+-  , ("indexname", doTerm Translations.Index)
+-  , ("abstractname", doTerm Translations.Abstract)
+-  , ("tablename", doTerm Translations.Table)
+-  , ("enclname", doTerm Translations.Encl)
+-  , ("ccname", doTerm Translations.Cc)
+-  , ("headtoname", doTerm Translations.To)
+-  , ("pagename", doTerm Translations.Page)
+-  , ("seename", doTerm Translations.See)
+-  , ("seealsoname", doTerm Translations.SeeAlso)
+-  , ("proofname", doTerm Translations.Proof)
+-  , ("glossaryname", doTerm Translations.Glossary)
+-  , ("lstlistingname", doTerm Translations.Listing)
+   , ("cite", citation "cite" NormalCitation False)
+   , ("Cite", citation "Cite" NormalCitation False)
+   , ("citep", citation "citep" NormalCitation False)
+@@ -1084,47 +828,15 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+                           addMeta "nocite"))
+   , ("hyperlink", hyperlink)
+   , ("hypertarget", hypertargetInline)
+-  -- glossaries package
+-  , ("gls", doAcronym "short")
+-  , ("Gls", doAcronym "short")
+-  , ("glsdesc", doAcronym "long")
+-  , ("Glsdesc", doAcronym "long")
+-  , ("GLSdesc", doAcronym "long")
+-  , ("acrlong", doAcronym "long")
+-  , ("Acrlong", doAcronym "long")
+-  , ("acrfull", doAcronym "full")
+-  , ("Acrfull", doAcronym "full")
+-  , ("acrshort", doAcronym "abbrv")
+-  , ("Acrshort", doAcronym "abbrv")
+-  , ("glspl", doAcronymPlural "short")
+-  , ("Glspl", doAcronymPlural "short")
+-  , ("glsdescplural", doAcronymPlural "long")
+-  , ("Glsdescplural", doAcronymPlural "long")
+-  , ("GLSdescplural", doAcronymPlural "long")
+-  -- acronyms package
+-  , ("ac", doAcronym "short")
+-  , ("acf", doAcronym "full")
+-  , ("acs", doAcronym "abbrv")
+-  , ("acp", doAcronymPlural "short")
+-  , ("acfp", doAcronymPlural "full")
+-  , ("acsp", doAcronymPlural "abbrv")
    -- siuntix
    , ("SI", dosiunitx)
    -- hyphenat
@@ -461,7 +538,7 @@ index 09c724f..746a5d4 100644
    -- xspace
    , ("xspace", doxspace)
    -- etoolbox
-@@ -1142,7 +914,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
+@@ -1142,7 +854,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
    , ("input", include "input")
    -- plain tex stuff that should just be passed through as raw tex
    , ("ifdim", ifdim)
@@ -470,7 +547,17 @@ index 09c724f..746a5d4 100644
  
  ifdim :: PandocMonad m => LP m Inlines
  ifdim = do
-@@ -1323,43 +1095,12 @@ isBlockCommand s =
+@@ -1255,9 +967,6 @@ ifToggle = do
+                   report $ UndefinedToggle name' pos
+   return ()
+ 
+-doTerm :: PandocMonad m => Translations.Term -> LP m Inlines
+-doTerm term = str <$> translateTerm term
+-
+ ifstrequal :: (PandocMonad m, Monoid a) => LP m a
+ ifstrequal = do
+   str1 <- tok
+@@ -1323,43 +1032,12 @@ isBlockCommand s =
    s `M.member` (blockCommands :: M.Map Text (LP PandocPure Blocks))
    || s `Set.member` treatAsBlock
  
@@ -516,10 +603,10 @@ index 09c724f..746a5d4 100644
    v <- braced
 diff --git a/src/Text/Pandoc/Readers/LaTeX2.hs b/src/Text/Pandoc/Readers/LaTeX2.hs
 new file mode 100644
-index 0000000..ffad778
+index 0000000..59cbd0b
 --- /dev/null
 +++ b/src/Text/Pandoc/Readers/LaTeX2.hs
-@@ -0,0 +1,313 @@
+@@ -0,0 +1,376 @@
 +{-# LANGUAGE NoImplicitPrelude #-}
 +{-# LANGUAGE FlexibleInstances     #-}
 +{-# LANGUAGE MultiParamTypeClasses #-}
@@ -829,10 +916,73 @@ index 0000000..ffad778
 +  -- fontawesome
 +  , ("faCheck", lit "\10003")
 +  , ("faClose", lit "\10007")
++  , ("figurename", doTerm Translations.Figure)
++  , ("prefacename", doTerm Translations.Preface)
++  , ("refname", doTerm Translations.References)
++  , ("bibname", doTerm Translations.Bibliography)
++  , ("chaptername", doTerm Translations.Chapter)
++  , ("partname", doTerm Translations.Part)
++  , ("contentsname", doTerm Translations.Contents)
++  , ("listfigurename", doTerm Translations.ListOfFigures)
++  , ("listtablename", doTerm Translations.ListOfTables)
++  , ("indexname", doTerm Translations.Index)
++  , ("abstractname", doTerm Translations.Abstract)
++  , ("tablename", doTerm Translations.Table)
++  , ("enclname", doTerm Translations.Encl)
++  , ("ccname", doTerm Translations.Cc)
++  , ("headtoname", doTerm Translations.To)
++  , ("pagename", doTerm Translations.Page)
++  , ("seename", doTerm Translations.See)
++  , ("seealsoname", doTerm Translations.SeeAlso)
++  , ("proofname", doTerm Translations.Proof)
++  , ("glossaryname", doTerm Translations.Glossary)
++  , ("lstlistingname", doTerm Translations.Listing)
++  -- glossaries package
++  , ("gls", doAcronym "short")
++  , ("Gls", doAcronym "short")
++  , ("glsdesc", doAcronym "long")
++  , ("Glsdesc", doAcronym "long")
++  , ("GLSdesc", doAcronym "long")
++  , ("acrlong", doAcronym "long")
++  , ("Acrlong", doAcronym "long")
++  , ("acrfull", doAcronym "full")
++  , ("Acrfull", doAcronym "full")
++  , ("acrshort", doAcronym "abbrv")
++  , ("Acrshort", doAcronym "abbrv")
++  , ("glspl", doAcronymPlural "short")
++  , ("Glspl", doAcronymPlural "short")
++  , ("glsdescplural", doAcronymPlural "long")
++  , ("Glsdescplural", doAcronymPlural "long")
++  , ("GLSdescplural", doAcronymPlural "long")
++  -- acronyms package
++  , ("ac", doAcronym "short")
++  , ("acf", doAcronym "full")
++  , ("acs", doAcronym "abbrv")
++  , ("acp", doAcronymPlural "short")
++  , ("acfp", doAcronymPlural "full")
++  , ("acsp", doAcronymPlural "abbrv")
 +  ]
 +
 +lit :: String -> LP m Inlines
 +lit = pure . str
++
++doTerm :: PandocMonad m => Translations.Term -> LP m Inlines
++doTerm term = str <$> translateTerm term
++
++doAcronym :: PandocMonad m => String -> LP m Inlines
++doAcronym form = do
++  acro <- braced
++  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro),
++    ("acronym-form", "singular+" ++ form)])
++    $ str $ toksToString acro]
++
++doAcronymPlural :: PandocMonad m => String -> LP m Inlines
++doAcronymPlural form = do
++  acro <- braced
++  plural <- lit "s"
++  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro),
++    ("acronym-form", "plural+" ++ form)]) $
++   mconcat [str $ toksToString acro, plural]]
 diff --git a/src/Text/Pandoc/Readers/RST.hs b/src/Text/Pandoc/Readers/RST.hs
 index 1938ca1..ba4e777 100644
 --- a/src/Text/Pandoc/Readers/RST.hs
