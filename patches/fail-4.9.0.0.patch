@@ -1,17 +1,26 @@
-From 61c55361139902063de1ba3e1ef7481210311759 Mon Sep 17 00:00:00 2001
-From: Jyothsna Srinivas <jyothsnasrinivas17@gmail.com>
-Date: Tue, 17 Jul 2018 16:02:27 +0530
+From df7c5071c83760a9a21cde963023d4f382c77498 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Wed, 6 Feb 2019 19:45:15 +0530
 Subject: [PATCH] Patched
 
 ---
- fail.cabal | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Dummy/Fail.hs | 1 +
+ fail.cabal    | 5 ++++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+ create mode 100644 Dummy/Fail.hs
 
+diff --git a/Dummy/Fail.hs b/Dummy/Fail.hs
+new file mode 100644
+index 0000000..a6563f6
+--- /dev/null
++++ b/Dummy/Fail.hs
+@@ -0,0 +1 @@
++module Dummy.Fail where
 diff --git a/fail.cabal b/fail.cabal
-index 188049d..0a63ac8 100644
+index 188049d..e4f143a 100644
 --- a/fail.cabal
 +++ b/fail.cabal
-@@ -23,6 +23,6 @@ description:
+@@ -23,6 +23,9 @@ description:
  library
    default-language: Haskell2010
  
@@ -19,6 +28,9 @@ index 188049d..0a63ac8 100644
 +  if !impl(ghc >= 8.0) && impl(eta < 0.8.4)
      exposed-modules: Control.Monad.Fail
      build-depends:   base >=4.3 && <4.9
++  else
++    exposed-modules: Dummy.Fail
++    build-depends:   base
 -- 
-2.15.2 (Apple Git-101.1)
+2.18.0
 

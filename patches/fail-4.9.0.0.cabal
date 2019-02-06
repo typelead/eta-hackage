@@ -26,3 +26,6 @@ library
   if !impl(ghc >= 8.0) && impl(eta < 0.8.4)
     exposed-modules: Control.Monad.Fail
     build-depends:   base >=4.3 && <4.9
+  else
+    exposed-modules: Dummy.Fail
+    build-depends:   base
