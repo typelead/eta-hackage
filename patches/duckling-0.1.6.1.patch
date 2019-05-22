@@ -1,0 +1,122 @@
+From 81869bb5f0dd87b12c73e0c6090f0dfbd339aa3b Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Wed, 22 May 2019 14:58:16 +0200
+Subject: [PATCH] Patched
+
+---
+ Duckling/Time/FR/Rules.hs | 12 ++++++------
+ Duckling/Time/PT/Rules.hs | 10 +++++-----
+ duckling.cabal            | 10 +++++++---
+ 3 files changed, 18 insertions(+), 14 deletions(-)
+
+diff --git a/Duckling/Time/FR/Rules.hs b/Duckling/Time/FR/Rules.hs
+index e009f3a..4e310ad 100644
+--- a/Duckling/Time/FR/Rules.hs
++++ b/Duckling/Time/FR/Rules.hs
+@@ -768,8 +768,8 @@ ruleEnSemaine = Rule
+       interval TTime.Open (dayOfWeek 1) (dayOfWeek 5)
+   }
+ 
+-ruleDdmm :: Rule
+-ruleDdmm = Rule
++ruleDdMmSlash :: Rule
++ruleDdMmSlash = Rule
+   { name = "dd/-mm"
+   , pattern =
+     [ regex "(3[01]|[12]\\d|0?[1-9])[/-](1[0-2]|0?[1-9])"
+@@ -1646,8 +1646,8 @@ ruleMaintenant = Rule
+   , prod = \_ -> tt $ cycleNth TG.Second 0
+   }
+ 
+-ruleDdmmyyyy :: Rule
+-ruleDdmmyyyy = Rule
++ruleDdMmYyyySlash :: Rule
++ruleDdMmYyyySlash = Rule
+   { name = "dd/-mm/-yyyy"
+   , pattern =
+     [ regex "(3[01]|[12]\\d|0?[1-9])[/-](1[0-2]|0?[1-9])[-/](\\d{2,4})"
+@@ -1960,8 +1960,8 @@ rules =
+   , ruleDdMm
+   , ruleDdMmYyyy
+   , ruleDdddMonthinterval
+-  , ruleDdmm
+-  , ruleDdmmyyyy
++  , ruleDdMmSlash
++  , ruleDdMmYyyySlash
+   , ruleDeDatetimeDatetimeInterval
+   , ruleDeTimeofdayTimeofdayInterval
+   , ruleDemain
+diff --git a/Duckling/Time/PT/Rules.hs b/Duckling/Time/PT/Rules.hs
+index 8f4dca2..cba33b7 100644
+--- a/Duckling/Time/PT/Rules.hs
++++ b/Duckling/Time/PT/Rules.hs
+@@ -26,8 +26,8 @@ import Duckling.Types
+ import qualified Duckling.Time.Types as TTime
+ import qualified Duckling.TimeGrain.Types as TG
+ 
+-ruleSHourmintimeofday :: Rule
+-ruleSHourmintimeofday = Rule
++ruleSHourminTimeofday :: Rule
++ruleSHourminTimeofday = Rule
+   { name = "às <hour-min>(time-of-day)"
+   , pattern =
+     [ regex "(à|a)s?"
+@@ -223,8 +223,8 @@ ruleEsteCycle = Rule
+       _ -> Nothing
+   }
+ 
+-ruleSHourminTimeofday :: Rule
+-ruleSHourminTimeofday = Rule
++ruleSHourminIsnotlatentTimeofday :: Rule
++ruleSHourminIsnotlatentTimeofday = Rule
+   { name = "às <hour-min> <time-of-day>"
+   , pattern =
+     [ regex "(à|a)s"
+@@ -1463,7 +1463,7 @@ rules =
+   , ruleProximasNCycle
+   , ruleRightNow
+   , ruleSHourminTimeofday
+-  , ruleSHourmintimeofday
++  , ruleSHourminIsnotlatentTimeofday
+   , ruleSTimeofday
+   , ruleSeason
+   , ruleSeason2
+diff --git a/duckling.cabal b/duckling.cabal
+index cdebf84..e2a6aee 100644
+--- a/duckling.cabal
++++ b/duckling.cabal
+@@ -679,9 +679,9 @@ library
+                      , extra                 >= 1.4.10 && < 1.7
+                      , hashable              >= 1.2.4.0 && < 1.3
+                      , regex-base            >= 0.93.2 && < 0.94
+-                     , regex-pcre            >= 0.94.4 && < 0.95
++                     , regex-pcre-builtin    >= 0.94.4 && < 0.95
+                      , text                  >= 1.2.2.1 && < 1.3
+-                     , text-show             >= 2.1.2 && < 3.7
++                     , text-show             >= 2.1.2 && < 3.9
+                      , time                  >= 1.5.0.1 && < 1.9
+                      , timezone-series       >= 0.1.5.1 && < 0.2
+                      , unordered-containers  >= 0.2.7.2 && < 0.3
+@@ -937,6 +937,9 @@ executable duckling-regen-exe
+                      , unordered-containers
+   default-language:    Haskell2010
+   default-extensions:  OverloadedStrings
++  if impl(eta)
++    -- Due to haskell-src-exts
++    buildable: False
+ 
+ executable duckling-example-exe
+   main-is:             ExampleMain.hs
+@@ -960,7 +963,8 @@ executable duckling-example-exe
+                      , unordered-containers
+   default-language:    Haskell2010
+   default-extensions:  OverloadedStrings
+-
++  if impl(eta)
++    buildable: False
+ executable custom-dimension-example
+   main-is:             CustomDimensionExample.hs
+   hs-source-dirs:      exe
+-- 
+2.16.2.windows.1
+
