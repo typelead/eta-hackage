@@ -1,0 +1,396 @@
+name:                text-show
+version:             3.8.2
+synopsis:            Efficient conversion of values into Text
+description:         @text-show@ offers a replacement for the @Show@ typeclass intended
+                     for use with @Text@ instead of @String@s. This package was created
+                     in the spirit of
+                     @<http://hackage.haskell.org/package/bytestring-show bytestring-show>@.
+                     .
+                     At the moment, @text-show@ provides instances for most data
+                     types in the @<http://hackage.haskell.org/package/array array>@,
+                     @<http://hackage.haskell.org/package/base base>@,
+                     @<http://hackage.haskell.org/package/bytestring bytestring>@, and
+                     @<http://hackage.haskell.org/package/text text>@ packages.
+                     Therefore, much of the source code for @text-show@ consists of
+                     borrowed code from those packages in order to ensure that the
+                     behaviors of @Show@ and @TextShow@ coincide.
+                     .
+                     For most uses, simply importing "TextShow"
+                     will suffice:
+                     .
+                     @
+                        module Main where
+                        .
+                        import TextShow
+                        .
+                        main :: IO ()
+                        main = printT (Just \"Hello, World!\")
+                     @
+                     .
+                     See also the
+                     <https://github.com/RyanGlScott/text-show/wiki/Naming-conventions naming conventions>
+                     page.
+                     .
+                     Support for automatically deriving @TextShow@ instances can be found
+                     in the "TextShow.TH" and "TextShow.Generic" modules.
+homepage:            https://github.com/RyanGlScott/text-show
+bug-reports:         https://github.com/RyanGlScott/text-show/issues
+license:             BSD3
+license-file:        LICENSE
+author:              Ryan Scott
+maintainer:          Ryan Scott <ryan.gl.scott@gmail.com>
+stability:           Provisional
+copyright:           (C) 2014-2017 Ryan Scott
+category:            Text
+build-type:          Simple
+tested-with:         GHC == 7.4.2
+                   , GHC == 7.6.3
+                   , GHC == 7.8.4
+                   , GHC == 7.10.3
+                   , GHC == 8.0.2
+                   , GHC == 8.2.2
+                   , GHC == 8.4.4
+                   , GHC == 8.6.5
+                   , GHC == 8.8.1
+extra-source-files:  CHANGELOG.md, README.md, include/*.h
+cabal-version:       >=1.10
+
+source-repository head
+  type:                git
+  location:            https://github.com/RyanGlScott/text-show
+
+flag base-4-9
+  description:         Use base-4.9 or later.
+  default:             True
+
+flag template-haskell-2-11
+  description:         Use template-haskell-2.11.0.0 or later.
+  default:             True
+
+flag new-functor-classes
+  description:         Use a version of transformers or transformers-compat with a
+                       modern-style Data.Functor.Classes module. This flag cannot be
+                       used when building with transformers-0.4, since it comes with
+                       a different version of Data.Functor.Classes.
+  default:             True
+
+library
+  exposed-modules:     TextShow
+                       TextShow.Control.Applicative
+                       TextShow.Control.Concurrent
+                       TextShow.Control.Exception
+                       TextShow.Control.Monad.ST
+                       TextShow.Data.Array
+                       TextShow.Data.Bool
+                       TextShow.Data.ByteString
+                       TextShow.Data.Char
+                       TextShow.Data.Complex
+                       TextShow.Data.Data
+                       TextShow.Data.Dynamic
+                       TextShow.Data.Either
+                       TextShow.Data.Fixed
+                       TextShow.Data.Floating
+                       TextShow.Data.Functor.Compose
+                       TextShow.Data.Functor.Identity
+                       TextShow.Data.Functor.Product
+                       TextShow.Data.Functor.Sum
+                       TextShow.Debug.Trace
+                       TextShow.Debug.Trace.Generic
+                       TextShow.Debug.Trace.TH
+                       TextShow.Generic
+                       TextShow.Data.Integral
+                       TextShow.Data.List
+                       TextShow.Data.List.NonEmpty
+                       TextShow.Data.Maybe
+                       TextShow.Data.Monoid
+                       TextShow.Data.Ord
+                       TextShow.Data.Proxy
+                       TextShow.Data.Ratio
+                       TextShow.Data.Semigroup
+                       TextShow.Data.Text
+                       TextShow.Data.Tuple
+                       TextShow.Data.Typeable
+                       TextShow.Data.Version
+                       TextShow.Data.Void
+                       TextShow.Foreign.C.Types
+                       TextShow.Foreign.Ptr
+                       TextShow.Functions
+                       TextShow.GHC.Fingerprint
+                       TextShow.GHC.Generics
+                       TextShow.GHC.Stats
+                       TextShow.Numeric.Natural
+                       TextShow.System.Exit
+                       TextShow.System.IO
+                       TextShow.System.Posix.Types
+                       TextShow.Text.Read
+                       TextShow.TH
+
+                       -- Only exports functions if using Windows
+                       TextShow.GHC.Conc.Windows
+                       -- Only exports functions if not using Windows
+                       TextShow.GHC.Event
+
+                       -- Only exports functions if base >= 4.6
+                       TextShow.GHC.TypeLits
+
+                       -- Only exports functions if base >= 4.7
+                       TextShow.Data.Type.Coercion
+                       TextShow.Data.Type.Equality
+                       -- Only exports functions if base >= 4.7 && < 4.8
+                       TextShow.Data.OldTypeable
+
+                       -- Only exports functions if base >= 4.8
+                       TextShow.GHC.RTS.Flags
+                       TextShow.GHC.StaticPtr
+
+                       -- Only exports functions if base >= 4.8.1
+                       TextShow.GHC.Stack
+  other-modules:       TextShow.Classes
+                       TextShow.Data.Typeable.Utils
+                       TextShow.FromStringTextShow
+                       TextShow.Instances
+                       TextShow.Options
+                       TextShow.TH.Internal
+                       TextShow.TH.Names
+                       TextShow.Utils
+  build-depends:       array                 >= 0.3    && < 0.6
+                     , base-compat-batteries >= 0.10   && < 0.11
+                     , bifunctors            >= 5.1    && < 6
+                     , bytestring            >= 0.9    && < 0.11
+                     , bytestring-builder
+                     , containers            >= 0.1    && < 0.7
+                     , contravariant         >= 0.5    && < 2
+                     , generic-deriving      >= 1.11   && < 2
+                     , ghc-prim
+                     , nats                  >= 0.1    && < 2
+                     , semigroups            >= 0.17   && < 1
+                     , tagged                >= 0.4.4  && < 1
+                     , text                  >= 0.11.1 && < 1.3
+                     , th-abstraction        >= 0.2.2  && < 0.4
+                     , th-lift               >= 0.7.6  && < 1
+                     , void                  >= 0.5    && < 1
+
+  if flag(base-4-9)
+    build-depends:     base                  >= 4.9 && < 4.14
+    cpp-options:       "-DNEW_FUNCTOR_CLASSES"
+  else
+    build-depends:     base                  >= 4.5 && < 4.9
+
+  if flag(template-haskell-2-11)
+    build-depends:     template-haskell      >= 2.11 && < 2.16
+                     , ghc-boot-th           >= 8.0  && < 8.9
+  else
+    build-depends:     template-haskell      >= 2.5  && < 2.11
+
+  if flag(new-functor-classes)
+    build-depends:     transformers          (>= 0.2.1 && < 0.4) || (>= 0.5 && < 0.6)
+                     , transformers-compat   >= 0.5 && < 1
+    cpp-options:       "-DNEW_FUNCTOR_CLASSES"
+  else
+    build-depends:     transformers          == 0.4.*
+
+  if impl(eta)
+    build-depends:     integer
+  else
+    build-depends:     integer-gmp
+    
+  hs-source-dirs:      src, shared
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+  include-dirs:        include
+  includes:            generic.h
+
+test-suite spec
+  type:                exitcode-stdio-1.0
+  main-is:             Spec.hs
+  other-modules:       Derived.DataFamilies
+                       Derived.DatatypeContexts
+                       Derived.ExistentialQuantification
+                       Derived.Infix
+                       Derived.MagicHash
+                       Derived.PolyKinds
+                       Derived.RankNTypes
+                       Derived.Records
+                       Derived.TypeSynonyms
+
+                       Instances.Control.Concurrent
+                       Instances.Control.Exception
+                       Instances.Control.Monad.ST
+                       Instances.Data.Char
+                       Instances.Data.Data
+                       Instances.Data.Dynamic
+                       Instances.Data.Floating
+                       Instances.Data.Ord
+                       Instances.Data.Semigroup
+                       Instances.Data.Text
+                       Instances.Data.Tuple
+                       Instances.Data.Typeable
+                       Instances.Foreign.C.Types
+                       Instances.Foreign.Ptr
+                       Instances.FromStringTextShow
+                       Instances.Generic
+                       Instances.GHC.Fingerprint
+                       Instances.GHC.Generics
+                       Instances.GHC.Stats
+                       Instances.Options
+                       Instances.System.IO
+                       Instances.System.Posix.Types
+                       Instances.Text.Read
+                       Instances.Utils
+                       Instances.Utils.GenericArbitrary
+
+                       -- Only exports instances if using Windows
+                       Instances.GHC.Conc.Windows
+                       -- Only exports instances if not using Windows
+                       Instances.GHC.Event
+
+                       -- Only exports instances if base >= 4.6
+                       Instances.GHC.TypeLits
+
+                       -- Only exports instances if base >= 4.7
+                       Instances.Data.Type.Coercion
+                       Instances.Data.Type.Equality
+                       -- Only exports instances if base >= 4.7 && < 4.8
+                       Instances.Data.OldTypeable
+
+                       -- Only exports instances if base >= 4.8
+                       Instances.GHC.RTS.Flags
+                       Instances.GHC.StaticPtr
+
+                       -- Only exports instances if base >= 4.9
+                       Instances.GHC.Stack
+
+                       -- Only exports instances if base >= 4.12
+                       Instances.Data.Monoid
+
+                       Spec.BuilderSpec
+                       Spec.Control.ApplicativeSpec
+                       Spec.Control.ConcurrentSpec
+                       Spec.Control.ExceptionSpec
+                       Spec.Control.Monad.STSpec
+                       Spec.Data.ArraySpec
+                       Spec.Data.BoolSpec
+                       Spec.Data.ByteStringSpec
+                       Spec.Data.CharSpec
+                       Spec.Data.ComplexSpec
+                       Spec.Data.DataSpec
+                       Spec.Data.DynamicSpec
+                       Spec.Data.EitherSpec
+                       Spec.Data.FixedSpec
+                       Spec.Data.FloatingSpec
+                       Spec.Data.Functor.ComposeSpec
+                       Spec.Data.Functor.IdentitySpec
+                       Spec.Data.Functor.ProductSpec
+                       Spec.Data.Functor.SumSpec
+                       Spec.Data.IntegralSpec
+                       Spec.Data.ListSpec
+                       Spec.Data.List.NonEmptySpec
+                       Spec.Data.MaybeSpec
+                       Spec.Data.MonoidSpec
+                       Spec.Data.OrdSpec
+                       Spec.Data.ProxySpec
+                       Spec.Data.RatioSpec
+                       Spec.Data.SemigroupSpec
+                       Spec.Data.TextSpec
+                       Spec.Data.TupleSpec
+                       Spec.Data.TypeableSpec
+                       Spec.Data.VersionSpec
+                       Spec.Derived.DataFamiliesSpec
+                       Spec.Derived.DatatypeContextsSpec
+                       Spec.Derived.ExistentialQuantificationSpec
+                       Spec.Derived.InfixSpec
+                       Spec.Derived.MagicHashSpec
+                       Spec.Derived.PolyKindsSpec
+                       Spec.Derived.RankNTypesSpec
+                       Spec.Derived.RecordsSpec
+                       Spec.Derived.TypeSynonymsSpec
+                       Spec.Foreign.C.TypesSpec
+                       Spec.Foreign.PtrSpec
+                       Spec.FromStringTextShowSpec
+                       Spec.FunctionsSpec
+                       Spec.GenericSpec
+                       Spec.GHC.FingerprintSpec
+                       Spec.GHC.GenericsSpec
+                       Spec.GHC.StatsSpec
+                       Spec.Numeric.NaturalSpec
+                       Spec.OptionsSpec
+                       Spec.System.ExitSpec
+                       Spec.System.IOSpec
+                       Spec.System.Posix.TypesSpec
+                       Spec.Text.ReadSpec
+                       Spec.Utils
+
+                       -- Only exports tests if using Windows
+                       Spec.GHC.Conc.WindowsSpec
+                       -- Only exports tests if not using Windows
+                       Spec.GHC.EventSpec
+
+                       -- Only exports tests if base >= 4.6
+                       Spec.GHC.TypeLitsSpec
+
+                       -- Only exports tests if base >= 4.7
+                       Spec.Data.Type.CoercionSpec
+                       Spec.Data.Type.EqualitySpec
+                       -- Only exports tests if base >= 4.7 && < 4.8
+                       Spec.Data.OldTypeableSpec
+
+                       -- Only exports tests if base >= 4.8
+                       Spec.GHC.RTS.FlagsSpec
+                       Spec.GHC.StaticPtrSpec
+
+                       -- Only exports tests if base >= 4.9
+                       Spec.GHC.StackSpec
+
+                       TextShow.TH.Names
+  build-depends:       array                 >= 0.3    && < 0.6
+                     , base-compat-batteries >= 0.10   && < 0.11
+                     , base-orphans          >= 0.6    && < 0.9
+                     , bytestring            >= 0.9    && < 0.11
+                     , bytestring-builder
+                     , deriving-compat       >= 0.5.6  && < 1
+                     , generic-deriving      >= 1.11   && < 2
+                     , ghc-prim
+                     , hspec                 >= 2      && < 3
+                     , nats                  >= 0.1    && < 2
+                     , QuickCheck            >= 2.12   && < 2.14
+                     , quickcheck-instances  >= 0.3.18 && < 0.3.21
+                     , semigroups            >= 0.18.3 && < 1
+                     , tagged                >= 0.8.3  && < 1
+                     , template-haskell      >= 2.5    && < 2.16
+                     , text                  >= 0.11.1 && < 1.3
+                     , text-show
+                     , transformers-compat   >= 0.5    && < 1
+  build-tool-depends:  hspec-discover:hspec-discover
+
+  if flag(base-4-9)
+    build-depends:     base                  >= 4.9 && < 4.14
+    cpp-options:       "-DNEW_FUNCTOR_CLASSES"
+  else
+    build-depends:     base                  >= 4.5 && < 4.9
+
+  if flag(new-functor-classes)
+    build-depends:     transformers          (>= 0.2.1 && < 0.4) || (>= 0.5 && < 0.6)
+    cpp-options:       "-DNEW_FUNCTOR_CLASSES"
+  else
+    build-depends:     transformers          == 0.4.*
+
+  hs-source-dirs:      tests, shared
+  default-language:    Haskell2010
+  ghc-options:         -Wall -threaded -rtsopts
+  include-dirs:        include
+  includes:            generic.h
+                     , overlap.h
+
+benchmark bench
+  type:                exitcode-stdio-1.0
+  main-is:             Bench.hs
+  build-depends:       base      >= 4.5    && < 4.14
+                     , criterion >= 1.1.4  && < 2
+                     , deepseq   >= 1.3    && < 2
+                     , ghc-prim
+                     , text-show
+                     , text      >= 0.11.1 && < 1.3
+
+  hs-source-dirs:      benchmarks
+  default-language:    Haskell2010
+  ghc-options:         -Wall
