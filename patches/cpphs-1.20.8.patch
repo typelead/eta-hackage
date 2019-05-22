@@ -1,0 +1,36 @@
+From 9ce5847d98bf31082b59b994cd5066c04e08091a Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Wed, 22 May 2019 14:03:35 +0200
+Subject: [PATCH] Patched
+
+---
+ Language/Preprocessor/Cpphs/Options.hs | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Language/Preprocessor/Cpphs/Options.hs b/Language/Preprocessor/Cpphs/Options.hs
+index 1d433eb..0231636 100644
+--- a/Language/Preprocessor/Cpphs/Options.hs
++++ b/Language/Preprocessor/Cpphs/Options.hs
+@@ -118,8 +118,8 @@ trailing :: (Eq a) => [a] -> [a] -> [a]
+ trailing xs = reverse . dropWhile (`elem`xs) . reverse
+ 
+ -- | Convert a list of RawOption to a BoolOptions structure.
+-boolOpts :: [RawOption] -> BoolOptions
+-boolOpts opts =
++makeBoolOpts :: [RawOption] -> BoolOptions
++makeBoolOpts opts =
+   BoolOptions
+     { macros    = not (NoMacro `elem` opts)
+     , locations = not (NoLine  `elem` opts)
+@@ -149,7 +149,7 @@ parseOptions xs = f ([], [], []) xs
+                            , defines  = [ x | Macro x <- reverse opts ]
+                            , includes = [ x | Path x  <- reverse opts ]
+                            , preInclude=[ x | PreInclude x <- reverse opts ]
+-                           , boolopts = boolOpts opts
++                           , boolopts = makeBoolOpts opts
+                            }
+     normalise ('/':'/':filepath) = normalise ('/':filepath)
+     normalise (x:filepath)       = x:normalise filepath
+-- 
+2.16.2.windows.1
+
