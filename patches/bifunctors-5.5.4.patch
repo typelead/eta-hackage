@@ -1,0 +1,25 @@
+From 8f41b99fe71d94772d07ea286a869200f3f07d33 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Wed, 22 May 2019 08:15:40 +0200
+Subject: [PATCH] Patched
+
+---
+ bifunctors.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/bifunctors.cabal b/bifunctors.cabal
+index 448bb46..255850b 100644
+--- a/bifunctors.cabal
++++ b/bifunctors.cabal
+@@ -69,7 +69,7 @@ library
+     hs-source-dirs: old-src/ghc709
+     exposed-modules: Data.Bifunctor
+ 
+-  if impl(ghc<8.1)
++  if impl(ghc<8.1) && impl(eta<0.8.4)
+     hs-source-dirs: old-src/ghc801
+     exposed-modules:
+       Data.Bifoldable
+-- 
+2.16.2.windows.1
+

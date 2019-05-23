@@ -1,13 +1,27 @@
-From f192a8243b1cd864e3a728b77d649b28a6849293 Mon Sep 17 00:00:00 2001
-From: Rahul Muttineni <rahulmutt@gmail.com>
-Date: Fri, 23 Mar 2018 12:38:36 +0530
+From b4b06d2c26428d707c90ab5f70f0ced4f1b08d88 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Wed, 22 May 2019 13:08:37 +0200
 Subject: [PATCH] Patched
 
 ---
+ Data/Aeson/Types/Generic.hs  |  2 +-
  Data/Aeson/Types/Internal.hs | 26 +++++++++++++-------------
  aeson.cabal                  |  2 +-
- 2 files changed, 14 insertions(+), 14 deletions(-)
+ 3 files changed, 15 insertions(+), 15 deletions(-)
 
+diff --git a/Data/Aeson/Types/Generic.hs b/Data/Aeson/Types/Generic.hs
+index 2bf389f..7e7d5d5 100644
+--- a/Data/Aeson/Types/Generic.hs
++++ b/Data/Aeson/Types/Generic.hs
+@@ -738,7 +738,7 @@ class IsRecord (f :: * -> *) isRecord | f -> isRecord
+ 
+ instance (IsRecord f isRecord) => IsRecord (f :*: g) isRecord
+   where isUnary = const False
+-#if MIN_VERSION_base(4,9,0)
++#if MIN_VERSION_base(4,9,0) && !defined(TOOL_VERSION_eta)
+ instance OVERLAPPING_ IsRecord (M1 S ('MetaSel 'Nothing u ss ds) f) False
+ #else
+ instance OVERLAPPING_ IsRecord (M1 S NoSelector f) False
 diff --git a/Data/Aeson/Types/Internal.hs b/Data/Aeson/Types/Internal.hs
 index 2d88035..7fd1688 100644
 --- a/Data/Aeson/Types/Internal.hs
@@ -59,5 +73,5 @@ index 4b6e6ef..d02ddaa 100644
    other-modules:
      Data.Aeson.Encode.Builder
 -- 
-2.7.4 (Apple Git-66)
+2.16.2.windows.1
 

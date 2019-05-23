@@ -1,0 +1,37 @@
+From da11cd7a4579eaee67557040a673a927bcf6f453 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Wed, 22 May 2019 10:27:10 +0200
+Subject: [PATCH] Patched
+
+---
+ base-compat-batteries.cabal | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/base-compat-batteries.cabal b/base-compat-batteries.cabal
+index d127a17..dca0fef 100644
+--- a/base-compat-batteries.cabal
++++ b/base-compat-batteries.cabal
+@@ -132,7 +132,6 @@ library
+       System.Exit.Compat
+       System.IO.Unsafe.Compat
+       Text.Read.Compat
+-      Type.Reflection.Compat
+ 
+       Control.Concurrent.Compat.Repl.Batteries
+       Control.Concurrent.MVar.Compat.Repl.Batteries
+@@ -187,7 +186,11 @@ library
+       System.Exit.Compat.Repl.Batteries
+       System.IO.Unsafe.Compat.Repl.Batteries
+       Text.Read.Compat.Repl.Batteries
+-      Type.Reflection.Compat.Repl.Batteries
++  if !impl(eta)
++      exposed-modules:
++        Type.Reflection.Compat
++        Type.Reflection.Compat.Repl.Batteries
++
+ test-suite spec
+   type:
+       exitcode-stdio-1.0
+-- 
+2.16.2.windows.1
+

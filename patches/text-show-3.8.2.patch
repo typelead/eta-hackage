@@ -1,0 +1,436 @@
+From 67e632f1f9c7c793fbb31eeefc84d88de7b20949 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Wed, 22 May 2019 11:29:29 +0200
+Subject: [PATCH] Patched
+
+---
+ shared/TextShow/TH/Names.hs        |  6 +++---
+ src/TextShow/Control/Concurrent.hs | 10 ++++++++++
+ src/TextShow/Data/Type/Equality.hs |  4 ++--
+ src/TextShow/Data/Typeable.hs      | 29 +++++++++++++++++++----------
+ src/TextShow/Debug/Trace.hs        | 16 ++++++++++++++--
+ src/TextShow/GHC/Event.hs          |  6 +++---
+ src/TextShow/GHC/Generics.hs       |  2 +-
+ src/TextShow/GHC/RTS/Flags.hs      |  3 +--
+ src/TextShow/Generic.hs            |  6 +++---
+ src/TextShow/Numeric/Natural.hs    |  6 +++++-
+ src/TextShow/System/Posix/Types.hs |  2 ++
+ text-show.cabal                    |  8 ++++++--
+ 12 files changed, 69 insertions(+), 29 deletions(-)
+
+diff --git a/shared/TextShow/TH/Names.hs b/shared/TextShow/TH/Names.hs
+index 1f23bfa..2620d9b 100644
+--- a/shared/TextShow/TH/Names.hs
++++ b/shared/TextShow/TH/Names.hs
+@@ -20,7 +20,7 @@ module TextShow.TH.Names (
+ #if MIN_VERSION_base(4,6,0)
+     numberTypeName,
+ #endif
+-#if MIN_VERSION_base(4,8,0)
++#if MIN_VERSION_base(4,8,0) && !defined(TOOL_VERSION_eta)
+     giveGCStatsTypeName,
+     doCostCentresTypeName,
+     doHeapProfileTypeName,
+@@ -34,7 +34,7 @@ import Language.Haskell.TH.Syntax
+ import Text.Read.Lex (Number)
+ #endif
+ 
+-#if MIN_VERSION_base(4,8,2)
++#if MIN_VERSION_base(4,8,2)  && !defined(TOOL_VERSION_eta)
+ import GHC.RTS.Flags (GiveGCStats, DoCostCentres, DoHeapProfile, DoTrace)
+ #endif
+ 
+@@ -78,7 +78,7 @@ numberTypeName = mkNameG_tc "base" "Text.Read.Lex" "Number"
+ # endif
+ #endif
+ 
+-#if MIN_VERSION_base(4,8,0)
++#if MIN_VERSION_base(4,8,0)  && !defined(TOOL_VERSION_eta)
+ -- | The 'Name' of 'GiveGCStats'.
+ giveGCStatsTypeName :: Name
+ # if MIN_VERSION_base(4,8,2)
+diff --git a/src/TextShow/Control/Concurrent.hs b/src/TextShow/Control/Concurrent.hs
+index 52bdee6..f54fba2 100644
+--- a/src/TextShow/Control/Concurrent.hs
++++ b/src/TextShow/Control/Concurrent.hs
+@@ -2,6 +2,7 @@
+ {-# LANGUAGE MagicHash                #-}
+ {-# LANGUAGE TemplateHaskell          #-}
+ {-# LANGUAGE UnliftedFFITypes         #-}
++{-# LANGUAGE CPP                      #-}
+ {-# OPTIONS_GHC -fno-warn-orphans #-}
+ {-|
+ Module:      TextShow.Control.Concurrent
+@@ -37,11 +38,20 @@ instance TextShow ThreadId where
+     showbPrec p t = fromString "ThreadId " <> showbPrec p (getThreadId t)
+     {-# INLINE showbPrec #-}
+ 
++#if !defined(TOOL_VERSION_eta)
+ -- Temporary workaround until Trac #8281 is fixed
+ foreign import ccall unsafe "rts_getThreadId" getThreadId# :: Addr# -> CInt
+ 
+ getThreadId :: ThreadId -> CInt
+ getThreadId (ThreadId tid) = getThreadId# (unsafeCoerce# tid)
++#else
++foreign import java unsafe "@static eta.runtime.stg.TSO.getThreadId"
++  getThreadId# :: ThreadId# -> CInt
++
++getThreadId :: ThreadId -> CInt
++getThreadId (ThreadId tid) = getThreadId# tid
++#endif
++
+ 
+ -- | /Since: 2/
+ $(deriveTextShow ''ThreadStatus)
+diff --git a/src/TextShow/Data/Type/Equality.hs b/src/TextShow/Data/Type/Equality.hs
+index 420f924..e072d31 100644
+--- a/src/TextShow/Data/Type/Equality.hs
++++ b/src/TextShow/Data/Type/Equality.hs
+@@ -24,7 +24,7 @@ module TextShow.Data.Type.Equality () where
+ 
+ #if MIN_VERSION_base(4,7,0)
+ import Data.Type.Equality ((:~:))
+-# if MIN_VERSION_base(4,10,0)
++# if MIN_VERSION_base(4,10,0) && !defined(TOOL_VERSION_eta)
+ import Data.Type.Equality ((:~~:))
+ # endif
+ 
+@@ -41,7 +41,7 @@ instance TextShow1 ((:~:) a) where
+ -- | /Since: 2/
+ $(deriveTextShow2 ''(:~:))
+ 
+-# if MIN_VERSION_base(4,10,0)
++# if MIN_VERSION_base(4,10,0) && !defined(TOOL_VERSION_eta)
+ -- | /Since: 3.6/
+ $(deriveTextShow ''(:~~:))
+ 
+diff --git a/src/TextShow/Data/Typeable.hs b/src/TextShow/Data/Typeable.hs
+index 33e427a..a411267 100644
+--- a/src/TextShow/Data/Typeable.hs
++++ b/src/TextShow/Data/Typeable.hs
+@@ -10,7 +10,9 @@
+ 
+ #if __GLASGOW_HASKELL__ >= 801
+ {-# LANGUAGE PatternSynonyms   #-}
++# if !defined(TOOL_VERSION_eta)
+ {-# LANGUAGE TypeApplications  #-}
++# endif
+ #endif
+ 
+ {-# OPTIONS_GHC -fno-warn-orphans #-}
+@@ -32,7 +34,7 @@ module TextShow.Data.Typeable () where
+ import           Prelude ()
+ import           Prelude.Compat
+ 
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined(TOOL_VERSION_eta)
+ import           Data.Kind (Type)
+ import           Data.Text.Lazy.Builder (Builder, fromString, singleton)
+ import           Data.Type.Equality ((:~~:)(..))
+@@ -52,14 +54,16 @@ import           Type.Reflection (pattern App, pattern Con, pattern Con', patter
+ import           Data.Text.Lazy.Builder (fromString, singleton)
+ import           Data.Typeable (TypeRep, typeRepArgs, typeRepTyCon)
+ import           Data.Typeable.Internal (tyConName)
+-# if MIN_VERSION_base(4,8,0)
++# if MIN_VERSION_base(4,8,0) 
+ import           Data.Typeable.Internal (typeRepKinds)
+ # endif
+ # if MIN_VERSION_base(4,9,0)
+ import           Data.Text.Lazy.Builder (Builder)
+ import           Data.Typeable.Internal (Proxy(..), Typeable,
+                                          TypeRep(TypeRep), typeRep)
++# if !defined(TOOL_VERSION_eta)
+ import           GHC.Exts (RuntimeRep(..), TYPE)
++# endif
+ # else
+ import           Data.Typeable.Internal (funTc, listTc)
+ # endif
+@@ -67,7 +71,11 @@ import           Data.Typeable.Internal (funTc, listTc)
+ # if MIN_VERSION_base(4,9,0)
+ import           GHC.Exts (Char(..))
+ import           GHC.Prim (Addr#, (+#), eqChar#, indexCharOffAddr#)
++#  if !defined(TOOL_VERSION_eta)
+ import           GHC.Types (TyCon(..), TrName(..), Module(..), isTrue#)
++#  else
++import           GHC.Types (isTrue#)
++import           Data.Typeable.Internal (TyCon)
+ # else
+ import           Data.Typeable.Internal (TyCon)
+ # endif
+@@ -78,7 +86,7 @@ import           TextShow.Data.Typeable.Utils (showbArgs, showbTuple)
+ import           TextShow.Utils (isTupleString)
+ #endif
+ 
+-#if !(MIN_VERSION_base(4,10,0))
++#if !(MIN_VERSION_base(4,10,0) && !defined(TOOL_VERSION_eta))
+ # if MIN_VERSION_base(4,9,0)
+ tyConOf :: Typeable a => Proxy a -> TyCon
+ tyConOf = typeRepTyCon . typeRep
+@@ -88,7 +96,7 @@ tcFun = tyConOf (Proxy :: Proxy (Int -> Int))
+ 
+ tcList :: TyCon
+ tcList = tyConOf (Proxy :: Proxy [])
+-
++#  if !defined(TOOL_VERSION_eta)
+ tcTYPE :: TyCon
+ tcTYPE = tyConOf (Proxy :: Proxy TYPE)
+ 
+@@ -97,6 +105,7 @@ tc'Lifted = tyConOf (Proxy :: Proxy 'PtrRepLifted)
+ 
+ tc'Unlifted :: TyCon
+ tc'Unlifted = tyConOf (Proxy :: Proxy 'PtrRepUnlifted)
++#  endif
+ # else
+ -- | The list 'TyCon'.
+ tcList :: TyCon
+@@ -113,7 +122,7 @@ isTupleTyCon :: TyCon -> Bool
+ isTupleTyCon = isTupleString . tyConName
+ {-# INLINE isTupleTyCon #-}
+ 
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined(TOOL_VERSION_eta)
+ -- | Only available with @base-4.10.0.0@ or later.
+ --
+ -- /Since: 3.6/
+@@ -180,13 +189,13 @@ instance TextShow TypeRep where
+     showbPrec p tyrep =
+         case tys of
+           [] -> showb tycon
+-# if MIN_VERSION_base(4,9,0)
++# if MIN_VERSION_base(4,9,0) && !defined(TOOL_VERSION_eta)
+           [x@(TypeRep _ argCon _ _)]
+ # else
+           [x]
+ # endif
+             | tycon == tcList -> singleton '[' <> showb x <> singleton ']'
+-# if MIN_VERSION_base(4,9,0)
++# if MIN_VERSION_base(4,9,0) && !defined(TOOL_VERSION_eta)
+             | tycon == tcTYPE && argCon == tc'Lifted   -> singleton '*'
+             | tycon == tcTYPE && argCon == tc'Unlifted -> singleton '#'
+ # endif
+@@ -214,15 +223,15 @@ instance TextShow TypeRep where
+ 
+ -- | /Since: 2/
+ instance TextShow TyCon where
+-#if MIN_VERSION_base(4,10,0)
++#if MIN_VERSION_base(4,10,0) && !defined(TOOL_VERSION_eta)
+     showbPrec p (TyCon _ _ _ tc_name _ _) = showbPrec p tc_name
+-#elif MIN_VERSION_base(4,9,0)
++#elif MIN_VERSION_base(4,9,0) && !defined(TOOL_VERSION_eta)
+     showb (TyCon _ _ _ tc_name) = showb tc_name
+ #else
+     showb = fromString . tyConName
+ #endif
+ 
+-#if MIN_VERSION_base(4,9,0)
++#if MIN_VERSION_base(4,9,0)  && !defined(TOOL_VERSION_eta)
+ -- | Only available with @base-4.9.0.0@ or later.
+ --
+ -- /Since: 3/
+diff --git a/src/TextShow/Debug/Trace.hs b/src/TextShow/Debug/Trace.hs
+index dbf49ba..c3f52d9 100644
+--- a/src/TextShow/Debug/Trace.hs
++++ b/src/TextShow/Debug/Trace.hs
+@@ -69,7 +69,9 @@ import           Data.Text.Lazy (toStrict)
+ import           Debug.Trace
+ 
+ import           Foreign.C.String (CString)
+-
++#if defined(TOOL_VERSION_eta)
++import           Foreign.C.String (peekCString)
++#endif
+ import           GHC.Stack (currentCallStack, renderStack)
+ 
+ import           Prelude ()
+@@ -121,9 +123,19 @@ traceIOByteString msg = useAsCString "%s\n" $ \cfmt -> do
+ 
+ -- don't use debugBelch() directly, because we cannot call varargs functions
+ -- using the FFI.
++#if !defined(TOOL_VERSION_eta)
+ foreign import ccall unsafe "HsBase.h debugBelch2"
+     debugBelch :: CString -> CString -> IO ()
+-
++#else
++foreign import java unsafe "@static eta.base.Utils.debugBelch"
++  debugBelchStr :: String -> String -> IO ()
++
++debugBelch :: CString -> CString -> IO ()
++debugBelch cstr1 cstr2 = do
++  str1 <- peekCString cstr1
++  str2 <- peekCString cstr2
++  debugBelchStr str1 str2
++#endif
+ {-|
+ The 'tracet' function outputs the trace message given as its first argument,
+ before returning the second argument as its result.
+diff --git a/src/TextShow/GHC/Event.hs b/src/TextShow/GHC/Event.hs
+index 963e2e8..76dfc1a 100644
+--- a/src/TextShow/GHC/Event.hs
++++ b/src/TextShow/GHC/Event.hs
+@@ -20,7 +20,7 @@ Only provided if using a platform other than Windows or GHCJS.
+ -}
+ module TextShow.GHC.Event () where
+ 
+-#if !defined(__GHCJS__) && !defined(mingw32_HOST_OS)
++#if !defined(__GHCJS__) && !defined(mingw32_HOST_OS) && !defined(TOOL_VERSION_eta)
+ import Data.List (intersperse)
+ import Data.Maybe (catMaybes)
+ import Data.Text.Lazy.Builder (Builder, singleton)
+@@ -39,7 +39,7 @@ import TextShow.TH.Internal (deriveTextShow)
+ import TextShow.TH.Names (evtCloseValName, eventIsValName,
+                           fdKeyTypeName, uniqueTypeName, asInt64ValName)
+ 
+-# if MIN_VERSION_base(4,8,1)
++# if MIN_VERSION_base(4,8,1) && !defined(TOOL_VERSION_eta)
+ import GHC.Event (Lifetime)
+ # endif
+ 
+@@ -62,7 +62,7 @@ instance TextShow $(conT uniqueTypeName) where
+     showb = showb . $(varE asInt64ValName)
+     {-# INLINE showb #-}
+ 
+-# if MIN_VERSION_base(4,8,1)
++# if MIN_VERSION_base(4,8,1) && !defined(TOOL_VERSION_eta)
+ -- | Only available with @base-4.8.1.0@ or later.
+ --
+ -- /Since: 2/
+diff --git a/src/TextShow/GHC/Generics.hs b/src/TextShow/GHC/Generics.hs
+index 9e5ed7e..65dbc8b 100644
+--- a/src/TextShow/GHC/Generics.hs
++++ b/src/TextShow/GHC/Generics.hs
+@@ -118,7 +118,7 @@ $(deriveTextShow1 'UWord)
+ $(deriveTextShow ''Fixity)
+ -- | /Since: 2/
+ $(deriveTextShow ''Associativity)
+-#if MIN_VERSION_base(4,9,0)
++#if MIN_VERSION_base(4,9,0) && !defined(TOOL_VERSION_eta)
+ -- | Only available with @base-4.9.0.0@ or later.
+ --
+ -- /Since: 3/
+diff --git a/src/TextShow/GHC/RTS/Flags.hs b/src/TextShow/GHC/RTS/Flags.hs
+index b4397d0..661b3f8 100644
+--- a/src/TextShow/GHC/RTS/Flags.hs
++++ b/src/TextShow/GHC/RTS/Flags.hs
+@@ -19,7 +19,7 @@ Only provided if using @base-4.8.0.0@ or later.
+ -}
+ module TextShow.GHC.RTS.Flags () where
+ 
+-#if MIN_VERSION_base(4,8,0)
++#if MIN_VERSION_base(4,8,0) && !defined(TOOL_VERSION_eta)
+ import GHC.RTS.Flags
+ 
+ import TextShow.Data.Bool     ()
+@@ -31,7 +31,6 @@ import TextShow.Data.Maybe    ()
+ import TextShow.TH.Internal (deriveTextShow)
+ import TextShow.TH.Names (giveGCStatsTypeName, doCostCentresTypeName,
+                           doHeapProfileTypeName, doTraceTypeName)
+-
+ -- | /Since: 2/
+ $(deriveTextShow ''RTSFlags)
+ -- | /Since: 2/
+diff --git a/src/TextShow/Generic.hs b/src/TextShow/Generic.hs
+index 66fbb83..178e47a 100644
+--- a/src/TextShow/Generic.hs
++++ b/src/TextShow/Generic.hs
+@@ -105,7 +105,7 @@ import qualified Data.Text.Lazy.Builder as TB (fromString, singleton)
+ import           Data.Text.Lazy.Builder (Builder)
+ 
+ import           Generics.Deriving.Base
+-#if !defined(__LANGUAGE_DERIVE_GENERIC1__)
++#if !defined(__LANGUAGE_DERIVE_GENERIC1__) && !defined(TOOL_VERSION_eta)
+ import qualified Generics.Deriving.TH as Generics
+ #endif
+ 
+@@ -231,7 +231,7 @@ newtype FromGeneric1 f a = FromGeneric1 { fromGeneric1 :: f a }
+ #if __GLASGOW_HASKELL__ >= 706
+            , Generic
+ #endif
+-#if defined(__LANGUAGE_DERIVE_GENERIC1__)
++#if defined(__LANGUAGE_DERIVE_GENERIC1__)  && !defined(TOOL_VERSION_eta)
+            , Generic1
+ #endif
+ #if __GLASGOW_HASKELL__ >= 800
+@@ -676,7 +676,7 @@ instance Lift (f a) => Lift (FromGeneric1 f a) where
+     lift = $(makeLift ''FromGeneric1)
+ #endif
+ 
+-#if !defined(__LANGUAGE_DERIVE_GENERIC1__)
++#if !defined(__LANGUAGE_DERIVE_GENERIC1__) && !defined(TOOL_VERSION_eta)
+ $(Generics.deriveMeta           ''FromGeneric1)
+ $(Generics.deriveRepresentable1 ''FromGeneric1)
+ #endif
+diff --git a/src/TextShow/Numeric/Natural.hs b/src/TextShow/Numeric/Natural.hs
+index 2d208a1..ce106b5 100644
+--- a/src/TextShow/Numeric/Natural.hs
++++ b/src/TextShow/Numeric/Natural.hs
+@@ -18,7 +18,11 @@ Portability: GHC
+ module TextShow.Numeric.Natural () where
+ 
+ #if MIN_VERSION_base(4,8,0)
++# if  !defined(TOOL_VERSION_eta)
+ import GHC.Integer.GMP.Internals (Integer(..))
++# else
++import GHC.Integer (Integer(..))
++# endif
+ import GHC.Natural (Natural(..))
+ import GHC.Types (Word(..))
+ #else
+@@ -30,7 +34,7 @@ import TextShow.Data.Integral ()
+ 
+ -- | /Since: 2/
+ instance TextShow Natural where
+-#if MIN_VERSION_base(4,8,0)
++#if MIN_VERSION_base(4,8,0) && !defined(TOOL_VERSION_eta)
+     showbPrec _ (NatS# w#)  = showb $ W# w#
+     showbPrec p (NatJ# bn)  = showbPrec p $ Jp# bn
+ #else
+diff --git a/src/TextShow/System/Posix/Types.hs b/src/TextShow/System/Posix/Types.hs
+index de1c2af..1fce9c0 100644
+--- a/src/TextShow/System/Posix/Types.hs
++++ b/src/TextShow/System/Posix/Types.hs
+@@ -27,7 +27,9 @@ import TextShow.Data.Integral   ()
+ import TextShow.Foreign.C.Types ()
+ import TextShow.Foreign.Ptr     ()
+ 
++#if !defined(TOOL_VERSION_eta)
+ #include "HsBaseConfig.h"
++#endif
+ 
+ #if defined(HTYPE_DEV_T)
+ -- | /Since: 2/
+diff --git a/text-show.cabal b/text-show.cabal
+index 2c78f33..4000889 100644
+--- a/text-show.cabal
++++ b/text-show.cabal
+@@ -162,7 +162,6 @@ library
+                      , contravariant         >= 0.5    && < 2
+                      , generic-deriving      >= 1.11   && < 2
+                      , ghc-prim
+-                     , integer-gmp
+                      , nats                  >= 0.1    && < 2
+                      , semigroups            >= 0.17   && < 1
+                      , tagged                >= 0.4.4  && < 1
+@@ -190,6 +189,11 @@ library
+   else
+     build-depends:     transformers          == 0.4.*
+ 
++  if impl(eta)
++    build-depends:     integer
++  else
++    build-depends:     integer-gmp
++    
+   hs-source-dirs:      src, shared
+   default-language:    Haskell2010
+   ghc-options:         -Wall
+@@ -349,7 +353,7 @@ test-suite spec
+                      , hspec                 >= 2      && < 3
+                      , nats                  >= 0.1    && < 2
+                      , QuickCheck            >= 2.12   && < 2.14
+-                     , quickcheck-instances  >= 0.3.18 && < 0.4
++                     , quickcheck-instances  >= 0.3.18 && < 0.3.21
+                      , semigroups            >= 0.18.3 && < 1
+                      , tagged                >= 0.8.3  && < 1
+                      , template-haskell      >= 2.5    && < 2.16
+-- 
+2.16.2.windows.1
+
