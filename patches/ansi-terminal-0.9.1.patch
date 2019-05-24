@@ -1,0 +1,68 @@
+From c1be01e3818199e44345ab4569607d67e6621a33 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 24 May 2019 08:01:53 +0530
+Subject: [PATCH] Patched
+
+---
+ ansi-terminal.cabal                 | 34 ++++++++++++++---------------
+ src/includes/Common-Safe-Haskell.hs |  1 -
+ 2 files changed, 17 insertions(+), 18 deletions(-)
+
+diff --git a/ansi-terminal.cabal b/ansi-terminal.cabal
+index e019822..f9a42ee 100644
+--- a/ansi-terminal.cabal
++++ b/ansi-terminal.cabal
+@@ -39,23 +39,23 @@ Library
+ 
+         Build-Depends:          base >= 4.3.0.0 && < 5
+                               , colour >=2.1.0
+-        if os(windows)
+-                Build-Depends:          containers >= 0.5.0.0
+-                                      , mintty
+-                                      , Win32 >= 2.0
+-                Cpp-Options:            -DWINDOWS
+-                Other-Modules:          System.Console.ANSI.Windows
+-                                        System.Console.ANSI.Windows.Detect
+-                                        System.Console.ANSI.Windows.Emulator
+-                                        System.Console.ANSI.Windows.Emulator.Codes
+-                                        System.Console.ANSI.Windows.Foreign
+-                                        -- NB: used for fallback by the emulator
+-                                        System.Console.ANSI.Unix
+-                                        System.Win32.Compat
+-        else
+-                -- We assume any non-Windows platform is Unix
+-                Cpp-Options:            -DUNIX
+-                Other-Modules:          System.Console.ANSI.Unix
++        -- if os(windows)
++        --         Build-Depends:          containers >= 0.5.0.0
++        --                               , mintty
++        --                               , Win32 >= 2.0
++        --         Cpp-Options:            -DWINDOWS
++        --         Other-Modules:          System.Console.ANSI.Windows
++        --                                 System.Console.ANSI.Windows.Detect
++        --                                 System.Console.ANSI.Windows.Emulator
++        --                                 System.Console.ANSI.Windows.Emulator.Codes
++        --                                 System.Console.ANSI.Windows.Foreign
++        --                                 -- NB: used for fallback by the emulator
++        --                                 System.Console.ANSI.Unix
++        --                                 System.Win32.Compat
++        -- else
++        --         -- We assume any non-Windows platform is Unix
++        Cpp-Options:            -DUNIX
++        Other-Modules:          System.Console.ANSI.Unix
+ 
+         Extensions:             CPP
+                                 ForeignFunctionInterface
+diff --git a/src/includes/Common-Safe-Haskell.hs b/src/includes/Common-Safe-Haskell.hs
+index cf16e6f..400327c 100644
+--- a/src/includes/Common-Safe-Haskell.hs
++++ b/src/includes/Common-Safe-Haskell.hs
+@@ -1,5 +1,4 @@
+ #if __GLASGOW_HASKELL__ >= 704
+-{-# LANGUAGE Safe #-}
+ #elif __GLASGOW_HASKELL__ >= 702
+ {-# LANGUAGE Trustworthy #-}
+ #endif
+-- 
+2.21.0
+

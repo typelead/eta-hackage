@@ -312,7 +312,7 @@ These packages are supported by `etlas`.
 - [tls-1.4.0](https://hackage.haskell.org/package/tls-1.4.0)
 
 #### Command Line
-- [ansi-terminal >= 0.6.2.3 && <= 0.6.3.1 || == 0.7.1.1 || == 0.8.0.4](https://hackage.haskell.org/package/ansi-terminal)
+- [ansi-terminal >= 0.6.2.3 && <= 0.6.3.1 || == 0.7.1.1 || == 0.8.0.4 || == 0.9.1](https://hackage.haskell.org/package/ansi-terminal)
 - [ansi-wl-pprint-0.6.7.3](https://hackage.haskell.org/package/ansi-wl-pprint-0.6.7.3)
 - [cmdargs >= 0.10.18 && <= 0.10.20](https://hackage.haskell.org/package/cmdargs-0.10.19)
 - [haskeline-0.7.4.3](https://hackage.haskell.org/package/haskeline-0.7.4.3)
