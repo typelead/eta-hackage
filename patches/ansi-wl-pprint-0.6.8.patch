@@ -1,0 +1,33 @@
+From 1017667dcd396d04328cd1bd6acc4699a3ba45b2 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 24 May 2019 08:25:51 +0530
+Subject: [PATCH] Patched
+
+---
+ ansi-wl-pprint.cabal | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/ansi-wl-pprint.cabal b/ansi-wl-pprint.cabal
+index 319dc10..2c3e364 100644
+--- a/ansi-wl-pprint.cabal
++++ b/ansi-wl-pprint.cabal
+@@ -47,11 +47,11 @@ library
+   build-depends: ansi-terminal >= 0.9.1 && < 0.10
+   build-depends: base >= 4.3 && < 5
+ 
+-  if impl(ghc >= 7.4)
+-    default-extensions: Safe
+-  else
+-    if impl(ghc >= 7.2)
+-      default-extensions: Trustworthy
++  -- if impl(ghc >= 7.4)
++  --   default-extensions: Safe
++  -- else
++  --   if impl(ghc >= 7.2)
++  --     default-extensions: Trustworthy
+ 
+ executable ansi-wl-pprint-example
+   default-language: Haskell2010
+-- 
+2.21.0
+
