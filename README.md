@@ -329,7 +329,7 @@ These packages are supported by `etlas`.
 - [haxl >= 2.0.0.0 && <= 2.0.1.0](http://hackage.haskell.org/package/haxl)
 - [conceit-0.4.0.0](https://hackage.haskell.org/package/conceit-0.4.0.0)
 - [concurrent-machines-0.2.3.3](https://hackage.haskell.org/package/concurrent-machines-0.2.3.3)
-- [concurrent-output-1.10.6](https://hackage.haskell.org/package/concurrent-output-1.10.6)
+- [concurrent-output == 1.10.6 || == 1.10.10](https://hackage.haskell.org/package/concurrent-output-1.10.6)
 - [lifted-async-0.9.0](https://hackage.haskell.org/package/lifted-async-0.9.0)
 - [monad-coroutine-0.9.0.3](https://hackage.haskell.org/package/monad-coroutine-0.9.0.3)
 - [stm-2.4.4.1](https://hackage.haskell.org/package/stm-2.4.4.1)

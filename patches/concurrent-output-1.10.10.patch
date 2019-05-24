@@ -1,0 +1,188 @@
+From 86907fcf40a1fe74c25bb3175d3c86b4639f2a40 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 24 May 2019 08:07:24 +0530
+Subject: [PATCH] Patched
+
+---
+ System/Console/Regions.hs | 45 +++++++++++++++++----------------------
+ concurrent-output.cabal   |  3 ---
+ 2 files changed, 19 insertions(+), 29 deletions(-)
+
+diff --git a/System/Console/Regions.hs b/System/Console/Regions.hs
+index ffb18c1..21f26e1 100644
+--- a/System/Console/Regions.hs
++++ b/System/Console/Regions.hs
+@@ -4,12 +4,12 @@
+ {- This module does a lot of calculation that can be expensive, so optimise
+  - it well -}
+ 
+--- | 
++-- |
+ -- Copyright: 2015 Joey Hess <id@joeyh.name>
+ -- License: BSD-2-clause
+--- 
++--
+ -- Console regions are displayed near the bottom of the console, and can be
+--- updated concurrently by threads. 
++-- updated concurrently by threads.
+ --
+ -- Any other output lines displayed using
+ -- `outputConcurrent` and `createProcessConcurrent`
+@@ -22,17 +22,17 @@
+ -- > import System.Console.Concurrent
+ -- > import System.Console.Regions
+ -- > import System.Process
+--- > 
++-- >
+ -- > main = displayConsoleRegions $ do
+ -- > 	mapConcurrently download [1..5]
+ -- >		`concurrently` mapM_ message [1..10]
+ -- >		`concurrently` createProcessConcurrent (proc "echo" ["hello world"])
+--- > 
++-- >
+ -- > message :: Int -> IO ()
+ -- > message n = do
+ -- > 	threadDelay 500000
+ -- > 	outputConcurrent ("Message " ++ show n ++ "\n")
+--- > 
++-- >
+ -- > download :: Int -> IO ()
+ -- > download n = withConsoleRegion Linear $ \r -> do
+ -- > 	setConsoleRegion r basemsg
+@@ -131,10 +131,7 @@ import System.IO
+ import System.IO.Unsafe (unsafePerformIO)
+ import Text.Read
+ import Data.List
+-#ifndef mingw32_HOST_OS
+-import System.Posix.Signals
+-import System.Posix.Signals.Exts
+-#endif
++
+ import Control.Applicative
+ import Prelude
+ 
+@@ -155,7 +152,7 @@ import Utility.Exception
+ -- > ccccccccc...... -- Linear
+ -- > ddddeeeefffffff -- [InLine]
+ -- > fffffggggg.....       (expanded to multiple lines)
+--- > 
++-- >
+ data RegionLayout = Linear | InLine ConsoleRegion
+ 	deriving (Eq)
+ 
+@@ -186,7 +183,7 @@ regionList = unsafePerformIO newEmptyTMVarIO
+ -- with the current terminal size.
+ {-# NOINLINE consoleSize #-}
+ consoleSize :: TVar (Console.Window Int)
+-consoleSize = unsafePerformIO $ newTVarIO $ 
++consoleSize = unsafePerformIO $ newTVarIO $
+ 	Console.Window { Console.width = 80, Console.height = 25}
+ 
+ type Width = Int
+@@ -259,7 +256,7 @@ instance ToRegionContent (STM Text) where
+ --
+ -- The value can include ANSI SGR escape sequences for changing
+ -- the colors etc of all or part of a region.
+--- 
++--
+ -- Other ANSI escape sequences, especially those doing cursor
+ -- movement, will mess up the layouts of regions. Caveat emptor.
+ setConsoleRegion :: (ToRegionContent v, LiftRegion m) => ConsoleRegion -> v -> m ()
+@@ -372,7 +369,7 @@ getConsoleRegion (ConsoleRegion tv) = liftRegion $
+ --
+ -- For example, this will prevent a region from ever displaying more
+ -- than 10 characters wide, and will make it display text reversed:
+--- 
++--
+ -- > tuneDisplay myregion $ pure . T.take 10
+ -- > tuneDisplay myregion $ pure . T.reverse
+ --
+@@ -439,7 +436,7 @@ trackConsoleWidth = do
+ 	installResizeHandler (Just getsz)
+ 
+ data DisplayChange
+-	= BufferChange BufferSnapshot 
++	= BufferChange BufferSnapshot
+ 	| RegionChange RegionSnapshot
+ 	| RegionListChange RegionSnapshot
+ 	| TerminalResize Width
+@@ -649,7 +646,7 @@ resizeRecovery newlines = do
+ 		return ()
+ 
+ -- Move cursor up before the lines, performs some output there,
+--- which will scroll down and overwrite the lines, so 
++-- which will scroll down and overwrite the lines, so
+ -- redraws all the lines below.
+ inAreaAbove :: Bool -> Int -> [Text] -> IO () -> IO ()
+ inAreaAbove isterm numlines ls outputter = do
+@@ -672,12 +669,8 @@ displayLines = mapM_ $ \l -> do
+ 	putChar '\n'
+ 
+ installResizeHandler :: Maybe (IO ()) -> IO ()
+-#ifndef mingw32_HOST_OS
+-installResizeHandler h = void $
+-	installHandler windowChange (maybe Default Catch h) Nothing
+-#else
+ installResizeHandler _ = return ()
+-#endif
++
+ 
+ calcRegionLines :: R -> Width -> STM [Text]
+ calcRegionLines r width = do
+@@ -718,7 +711,7 @@ calcLines' width collectedlines collectedSGR i displaysize len t
+ 	(currline, rest) = T.splitAt (i+1) t
+ 
+ 	skipansi toend isCSI = case T.findIndex toend (T.drop (i+2) t) of
+-		Just csiend -> calcLines' width collectedlines 
++		Just csiend -> calcLines' width collectedlines
+ 			(addSGR (csiend+2)) (i+2+csiend) (displaysize-1) len t
+ 		Nothing -> reverse (finishline t)
+ 	  where
+@@ -766,10 +759,10 @@ endSGR = 'm'
+ -- > ret: GREEN-------->REDx------>yRESET
+ --
+ -- (The first GREEN does not effect any output text, so it can be elided.)
+--- 
++--
+ -- Also, despite old having the same second span as new, in the same
+ -- location, that span has to be re-emitted because its color changed:
+--- 
++--
+ -- > old: GREENfoofooREDbarbarbarbarbar
+ -- > new: GREENfoofoofooTANbarbarbar
+ -- > ret: GREEN----->fooTANbarbarbarCLEARREST
+@@ -777,7 +770,7 @@ endSGR = 'm'
+ -- Also note above that the sequence has to clear the rest of the line,
+ -- since the new line is shorter than the old.
+ calcLineUpdate :: Text -> Text -> [LineUpdate]
+-calcLineUpdate old new = 
++calcLineUpdate old new =
+ 	reverse $ go
+ 		(advanceLine old [] [])
+ 		(advanceLine new [] [])
+@@ -818,7 +811,7 @@ advanceLine t past invis
+ 		  | otherwise -> (Just c, T.drop 1 t, past, invis)
+   where
+ 	skipansi toend = case T.findIndex toend (T.drop 2 t) of
+-		Just csiend -> 
++		Just csiend ->
+ 			let sgr = SGR (T.take (csiend+3) t)
+ 			in advanceLine (T.drop (csiend+3) t)
+ 				(sgr:past) (addsgr sgr invis)
+diff --git a/concurrent-output.cabal b/concurrent-output.cabal
+index 7ba062a..30bb5cf 100644
+--- a/concurrent-output.cabal
++++ b/concurrent-output.cabal
+@@ -50,9 +50,6 @@ Library
+     Utility.Data
+     Utility.Exception
+ 
+-  if (! os(Windows))
+-    Build-Depends: unix (>= 2.7.0 && < 2.9.0)
+-
+ source-repository head
+   type: git
+   location: git://git.joeyh.name/concurrent-output.git
+-- 
+2.21.0
+
