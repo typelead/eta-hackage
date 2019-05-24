@@ -1,0 +1,43 @@
+From 25aba1fef0bfb11349462c8ab1e590a552b0c1d0 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 24 May 2019 08:18:22 +0530
+Subject: [PATCH] Patched
+
+---
+ src/Data/Constraint.hs | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/Data/Constraint.hs b/src/Data/Constraint.hs
+index 3e8c394..473fb18 100644
+--- a/src/Data/Constraint.hs
++++ b/src/Data/Constraint.hs
+@@ -105,10 +105,12 @@ import Data.Word (Word)
+ #endif
+ import Data.Coerce (Coercible)
+ import Data.Type.Coercion(Coercion(..))
++{-
+ #if MIN_VERSION_base(4,10,0)
+ import Data.Type.Equality (type (~~))
+ import Type.Reflection (TypeRep, typeRepKind, withTypeable)
+ #endif
++-}
+ 
+ -- | Values of type @'Dict' p@ capture a dictionary for a constraint of type @p@.
+ --
+@@ -171,11 +173,13 @@ instance HasDict (a ~ b) (a :~: b) where
+   evidence Refl = Dict
+ 
+ #if MIN_VERSION_base(4,10,0)
++{-
+ instance HasDict (a ~~ b) (a :~~: b) where
+   evidence HRefl = Dict
+ 
+ instance HasDict (Typeable k, Typeable a) (TypeRep (a :: k)) where
+   evidence tr = withTypeable tr $ withTypeable (typeRepKind tr) Dict
++-}
+ #endif
+ 
+ -- | From a 'Dict', takes a value in an environment where the instance
+-- 
+2.21.0
+
