@@ -13,7 +13,9 @@ jobs:
           key: eta-hackage-v1300-etlas-cache-
 
       - run: etlas update
-      - run: etlas run eta-hackage
+      - run: 
+          command: etlas run eta-hackage
+          no_output_timeout: 30m
 
       - save_cache:
           key: eta-hackage-v1300-etlas-cache-{{ epoch }}
