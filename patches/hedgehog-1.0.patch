@@ -1,0 +1,575 @@
+From 091beeb0a51fb50df87bceba6789ec17d5d3dc03 Mon Sep 17 00:00:00 2001
+From: Rahul Muttineni <rahulmutt@gmail.com>
+Date: Fri, 24 May 2019 10:06:55 +0530
+Subject: [PATCH] Patched
+
+---
+ hedgehog.cabal                        |   1 +
+ src/Hedgehog/Internal/Config.hs       |  15 +-
+ src/Hedgehog/Internal/Distributive.hs |  14 +-
+ src/Hedgehog/Internal/Property.hs     | 289 ++++++++++++++------------
+ src/Hedgehog/Internal/Runner.hs       |   7 +-
+ src/Hedgehog/Internal/Tripping.hs     |   1 +
+ 6 files changed, 183 insertions(+), 144 deletions(-)
+
+diff --git a/hedgehog.cabal b/hedgehog.cabal
+index 153a84e..569277a 100644
+--- a/hedgehog.cabal
++++ b/hedgehog.cabal
+@@ -73,6 +73,7 @@ library
+     , transformers                    >= 0.5        && < 0.6
+     , transformers-base               >= 0.4.5.1    && < 0.5
+     , wl-pprint-annotated             >= 0.0        && < 0.2
++    , th-lift
+ 
+   ghc-options:
+     -Wall
+diff --git a/src/Hedgehog/Internal/Config.hs b/src/Hedgehog/Internal/Config.hs
+index 0b9b34d..9925367 100644
+--- a/src/Hedgehog/Internal/Config.hs
++++ b/src/Hedgehog/Internal/Config.hs
+@@ -1,5 +1,5 @@
+ {-# OPTIONS_HADDOCK not-home #-}
+-{-# LANGUAGE DeriveLift #-}
++--{-# LANGUAGE DeriveLift #-}
+ {-# LANGUAGE DoAndIfThenElse #-}
+ {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+ {-# LANGUAGE LambdaCase #-}
+@@ -26,6 +26,7 @@ import           Control.Monad.IO.Class (MonadIO(..))
+ import qualified GHC.Conc as Conc
+ 
+ import           Language.Haskell.TH.Syntax (Lift)
++import           Language.Haskell.TH.Lift
+ 
+ import           System.Console.ANSI (hSupportsANSI)
+ import           System.Environment (lookupEnv)
+@@ -41,7 +42,9 @@ data UseColor =
+     -- ^ Disable ANSI colors in report output.
+   | EnableColor
+     -- ^ Enable ANSI colors in report output.
+-    deriving (Eq, Ord, Show, Lift)
++    deriving (Eq, Ord, Show)--, Lift)
++
++$(deriveLift ''UseColor)
+ 
+ -- | How verbose should the report output be.
+ --
+@@ -50,13 +53,17 @@ data Verbosity =
+     -- ^ Only display the summary of the test run.
+   | Normal
+     -- ^ Display each property as it is running, as well as the summary.
+-    deriving (Eq, Ord, Show, Lift)
++    deriving (Eq, Ord, Show)--, Lift)
++
++$(deriveLift ''Verbosity)
+ 
+ -- | The number of workers to use when running properties in parallel.
+ --
+ newtype WorkerCount =
+   WorkerCount Int
+-  deriving (Eq, Ord, Show, Num, Enum, Real, Integral, Lift)
++  deriving (Eq, Ord, Show, Num, Enum, Real, Integral)--, Lift)
++
++$(deriveLift ''WorkerCount)
+ 
+ detectMark :: MonadIO m => m Bool
+ detectMark = do
+diff --git a/src/Hedgehog/Internal/Distributive.hs b/src/Hedgehog/Internal/Distributive.hs
+index d27c296..badd528 100644
+--- a/src/Hedgehog/Internal/Distributive.hs
++++ b/src/Hedgehog/Internal/Distributive.hs
+@@ -3,7 +3,7 @@
+ {-# LANGUAGE InstanceSigs #-}
+ {-# LANGUAGE LambdaCase #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+-{-# LANGUAGE TypeApplications #-}
++--{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ module Hedgehog.Internal.Distributive (
+     MonadTransDistributive(..)
+@@ -100,7 +100,7 @@ instance MonadTransDistributive (Lazy.StateT s) where
+       let
+         restoreStateT :: s -> StT f (a, s) -> (f (Lazy.StateT s m) a, s)
+         restoreStateT s = do
+-          first (restoreT . pure) . juggleState @f @a Proxy Proxy s
++          first (restoreT . pure) . juggleState (Proxy :: Proxy f) (Proxy :: Proxy a) s
+       in
+         Lazy.StateT $ \s -> do
+           fmap (restoreStateT s) . run $ Lazy.runStateT m s
+@@ -126,7 +126,7 @@ instance MonadTransDistributive (Strict.StateT s) where
+       let
+         restoreStateT :: s -> StT f (a, s) -> (f (Strict.StateT s m) a, s)
+         restoreStateT s = do
+-          first (restoreT . pure) . juggleState @f @a Proxy Proxy s
++          first (restoreT . pure) . juggleState (Proxy :: Proxy f) (Proxy :: Proxy a) s
+       in
+         Strict.StateT $ \s -> do
+           fmap (restoreStateT s) . run $ Strict.runStateT m s
+@@ -152,7 +152,7 @@ instance Monoid w => MonadTransDistributive (Lazy.RWST r w s) where
+       let
+         restoreRWST :: s -> StT f (a, s, w) -> (f (Lazy.RWST r w s m) a, s, w)
+         restoreRWST s = do
+-          first3 (restoreT . pure) . juggleRWS @f @w @a Proxy Proxy Proxy s
++          first3 (restoreT . pure) . juggleRWS (Proxy :: Proxy f) (Proxy :: Proxy w) (Proxy :: Proxy a) s
+       in
+         Lazy.RWST $ \r s -> do
+           fmap (restoreRWST s) . run $ Lazy.runRWST m r s
+@@ -178,7 +178,7 @@ instance Monoid w => MonadTransDistributive (Strict.RWST r w s) where
+       let
+         restoreRWST :: s -> StT f (a, s, w) -> (f (Strict.RWST r w s m) a, s, w)
+         restoreRWST s = do
+-          first3 (restoreT . pure) . juggleRWS @f @w @a Proxy Proxy Proxy s
++          first3 (restoreT . pure) . juggleRWS (Proxy :: Proxy f) (Proxy :: Proxy w) (Proxy :: Proxy a) s
+       in
+         Strict.RWST $ \r s -> do
+           fmap (restoreRWST s) . run $ Strict.runRWST m r s
+@@ -205,8 +205,8 @@ juggleRWS :: forall t w a s.
+ juggleRWS _ _ _ s0 st0 =
+   let
+     (st, (s, w)) =
+-      juggleState @t @a Proxy Proxy (s0, mempty) $
+-        mapStT @t @(a, s, w) Proxy Proxy unpack3 st0
++      juggleState (Proxy :: Proxy t) (Proxy :: Proxy a) (s0, mempty) $
++        mapStT (Proxy :: Proxy t) (Proxy :: Proxy (a, s, w)) unpack3 st0
+   in
+     (st, s, w)
+ 
+diff --git a/src/Hedgehog/Internal/Property.hs b/src/Hedgehog/Internal/Property.hs
+index 7e88825..6ebbb3e 100644
+--- a/src/Hedgehog/Internal/Property.hs
++++ b/src/Hedgehog/Internal/Property.hs
+@@ -3,7 +3,7 @@
+ {-# LANGUAGE BangPatterns #-}
+ {-# LANGUAGE DeriveFoldable #-}
+ {-# LANGUAGE DeriveFunctor #-}
+-{-# LANGUAGE DeriveLift #-}
++--{-# LANGUAGE DeriveLift #-}
+ {-# LANGUAGE DeriveTraversable #-}
+ {-# LANGUAGE DoAndIfThenElse #-}
+ {-# LANGUAGE FlexibleContexts #-}
+@@ -154,17 +154,91 @@ import           Hedgehog.Internal.Show
+ import           Hedgehog.Internal.Source
+ 
+ import           Language.Haskell.TH.Syntax (Lift)
++import           Language.Haskell.TH.Lift (deriveLift)
+ 
+ ------------------------------------------------------------------------
+ 
+--- | A property test, along with some configurable limits like how many times
+---   to run the test.
++-- | Log messages which are recorded during a test run.
+ --
+-data Property =
+-  Property {
+-      propertyConfig :: !PropertyConfig
+-    , propertyTest :: PropertyT IO ()
+-    }
++data Log =
++    Annotation (Maybe Span) String
++  | Footnote String
++  | Label (Label Cover)
++    deriving (Eq, Show)
++
++-- | A record containing the details of a test run.
++newtype Journal =
++  Journal {
++      journalLogs :: [Log]
++    } deriving (Eq, Show, Semigroup, Monoid)
++
++-- | Details on where and why a test failed.
++--
++data Failure =
++  Failure (Maybe Span) String (Maybe Diff)
++  deriving (Eq, Show)
++
++-- | Whether a test is covered by a classifier, and therefore belongs to a
++--   'Class'.
++--
++data Cover =
++    NoCover
++  | Cover
++    deriving (Eq, Ord, Show)
++
++
++-- | The relative number of tests which are covered by a classifier.
++--
++--   Can be constructed using numeric literals:
++--
++-- @
++--   30 :: CoverPercentage
++-- @
++--
++newtype CoverPercentage =
++  CoverPercentage {
++      unCoverPercentage :: Double
++    } deriving (Eq, Ord, Show, Num)
++
++-- | The name of a classifier.
++--
++--   Can be constructed using `OverloadedStrings`:
++--
++-- @
++--   "apples" :: LabelName
++-- @
++--
++newtype LabelName =
++  LabelName {
++      unLabelName :: String
++    } deriving (Eq, Ord, Show, IsString)
++
++-- | The extent to which a test is covered by a classifier.
++--
++--   /When a classifier's coverage does not exceed the required minimum, the
++--   test will be failed./
++--
++data Label a =
++  MkLabel {
++      labelName :: !LabelName
++    , labelLocation :: !(Maybe Span)
++    , labelMinimum :: !CoverPercentage
++    , labelAnnotation :: !a
++    } deriving (Eq, Show, Functor, Foldable, Traversable)
++
++-- | The difference between some expected and actual value.
++--
++data Diff =
++  Diff {
++      diffPrefix :: String
++    , diffRemoved :: String
++    , diffInfix :: String
++    , diffAdded :: String
++    , diffSuffix :: String
++    , diffValue :: ValueDiff
++    } deriving (Eq, Show)
++
++
+ 
+ -- | The property monad transformer allows both the generation of test inputs
+ --   and the assertion of expectations.
+@@ -175,17 +249,17 @@ newtype PropertyT m a =
+     } deriving (
+       Functor
+     , Applicative
+-    , Monad
+-    , MonadIO
+-    , MonadBase b
+-    , MonadThrow
+-    , MonadCatch
+-    , MonadReader r
+-    , MonadState s
+-    , MonadError e
+     )
+ -- NOTE: Move this to the deriving list above when we drop 7.10
++deriving instance Monad m => Monad (PropertyT m)
++deriving instance MonadBase b m => MonadBase b (PropertyT m)
++deriving instance MonadIO m => MonadIO (PropertyT m)
+ deriving instance MonadResource m => MonadResource (PropertyT m)
++deriving instance MonadThrow m => MonadThrow (PropertyT m)
++deriving instance MonadCatch m => MonadCatch (PropertyT m)
++deriving instance MonadReader r m => MonadReader r (PropertyT m)
++deriving instance MonadState s m => MonadState s (PropertyT m)
++deriving instance MonadError e m => MonadError e (PropertyT m)
+ 
+ -- | A test monad allows the assertion of expectations.
+ --
+@@ -200,14 +274,15 @@ newtype TestT m a =
+     } deriving (
+       Functor
+     , Applicative
+-    , MonadIO
+-    , MonadBase b
+-    , MonadThrow
+-    , MonadCatch
+-    , MonadReader r
+-    , MonadState s
+     )
+ 
++deriving instance MonadIO m => MonadIO (TestT m)
++deriving instance MonadBase b m => MonadBase b (TestT m)
++deriving instance MonadThrow m => MonadThrow (TestT m)
++deriving instance MonadCatch m => MonadCatch (TestT m)
++deriving instance MonadReader r m => MonadReader r (TestT m)
++deriving instance MonadState s m => MonadState s (TestT m)
++
+ -- | The name of a property.
+ --
+ --   Can be constructed using `OverloadedStrings`:
+@@ -219,17 +294,9 @@ newtype TestT m a =
+ newtype PropertyName =
+   PropertyName {
+       unPropertyName :: String
+-    } deriving (Eq, Ord, Show, IsString, Semigroup, Lift)
++    } deriving (Eq, Ord, Show, IsString, Semigroup)--, Lift)
+ 
+--- | Configuration for a property test.
+---
+-data PropertyConfig =
+-  PropertyConfig {
+-      propertyTestLimit :: !TestLimit
+-    , propertyDiscardLimit :: !DiscardLimit
+-    , propertyShrinkLimit :: !ShrinkLimit
+-    , propertyShrinkRetries :: !ShrinkRetries
+-    } deriving (Eq, Ord, Show, Lift)
++$(deriveLift ''PropertyName)
+ 
+ -- | The number of successful tests that need to be run before a property test
+ --   is considered successful.
+@@ -242,19 +309,9 @@ data PropertyConfig =
+ --
+ newtype TestLimit =
+   TestLimit Int
+-  deriving (Eq, Ord, Show, Num, Enum, Real, Integral, Lift)
++  deriving (Eq, Ord, Show, Num, Enum, Real, Integral) --, Lift)
+ 
+--- | The number of tests a property ran successfully.
+---
+-newtype TestCount =
+-  TestCount Int
+-  deriving (Eq, Ord, Show, Num, Enum, Real, Integral)
+-
+--- | The number of tests a property had to discard.
+---
+-newtype DiscardCount =
+-  DiscardCount Int
+-  deriving (Eq, Ord, Show, Num, Enum, Real, Integral)
++$(deriveLift ''TestLimit)
+ 
+ -- | The number of discards to allow before giving up.
+ --
+@@ -267,7 +324,10 @@ newtype DiscardCount =
+ --
+ newtype DiscardLimit =
+   DiscardLimit Int
+-  deriving (Eq, Ord, Show, Num, Enum, Real, Integral, Lift)
++  deriving (Eq, Ord, Show, Num, Enum, Real, Integral)--, Lift)
++
++$(deriveLift ''DiscardLimit)
++
+ 
+ -- | The number of shrinks to try before giving up on shrinking.
+ --
+@@ -279,13 +339,9 @@ newtype DiscardLimit =
+ --
+ newtype ShrinkLimit =
+   ShrinkLimit Int
+-  deriving (Eq, Ord, Show, Num, Enum, Real, Integral, Lift)
++  deriving (Eq, Ord, Show, Num, Enum, Real, Integral)--, Lift)
+ 
+--- | The numbers of times a property was able to shrink after a failing test.
+---
+-newtype ShrinkCount =
+-  ShrinkCount Int
+-  deriving (Eq, Ord, Show, Num, Enum, Real, Integral)
++$(deriveLift ''ShrinkLimit)
+ 
+ -- | The number of times to re-run a test during shrinking. This is useful if
+ --   you are testing something which fails non-deterministically and you want to
+@@ -304,7 +360,53 @@ newtype ShrinkCount =
+ --
+ newtype ShrinkRetries =
+   ShrinkRetries Int
+-  deriving (Eq, Ord, Show, Num, Enum, Real, Integral, Lift)
++  deriving (Eq, Ord, Show, Num, Enum, Real, Integral)--, Lift)
++
++$(deriveLift ''ShrinkRetries)
++
++-- | Configuration for a property test.
++--
++data PropertyConfig =
++  PropertyConfig {
++      propertyTestLimit :: !TestLimit
++    , propertyDiscardLimit :: !DiscardLimit
++    , propertyShrinkLimit :: !ShrinkLimit
++    , propertyShrinkRetries :: !ShrinkRetries
++    } deriving (Eq, Ord, Show) --, Lift)
++
++$(deriveLift ''PropertyConfig)
++
++
++-- | A property test, along with some configurable limits like how many times
++--   to run the test.
++--
++data Property =
++  Property {
++      propertyConfig :: !PropertyConfig
++    , propertyTest :: PropertyT IO ()
++    }
++
++
++
++-- | The number of tests a property ran successfully.
++--
++newtype TestCount =
++  TestCount Int
++  deriving (Eq, Ord, Show, Num, Enum, Real, Integral)
++
++-- | The number of tests a property had to discard.
++--
++newtype DiscardCount =
++  DiscardCount Int
++  deriving (Eq, Ord, Show, Num, Enum, Real, Integral)
++
++
++-- | The numbers of times a property was able to shrink after a failing test.
++--
++newtype ShrinkCount =
++  ShrinkCount Int
++  deriving (Eq, Ord, Show, Num, Enum, Real, Integral)
++
+ 
+ -- | A named collection of property tests.
+ --
+@@ -325,7 +427,9 @@ data Group =
+ newtype GroupName =
+   GroupName {
+       unGroupName :: String
+-    } deriving (Eq, Ord, Show, IsString, Semigroup, Lift)
++    } deriving (Eq, Ord, Show, IsString, Semigroup)--, Lift)
++
++$(deriveLift ''GroupName)
+ 
+ -- | The number of properties in a group.
+ --
+@@ -339,45 +443,6 @@ newtype PropertyCount =
+ -- FIXME allow user's to crete their own diffs anywhere.
+ --
+ 
+--- | Log messages which are recorded during a test run.
+---
+-data Log =
+-    Annotation (Maybe Span) String
+-  | Footnote String
+-  | Label (Label Cover)
+-    deriving (Eq, Show)
+-
+--- | A record containing the details of a test run.
+-newtype Journal =
+-  Journal {
+-      journalLogs :: [Log]
+-    } deriving (Eq, Show, Semigroup, Monoid)
+-
+--- | Details on where and why a test failed.
+---
+-data Failure =
+-  Failure (Maybe Span) String (Maybe Diff)
+-  deriving (Eq, Show)
+-
+--- | The difference between some expected and actual value.
+---
+-data Diff =
+-  Diff {
+-      diffPrefix :: String
+-    , diffRemoved :: String
+-    , diffInfix :: String
+-    , diffAdded :: String
+-    , diffSuffix :: String
+-    , diffValue :: ValueDiff
+-    } deriving (Eq, Show)
+-
+--- | Whether a test is covered by a classifier, and therefore belongs to a
+---   'Class'.
+---
+-data Cover =
+-    NoCover
+-  | Cover
+-    deriving (Eq, Ord, Show)
+ 
+ -- | The total number of tests which are covered by a classifier.
+ --
+@@ -392,44 +457,6 @@ newtype CoverCount =
+       unCoverCount :: Int
+     } deriving (Eq, Ord, Show, Num)
+ 
+--- | The relative number of tests which are covered by a classifier.
+---
+---   Can be constructed using numeric literals:
+---
+--- @
+---   30 :: CoverPercentage
+--- @
+---
+-newtype CoverPercentage =
+-  CoverPercentage {
+-      unCoverPercentage :: Double
+-    } deriving (Eq, Ord, Show, Num)
+-
+--- | The name of a classifier.
+---
+---   Can be constructed using `OverloadedStrings`:
+---
+--- @
+---   "apples" :: LabelName
+--- @
+---
+-newtype LabelName =
+-  LabelName {
+-      unLabelName :: String
+-    } deriving (Eq, Ord, Show, IsString)
+-
+--- | The extent to which a test is covered by a classifier.
+---
+---   /When a classifier's coverage does not exceed the required minimum, the
+---   test will be failed./
+---
+-data Label a =
+-  MkLabel {
+-      labelName :: !LabelName
+-    , labelLocation :: !(Maybe Span)
+-    , labelMinimum :: !CoverPercentage
+-    , labelAnnotation :: !a
+-    } deriving (Eq, Show, Functor, Foldable, Traversable)
+ 
+ -- | The extent to which all classifiers cover a test.
+ --
+@@ -1105,4 +1132,4 @@ collect x =
+ --
+ -- These functions are exported in case you need them in a pinch, but are not
+ -- part of the public API and may change at any time, even as part of a minor
+--- update.
++-- update.
+\ No newline at end of file
+diff --git a/src/Hedgehog/Internal/Runner.hs b/src/Hedgehog/Internal/Runner.hs
+index 63c8f85..2bda479 100644
+--- a/src/Hedgehog/Internal/Runner.hs
++++ b/src/Hedgehog/Internal/Runner.hs
+@@ -1,7 +1,7 @@
+ {-# OPTIONS_HADDOCK not-home #-}
+ {-# LANGUAGE BangPatterns #-}
+ {-# LANGUAGE CPP #-}
+-{-# LANGUAGE DeriveLift #-}
++--{-# LANGUAGE DeriveLift #-}
+ {-# LANGUAGE DoAndIfThenElse #-}
+ {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+ {-# LANGUAGE LambdaCase #-}
+@@ -50,6 +50,7 @@ import           Hedgehog.Internal.Tree (TreeT(..), NodeT(..))
+ import           Hedgehog.Range (Size)
+ 
+ import           Language.Haskell.TH.Syntax (Lift)
++import           Language.Haskell.TH.Lift (deriveLift)
+ 
+ #if mingw32_HOST_OS
+ import           System.IO (hSetEncoding, stdout, stderr, utf8)
+@@ -70,7 +71,9 @@ data RunnerConfig =
+       -- | How verbose to be in the runner output. 'Nothing' means detect from
+       --   the environment.
+     , runnerVerbosity :: !(Maybe Verbosity)
+-    } deriving (Eq, Ord, Show, Lift)
++    } deriving (Eq, Ord, Show) --, Lift)
++
++$(deriveLift ''RunnerConfig)
+ 
+ findM :: Monad m => [a] -> b -> (a -> m (Maybe b)) -> m b
+ findM xs0 def p =
+diff --git a/src/Hedgehog/Internal/Tripping.hs b/src/Hedgehog/Internal/Tripping.hs
+index de90dba..f1110a9 100644
+--- a/src/Hedgehog/Internal/Tripping.hs
++++ b/src/Hedgehog/Internal/Tripping.hs
+@@ -1,4 +1,5 @@
+ {-# OPTIONS_HADDOCK not-home #-}
++{-# LANGUAGE FlexibleContexts #-}
+ module Hedgehog.Internal.Tripping (
+     tripping
+   ) where
+-- 
+2.21.0
+
