@@ -1,0 +1,32 @@
+From e3768c9d828a1b69fe610da8b56106ed883b980a Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Wed, 29 May 2019 10:58:55 +0200
+Subject: [PATCH] Patched
+
+---
+ src/Data/Time/Format/Compat.hs | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/src/Data/Time/Format/Compat.hs b/src/Data/Time/Format/Compat.hs
+index dff6f48..267f224 100644
+--- a/src/Data/Time/Format/Compat.hs
++++ b/src/Data/Time/Format/Compat.hs
+@@ -77,6 +77,15 @@ readPTime acceptWS l f = readS_to_P (readSTime acceptWS l f)
+ 
+ #else
+ 
++#if defined(ETA_VERSION)
++
++readsTime :: ParseTime t =>
++             TimeLocale -- ^ Time locale.
++          -> String     -- ^ Format string
++          -> ReadS t
++readsTime = Data.Time.Format.readSTime True
++#endif
++
+ -- parseTimeM has always Fail.MonadFail constraint
+ #if !MIN_VERSION_time(1,9,0) || !MIN_VERSION_base(4,9,0)
+ -- | Parses a time value given a format string.
+-- 
+2.16.2.windows.1
+
