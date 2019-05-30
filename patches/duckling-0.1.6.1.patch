@@ -1,13 +1,14 @@
-From 81869bb5f0dd87b12c73e0c6090f0dfbd339aa3b Mon Sep 17 00:00:00 2001
+From e1146afb989bf4d1027cde4cbe5405f5a8d2d3e6 Mon Sep 17 00:00:00 2001
 From: jneira <atreyu.bbb@gmail.com>
-Date: Wed, 22 May 2019 14:58:16 +0200
+Date: Thu, 30 May 2019 06:19:02 +0200
 Subject: [PATCH] Patched
 
 ---
- Duckling/Time/FR/Rules.hs | 12 ++++++------
- Duckling/Time/PT/Rules.hs | 10 +++++-----
- duckling.cabal            | 10 +++++++---
- 3 files changed, 18 insertions(+), 14 deletions(-)
+ Duckling/Time/FR/Rules.hs   | 12 ++++++------
+ Duckling/Time/PT/Rules.hs   | 10 +++++-----
+ duckling.cabal              | 10 +++++++---
+ tests/Duckling/Api/Tests.hs |  1 +
+ 4 files changed, 19 insertions(+), 14 deletions(-)
 
 diff --git a/Duckling/Time/FR/Rules.hs b/Duckling/Time/FR/Rules.hs
 index e009f3a..4e310ad 100644
@@ -117,6 +118,18 @@ index cdebf84..e2a6aee 100644
  executable custom-dimension-example
    main-is:             CustomDimensionExample.hs
    hs-source-dirs:      exe
+diff --git a/tests/Duckling/Api/Tests.hs b/tests/Duckling/Api/Tests.hs
+index 796bf63..77d42e1 100644
+--- a/tests/Duckling/Api/Tests.hs
++++ b/tests/Duckling/Api/Tests.hs
+@@ -8,6 +8,7 @@
+ 
+ {-# LANGUAGE NoRebindableSyntax #-}
+ {-# LANGUAGE OverloadedStrings #-}
++{-# LANGUAGE FlexibleContexts #-}
+ 
+ module Duckling.Api.Tests
+   ( tests
 -- 
 2.16.2.windows.1
 
