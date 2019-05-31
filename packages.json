@@ -59,7 +59,8 @@
         "Elm",
         "idris",
         "purescript",
-        "pandoc"
+        "pandoc",
+        "duckling"
     ],
     "ignored-versions": []
 }
