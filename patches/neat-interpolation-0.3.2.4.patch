@@ -1,0 +1,24 @@
+From 5c5cd4031542ae1bf7a5077419b21a284f88cd69 Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Fri, 31 May 2019 23:42:35 +0200
+Subject: [PATCH] Patched
+
+---
+ library/NeatInterpolation/Parsing.hs | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/library/NeatInterpolation/Parsing.hs b/library/NeatInterpolation/Parsing.hs
+index d3933d5..0014785 100644
+--- a/library/NeatInterpolation/Parsing.hs
++++ b/library/NeatInterpolation/Parsing.hs
+@@ -2,6 +2,7 @@ module NeatInterpolation.Parsing where
+ 
+ import BasePrelude hiding (many, some, try, (<|>))
+ import Data.Text (Text, pack)
++import Data.Void (Void)
+ import Text.Megaparsec hiding (Line)
+ import Text.Megaparsec.Char
+ 
+-- 
+2.16.2.windows.1
+
