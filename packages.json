@@ -62,5 +62,8 @@
         "pandoc",
         "duckling"
     ],
-    "ignored-versions": []
+    "ignored-versions": [],
+    "test": [
+        "aeson"
+    ]
 }
