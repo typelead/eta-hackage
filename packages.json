@@ -65,5 +65,8 @@
     "ignored-versions": [],
     "test": [
         "aeson"
+    ],
+    "test-versions": [
+
     ]
 }
