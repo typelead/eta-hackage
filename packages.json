@@ -63,10 +63,6 @@
         "duckling"
     ],
     "ignored-versions": [],
-    "test": [
-        "aeson"
-    ],
-    "test-versions": [
-
-    ]
+    "test": [ "bifunctors" ],
+    "test-versions": [ ]
 }
