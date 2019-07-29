@@ -433,7 +433,7 @@ These packages are supported by `etlas`.
 - [crypto-api-0.13.2](https://hackage.haskell.org/package/crypto-api-0.13.2)
 - [cryptohash-0.11.9](https://hackage.haskell.org/package/cryptohash-0.11.9)
 - [crypto-pubkey-types-0.4.3](https://hackage.haskell.org/package/crypto-pubkey-types-0.4.3)
-- [cryptonite-0.24](https://hackage.haskell.org/package/cryptonite-0.24)
+- [cryptonite >= 0.24 && <= 0.25](https://hackage.haskell.org/package/cryptonite-0.24)
 - [cryptohash-md5-0.11.100.1](http://hackage.haskell.org/package/cryptohash-md5)
 - [cryptohash-sha1-0.11.100.1](http://hackage.haskell.org/package/cryptohash-sha1)
 - [digest 0.0.1.2](https://hackage.haskell.org/package/digest)
