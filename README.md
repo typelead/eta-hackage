@@ -265,6 +265,7 @@ These packages are supported by `etlas`.
 - [aeson-pretty >= 0.8.2 && <= 0.8.5](https://hackage.haskell.org/package/aeson-pretty)
 - [aeson-quick-0.1.2.1](https://hackage.haskell.org/package/aeson-quick-0.1.2.1)
 - [dhall-json == 1.2.1 || >= 1.2.4](https://hackage.haskell.org/package/dhall-json)
+- [microaeson == 0.1.0.0](https://hackage.haskell.org/package/microaeson)
 
 #### Simulation
 - [aivika-5.8](https://hackage.haskell.org/package/aivika-5.8)
