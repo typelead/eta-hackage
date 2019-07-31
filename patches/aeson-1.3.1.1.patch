@@ -1,0 +1,128 @@
+From ba2915fb5d88be66df7e4115033991193d04dc9a Mon Sep 17 00:00:00 2001
+From: jneira <atreyu.bbb@gmail.com>
+Date: Wed, 31 Jul 2019 09:51:44 +0200
+Subject: [PATCH] Patched
+
+---
+ Data/Aeson/Types/Generic.hs            |  2 +-
+ Data/Aeson/Types/Internal.hs           | 18 ++++++++++++++----
+ aeson.cabal                            |  4 +++-
+ pure/Data/Aeson/Parser/UnescapePure.hs |  4 +++-
+ 4 files changed, 21 insertions(+), 7 deletions(-)
+
+diff --git a/Data/Aeson/Types/Generic.hs b/Data/Aeson/Types/Generic.hs
+index 671a914..a6df3d9 100644
+--- a/Data/Aeson/Types/Generic.hs
++++ b/Data/Aeson/Types/Generic.hs
+@@ -46,7 +46,7 @@ import GHC.Generics
+ class IsRecord (f :: * -> *) isRecord | f -> isRecord
+ 
+ instance (IsRecord f isRecord) => IsRecord (f :*: g) isRecord
+-#if MIN_VERSION_base(4,9,0)
++#if MIN_VERSION_base(4,9,0) && !defined(ETA_VERSION)
+ instance OVERLAPPING_ IsRecord (M1 S ('MetaSel 'Nothing u ss ds) f) False
+ #else
+ instance OVERLAPPING_ IsRecord (M1 S NoSelector f) False
+diff --git a/Data/Aeson/Types/Internal.hs b/Data/Aeson/Types/Internal.hs
+index 179baa3..7ebd5b5 100644
+--- a/Data/Aeson/Types/Internal.hs
++++ b/Data/Aeson/Types/Internal.hs
+@@ -82,6 +82,9 @@ import Control.Arrow (first)
+ import Control.DeepSeq (NFData(..))
+ import Control.Monad (MonadPlus(..), ap)
+ import Data.Char (isLower, isUpper, toLower, isAlpha, isAlphaNum)
++#ifdef HAS_TRAMPOLINE
++import qualified Data.Function as F
++#endif
+ import Data.Data (Data)
+ import Data.Foldable (foldl')
+ import Data.HashMap.Strict (HashMap)
+@@ -106,6 +109,13 @@ import qualified Language.Haskell.TH.Syntax as TH
+ import Data.List (sort)
+ #endif
+ 
++trampoline :: a -> a
++#ifdef HAS_TRAMPOLINE
++trampoline = F.trampoline
++#else
++trampoline = id
++#endif
++
+ -- | Elements of a JSON path used to describe the location of an
+ -- error.
+ data JSONPathElement = Key Text
+@@ -425,23 +435,23 @@ emptyObject = Object H.empty
+ 
+ -- | Run a 'Parser'.
+ parse :: (a -> Parser b) -> a -> Result b
+-parse m v = runParser (m v) [] (const Error) Success
++parse m v = trampoline $ runParser (m v) [] (const Error) Success
+ {-# INLINE parse #-}
+ 
+ -- | Run a 'Parser'.
+ iparse :: (a -> Parser b) -> a -> IResult b
+-iparse m v = runParser (m v) [] IError ISuccess
++iparse m v = trampoline $ runParser (m v) [] IError ISuccess
+ {-# INLINE iparse #-}
+ 
+ -- | Run a 'Parser' with a 'Maybe' result type.
+ parseMaybe :: (a -> Parser b) -> a -> Maybe b
+-parseMaybe m v = runParser (m v) [] (\_ _ -> Nothing) Just
++parseMaybe m v = trampoline $ runParser (m v) [] (\_ _ -> Nothing) Just
+ {-# INLINE parseMaybe #-}
+ 
+ -- | Run a 'Parser' with an 'Either' result type.  If the parse fails,
+ -- the 'Left' payload will contain an error message.
+ parseEither :: (a -> Parser b) -> a -> Either String b
+-parseEither m v = runParser (m v) [] onError Right
++parseEither m v = trampoline $ runParser (m v) [] onError Right
+   where onError path msg = Left (formatError path msg)
+ {-# INLINE parseEither #-}
+ 
+diff --git a/aeson.cabal b/aeson.cabal
+index 2906078..59149f8 100644
+--- a/aeson.cabal
++++ b/aeson.cabal
+@@ -149,7 +149,7 @@ library
+     ghc-options: -O2
+ 
+   include-dirs: include
+-  if impl(ghcjs) || !flag(cffi)
++  if impl(ghcjs) || impl(eta) || !flag(cffi)
+     hs-source-dirs: pure
+     other-modules: Data.Aeson.Parser.UnescapePure
+   else
+@@ -157,6 +157,8 @@ library
+     cpp-options: -DCFFI
+     hs-source-dirs: ffi
+     other-modules: Data.Aeson.Parser.UnescapeFFI
++  if impl(eta >= 0.0.9.7)
++     cpp-options: -DHAS_TRAMPOLINE
+ 
+ test-suite tests
+   default-language: Haskell2010
+diff --git a/pure/Data/Aeson/Parser/UnescapePure.hs b/pure/Data/Aeson/Parser/UnescapePure.hs
+index 26e9ac8..c4714b4 100644
+--- a/pure/Data/Aeson/Parser/UnescapePure.hs
++++ b/pure/Data/Aeson/Parser/UnescapePure.hs
+@@ -21,6 +21,8 @@ import Data.Text.Internal.Private (runText)
+ import Data.Text.Unsafe (unsafeDupablePerformIO)
+ import Data.Word (Word8, Word16, Word32)
+ import GHC.ST (ST)
++import GHC.IO (trampolineIO)
++import Unsafe.Coerce (unsafeCoerce)
+ 
+ -- Different UTF states.
+ data Utf =
+@@ -130,7 +132,7 @@ unescapeText' :: ByteString -> Text
+ unescapeText' bs = runText $ \done -> do
+     dest <- A.new len
+ 
+-    (pos, finalState) <- loop dest (0, StateNone) 0
++    (pos, finalState) <- (unsafeCoerce trampolineIO) $ loop dest (0, StateNone) 0
+ 
+     -- Check final state. Currently pos gets only increased over time, so this check should catch overflows.
+     when ( finalState /= StateNone || pos > len)
+-- 
+2.16.2.windows.1
+
