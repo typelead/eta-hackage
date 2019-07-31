@@ -253,7 +253,7 @@ These packages are supported by `etlas`.
 - [Adaptive-0.1](https://hackage.haskell.org/package/Adaptive-0.1)
 
 #### JSON
-- [aeson == 0.11.0.0 || >= 0.11.3.0 && <= 1.2.3.0](https://hackage.haskell.org/package/aeson)
+- [aeson == 0.11.0.0 || >= 0.11.3.0 && <= 1.4.0.0](https://hackage.haskell.org/package/aeson)
 - [aeson-compat >= 0.3.7.1 && <= 0.3.8](https://hackage.haskell.org/package/aeson-diff-1.1.0.5)
 - [aeson-diff-1.1.0.5](https://hackage.haskell.org/package/aeson-diff)
 - [aeson-extra-0.4.1.1](https://hackage.haskell.org/package/aeson-extra-0.4.1.1)
